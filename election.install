@@ -194,6 +194,42 @@ function election_schema() {
     ),
   );
   
+  $schema['el_electorates'] = array(
+    'description' => 'The electorates table for the election module. An electorate is a group of eligible voters.',
+    'fields' => array(
+      'electorate_id' => array(
+        'description' => 'Primary key: identifier for an electorate.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'conditions' => array(
+        'description' => 'A serialized array of conditions, all of which users must pass to be part of the electorate.',
+        'type' => 'blob',
+        'size' => 'big',
+        'serialize' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'The name of the electorate - a human-readable identifier.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp for when the electorate was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp for when the electorate was most recently changed.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('electorate_id'),
+  );
+  
   return $schema;
   
 }
