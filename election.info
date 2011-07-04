@@ -1,1 +1,4 @@
 name = Election
+description = "Provides online voting functionality, supporting referendums and STV elections."
+core = 7.x
+dependencies[] = views

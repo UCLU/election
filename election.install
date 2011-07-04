@@ -1,0 +1,199 @@
+<?php
+/**
+ * @file
+ *   Install functions for the Election module.
+ */
+
+
+define('ELECTION_TYPE_REFERENDUM', 1);
+define('ELECTION_TYPE_STV', 2);
+define('ELECTION_STATUS_CLOSED', 0);
+define('ELECTION_STATUS_OPEN', 1);
+define('ELECTION_STATUS_AUTO', 2);
+
+/**
+ * Implements hook_schema().
+ * 
+ * Tables provided by this module are prefixed by the string 'el_'.
+ */
+function election_schema() {
+  
+  $schema = array();
+
+  $schema['el_elections'] = array(
+    'description' => 'The main table for the election module.',
+    'fields' => array(
+      'election_id' => array(
+        'description' => 'Primary key: identifier for an election.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The type of the election, i.e. STV or referendum.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => ELECTION_TYPE_REFERENDUM,
+      ),
+      'status' => array(
+        'description' => 'The voting status: open, closed, or auto.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => ELECTION_STATUS_AUTO,
+      ),
+      'anonymous' => array(
+        'description' => 'Whether or not votes in this election are anonymous.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'open_time' => array(
+        'description' => 'The Unix timestamp for when voting opens.',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'close_time' => array(
+        'description' => 'The Unix timestamp for when voting closes.',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'name' => array(
+        'description' => 'The name of the election - a human-readable identifier.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'description' => array(
+        'description' => 'A human-readable description of the election.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp for when the election was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp for when the election was most recently changed.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'data' => array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data.',
+      ),
+    ),
+    'primary key' => array('election_id'),
+    'indexes' => array(
+      'type' => array('type'),
+    ),
+  );
+  
+  $schema['el_posts'] = array(
+    'description' => 'The posts table for the election module. Post types: electoral position, referendum motion.',
+    'fields' => array(
+      'post_id' => array(
+        'description' => 'Primary key: identifier for a post.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'election_id' => array(
+        'description' => 'The {el_elections}.election_id for this post.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'allow_abstention' => array(
+        'description' => 'For a motion: whether or not to allow voters to abstain.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'require_manifesto' => array(
+        'description' => 'For a position: whether or not to require a candidate manifesto.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'require_phone' => array(
+        'description' => 'For a position: whether or not to require a candidate phone number.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'require_photo' => array(
+        'description' => 'For a position: whether or not to require a candidate photograph.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'require_proposer' => array(
+        'description' => 'For a position: whether or not to require the candidate to have a proposer.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'vacancy_count' => array(
+        'description' => 'For a position: the number of vacancies.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'use_ron' => array(
+        'description' => 'For a position: whether or not RON (Re-Open Nominations) is to be provided as a candidate. This is ignored if {el_posts}.vacancy_count > 1.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'title' => array(
+        'description' => 'The title of the position or motion.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'description' => array(
+        'description' => 'A human-readable description of the position or motion.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp for when the post was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp for when the post was most recently changed.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'data' => array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data.',
+      ),
+    ),
+    'primary key' => array('post_id'),
+    'foreign keys' => array(
+      'post_election' => array(
+        'table' => 'el_elections',
+        'columns' => array('election_id' => 'election_id'),
+      ),
+    ),
+  );
+  
+  return $schema;
+  
+}
