@@ -7,9 +7,17 @@
 
 define('ELECTION_TYPE_REFERENDUM', 1);
 define('ELECTION_TYPE_STV', 2);
+
 define('ELECTION_STATUS_CLOSED', 0);
 define('ELECTION_STATUS_OPEN', 1);
 define('ELECTION_STATUS_AUTO', 2);
+
+define('ELECTION_ANSWER_NO', 0);
+define('ELECTION_ANSWER_YES', 1);
+define('ELECTION_ANSWER_ABSTAIN', 2);
+
+define('ELECTION_ENDORSER_TYPE_PROPOSER', 1);
+define('ELECTION_ENDORSER_TYPE_SECONDER', 2);
 
 /**
  * Implements hook_schema().
@@ -105,7 +113,7 @@ function election_schema() {
         'not null' => TRUE,
       ),
       'election_id' => array(
-        'description' => 'The {el_elections}.election_id for this post.',
+        'description' => 'The {election_elections}.election_id for this post.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -152,7 +160,7 @@ function election_schema() {
         'default' => 1,
       ),
       'use_ron' => array(
-        'description' => 'For a position: whether or not RON (Re-Open Nominations) is to be provided as a candidate. This is ignored if {el_posts}.vacancy_count > 1.',
+        'description' => 'For a position: whether or not RON (Re-Open Nominations) is to be provided as a candidate. This is ignored if {election_posts}.vacancy_count > 1.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 1,
@@ -199,13 +207,13 @@ function election_schema() {
     'description' => 'Table mapping electorates to posts, for the election module.',
     'fields' => array(
       'post_id' => array(
-        'description' => 'Relates to {el_posts}.post_id.',
+        'description' => 'Relates to {election_posts}.post_id.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'electorate_id' => array(
-        'description' => 'Relates to {el_electorates}.electorate_id.',
+        'description' => 'Relates to {election_electorates}.electorate_id.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -260,6 +268,236 @@ function election_schema() {
       ),
     ),
     'primary key' => array('electorate_id'),
+  );
+  
+  $schema['election_ballots'] = array(
+    'description' => 'The ballots table for the election module.',
+    'fields' => array(
+      'ballot_id' => array(
+        'description' => 'Primary key: identifier for a ballot.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'vote_id' => array(
+        'description' => 'For tracked (non-anonymous) voting. Relates to {election_votes}.vote_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'post_id' => array(
+        'description' => 'For referendums: the motion being answered. Relates to {election_posts}.post_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'answer' => array(
+        'description' => 'For referendums: the answer (no, yes, or abstain).',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => FALSE,
+      ),
+      'candidate_id' => array(
+        'description' => 'For STV elections: the candidate being ranked. Relates to {election_candidates}.candidate_id. Ignored if {election_ballots}.ron = 1.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'ron' => array(
+        'description' => 'For STV elections: whether or not the candidate being ranked is RON (Re-Open Nominations).',
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'rank' => array(
+        'description' => 'For STV elections: the rank of the candidate (first preference, etc).',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('ballot_id'),
+    'foreign keys' => array(
+      'post' => array(
+        'table' => 'election_posts',
+        'columns' => array('post_id' => 'post_id'),
+      ),
+      'candidate' => array(
+        'table' => 'election_candidates',
+        'columns' => array('candidate_id' => 'candidate_id'),
+      ),
+      'vote' => array(
+        'table' => 'election_votes',
+        'columns' => array('vote_id' => 'vote_id'),
+      ),
+    ),
+  );
+
+  $schema['election_votes'] = array(
+    'description' => 'The votes table for the election module. This'
+                  . ' records the act of voting, but not the voting'
+                  . ' preferences (see the {election_ballots} table).',
+    'fields' => array(
+      'vote_id' => array(
+        'description' => 'Primary key: identifier for a vote.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'post_id' => array(
+        'description' => 'The post for which the vote has been made. Relates to {election_posts}.post_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'The {users}.uid of the voter.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'ipv4' => array(
+        'description' => 'The IPv4 address of the voter. If null, there should be an IPv6 address.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'ipv6' => array(
+        'description' => 'The IPv6 address of the voter. If null, there should be an IPv4 address.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'agent' => array(
+        'description' => 'The HTTP User Agent of the voter.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'sid_hash' => array(
+        'description' => 'A hash of the voter\'s session ID.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('vote_id'),
+    'foreign keys' => array(
+      'post' => array(
+        'table' => 'election_posts',
+        'columns' => array('post_id' => 'post_id'),
+      ),
+      'user' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid'),
+      ),
+    ),
+  );
+  
+  $schema['election_candidates'] = array(
+    'description' => 'The candidates table for the election module.',
+    'fields' => array(
+      'candidate_id' => array(
+        'description' => 'Primary key: identifier for a candidate.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'post_id' => array(
+        'description' => 'The post for which the candidate is standing. Relates to {election_posts}.post_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'The {users}.uid of the candidate.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'phone' => array(
+        'description' => 'The phone number of the candidate.',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => FALSE,
+      ),
+      'summary' => array(
+        'description' => 'The candidate\'s manifesto summary paragraph.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('candidate_id'),
+    'foreign keys' => array(
+      'post' => array(
+        'table' => 'election_posts',
+        'columns' => array('post_id' => 'post_id'),
+      ),
+      'user' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid'),
+      ),
+    ),
+  );
+  
+  $schema['election_endorsers'] = array(
+    'description' => 'The endorsers (proposers/seconders) table for the election module.',
+    'fields' => array(
+      'endorser_id' => array(
+        'description' => 'Primary key: identifier for a endorser.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'candidate_id' => array(
+        'description' => 'The candidate being endorsed. Relates to {election_candidates}.candidate_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => sprintf(
+          'The type of the endorser (proposer %d, seconder %d)',
+          ELECTION_ENDORSER_TYPE_PROPOSER,
+          ELECTION_ENDORSER_TYPE_SECONDER
+        ),
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => ELECTION_ENDORSER_TYPE_PROPOSER,
+      ),
+      'first_name' => array(
+        'description' => 'The first name of the endorser.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'last_name' => array(
+        'description' => 'The last name of the endorser.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'email' => array(
+        'description' => 'The email address of the endorser.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'notes' => array(
+        'description' => 'Any optional notes about the endorser.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('endorser_id'),
+    'foreign keys' => array(
+      'candidate' => array(
+        'table' => 'election_candidates',
+        'columns' => array('candidate_id' => 'candidate_id'),
+      ),
+    ),
   );
   
   return $schema;
