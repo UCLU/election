@@ -14,13 +14,13 @@ define('ELECTION_STATUS_AUTO', 2);
 /**
  * Implements hook_schema().
  * 
- * Tables provided by this module are prefixed by the string 'el_'.
+ * Tables provided by this module are prefixed by the string 'election_'.
  */
 function election_schema() {
   
   $schema = array();
 
-  $schema['el_elections'] = array(
+  $schema['election_elections'] = array(
     'description' => 'The main table for the election module.',
     'fields' => array(
       'election_id' => array(
@@ -95,7 +95,7 @@ function election_schema() {
     ),
   );
   
-  $schema['el_posts'] = array(
+  $schema['election_posts'] = array(
     'description' => 'The posts table for the election module. Post types: electoral position, referendum motion.',
     'fields' => array(
       'post_id' => array(
@@ -107,6 +107,7 @@ function election_schema() {
       'election_id' => array(
         'description' => 'The {el_elections}.election_id for this post.',
         'type' => 'int',
+        'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'allow_abstention' => array(
@@ -188,13 +189,44 @@ function election_schema() {
     'primary key' => array('post_id'),
     'foreign keys' => array(
       'post_election' => array(
-        'table' => 'el_elections',
+        'table' => 'election_elections',
         'columns' => array('election_id' => 'election_id'),
       ),
     ),
   );
   
-  $schema['el_electorates'] = array(
+  $schema['election_posts_electorates'] = array(
+    'description' => 'Table mapping electorates to posts, for the election module.',
+    'fields' => array(
+      'post_id' => array(
+        'description' => 'Relates to {el_posts}.post_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'electorate_id' => array(
+        'description' => 'Relates to {el_electorates}.electorate_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'unique keys' => array(
+      'posts_electorates' => array('post_id', 'electorate_id'),
+    ),
+    'foreign keys' => array(
+      'post' => array(
+        'table' => 'election_posts',
+        'columns' => array('post_id' => 'post_id'),
+      ),
+      'electorate' => array(
+        'table' => 'election_electorates',
+        'columns' => array('electorate_id' => 'electorate_id'),
+      ),
+    ),
+  );
+  
+  $schema['election_electorates'] = array(
     'description' => 'The electorates table for the election module. An electorate is a group of eligible voters.',
     'fields' => array(
       'electorate_id' => array(
