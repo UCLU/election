@@ -22,80 +22,6 @@ define('ELECTION_ANSWER_ABSTAIN', 2);
 define('ELECTION_ENDORSER_TYPE_PROPOSER', 1);
 define('ELECTION_ENDORSER_TYPE_SECONDER', 2);
 
-
-/**
- * Implements hook_enable().
- *
- * Sets up foreign key constraints for a MySQL/InnoDB database.
- */
-function election_enable() {
-
-  if (db_driver() != 'mysql') {
-    watchdog(
-      'election',
-      'Cannot set up foreign key constraints: the database driver would need to be MySQL.'
-    );
-    return;
-  }
-
-  if (!_election_db_tables_exist()) {
-    watchdog(
-      'election',
-      'Cannot set up foreign key constraints: the database tables do not (all) exist.'
-    );
-    return;
-  }
-
-  try {
-
-    // Foreign keys for {election_post}.
-    db_query('ALTER TABLE {election_post} ADD FOREIGN KEY (`election_id`) REFERENCES {election} (`election_id`) ON UPDATE CASCADE');
-
-    // Foreign keys for {election_post_electorate}.
-    db_query('ALTER TABLE {election_post_electorate} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
-    db_query('ALTER TABLE {election_post_electorate} ADD FOREIGN KEY (`electorate_id`) REFERENCES {election_electorate} (`electorate_id`) ON UPDATE CASCADE');
-
-    // Foreign keys for {election_ballot}.
-    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
-    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`vote_id`) REFERENCES {election_vote} (`vote_id`) ON UPDATE CASCADE');
-    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`candidate_id`) REFERENCES {election_candidate} (`candidate_id`) ON UPDATE CASCADE');
-
-    // Foreign keys for {election_candidate}.
-    db_query('ALTER TABLE {election_candidate} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
-    db_query('ALTER TABLE {election_candidate} ADD FOREIGN KEY (`uid`) REFERENCES {users} (`uid`) ON UPDATE CASCADE');
-
-    // Foreign keys for {election_endorser}.
-    db_query('ALTER TABLE {election_endorser} ADD FOREIGN KEY (`candidate_id`) REFERENCES {election_candidate} (`candidate_id`) ON UPDATE CASCADE');
-
-    // Foreign keys for {election_vote}.
-    db_query('ALTER TABLE {election_vote} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
-    db_query('ALTER TABLE {election_vote} ADD FOREIGN KEY (`uid`) REFERENCES {users} (`uid`) ON UPDATE CASCADE');
-
-  } catch (Exception $e) {
-
-    watchdog(
-      'election',
-      'Cannot set up foreign key constraints: database error.',
-      $e->getError()
-    );
-
-  }
-
-}
-
-/**
- * Implements hook_uninstall().
- *
- * Temporarily switch off foreign key checks so all tables can be deleted.
- */
-function election_uninstall() {
-  $tables = array_keys(election_schema());
-  $table_list = '{' . implode('}, {', $tables) . '}';
-  db_query('SET FOREIGN_KEY_CHECKS=0');
-  db_query('DROP TABLE IF EXISTS ' . $table_list);
-  db_query('SET FOREIGN_KEY_CHECKS=1');
-}
-
 /**
  * Implements hook_schema().
  *
@@ -167,7 +93,7 @@ function election_schema() {
         'description' => 'The name of the election - a human-readable identifier.',
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'description' => array(
         'description' => 'A human-readable description of the election.',
@@ -178,6 +104,7 @@ function election_schema() {
         'description' => 'The Unix timestamp for when the election was created.',
         'type' => 'int',
         'not null' => TRUE,
+        'default' => 0,
       ),
       'changed' => array(
         'description' => 'The Unix timestamp for when the election was most recently changed.',
@@ -215,7 +142,7 @@ function election_schema() {
         'description' => 'The {election}.election_id for this post.',
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'allow_abstention' => array(
         'description' => 'For a motion: whether or not to allow voters to abstain.',
@@ -271,7 +198,7 @@ function election_schema() {
         'description' => 'The title of the position or motion.',
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'description' => array(
         'description' => 'A human-readable description of the position or motion.',
@@ -282,6 +209,7 @@ function election_schema() {
         'description' => 'The Unix timestamp for when the post was created.',
         'type' => 'int',
         'not null' => TRUE,
+        'default' => 0,
       ),
       'changed' => array(
         'description' => 'The Unix timestamp for when the post was most recently changed.',
@@ -324,7 +252,7 @@ function election_schema() {
         'description' => 'Relates to {election_electorate}.electorate_id.',
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
     ),
     'unique keys' => array(
@@ -356,23 +284,24 @@ function election_schema() {
         'type' => 'blob',
         'size' => 'big',
         'serialize' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'name' => array(
         'description' => 'The name of the electorate - a human-readable identifier.',
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'created' => array(
         'description' => 'The Unix timestamp for when the electorate was created.',
         'type' => 'int',
         'not null' => TRUE,
+        'default' => 0,
       ),
       'changed' => array(
         'description' => 'The Unix timestamp for when the electorate was most recently changed.',
         'type' => 'int',
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
     ),
     'primary key' => array('electorate_id'),
@@ -473,13 +402,13 @@ function election_schema() {
         'description' => 'The post for which the vote has been made. Relates to {election_post}.post_id.',
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'uid' => array(
         'description' => 'The {users}.uid of the voter.',
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'ipv4' => array(
         'description' => 'The IPv4 address of the voter. If null, there should be an IPv6 address.',
@@ -498,17 +427,20 @@ function election_schema() {
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
+        'default' => '',
       ),
       'sid_hash' => array(
         'description' => 'An MD5 hash of the voter\'s session ID.',
         'type' => 'varchar',
         'length' => 32,
         'not null' => TRUE,
+        'default' => '',
       ),
       'vote_time' => array(
         'description' => 'A UNIX timestamp for when the vote was cast.',
         'type' => 'int',
         'not null' => TRUE,
+        'default' => 0,
       ),
     ),
     'primary key' => array('vote_id'),
@@ -543,13 +475,13 @@ function election_schema() {
         'description' => 'The post for which the candidate is standing. Relates to {election_post}.post_id.',
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'uid' => array(
         'description' => 'The {users}.uid of the candidate.',
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'phone' => array(
         'description' => 'The phone number of the candidate.',
@@ -593,7 +525,7 @@ function election_schema() {
         'description' => 'The candidate being endorsed. Relates to {election_candidate}.candidate_id.',
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'type' => array(
         'description' => sprintf(
@@ -647,6 +579,81 @@ function election_schema() {
 
   return $schema;
 
+}
+
+/**
+ * Implements hook_enable().
+ *
+ * Sets up foreign key constraints for a MySQL/InnoDB database.
+ */
+function election_enable() {
+
+  if (db_driver() != 'mysql') {
+    watchdog(
+      'election',
+      'Cannot set up foreign key constraints: the database driver would need to be MySQL.'
+    );
+    return;
+  }
+
+  if (!_election_db_tables_exist()) {
+    watchdog(
+      'election',
+      'Cannot set up foreign key constraints: the database tables do not (all) exist.'
+    );
+    return;
+  }
+
+  try {
+
+    // Foreign keys for {election_post}.
+    db_query('ALTER TABLE {election_post} ADD FOREIGN KEY (`election_id`) REFERENCES {election} (`election_id`) ON UPDATE CASCADE');
+
+    // Foreign keys for {election_post_electorate}.
+    db_query('ALTER TABLE {election_post_electorate} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_post_electorate} ADD FOREIGN KEY (`electorate_id`) REFERENCES {election_electorate} (`electorate_id`) ON UPDATE CASCADE');
+
+    // Foreign keys for {election_ballot}.
+    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`vote_id`) REFERENCES {election_vote} (`vote_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`candidate_id`) REFERENCES {election_candidate} (`candidate_id`) ON UPDATE CASCADE');
+
+    // Foreign keys for {election_candidate}.
+    db_query('ALTER TABLE {election_candidate} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_candidate} ADD FOREIGN KEY (`uid`) REFERENCES {users} (`uid`) ON UPDATE CASCADE');
+
+    // Foreign keys for {election_endorser}.
+    db_query('ALTER TABLE {election_endorser} ADD FOREIGN KEY (`candidate_id`) REFERENCES {election_candidate} (`candidate_id`) ON UPDATE CASCADE');
+
+    // Foreign keys for {election_vote}.
+    db_query('ALTER TABLE {election_vote} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_vote} ADD FOREIGN KEY (`uid`) REFERENCES {users} (`uid`) ON UPDATE CASCADE');
+
+  } catch (Exception $e) {
+
+    watchdog(
+      'election',
+      'Cannot set up foreign key constraints: database error.',
+      $e->getError()
+    );
+
+  }
+
+}
+
+/**
+ * Implements hook_uninstall().
+ *
+ * Workaround which temporarily switches off foreign key checks in order to
+ * delete this module's tables without encountering an integrity constraint
+ * violation.
+ */
+function election_uninstall() {
+  $tables = array_keys(election_schema());
+  $table_list = '{' . implode('}, {', $tables) . '}';
+  db_query('SET FOREIGN_KEY_CHECKS=0');
+  db_query('DROP TABLE IF EXISTS ' . $table_list);
+  db_query('SET FOREIGN_KEY_CHECKS=1');
 }
 
 /**
