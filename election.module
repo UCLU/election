@@ -4,3 +4,25 @@
  * Election primary module file.
  */
 
+/**
+ * Implements hook_entity_info().
+ */
+function election_entity_info() {
+
+  $entities = array();
+
+  $entities['election'] = array(
+    'label' => t('Election'),
+    'entity class' => 'Entity',
+    'controller class' => 'EntityAPIController',
+    'base table' => 'election',
+    'entity keys' => array(
+      'id' => 'election_id',
+    ),
+    'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+  );
+
+  return $entities;
+
+}

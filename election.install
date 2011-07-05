@@ -84,6 +84,19 @@ function election_enable() {
 }
 
 /**
+ * Implements hook_uninstall().
+ *
+ * Temporarily switch off foreign key checks so all tables can be deleted.
+ */
+function election_uninstall() {
+  $tables = array_keys(election_schema());
+  $table_list = '{' . implode('}, {', $tables) . '}';
+  db_query('SET FOREIGN_KEY_CHECKS=0');
+  db_query('DROP TABLE IF EXISTS ' . $table_list);
+  db_query('SET FOREIGN_KEY_CHECKS=1');
+}
+
+/**
  * Implements hook_schema().
  *
  * Tables provided by this module:
@@ -112,7 +125,7 @@ function election_schema() {
       ),
       'type' => array(
         'description' => sprintf(
-          'The type of the election: STV %d or referendum %d.',
+          'The type of the election: %d for STV or %d for referendum.',
           ELECTION_TYPE_STV,
           ELECTION_TYPE_REFERENDUM
         ),

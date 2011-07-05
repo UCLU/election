@@ -3,3 +3,4 @@ description = "Provides online voting functionality, supporting referendums and 
 package = Democracy
 core = 7.x
 dependencies[] = views
+dependencies[] = entity
