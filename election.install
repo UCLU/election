@@ -5,7 +5,7 @@
  */
 
 // Constants, to be stored in TINYINT database columns.
- 
+
 // Constants for the {election} table.
 define('ELECTION_TYPE_REFERENDUM', 1);
 define('ELECTION_TYPE_STV', 2);
@@ -22,9 +22,70 @@ define('ELECTION_ANSWER_ABSTAIN', 2);
 define('ELECTION_ENDORSER_TYPE_PROPOSER', 1);
 define('ELECTION_ENDORSER_TYPE_SECONDER', 2);
 
+
+/**
+ * Implements hook_enable().
+ *
+ * Sets up foreign key constraints for a MySQL/InnoDB database.
+ */
+function election_enable() {
+
+  if (db_driver() != 'mysql') {
+    watchdog(
+      'election',
+      'Cannot set up foreign key constraints: the database driver would need to be MySQL.'
+    );
+    return;
+  }
+
+  if (!_election_db_tables_exist()) {
+    watchdog(
+      'election',
+      'Cannot set up foreign key constraints: the database tables do not (all) exist.'
+    );
+    return;
+  }
+
+  try {
+
+    // Foreign keys for {election_post}.
+    db_query('ALTER TABLE {election_post} ADD FOREIGN KEY (`election_id`) REFERENCES {election} (`election_id`) ON UPDATE CASCADE');
+
+    // Foreign keys for {election_post_electorate}.
+    db_query('ALTER TABLE {election_post_electorate} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_post_electorate} ADD FOREIGN KEY (`electorate_id`) REFERENCES {election_electorate} (`electorate_id`) ON UPDATE CASCADE');
+
+    // Foreign keys for {election_ballot}.
+    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`vote_id`) REFERENCES {election_vote} (`vote_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`candidate_id`) REFERENCES {election_candidate} (`candidate_id`) ON UPDATE CASCADE');
+
+    // Foreign keys for {election_candidate}.
+    db_query('ALTER TABLE {election_candidate} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_candidate} ADD FOREIGN KEY (`uid`) REFERENCES {users} (`uid`) ON UPDATE CASCADE');
+
+    // Foreign keys for {election_endorser}.
+    db_query('ALTER TABLE {election_endorser} ADD FOREIGN KEY (`candidate_id`) REFERENCES {election_candidate} (`candidate_id`) ON UPDATE CASCADE');
+
+    // Foreign keys for {election_vote}.
+    db_query('ALTER TABLE {election_vote} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_vote} ADD FOREIGN KEY (`uid`) REFERENCES {users} (`uid`) ON UPDATE CASCADE');
+
+  } catch (Exception $e) {
+
+    watchdog(
+      'election',
+      'Cannot set up foreign key constraints: database error.',
+      $e->getError()
+    );
+
+  }
+
+}
+
 /**
  * Implements hook_schema().
- * 
+ *
  * Tables provided by this module:
  *   election
  *   election_post
@@ -34,10 +95,10 @@ define('ELECTION_ENDORSER_TYPE_SECONDER', 2);
  *   election_ballot
  *   election_candidate
  *   election_endorser
- * 
+ *
  */
 function election_schema() {
-  
+
   $schema = array();
 
   $schema['election'] = array(
@@ -127,7 +188,7 @@ function election_schema() {
       'name' => array('name'),
     ),
   );
-  
+
   $schema['election_post'] = array(
     'description' => 'The posts table for the election module. Post types: electoral position, referendum motion.',
     'fields' => array(
@@ -236,7 +297,7 @@ function election_schema() {
       ),
     ),
   );
-  
+
   $schema['election_post_electorate'] = array(
     'description' => 'Table mapping electorates to posts, for the election module.',
     'fields' => array(
@@ -247,7 +308,7 @@ function election_schema() {
         'not null' => TRUE,
       ),
       'electorate_id' => array(
-        'description' => 'Relates to {election_electorates}.electorate_id.',
+        'description' => 'Relates to {election_electorate}.electorate_id.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -262,13 +323,13 @@ function election_schema() {
         'columns' => array('post_id' => 'post_id'),
       ),
       'electorate' => array(
-        'table' => 'election_electorates',
+        'table' => 'election_electorate',
         'columns' => array('electorate_id' => 'electorate_id'),
       ),
     ),
   );
-  
-  $schema['election_electorates'] = array(
+
+  $schema['election_electorate'] = array(
     'description' => 'The electorates table for the election module. An electorate is a group of eligible voters.',
     'fields' => array(
       'electorate_id' => array(
@@ -307,7 +368,7 @@ function election_schema() {
       'name' => array('name'),
     ),
   );
-  
+
   $schema['election_ballot'] = array(
     'description' => 'The ballots table for the election module.',
     'fields' => array(
@@ -455,7 +516,7 @@ function election_schema() {
       ),
     ),
   );
-  
+
   $schema['election_candidate'] = array(
     'description' => 'The candidates table for the election module.',
     'fields' => array(
@@ -505,7 +566,7 @@ function election_schema() {
       ),
     ),
   );
-  
+
   $schema['election_endorser'] = array(
     'description' => 'The endorsers (proposers/seconders) table for the election module.',
     'fields' => array(
@@ -570,7 +631,21 @@ function election_schema() {
       ),
     ),
   );
-  
+
   return $schema;
-  
+
+}
+
+/**
+ * Check whether or not all the database tables for this module exist.
+ *
+ * @return bool
+ */
+function _election_db_tables_exist() {
+  foreach (array_keys(election_schema()) as $table) {
+    if (!db_table_exists($table)) {
+      return FALSE;
+    }
+  }
+  return TRUE;
 }

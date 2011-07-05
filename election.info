@@ -1,4 +1,5 @@
 name = Election
 description = "Provides online voting functionality, supporting referendums and STV elections."
+package = Democracy
 core = 7.x
 dependencies[] = views
