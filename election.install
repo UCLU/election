@@ -252,7 +252,7 @@ function election_schema() {
         'description' => 'Relates to {election_electorate}.electorate_id.',
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => FALSE,
+        'not null' => TRUE,
       ),
     ),
     'unique keys' => array(
