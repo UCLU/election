@@ -1,4 +1,4 @@
-<?php
+y<?php
 /**
  * @file
  *   Install functions for the Election module.
@@ -9,14 +9,14 @@
 // Constants for the {election} table.
 define('ELECTION_TYPE_REFERENDUM', 1);
 define('ELECTION_TYPE_STV', 2);
-define('ELECTION_STATUS_CLOSED', 0);
+define('ELECTION_STATUS_CLOSED', -1);
+define('ELECTION_STATUS_AUTO', 0);
 define('ELECTION_STATUS_OPEN', 1);
-define('ELECTION_STATUS_AUTO', 2);
 
 // Constants for the {election_ballot} table.
-define('ELECTION_ANSWER_NO', 0);
+define('ELECTION_ANSWER_NO', -1);
+define('ELECTION_ANSWER_ABSTAIN', 0);
 define('ELECTION_ANSWER_YES', 1);
-define('ELECTION_ANSWER_ABSTAIN', 2);
 
 // Constants for the {election_endorser} table.
 define('ELECTION_ENDORSER_TYPE_PROPOSER', 1);
@@ -24,17 +24,6 @@ define('ELECTION_ENDORSER_TYPE_SECONDER', 2);
 
 /**
  * Implements hook_schema().
- *
- * Tables provided by this module:
- *   election
- *   election_post
- *   election_post_electorate
- *   election_electorate
- *   election_vote
- *   election_ballot
- *   election_candidate
- *   election_endorser
- *
  */
 function election_schema() {
 
@@ -644,16 +633,10 @@ function election_enable() {
 /**
  * Implements hook_uninstall().
  *
- * Workaround which temporarily switches off foreign key checks in order to
- * delete this module's tables without encountering an integrity constraint
- * violation.
+ * Delete tables in an order that satisfies foreign key integrity constraints.
  */
 function election_uninstall() {
-  $tables = array_keys(election_schema());
-  $table_list = '{' . implode('}, {', $tables) . '}';
-  db_query('SET FOREIGN_KEY_CHECKS=0');
-  db_query('DROP TABLE IF EXISTS ' . $table_list);
-  db_query('SET FOREIGN_KEY_CHECKS=1');
+  db_query('DROP TABLE IF EXISTS {election_endorser}, {election_ballot}, {election_vote}, {election_candidate}, {election_post_electorate}, {election_electorate}, {election_post}, {election}');
 }
 
 /**

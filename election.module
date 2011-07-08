@@ -19,8 +19,7 @@ function election_entity_info() {
     'entity keys' => array(
       'id' => 'election_id',
     ),
-    'label callback' => 'entity_class_label',
-    'uri callback' => 'entity_class_uri',
+    'fieldable' => TRUE,
   );
 
   return $entities;
