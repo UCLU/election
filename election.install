@@ -7,7 +7,7 @@ y<?php
 // Constants, to be stored in TINYINT database columns.
 
 // Constants for the {election} table.
-define('ELECTION_TYPE_REFERENDUM', 1);
+define('ELECTION_TYPE_REFERENDUM', 'referendum');
 define('ELECTION_TYPE_STV', 2);
 define('ELECTION_STATUS_CLOSED', -1);
 define('ELECTION_STATUS_AUTO', 0);
@@ -39,13 +39,9 @@ function election_schema() {
         'not null' => TRUE,
       ),
       'type' => array(
-        'description' => sprintf(
-          'The type of the election: %d for STV or %d for referendum.',
-          ELECTION_TYPE_STV,
-          ELECTION_TYPE_REFERENDUM
-        ),
-        'type' => 'int',
-        'size' => 'tiny',
+        'description' => 'The type of the election (machine name).',
+        'type' => 'varchar',
+        'length' => 100,
         'not null' => TRUE,
         'default' => ELECTION_TYPE_REFERENDUM,
       ),

@@ -6,7 +6,8 @@ class ElectionController extends DrupalDefaultEntityController {
     return (object) array(
       'election_id' => '',
       'type' => $type,
-      'title' => '',
+      'name' => '',
+      'description' => '',
     );
     
   }
@@ -35,7 +36,8 @@ class ElectionController extends DrupalDefaultEntityController {
       if ($election->is_new) {
         drupal_write_record('election', $election);
         $op = 'insert';
-      } else {
+      }
+      else {
         drupal_write_record('election', $election, 'election_id');
         $op = 'update';
       }
@@ -52,13 +54,46 @@ class ElectionController extends DrupalDefaultEntityController {
       
       return $election;
       
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
       
       $transaction->rollback();
       watchdog_exception('election', $e, NULL, WATCHDOG_ERROR);
       return FALSE;
       
     }
+    
+  }
+  
+  public function delete($ids) {
+    
+    if (!empty($ids)) {
+      $elections = $this->load($ids, array());
+      $transaction = db_transaction();
+      
+      try {
+        db_delete('election')
+          ->condition('election_id', $ids, 'IN')
+          ->execute();
+        foreach ($elections as $election_id => $election) {
+          field_attach_delete('election', $election);
+        }
+        db_ignore_slave();
+      }
+      catch (Exception $e) {
+        $transaction->rollback();
+        watchdog_exception('election', $e, NULL, WATCHDOG_ERROR);
+        return FALSE;
+      }
+      
+      module_invoke_all('entity_delete', $election, 'election');
+      
+      cache_clear_all();
+      $this->resetCache();
+      
+    }
+    
+    return TRUE;
     
   }
   
