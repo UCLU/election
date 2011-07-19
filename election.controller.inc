@@ -24,7 +24,20 @@ class ElectionController extends DrupalDefaultEntityController {
       
       // Set timestamp fields.
       if (empty($election->created)) {
-        // @TODO
+        $election->created = REQUEST_TIME;
+      }
+      
+      $election->changed = REQUEST_TIME;
+      $update_election = TRUE;
+      
+      field_attach_presave('election', $election);
+      
+      if ($election->is_new) {
+        drupal_write_record('election', $election);
+        $op = 'insert'
+      } else {
+        drupal_write_record('election', $election, 'election_id');
+        $op = 'update';
       }
       
     } catch (Exception $e) {
