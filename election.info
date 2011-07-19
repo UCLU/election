@@ -4,3 +4,6 @@ package = Democracy
 core = 7.x
 dependencies[] = views
 dependencies[] = entity
+dependencies[] = field_ui
+files[] = election.admin.inc
+files[] = election.controller.inc
