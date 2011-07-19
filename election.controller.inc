@@ -34,11 +34,23 @@ class ElectionController extends DrupalDefaultEntityController {
       
       if ($election->is_new) {
         drupal_write_record('election', $election);
-        $op = 'insert'
+        $op = 'insert';
       } else {
         drupal_write_record('election', $election, 'election_id');
         $op = 'update';
       }
+      
+      $function = 'field_attach_' . $op;
+      $function('election', $election);
+      
+      module_invoke_all('entity_' . $op, $election, 'election');
+      
+      unset($election->is_new);
+      
+      // Skip the slave server for this user temporarily.
+      db_ignore_slave();
+      
+      return $election;
       
     } catch (Exception $e) {
       
