@@ -1,4 +1,13 @@
 <?php
+/**
+ * @file
+ * Entity controller for the Election module.
+ * 
+ * @class
+ * ElectionController
+ * @extends
+ * DrupalDefaultEntityController
+ */
 class ElectionController extends DrupalDefaultEntityController {
   
   public function create($type = '') {

@@ -20,7 +20,7 @@ function election_entity_info() {
       'id' => 'election_id',
       'label' => 'name',
       'bundle' => 'type',
-    ),
+    ),    
     'bundle keys' => array(
       'bundle' => 'type',
     ),
@@ -31,22 +31,21 @@ function election_entity_info() {
     'view modes' => array(
       'full' => array(
         'label' => t('Full content'),
-        'custom settings' => FALSE,
+        'custom settings' => TRUE,
       ),
-      'full' => array(
-        'label' => t('Full content'),
-        'custom settings' => FALSE,
+      'teaser' => array(
+        'label' => t('Teaser'),
+        'custom settings' => TRUE,
       ),
     ),
   );
   
-  foreach (election_types() as $type => $info) {
-    $entities['election']['bundles'][$type] = array(
-      'label' => $info->name,
+  foreach (election_types() as $type) {
+    $entities['election']['bundles'][$type->type] = array(
+      'label' => $type->name,
       'admin' => array(
-        'path' => 'admin/structure/elections/manage/%election_type',
-        'real path' => 'admin/structure/elections/manage/' . str_replace('_', '-', $type),
-        'bundle argument' => 4,
+        'path' => 'admin/election/types/' . election_bundle_to_path($type->type),
+        'bundle argument' => 3,
         'access arguments' => array('administer elections'),
       ),
     );
@@ -74,6 +73,40 @@ function election_types() {
   return $types;
 }
 
+/**
+ * Implements hook_field_extra_fields().
+ */
+function election_field_extra_fields() {
+  $extra = array();
+  foreach (election_types() as $type) {
+    $extra['election'][$type->type] = array(
+      'form' => array(
+        'name' => array(
+          'label' => t('Name'),
+          'description' => t('The name of the election.'),
+          'weight' => -10,
+        ),
+        'description' => array(
+          'label' => t('Description'),
+          'description' => t('A short description of the election.'),
+          'weight' => -5,
+        ),
+      ),
+      'display' => array(
+        'name' => array(
+          'label' => t('Name'),
+          'weight' => -10,
+        ),
+        'description' => array(
+          'label' => t('Description'),
+          'weight' => -5,
+        ),
+      ),
+    );
+  }
+  return $extra;
+}
+
 function election_type_load($type) {
   $type = str_replace('-', '_', $type);
   $types = election_types();
@@ -84,6 +117,11 @@ function election_uri($election) {
   return array(
     'path' => 'election/' . $election->election_id,
   );
+}
+
+function election_uri_path($election) {
+  $uri = election_uri($election);
+  return $uri['path'];
 }
 
 function election_load($election_id = NULL, $vid = NULL, $reset = FALSE) {
@@ -135,52 +173,56 @@ function election_menu() {
   
   $items = array();
   
-  $items['admin/structure/elections'] = array(
-    'title' => 'Election types',
-    'description' => 'Manage election and referendum types',
-    'page callback' => 'election_overview_types',
-    'access arguments' => array('administer elections'),
-  );
-  
-  $items['admin/structure/elections/manage/%election_type'] = array(
-    'title' => 'View election type',
-    'title callback' => 'election_type_page_title',
-    'title arguments' => array(4),
-    'page callback' => 'election_information',
-    'page arguments' => array(4),
-    'access arguments' => array('administer elections'),
-  );
-  
-  $items['admin/structure/elections/manage/%election_type/view'] = array(
-    'title' => 'View',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-  );
-  
   $items['admin/election'] = array(
     'title' => 'Elections',
-    'page callback' => 'election_main_page',
-    'weight' => 1,
-    'menu_name' => 'management',
+    'description' => 'Administer elections and referendums.',
+    'page callback' => 'election_page',
     'file' => 'election.pages.inc',
-    'access arguments' => array('create elections'),
+    'access arguments' => array('administer elections'),
+    'weight' => 1,
   );
-  
+    
   $items['admin/election/add'] = array(
     'title' => 'Add new election',
-    'page callback' => 'election_add_page',
-    'access arguments' => array('create elections'),
+    'description' => 'Add a new election or referendum, choosing between defined types.',
+    'page callback' => 'election_page',
+    'access arguments' => array('administer elections'),
     'weight' => 1,
     'menu_name' => 'management',
     'file' => 'election.pages.inc',
+  );
+  
+  $items['admin/election/types'] = array(
+    'title' => 'Election types',
+    'description' => 'Manage election and referendum types.',
+    'page callback' => 'election_page',
+    'file' => 'election.pages.inc',
+    'weight' => 2,
+    'access arguments' => array('administer elections'),
   );
   
   foreach (election_types() as $type) {
-    $items['admin/election/add/' . str_replace('_', '-', $type->type)] = array(
+    $type_url = election_bundle_to_path($type->type);
+    $items['admin/election/types/' . $type_url] = array(
+      'title' => $type->name,
+      'title callback' => 'check_plain',
+      'page callback' => 'election_page_type',
+      'page arguments' => array(3),
+      'access arguments' => array('administer elections'),
+      'file' => 'election.pages.inc',
+      'description' => $type->description,
+    );
+    $items['admin/election/types/' . $type_url .'/settings'] = array(
+      'title' => 'Settings',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+    );
+    $items['admin/election/add/' . $type_url] = array(
       'title' => $type->name,
       'title callback' => 'check_plain',
       'page callback' => 'election_add',
       'page arguments' => array(3),
-      'access arguments' => array('create elections'),
+      'access arguments' => array('administer elections'),
+      'file' => 'election.pages.inc',
       'description' => $type->description,
     );
   }
@@ -191,6 +233,7 @@ function election_menu() {
     'page callback' => 'election_page_view',
     'page arguments' => array(1),
     'access arguments' => array('view elections'),
+    'file' => 'election.pages.inc',
     'type' => MENU_CALLBACK,
   );
   
@@ -203,6 +246,7 @@ function election_menu() {
   $items['election/%election/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'election_page_edit',
+    'file' => 'election.pages.inc',
     'page arguments' => array(1),
     'access arguments' => array('update elections'),
     'weight' => 1,
@@ -224,58 +268,11 @@ function election_menu() {
   
 }
 
-function election_overview_types() {
-  $items = array();
-  foreach (election_types() as $type => $info) {
-    $items[] = l(
-      t('@type', array('@type' => $info->name)),
-      'admin/structure/elections/manage/' . str_replace('_', '-', $type)
-    );
-  }
-  return theme('item_list', array('items' => $items));
-}
-
-function election_type_page_title($type) {
-  return t('Manage @type', array('@type' => $type->name));
-}
-
-function election_page_title($election) {
-  return $election->name;
-}
-
-function election_page_view($election, $view_mode = 'full') {
-  
-  // Remove previously built content, if it exists.
-  $election->content = array();
-  
-  if ($view_mode == 'teaser') {
-    $election->content['title'] = array(
-      '#markup' => filter_xss($election->name),
-      '#weight' => -5,
-    );
-  }
-  
-  $election->content['description'] = array(
-    '#markup' => filter_xss($election->description),
-    '#weight' => -4,
-  );
-  
-  field_attach_prepare_view('election', array($election->election_id => $election), $view_mode);
-  entity_prepare_view('election', array($election->election_id => $election));
-  $election->content += field_attach_view('election', $election, $view_mode);
-  
-  return $election->content;
-}
-
-function election_information($type) {
-    return $type->name . ': ' . $type->description;
-}
-
 function election_add($type) {
   
   global $user;
   
-  $type = str_replace('-', '_', $type);
+  $type = election_bundle_to_path($type);
   
   $types = election_types();
   if (empty($types[$type])) {
@@ -399,7 +396,7 @@ function election_form_delete_submit($form, &$form_state) {
   }
   $election = $form['#election'];
   $form_state['redirect'] = array(
-    'election/' . $election->election_id . '/delete',
+    election_uri_path($election) . '/delete',
     array('query' => $destination),
   );
 }
@@ -413,7 +410,7 @@ function election_delete_confirm($form, &$form_state, $election) {
   return confirm_form(
     $form,
     t('Are you sure you want to delete %name?', array('%name' => $election->name)),
-    'election/' . $election->election_id,
+    election_uri_path($election),
     t('This action cannot be undone'),
     t('Delete'),
     t('Cancel')
@@ -461,4 +458,13 @@ function election_page_edit($election) {
     PASS_THROUGH
   );
   return drupal_get_form($election->type . '_election_form', $election);
+}
+
+/**
+ * Convert a bundle's machine name (that can only contain underscores) to a path.
+ * 
+ * @return string
+ */
+function election_bundle_to_path($bundle_name) {
+  return str_replace('_', '-', $bundle_name);
 }
