@@ -194,7 +194,7 @@ function election_menu() {
   
   $items['admin/election/types'] = array(
     'title' => 'Election types',
-    'description' => 'Manage election and referendum types.',
+    'description' => 'Manage the settings for election and referendum types.',
     'page callback' => 'election_page',
     'file' => 'election.pages.inc',
     'weight' => 2,
@@ -210,14 +210,14 @@ function election_menu() {
       'page arguments' => array(3),
       'access arguments' => array('administer elections'),
       'file' => 'election.pages.inc',
-      'description' => $type->description,
+      'description' => 'Manage fields and display settings for the "' . $type->name . '" type.',
     );
     $items['admin/election/types/' . $type_url .'/settings'] = array(
       'title' => 'Settings',
       'type' => MENU_DEFAULT_LOCAL_TASK,
     );
     $items['admin/election/add/' . $type_url] = array(
-      'title' => $type->name,
+      'title' => 'Add new ' . $type->name,
       'title callback' => 'check_plain',
       'page callback' => 'election_add',
       'page arguments' => array(3),
