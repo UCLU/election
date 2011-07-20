@@ -3,9 +3,9 @@
  * @file
  * Tests for the Election module.
  */
- 
+
 class ElectionTestCase extends DrupalWebTestCase {
-  
+
   public function getInfo() {
     return array(
       'name' => 'Election module test',
@@ -13,5 +13,5 @@ class ElectionTestCase extends DrupalWebTestCase {
       'group' => 'Election',
     );
   }
-  
+
 }

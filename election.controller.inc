@@ -2,46 +2,46 @@
 /**
  * @file
  * Entity controller for the Election module.
- * 
+ *
  * @class
  * ElectionController
  * @extends
  * DrupalDefaultEntityController
  */
 class ElectionController extends DrupalDefaultEntityController {
-  
-  public function create($type = '') {
-    
+
+  public function create($type = 0) {
+
     return (object) array(
       'election_id' => '',
       'type' => $type,
       'name' => '',
       'description' => '',
     );
-    
+
   }
-  
+
   public function save($election) {
-    
+
     $transaction = db_transaction();
-    
+
     try {
-      
+
       global $user;
-      
+
       // Determine whether the election is new.
       $election->is_new = empty($election->election_id);
-      
+
       // Set timestamp fields.
       if (empty($election->created)) {
         $election->created = REQUEST_TIME;
       }
-      
+
       $election->changed = REQUEST_TIME;
       $update_election = TRUE;
-      
+
       field_attach_presave('election', $election);
-      
+
       if ($election->is_new) {
         drupal_write_record('election', $election);
         $op = 'insert';
@@ -50,36 +50,36 @@ class ElectionController extends DrupalDefaultEntityController {
         drupal_write_record('election', $election, 'election_id');
         $op = 'update';
       }
-      
+
       $function = 'field_attach_' . $op;
       $function('election', $election);
-      
+
       module_invoke_all('entity_' . $op, $election, 'election');
-      
+
       unset($election->is_new);
-      
+
       // Skip the slave server for this user temporarily.
       db_ignore_slave();
-      
+
       return $election;
-      
+
     }
     catch (Exception $e) {
-      
+
       $transaction->rollback();
       watchdog_exception('election', $e, NULL, WATCHDOG_ERROR);
       return FALSE;
-      
+
     }
-    
+
   }
-  
+
   public function delete($ids) {
-    
+
     if (!empty($ids)) {
       $elections = $this->load($ids, array());
       $transaction = db_transaction();
-      
+
       try {
         db_delete('election')
           ->condition('election_id', $ids, 'IN')
@@ -94,16 +94,16 @@ class ElectionController extends DrupalDefaultEntityController {
         watchdog_exception('election', $e, NULL, WATCHDOG_ERROR);
         return FALSE;
       }
-      
+
       module_invoke_all('entity_delete', $election, 'election');
-      
+
       cache_clear_all();
       $this->resetCache();
-      
+
     }
-    
+
     return TRUE;
-    
+
   }
-  
+
 }
