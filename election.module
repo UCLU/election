@@ -342,6 +342,7 @@ function election_menu() {
     'weight' => 1,
   );
 
+/*
   $items['admin/election/add'] = array(
     'title' => 'Add new election',
     'description' => 'Add a new election or referendum, choosing between defined types.',
@@ -351,6 +352,7 @@ function election_menu() {
     'menu_name' => 'management',
     'file' => 'election.pages.inc',
   );
+*/
 
   foreach (election_types() as $type_mn => $type) {
     $items['admin/election/types/' . $type_mn] = array(
