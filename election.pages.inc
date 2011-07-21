@@ -10,6 +10,8 @@ function election_page() {
   $item = menu_get_item();
   $links = system_admin_menu_block($item);
 
+  $items = array();
+
   foreach ($links as $link) {
 
     $items[] = array(
@@ -37,11 +39,11 @@ function election_page_type_overview() {
 
   $output = array();
 
-  foreach (election_types() as $type) {
+  foreach (election_types() as $type_mn => $type) {
 
     $output['content'][] = array(
       'title' => 'Manage ' . $type->name,
-      'href' => $item['href'] . '/' . $type->type,
+      'href' => $item['href'] . '/' . $type_mn,
       'localized_options' => $item['localized_options'],
       'description' => $type->description,
     );
@@ -52,8 +54,8 @@ function election_page_type_overview() {
 
 }
 
-function election_type_title($type_path) {
-  if (!$type = election_load_type($type_path)) {
+function election_type_title($type_mn) {
+  if (!$type = election_type_load($type_mn)) {
     return FALSE;
   }
   return $type->name;
@@ -87,26 +89,26 @@ function election_page_view($election, $view_mode = 'full') {
   return $election->content;
 }
 
-function election_page_type($type_path) {
-  $type = election_type_load($type_path);
+function election_page_type($type_mn) {
+  $type = election_type_load($type_mn);
   return $type->name . ': ' . $type->description;
 }
 
-function election_page_add($type_path) {
+function election_page_add($type_mn) {
 
   global $user;
 
-  if (!$type = election_type_load($type_path)) {
+  if (!$type = election_type_load($type_mn)) {
     return MENU_NOT_FOUND;
   }
 
-  $election = entity_get_controller('election')->create($type->type);
+  $election = entity_get_controller('election')->create($type_mn);
 
   drupal_set_title(
     t('Add new @name', array('@name' => $type->name)),
     PASS_THROUGH
   );
 
-  return drupal_get_form($type->type . '_election_form', $election);
+  return drupal_get_form($type_mn . '_election_form', $election);
 
 }

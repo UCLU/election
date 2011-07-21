@@ -40,11 +40,47 @@ function election_entity_info() {
     ),
   );
 
-  foreach (election_types() as $type) {
-    $entities['election']['bundles'][$type->type] = array(
+  foreach (election_types() as $type_mn => $type) {
+    $entities['election']['bundles'][$type_mn] = array(
       'label' => $type->name,
       'admin' => array(
-        'path' => 'admin/election/types/' . election_bundle_to_path($type->type),
+        'path' => 'admin/election/types/' . $type_mn,
+        'bundle argument' => 3,
+        'access arguments' => array('administer elections'),
+      ),
+    );
+  }
+
+  $entities['election_post'] = array(
+    'label' => t('Election post'),
+    'uri callback' => 'election_post_uri',
+    'controller class' => 'ElectionPostController',
+    'base table' => 'election_post',
+    'entity keys' => array(
+      'id' => 'post_id',
+      'label' => 'title',
+    ),
+    'bundles' => array(),
+    'static cache' => TRUE,
+    'fieldable' => TRUE,
+    'module' => 'election',
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full content'),
+        'custom settings' => TRUE,
+      ),
+      'teaser' => array(
+        'label' => t('Teaser'),
+        'custom settings' => TRUE,
+      ),
+    ),
+  );
+
+  foreach (election_post_types() as $type_mn => $type) {
+    $entities['election_post']['bundles'][$type_mn] = array(
+      'label' => $type->name,
+      'admin' => array(
+        'path' => 'admin/election/post/' . $type_mn,
         'bundle argument' => 3,
         'access arguments' => array('administer elections'),
       ),
@@ -65,14 +101,31 @@ function election_types() {
   $types = &drupal_static(__FUNCTION__);
   if (empty($types)) {
     $types['ers97'] = (object) array(
-      'type' => 'ers97',
       'name' => t('STV (ERS97) Election'),
       'description' => t('A Single Transferable Vote election conforming to the Electoral Reform Society\'s ERS97 standard.'),
     );
     $types['referendum'] = (object) array(
-      'type' => 'referendum',
       'name' => t('Referendum'),
       'description' => t('A simple referendum, where people can vote once (yes, no, or abstain) in response to a motion.'),
+    );
+  }
+  return $types;
+}
+
+/**
+ * Return information about election post types in a structured array of stdClass
+ * objects, keyed by each post type's machine name.
+ *
+ * @return array
+ */
+function election_post_types() {
+  $types = &drupal_static(__FUNCTION__);
+  if (empty($types)) {
+    $types['motion'] = (object) array(
+      'name' => t('Referendum motion'),
+    );
+    $types['position'] = (object) array(
+      'name' => t('Electoral position'),
     );
   }
   return $types;
@@ -83,8 +136,8 @@ function election_types() {
  */
 function election_field_extra_fields() {
   $extra = array();
-  foreach (election_types() as $type) {
-    $extra['election'][$type->type] = array(
+  foreach (election_types() as $type_mn => $type) {
+    $extra['election'][$type_mn] = array(
       'form' => array(
         'name' => array(
           'label' => t('Name'),
@@ -109,19 +162,83 @@ function election_field_extra_fields() {
       ),
     );
   }
+
+  $extra['election_post']['position'] = array(
+    'form' => array(
+      'title' => array(
+        'label' => t('Position title'),
+        'description' => t('The title of the position.'),
+        'weight' => -10,
+      ),
+      'description' => array(
+        'label' => t('Description'),
+        'description' => t('A short description of the position.'),
+        'weight' => -5,
+      ),
+    ),
+    'display' => array(
+      'title' => array(
+        'label' => t('Title'),
+        'weight' => -10,
+      ),
+      'description' => array(
+        'label' => t('Description'),
+        'weight' => 0,
+      ),
+    ),
+  );
+
+  $extra['election_post']['motion'] = array(
+    'form' => array(
+      'title' => array(
+        'label' => t('Motion title'),
+        'description' => t('The title of the motion.'),
+        'weight' => -10,
+      ),
+      'description' => array(
+        'label' => t('Description'),
+        'description' => t('A short description of the motion.'),
+        'weight' => -5,
+      ),
+    ),
+    'display' => array(
+      'title' => array(
+        'label' => t('Title'),
+        'weight' => -10,
+      ),
+      'description' => array(
+        'label' => t('Description'),
+        'weight' => 0,
+      ),
+    ),
+  );
+
   return $extra;
 }
 
 /**
  * Load an election type by its path.
  *
+ * @param string $type_mn
+ * The machine name of the type.
  * @return mixed
  * A stdClass election type object, or FALSE on failure.
  */
-function election_type_load($type_path) {
-  // The bundle machine name (reverse of election_bundle_to_path())
-  $type_mn = str_replace('-', '_', $type_path);
+function election_type_load($type_mn) {
   $types = election_types();
+  return isset($types[$type_mn]) ? $types[$type_mn] : FALSE;
+}
+
+/**
+ * Load an election post type by its path.
+ *
+ * @param string $type_mn
+ * The machine name of the type.
+ * @return mixed
+ * A stdClass election type object, or FALSE on failure.
+ */
+function election_post_type_load($type_mn) {
+  $types = election_post_types();
   return isset($types[$type_mn]) ? $types[$type_mn] : FALSE;
 }
 
@@ -133,6 +250,17 @@ function election_type_load($type_path) {
 function election_uri($election) {
   return array(
     'path' => 'election/' . $election->election_id,
+  );
+}
+
+/**
+ * URI callback for a single election post.
+ *
+ * @return array
+ */
+function election_post_uri($post) {
+  return array(
+    'path' => 'election/post/' . $post->post_id,
   );
 }
 
@@ -219,36 +347,26 @@ function election_menu() {
     'description' => 'Add a new election or referendum, choosing between defined types.',
     'page callback' => 'election_page',
     'access arguments' => array('administer elections'),
-    'weight' => 1,
+    'weight' => -10,
     'menu_name' => 'management',
     'file' => 'election.pages.inc',
   );
 
-  $items['admin/election/types'] = array(
-    'title' => 'Election types',
-    'description' => 'Manage the settings for election and referendum types.',
-    'page callback' => 'election_page',
-    'file' => 'election.pages.inc',
-    'weight' => 2,
-    'access arguments' => array('administer elections'),
-  );
-
-  foreach (election_types() as $type) {
-    $type_url = election_bundle_to_path($type->type);
-    $items['admin/election/types/' . $type_url] = array(
-      'title' => $type->name,
+  foreach (election_types() as $type_mn => $type) {
+    $items['admin/election/types/' . $type_mn] = array(
+      'title' => $type->name . ' fields',
       'title callback' => 'check_plain',
       'page callback' => 'election_page_type',
       'page arguments' => array(3),
       'access arguments' => array('administer elections'),
       'file' => 'election.pages.inc',
-      'description' => 'Manage fields and display settings for the "' . $type->name . '" type.',
+      'description' => 'Manage fields and display settings for the election type "' . $type->name . '".',
     );
-    $items['admin/election/types/' . $type_url . '/settings'] = array(
+    $items['admin/election/types/' . $type_mn . '/settings'] = array(
       'title' => 'Settings',
       'type' => MENU_DEFAULT_LOCAL_TASK,
     );
-    $items['admin/election/add/' . $type_url] = array(
+    $items['admin/election/add/' . $type_mn] = array(
       'title' => 'Add new ' . $type->name,
       'title callback' => 'check_plain',
       'page callback' => 'election_page_add',
@@ -256,6 +374,22 @@ function election_menu() {
       'access arguments' => array('administer elections'),
       'file' => 'election.pages.inc',
       'description' => $type->description,
+    );
+  }
+
+  foreach (election_post_types() as $type_mn => $type) {
+    $items['admin/election/post/' . $type_mn] = array(
+      'title' => $type->name . ' fields',
+      'title callback' => 'check_plain',
+      'page callback' => 'election_page',
+      'access arguments' => array('administer elections'),
+      'file' => 'election.pages.inc',
+      'description' => 'Manage fields and display settings for the post type "' . $type->name . '".',
+      'weight' => 10,
+    );
+    $items['admin/election/post/' . $type_mn . '/settings'] = array(
+      'title' => 'Settings',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
     );
   }
 
@@ -467,13 +601,4 @@ function election_page_edit($election) {
     PASS_THROUGH
   );
   return drupal_get_form($election->type . '_election_form', $election);
-}
-
-/**
- * Convert a bundle's machine name (that can only contain underscores) to a path.
- *
- * @return string
- */
-function election_bundle_to_path($bundle_name) {
-  return str_replace('_', '-', $bundle_name);
 }
