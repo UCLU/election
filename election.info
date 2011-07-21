@@ -9,5 +9,5 @@ files[] = election.install
 files[] = election.module
 files[] = election.controller.inc
 files[] = election-post.controller.inc
-files[] = election.pages.inc
+files[] = election.admin.inc
 files[] = election.test
