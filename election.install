@@ -4,6 +4,8 @@
  *   Install functions for the Election module.
  */
 
+require_once 'election.constants.inc';
+
 /**
  * Implements hook_schema().
  */
@@ -77,13 +79,6 @@ function election_schema() {
         'description' => 'The Unix timestamp for when the election was most recently changed.',
         'type' => 'int',
         'not null' => FALSE,
-      ),
-      'data' => array(
-        'type' => 'blob',
-        'not null' => FALSE,
-        'size' => 'big',
-        'serialize' => TRUE,
-        'description' => 'A serialized array of additional data.',
       ),
     ),
     'primary key' => array('election_id'),
@@ -182,13 +177,6 @@ function election_schema() {
         'description' => 'The Unix timestamp for when the post was most recently changed.',
         'type' => 'int',
         'not null' => FALSE,
-      ),
-      'data' => array(
-        'type' => 'blob',
-        'not null' => FALSE,
-        'size' => 'big',
-        'serialize' => TRUE,
-        'description' => 'A serialized array of additional data.',
       ),
     ),
     'primary key' => array('post_id'),

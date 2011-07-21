@@ -4,21 +4,7 @@
  * Election primary module file.
  */
 
-// Constants for the {election} table.
-define('ELECTION_TYPE_REFERENDUM', 'referendum');
-define('ELECTION_TYPE_STV', 2);
-define('ELECTION_STATUS_CLOSED', -1);
-define('ELECTION_STATUS_AUTO', 0);
-define('ELECTION_STATUS_OPEN', 1);
-
-// Constants for the {election_ballot} table.
-define('ELECTION_ANSWER_NO', -1);
-define('ELECTION_ANSWER_ABSTAIN', 0);
-define('ELECTION_ANSWER_YES', 1);
-
-// Constants for the {election_endorser} table.
-define('ELECTION_ENDORSER_TYPE_PROPOSER', 1);
-define('ELECTION_ENDORSER_TYPE_SECONDER', 2);
+require_once 'election.constants.inc';
 
 /**
  * Implements hook_entity_info().
@@ -357,10 +343,10 @@ function election_menu() {
   );
 
   $items['admin/election/list'] = array(
-    'title' => 'Elections list',
+    'title' => 'Election list',
     'title callback' => 'check_plain',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_admin_elections'),
+    'page arguments' => array('election_list'),
     'access arguments' => array('administer elections'),
     'file' => 'election.admin.inc',
     'description' => 'View, edit, and add new elections',
@@ -491,6 +477,46 @@ function election_form($form, &$form_state, $election) {
     '#required' => FALSE,
   );
 
+  $form['status'] = array(
+    '#type' => 'select',
+    '#title' => t('Voting status'),
+    '#default_value' => $election->status,
+    '#options' => array(
+      ELECTION_STATUS_AUTO => 'Auto',
+      ELECTION_STATUS_OPEN => 'Open',
+      ELECTION_STATUS_CLOSED => 'Closed',
+    ),
+    '#description' => t('Voting status - this overrides "Opening time" and "Closing time".'),
+  );
+
+  $date_format = 'Y-m-d H:i';
+
+  $form['open_time'] = array(
+    '#type' => 'date_text',
+    '#title' => t('Opening time'),
+    '#description' => t('Voting will be open after this time (and before "Closing time") if the status is set to "auto".'),
+    '#default_value' => '',
+    '#weight' => -3,
+    '#required' => TRUE,
+    '#default_value' => $election->open_time? date($date_format, $election->open_time) : null,
+    '#date_format' => $date_format,
+    '#date_increment' => 15,
+    '#date_year_range' => '-0:+5',
+  );
+
+  $form['close_time'] = array(
+    '#type' => 'date_text',
+    '#title' => t('Closing time'),
+    '#description' => t('Voting will be open before this time (and after "Opening time") if the status is set to "auto".'),
+    '#default_value' => '',
+    '#weight' => -2,
+    '#required' => TRUE,
+    '#default_value' => $election->close_time? date($date_format, $election->close_time) : null,
+    '#date_format' => $date_format,
+    '#date_increment' => 15,
+    '#date_year_range' => '-0:+5',
+  );
+
   $form['buttons'] = array();
   $form['buttons']['#weight'] = 100;
   $form['buttons']['submit'] = array(
@@ -534,6 +560,11 @@ function election_form_submit($form, &$form_state) {
 
   $election->name = $form_state['values']['name'];
   $election->description = $form_state['values']['description'];
+
+  $election->status = $form_state['values']['status'];
+
+  $election->open_time = strtotime($form_state['values']['open_time']);
+  $election->close_time = strtotime($form_state['values']['close_time']);
 
   field_attach_submit('election', $election, $form, $form_state);
 

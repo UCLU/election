@@ -6,9 +6,12 @@
 
 
 /**
- * Menu callback: election lists.
+ * Main election list (called via drupal_get_form).
+ *
+ * @return array
+ * Drupal form array.
  */
-function election_admin_elections($form, $form_state) {
+function election_list($form, $form_state) {
 
   // Build the sortable table header.
   $header = array(
@@ -128,25 +131,21 @@ function _election_is_open($status, $open_time, $close_time) {
     return false;
   }
 
-  if (!$close_time || !$open_time) {
-    return false;
-  }
-
-  return ($open_time <= REQUEST_TIME && $close_time <= REQUEST_TIME && $close_time > $open_time);
+  return ($open_time && $close_time && $close_time > $open_time && REQUEST_TIME >= $open_time && REQUEST_TIME < $close_time);
 }
 
 function _election_format_status($status_number, $open, $close) {
 
   $is_open = _election_is_open($status_number, $open, $close);
 
-  $open_status = t('open');
-  $closed_status = t('closed');
+  $open_status = t('<span class="election-status-open">open</span>');
+  $closed_status = t('<span class="election-status-closed">closed</span>');
 
   $status = $is_open? $open_status : $closed_status;
 
   if ($status_number == ELECTION_STATUS_AUTO) {
-    return t('auto (@status)', array(
-      '@status' => $status,
+    return t('auto (!status)', array(
+      '!status' => $status,
     ));
   }
 
