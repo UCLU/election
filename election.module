@@ -349,7 +349,7 @@ function election_menu() {
     'page arguments' => array('election_list'),
     'access arguments' => array('administer elections'),
     'file' => 'election.admin.inc',
-    'description' => 'View, edit, and add new elections',
+    'description' => 'View, edit, and add new elections.',
     'weight' => -10,
   );
 
@@ -378,10 +378,6 @@ function election_menu() {
       'description' => $type->description,
       'weight' => isset($type->weight)? $type->weight : 0,
     );
-    $items['admin/election/' . $type_mn . '/settings'] = array(
-      'title' => 'Settings',
-      'type' => MENU_DEFAULT_LOCAL_TASK,
-    );
     if (property_exists($type, 'post key')) {
       $post_key = $type->{'post key'};
       $post_name = property_exists($type, 'post name')? $type->{'post name'} : drupal_ucfirst($post_key);
@@ -393,10 +389,6 @@ function election_menu() {
         'file' => 'system.admin.inc',
         'file path' => drupal_get_path('module', 'system'),
         'description' => 'Manage fields and display settings for the post type "' . $post_name . '".',
-      );
-      $items['admin/election/' . $type_mn . '/' . $post_key . '/settings'] = array(
-        'title' => 'Settings',
-        'type' => MENU_DEFAULT_LOCAL_TASK,
       );
     }
   }
@@ -440,6 +432,44 @@ function election_menu() {
 
   return $items;
 
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function election_menu_alter(&$items) {
+  foreach (election_types() as $type_mn => $type) {
+    $path = 'admin/election/' . $type_mn;
+    unset($items[$path . '/settings']);
+    $items[$path . '/fields']['weight'] = -2;
+    $items[$path . '/fields']['type'] = MENU_NORMAL_ITEM;
+    $items[$path . '/fields']['description'] = t(
+      'Manage fields for the election type "!type".',
+      array('!type' => $type->name)
+    );
+    $items[$path . '/display']['weight'] = -1;
+    $items[$path . '/display']['type'] = MENU_NORMAL_ITEM;
+    $items[$path . '/display']['description'] = t(
+      'Manage display for the election type "!type".',
+      array('!type' => $type->name)
+    );
+
+    if (property_exists($type, 'post key')) {
+      $post_key = $type->{'post key'};
+      $post_name = property_exists($type, 'post name')? $type->{'post name'} : drupal_ucfirst($post_key);
+      $items[$path . '/' . $post_key . '/fields']['type'] = MENU_NORMAL_ITEM;
+      $items[$path . '/' . $post_key . '/fields']['description'] = t(
+        'Manage fields for the post type "!type".',
+        array('!type' => $post_name)
+      );
+      $items[$path . '/' . $post_key . '/display']['type'] = MENU_NORMAL_ITEM;
+      $items[$path . '/' . $post_key . '/display']['description'] = t(
+        'Manage display for the post type "!type".',
+        array('!type' => $post_name)
+      );
+    }
+
+  }
 }
 
 function election_forms() {
@@ -498,7 +528,7 @@ function election_form($form, &$form_state, $election) {
     '#default_value' => '',
     '#weight' => -3,
     '#required' => TRUE,
-    '#default_value' => $election->open_time? date($date_format, $election->open_time) : null,
+    '#default_value' => $election->open_time? date($date_format, $election->open_time) : NULL,
     '#date_format' => $date_format,
     '#date_increment' => 15,
     '#date_year_range' => '-0:+5',
@@ -511,7 +541,7 @@ function election_form($form, &$form_state, $election) {
     '#default_value' => '',
     '#weight' => -2,
     '#required' => TRUE,
-    '#default_value' => $election->close_time? date($date_format, $election->close_time) : null,
+    '#default_value' => $election->close_time? date($date_format, $election->close_time) : NULL,
     '#date_format' => $date_format,
     '#date_increment' => 15,
     '#date_year_range' => '-0:+5',

@@ -116,10 +116,10 @@ function election_list($form, $form_state) {
 function _election_is_open($status, $open_time, $close_time) {
 
   if ($status == ELECTION_STATUS_OPEN) {
-    return true;
+    return TRUE;
   }
   if ($status == ELECTION_STATUS_CLOSED) {
-    return false;
+    return FALSE;
   }
 
   return ($open_time && $close_time && $close_time > $open_time && REQUEST_TIME >= $open_time && REQUEST_TIME < $close_time);
