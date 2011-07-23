@@ -39,6 +39,9 @@ function election_list($form, $form_state) {
 
   $destination = drupal_get_destination();
 
+  // @todo add entity_access rules
+  $admin_access = user_access('administer elections');
+
   $options = array();
   foreach ($elections as $id => $election) {
     $options[$election->election_id] = array(
@@ -59,24 +62,24 @@ function election_list($form, $form_state) {
     );
 
     $operations = array();
-    if (entity_access('update', 'election', $election)) {
-      $operations['edit'] = array(
-        'title' => t('edit'),
-        'href' => sprintf('election/%d/edit', $id),
-        'query' => $destination,
+    if ($admin_access) {
+      $operations['edit'] = l(
+        t('edit'),
+        sprintf('election/%d/edit', $id),
+        array('query' => $destination)
       );
     }
-    if (entity_access('delete', 'election', $election)) {
-      $operations['delete'] = array(
-        'title' => t('delete'),
-        'href' => sprintf('election/%d/delete', $id),
-        'query' => $destination,
+    if ($admin_access) {
+      $operations['delete'] = l(
+        t('delete'),
+        sprintf('election/%d/delete', $id),
+        array('query' => $destination)
       );
     }
 
-    if (count($operations) > 1) {
+    if (count($operations)) {
       // Render an unordered list of operations links.
-      $options[$node->nid]['operations'] = array(
+      $options[$election->election_id]['operations'] = array(
         'data' => array(
           '#theme' => 'item_list',
           '#items' => $operations,
@@ -84,22 +87,10 @@ function election_list($form, $form_state) {
         ),
       );
     }
-    elseif (!empty($operations)) {
-      // Render the first and only operation as a link.
-      $link = reset($operations);
-      $options[$node->nid]['operations'] = array(
-        'data' => array(
-          '#type' => 'link',
-          '#title' => $link['title'],
-          '#href' => $link['href'],
-          '#options' => array('query' => $link['query']),
-        ),
-      );
-    }
 
   }
 
-  if (user_access('administer elections')) {
+  if ($admin_access) {
     $form['elections'] = array(
       '#type' => 'tableselect',
       '#header' => $header,
