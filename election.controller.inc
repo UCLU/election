@@ -17,9 +17,9 @@ class ElectionController extends DrupalDefaultEntityController {
       'type' => $type,
       'name' => '',
       'description' => '',
-      'status' => ELECTION_STATUS_AUTO,
-      'open_time' => 0,
-      'close_time' => 0,
+      'status' => NULL,
+      'open_time' => NULL,
+      'close_time' => NULL,
     );
 
   }

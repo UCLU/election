@@ -17,23 +17,23 @@ function election_list($form, $form_state) {
   $header = array(
     'name' => array('data' => t('Name'), 'field' => 'e.name'),
     'type' => array('data' => t('Type'), 'field' => 'e.type'),
-    'status' => array('data' => t('Status'), 'field' => 'e.status'),
-    'open' => array('data' => t('Opening time'), 'field' => 'e.open_time'),
-    'close' => array('data' => t('Closing time'), 'field' => 'e.close_time'),
-    'changed' => array('data' => t('Updated'), 'field' => 'e.changed', 'sort' => 'desc'),
+    'status' => array('data' => t('Voting status'), 'field' => 'e.status'),
+    'open' => array('data' => t('Voting opens'), 'field' => 'e.open_time'),
+    'close' => array('data' => t('Voting closes'), 'field' => 'e.close_time'),
+    'changed' => array('data' => t('Last updated'), 'field' => 'e.changed', 'sort' => 'desc'),
     'operations' => array('data' => t('Operations')),
   );
 
   // Build the election query, adding a pager and sorter.
-  $query = db_select('election', 'e')->extend('PagerDefault')->extend('TableSort');
+  $query = db_select('election', 'e')
+    ->extend('PagerDefault')
+    ->extend('TableSort')
+    ->fields('e', array('election_id'))
+    ->limit(50)
+    ->orderByHeader($header);
 
   // Get an array of election IDs
-  $election_ids = $query
-                  ->fields('e', array('election_id'))
-                  ->limit(50)
-                  ->orderByHeader($header)
-                  ->execute()
-                  ->fetchCol();
+  $election_ids = $query->execute()->fetchCol();
 
   $elections = election_load_multiple($election_ids);
 
@@ -55,11 +55,25 @@ function election_list($form, $form_state) {
       'type' => check_plain(election_type_load($election->type)->name),
       'close' => array('data' => t('Voting status'), 'field' => 'e.close_time'),
       'status' => _election_format_status($election->status, $election->open_time, $election->close_time),
-      'open' => $election->open_time? format_date($election->open_time, 'short') : '<em>Not set!</em>',
-      'close' => $election->close_time? format_date($election->close_time, 'short') : '<em>Not set!</em>',
+      'open' => '',
+      'close' => '',
       'changed' => format_date($election->changed, 'short'),
       'operations' => array(),
     );
+
+    foreach (array('open', 'close') as $event) {
+      if ($election->status != ELECTION_STATUS_SCHEDULED) {
+        $options[$election->election_id][$event] = t('N/A');
+        continue;
+      }
+      $time = $election->{$event . '_time'};
+      if (is_numeric($time)) {
+        $options[$election->election_id][$event] = format_date($time, 'long');
+      }
+      elseif (empty($election->open_time)) {
+        $options[$election->election_id][$event] = t('Not set');
+      }
+    }
 
     $operations = array();
     if ($admin_access) {
@@ -122,20 +136,24 @@ function _election_is_open($status, $open_time, $close_time) {
     return FALSE;
   }
 
-  return ($open_time && $close_time && $close_time > $open_time && REQUEST_TIME >= $open_time && REQUEST_TIME < $close_time);
+  return (
+    $open_time && REQUEST_TIME >= $open_time
+    && (!$close_time || REQUEST_TIME < $close_time)
+  );
+
 }
 
 function _election_format_status($status_number, $open, $close) {
 
   $is_open = _election_is_open($status_number, $open, $close);
 
-  $open_status = t('<span class="election-status-open">open</span>');
-  $closed_status = t('<span class="election-status-closed">closed</span>');
+  $open_status = t('<span class="election-status-open">Open</span>');
+  $closed_status = t('<span class="election-status-closed">Closed</span>');
 
   $status = $is_open? $open_status : $closed_status;
 
-  if ($status_number == ELECTION_STATUS_AUTO) {
-    return t('auto (!status)', array(
+  if ($status_number == ELECTION_STATUS_SCHEDULED) {
+    return t('Scheduled (!status)', array(
       '!status' => $status,
     ));
   }
