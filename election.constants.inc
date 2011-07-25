@@ -6,7 +6,7 @@
 
 // Constants for the {election} table.
 define('ELECTION_TYPE_REFERENDUM', 'referendum');
-define('ELECTION_TYPE_STV', 2);
+define('ELECTION_TYPE_STV', 'ers97');
 define('ELECTION_STATUS_CLOSED', -1);
 define('ELECTION_STATUS_SCHEDULED', 0);
 define('ELECTION_STATUS_OPEN', 1);
