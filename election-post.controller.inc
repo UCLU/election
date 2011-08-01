@@ -74,4 +74,37 @@ class ElectionPostController extends DrupalDefaultEntityController {
 
   }
 
+  public function delete($ids) {
+
+    if (!empty($ids)) {
+      $posts = $this->load($ids, array());
+      $transaction = db_transaction();
+
+      try {
+        db_delete('election_post')
+          ->condition('post_id', $ids, 'IN')
+          ->execute();
+        foreach ($posts as $post_id => $post) {
+          field_attach_delete('election_post', $post);
+        }
+        db_ignore_slave();
+      }
+      catch (Exception $e) {
+        $transaction->rollback();
+        watchdog_exception('election', $e, NULL, WATCHDOG_ERROR);
+        return FALSE;
+      }
+
+// @todo this doesn't make sense
+//      module_invoke_all('entity_delete', $posts, 'election_post');
+
+      cache_clear_all();
+      $this->resetCache();
+
+    }
+
+    return TRUE;
+
+  }
+
 }

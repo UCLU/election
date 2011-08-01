@@ -35,7 +35,7 @@ function election_post_page_add($election) {
 
   $post = entity_get_controller('election_post')->create($election);
 
-  $post_name = $election->type;
+  $post_name = 'post';
   $type = _election_type_load($election->type);
   if (!empty($type->{'post name'})) {
     $post_name = $type->{'post name'};
@@ -121,7 +121,7 @@ function election_list($form, $form_state) {
           '#href' => election_uri_path($election),
         ),
       ),
-      'type' => check_plain($type->name),
+      'type' => drupal_ucfirst($type->name),
       'anonymity' => $election->anonymous? t('Anonymous') : t('Tracked'),
       'status' => _election_format_status($election->status, $election->open_time, $election->close_time),
       'open' => '',
@@ -144,25 +144,31 @@ function election_list($form, $form_state) {
       }
     }
 
-    $post_name_plural = $election->type;
+    $post_name = 'post';
+    if (!empty($type->{'post name'})) {
+      $post_name = $type->{'post name'};
+    }
+
+    $post_name_plural = $post_name . 's';
     if (!empty($type->{'post name plural'})) {
       $post_name_plural = $type->{'post name plural'};
-    }
-    else if (!empty($type->{'post key'})) {
-      $post_name_plural = $election->type;
     }
 
     $operations = array();
     if (election_access('update', $election)) {
-      $operations['posts'] = l(
-        t('!post_name_plural list', array('!post_name_plural' => $post_name_plural)),
+      $operations['posts_add'] = l(
+        t('add !post_name', array('!post_name' => $post_name)),
+        election_uri_path($election) . '/posts/add'
+      );
+      $operations['posts_list'] = l(
+        t('list !post_name_plural', array('!post_name_plural' => $post_name_plural)),
         election_uri_path($election) . '/posts'
       );
     }
 
     if (election_access('update', $election)) {
       $operations['edit'] = l(
-        t('Edit'),
+        t('edit'),
         election_uri_path($election) . '/edit',
         array('query' => $destination)
       );
@@ -170,7 +176,7 @@ function election_list($form, $form_state) {
 
     if (election_access('delete', $election)) {
       $operations['delete'] = l(
-        t('Delete'),
+        t('delete'),
         election_uri_path($election) . '/delete',
         array('query' => $destination)
       );
@@ -243,33 +249,6 @@ function _election_format_status($status_number, $open, $close) {
   }
 
   return $status;
-}
-
-
-function election_page_type_overview() {
-
-  $item = menu_get_item();
-
-  $output = array();
-
-  foreach (election_types() as $type_mn => $type) {
-
-    $output['content'][] = array(
-      'title' => 'Manage ' . $type->name,
-      'href' => $item['href'] . '/' . $type_mn,
-      'localized_options' => $item['localized_options'],
-      'description' => $type->description,
-    );
-
-  }
-
-  return theme('admin_block_content', $output);
-
-}
-
-function election_page_type($type_mn) {
-  $type = _election_type_load($type_mn);
-  return $type->name . ': ' . $type->description;
 }
 
 function election_page_add($type_mn) {
@@ -460,11 +439,14 @@ function election_delete_confirm($form, &$form_state, $election) {
     '#type' => 'value',
     '#value' => $election->election_id,
   );
+
+  $type = _election_type_load($election->type);
+
   return confirm_form(
     $form,
     t('Are you sure you want to delete %title?', array('%title' => $election->title)),
     election_uri_path($election),
-    t('This action cannot be undone'),
+    t('Deleting an @type also deletes all associated data, for example votes. This action cannot be undone.', array('@type' => $type->name)),
     t('Delete'),
     t('Cancel')
   );
@@ -507,11 +489,15 @@ function election_post_form($form, &$form_state, $election, $post) {
   $form_state['election'] = $election;
 
   $type = _election_type_load($election->type);
-  $post_name = empty($type->{'post name'})? t('Post') : $type->{'post name'};
+
+  $post_name = 'post';
+  if (!empty($type->{'post name'})) {
+    $post_name = $type->{'post name'};
+  }
 
   $form['title'] = array(
     '#type' => 'textfield',
-    '#title' => t('@post_type_name title', array('@post_type_name' => $post_name)),
+    '#title' => t('@post_type_name title', array('@post_type_name' => drupal_ucfirst($post_name))),
     '#default_value' => isset($post->title)? $post->title : '',
     '#required' => TRUE,
   );
@@ -524,7 +510,7 @@ function election_post_form($form, &$form_state, $election, $post) {
     '#submit' => array('election_post_form_submit'),
   );
 
-  if (!empty($election->election_id)) {
+  if (!empty($post->post_id)) {
     $form['buttons']['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete'),
@@ -571,9 +557,8 @@ function election_post_form_submit($form, &$form_state) {
   // Save the post.
   election_post_save($post);
 
-  $post_name = '';
+  $post_name = 'post';
   if ($type = _election_type_load($election->type)) {
-    $post_name = $type->{'post key'};
     if (!empty($type->{'post name'})) {
       $post_name = $type->{'post name'};
     }
@@ -583,6 +568,72 @@ function election_post_form_submit($form, &$form_state) {
   drupal_set_message(
     t('The @post_name "@title" was saved.', array('@post_name' => $post_name, '@title' => $post->title))
   );
+
+  $form_state['redirect'] = election_uri_path($election) . '/posts';
+
+}
+
+function election_post_delete_confirm($form, &$form_state, $election, $post) {
+
+  $form['election_id'] = array(
+    '#type' => 'value',
+    '#value' => $election->election_id,
+  );
+  $form['post_id'] = array(
+    '#type' => 'value',
+    '#value' => $post->post_id,
+  );
+
+  $type = _election_type_load($election->type);
+
+  $post_name = 'post';
+  if (!empty($type->{'post name'})) {
+    $post_name = $type->{'post name'};
+  }
+
+  return confirm_form(
+    $form,
+    t('Are you sure you want to delete the @post_name %title?', array('@post_name' => $post_name, '%title' => $election->title)),
+    election_post_uri_path($post, $election),
+    t('This action cannot be undone.'),
+    t('Delete'),
+    t('Cancel')
+  );
+}
+
+function election_post_delete_confirm_submit($form, &$form_state) {
+  if ($form_state['values']['confirm']) {
+
+    $election = election_load($form_state['values']['election_id']);
+
+    $post = election_post_load($form_state['values']['post_id']);
+
+    // Delete the post.
+    $delete = election_post_delete($form_state['values']['post_id']);
+
+    $type = _election_type_load($election->type);
+    $post_name = 'post';
+    if (!empty($type->{'post name'})) {
+      $post_name = $type->{'post name'};
+    }
+
+    if ($delete) {
+      watchdog('election', 'Deleted @post_name %title', array('@post_name' => $post_name, '%title' => $post->title));
+    }
+
+    if ($delete) {
+      drupal_set_message(
+        t('The @post_name %title has been deleted.', array('@post_name' => $post_name, '%title' => $post->title))
+      );
+    }
+    else {
+      drupal_set_message(
+        t('Failed to delete the @post_name %title.', array('@post_name' => $post_name, '%title' => $post->title)),
+        'error'
+      );
+    }
+
+  }
 
   $form_state['redirect'] = election_uri_path($election) . '/posts';
 

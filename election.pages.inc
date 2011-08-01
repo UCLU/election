@@ -65,12 +65,12 @@ function election_page_postlist($election) {
     $operations = array();
     if (election_access('update', $election)) {
       $operations['edit'] = l(
-        t('Edit'),
+        t('edit'),
         election_post_uri_path($post) . '/edit',
         array('query' => $destination)
       );
       $operations['delete'] = l(
-        t('Delete'),
+        t('delete'),
         election_post_uri_path($post) . '/delete',
         array('query' => $destination)
       );
