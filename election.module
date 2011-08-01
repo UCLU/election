@@ -20,7 +20,7 @@ function election_entity_info() {
     'base table' => 'election',
     'entity keys' => array(
       'id' => 'election_id',
-      'label' => 'name',
+      'label' => 'title',
       'bundle' => 'type',
     ),
     'bundle keys' => array(
@@ -106,14 +106,16 @@ function election_types() {
     $types['referendum'] = (object) array(
       'name' => t('Referendum'),
       'description' => t('A simple referendum, where people can vote once (yes, no, or abstain) in response to a motion.'),
-      'post name' => 'Referendum motion',
+      'post name' => t('Motion'),
+      'post name plural' => t('Motions'),
       'post key' => 'motion',
       'weight' => 0,
     );
-    $types['ers97'] = (object) array(
-      'name' => t('STV (ERS97) Election'),
-      'description' => t('A Single Transferable Vote election conforming to the Electoral Reform Society\'s ERS97 standard.'),
-      'post name' => t('Electoral position'),
+    $types['stv'] = (object) array(
+      'name' => t('STV Election'),
+      'description' => t('A Single Transferable Vote election, conforming to the Electoral Reform Society\'s ERS97 standard.'),
+      'post name' => t('Position'),
+      'post name plural' => t('Positions'),
       'post key' => 'position',
       'weight' => 1,
     );
@@ -139,15 +141,10 @@ function election_field_extra_fields() {
   foreach (election_types() as $type_mn => $type) {
     $extra['election'][$type_mn] = array(
       'form' => array(
-        'name' => array(
-          'label' => t('Name'),
-          'description' => t('The name of the election.'),
+        'title' => array(
+          'label' => t('Title'),
+          'description' => t('The title of the election.'),
           'weight' => -10,
-        ),
-        'description' => array(
-          'label' => t('Description'),
-          'description' => t('A short description of the election.'),
-          'weight' => -5,
         ),
         'status' => array(
           'label' => t('Voting status'),
@@ -161,13 +158,13 @@ function election_field_extra_fields() {
         ),
       ),
       'display' => array(
-        'name' => array(
-          'label' => t('Name'),
+        'title' => array(
+          'label' => t('Title'),
           'weight' => -10,
         ),
-        'description' => array(
-          'label' => t('Description'),
-          'weight' => 0,
+        'voting_schedule' => array(
+          'label' => t('Voting schedule'),
+          'weight' => -2,
         ),
       ),
     );
@@ -234,9 +231,35 @@ function election_field_extra_fields() {
  * @return mixed
  * A stdClass election type object, or FALSE on failure.
  */
-function election_type_load($type_mn) {
+function _election_type_load($type_mn) {
   $types = election_types();
-  return isset($types[$type_mn]) ? $types[$type_mn] : FALSE;
+  if (isset($types[$type_mn])) {
+    $type = $types[$type_mn];
+  }
+  else {
+    $type = reset($types);
+  }
+  return $type;
+}
+
+/**
+ * Get the title for a list of posts (adapt to the post type name).
+ *
+ * @param stdClass $election
+ * Election object.
+ *
+ * @return string
+ */
+function _election_get_posts_title(stdClass $election) {
+  $title = 'Posts';
+  $type = _election_type_load($election->type);
+  if (property_exists($type, 'post name plural')) {
+    $title = $type->{'post name plural'};
+  }
+  elseif (property_exists($type, 'post name')) {
+    $title = $type->{'post name'};
+  }
+  return $title;
 }
 
 /**
@@ -245,19 +268,9 @@ function election_type_load($type_mn) {
  * @return array
  */
 function election_uri($election) {
+  $path = 'elections/' . $election->type . '/' . $election->election_id;
   return array(
-    'path' => 'election/' . $election->election_id,
-  );
-}
-
-/**
- * URI callback for a single election post.
- *
- * @return array
- */
-function election_post_uri($post) {
-  return array(
-    'path' => 'election/post/' . $post->post_id,
+    'path' => $path,
   );
 }
 
@@ -268,6 +281,32 @@ function election_post_uri($post) {
  */
 function election_uri_path($election) {
   $uri = election_uri($election);
+  return $uri['path'];
+}
+
+/**
+ * URI callback for a single election post.
+ *
+ * @return array
+ */
+function election_post_uri($post) {
+  $path = 'elections/posts/' . $post->post_id;
+  if (!empty($post->election_id)) {
+    $election = election_load($post->election_id);
+    $path = election_uri_path($election) . '/posts/' . $post->post_id;
+  }
+  return array(
+    'path' => $path,
+  );
+}
+
+/**
+ * Return the path part of the election post URI callback as a string.
+ *
+ * @return string.
+ */
+function election_post_uri_path($post) {
+  $uri = election_post_uri($post);
   return $uri['path'];
 }
 
@@ -292,7 +331,7 @@ function election_load($election_id = NULL) {
  * Load multiple elections.
  *
  * @param mixed $election_id
- *   A single election ID.
+ *   An array of election IDs.
  *
  * @return stdClass
  *   A stdClass election object.
@@ -302,13 +341,57 @@ function election_load_multiple(array $election_ids = array()) {
 }
 
 /**
+ * Load an individual election post.
+ *
+ * @param mixed $post_id
+ *   A single election post ID.
+ *
+ * @return stdClass
+ *   A stdClass post object.
+ */
+function election_post_load($post_id = NULL) {
+  $result = entity_load('election_post', (array) $post_id);
+  if (!is_array($result) || !count($result)) {
+    return FALSE;
+  }
+  return reset($result);
+}
+
+/**
+ * Load multiple posts.
+ *
+ * @param mixed $post_ids
+ *   An array of post IDs.
+ *
+ * @return stdClass
+ *   A stdClass election post object.
+ */
+function election_post_load_multiple(array $post_ids = array()) {
+  return entity_load('election_post', $post_ids);
+}
+
+/**
  * Implements hook_permission().
  */
 function election_permission() {
   $permissions = array(
     'administer elections' => array(
       'title' => t('Administer elections'),
-      'description' => t('Create, edit and delete all elections.'),
+      'description' => t('Alter the fields and display settings for election types.'),
+    ),
+    'create elections' => array(
+      'title' => t('Create elections'),
+    ),
+    'delete any elections' => array(
+      'title' => t('Delete any election'),
+      'description' => t('This permission is dangerous: deleting an election automatically deletes all associated data (including votes).'),
+      'restrict access' => TRUE,
+    ),
+    'edit any election' => array(
+      'title' => t('Edit any election'),
+    ),
+    'view any election' => array(
+      'title' => t('View any election'),
     ),
   );
   return $permissions;
@@ -329,11 +412,27 @@ function election_permission() {
  *   Whether access is allowed or not.
  */
 function election_access($op, $election = NULL, $account = NULL) {
-  if (user_access('administer elections', $account)) {
-    return TRUE;
+  switch ($op) {
+    case 'view':
+      return (bool) user_access('view any election', $account);
+      break;
+    case 'create':
+      return (bool) user_access('create elections', $account);
+      break;
+    case 'update':
+    case 'edit':
+      return (bool) user_access('edit any election', $account);
+      break;
+    case 'delete':
+      return (bool) user_access('delete any election', $account);
+      break;
   }
   return FALSE;
 }
+
+/**
+ *
+ */
 
 /**
  * Implements hook_menu().
@@ -364,20 +463,17 @@ function election_menu() {
   );
 
   foreach (election_types() as $type_mn => $type) {
-    $items['admin/election/list/' . $type_mn . '/add'] = array(
+    $items['admin/election/list/add/' . $type_mn] = array(
       'title' => 'Add new ' . $type->name,
       'title callback' => 'check_plain',
       'page callback' => 'election_page_add',
-      'page arguments' => array(3),
+      'page arguments' => array(4),
       'access arguments' => array('administer elections'),
       'file' => 'election.admin.inc',
       'description' => $type->description,
       'type' => MENU_LOCAL_ACTION,
       'weight' => isset($type->weight)? $type->weight : 0,
     );
-  }
-
-  foreach (election_types() as $type_mn => $type) {
     $items['admin/election/' . $type_mn] = array(
       'title' => $type->name . ' settings',
       'title callback' => 'check_plain',
@@ -403,41 +499,98 @@ function election_menu() {
     }
   }
 
-  $items['election/%election'] = array(
+  $items['elections/%/%election'] = array(
     'title callback' => 'election_page_title',
-    'title arguments' => array(1),
+    'title arguments' => array(2),
     'page callback' => 'election_page_view',
-    'page arguments' => array(1),
-    'access arguments' => array('view elections'),
-    'file' => 'election.admin.inc',
+    'page arguments' => array(2),
+    'access callback' => 'election_access',
+    'access arguments' => array('view', 2),
+    'file' => 'election.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
-  $items['election/%election/view'] = array(
+  $items['elections/%/%election/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
 
-  $items['election/%election/edit'] = array(
+  $items['elections/%/%election/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'election_page_edit',
     'file' => 'election.admin.inc',
-    'page arguments' => array(1),
-    'access arguments' => array('update elections'),
+    'page arguments' => array(2),
+    'access callback' => 'election_access',
+    'access arguments' => array('update', 2),
+    'weight' => 2,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+
+  $items['elections/%/%election/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_delete_confirm', 2),
+    'access callback' => 'election_access',
+    'access arguments' => array('delete', 2),
+    'file' => 'election.admin.inc',
+    'weight' => 3,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE,
+  );
+
+  $items['elections/%/%election/posts'] = array(
+    'title callback' => 'election_page_postlist_title',
+    'title arguments' => array(2),
+    'page callback' => 'election_page_postlist',
+    'page arguments' => array(2),
+    'file' => 'election.pages.inc',
+    'access callback' => 'election_access',
+    'access arguments' => array('view', 2),
     'weight' => 1,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
-  $items['election/%election/delete'] = array(
-    'title' => 'Delete',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_delete_confirm', 1),
-    'access arguments' => array('delete elections'),
-    'weight' => 1,
+
+  $items['elections/%/%election/posts/add'] = array(
+    'title' => 'Add new',
+    'page callback' => 'election_post_page_add',
+    'page arguments' => array(2),
+    'access callback' => 'election_access',
+    'access arguments' => array('update', 2),
+    'file' => 'election.admin.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+
+  $items['elections/%/%election/posts/%election_post'] = array(
+    'title callback' => 'election_post_page_title',
+    'title arguments' => array(2, 4),
+    'page callback' => 'election_post_page',
+    'page arguments' => array(2, 4),
+    'file' => 'election.pages.inc',
+    'access callback' => 'election_access',
+    'access arguments' => array('view', 2),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['elections/%/%election/posts/%election_post/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+
+  $items['elections/%/%election/posts/%election_post/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'election_post_page_edit',
+    'page arguments' => array(2, 4),
+    'file' => 'election.admin.inc',
+    'access callback' => 'election_access',
+    'access arguments' => array('update', 2),
     'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_INLINE,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'weight' => 1,
   );
 
   return $items;
@@ -482,207 +635,6 @@ function election_menu_alter(&$items) {
   }
 }
 
-function election_forms() {
-
-  $forms = array();
-  if ($types = election_types()) {
-    foreach (array_keys($types) as $type) {
-      $forms[$type . '_election_form']['callback'] = 'election_form';
-    }
-  }
-  return $forms;
-
-}
-
-function election_form($form, &$form_state, $election) {
-
-  $form['#id'] = 'election-form';
-  $form['#election'] = $election;
-
-  $form_state['election'] = $election;
-
-  $form['name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Name'),
-    '#default_value' => isset($election->name)? $election->name : '',
-    '#required' => TRUE,
-  );
-
-  $form['description'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Description'),
-    '#default_value' => isset($election->description)? $election->description : '',
-    '#required' => FALSE,
-  );
-
-  $form['status'] = array(
-    '#type' => 'select',
-    '#title' => t('Voting status'),
-    '#default_value' => isset($election->status)? $election->status : ELECTION_STATUS_CLOSED,
-    '#options' => array(
-      ELECTION_STATUS_CLOSED => t('Closed'),
-      ELECTION_STATUS_OPEN => t('Open'),
-      ELECTION_STATUS_SCHEDULED => t('Scheduled'),
-    ),
-  );
-
-  $form['voting_schedule'] = array(
-    '#title' => t('Voting schedule'),
-    '#type' => 'fieldset',
-    '#description' => 'Set the opening and closing times for voting.',
-    '#states' => array(
-      'visible' => array(
-        ':input[name=status]' => array('value' => (string) ELECTION_STATUS_SCHEDULED),
-      ),
-    ),
-  );
-
-  $open_default = isset($election->open_time)? $election->open_time : strtotime('+1 Friday 10am');
-  $close_default = isset($election->close_time)? $election->close_time : strtotime('+2 Friday 10am');
-
-  $date_format = variable_get('date_format_long', 'Y-m-d H:i');
-
-  $form['voting_schedule']['open_time'] = array(
-    '#title' => t('Opening time'),
-    '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
-    '#default_value' => $open_default? date('Y-m-d H:i:s', $open_default) : NULL,
-    '#date_format' => $date_format,
-    '#date_increment' => 10,
-    '#date_year_range' => '-0:+3',
-  );
-
-  $form['voting_schedule']['close_time'] = array(
-    '#title' => t('Closing time'),
-    '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
-    '#default_value' => $close_default? date('Y-m-d H:i:s', $close_default) : NULL,
-    '#date_format' => $date_format,
-    '#date_increment' => 10,
-    '#date_year_range' => '-0:+3',
-  );
-
-  $form['buttons'] = array();
-  $form['buttons']['#weight'] = 100;
-  $form['buttons']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-    '#submit' => array('election_form_submit'),
-  );
-
-  if (!empty($election->election_id)) {
-    $form['buttons']['delete'] = array(
-      '#type' => 'submit',
-      '#value' => t('Delete'),
-      '#submit' => array('election_form_delete_submit'),
-      '#access' => user_access('delete elections'),
-    );
-  }
-
-  $form['#validate'][] = 'election_form_validate';
-
-  // Add custom fields from the Field system.
-  field_attach_form('election', $election, $form, $form_state);
-
-  return $form;
-
-}
-
-function election_form_validate($form, &$form_state) {
-
-  // Check that the opening and closing times are set if voting is scheduled.
-  if ($form_state['values']['status'] == ELECTION_STATUS_SCHEDULED
-      && (empty($form_state['values']['open_time']) || empty($form_state['values']['close_time']))) {
-    form_set_error('voting_schedule', t('You must set the opening and closing times when the voting status is !scheduled.', array('!scheduled' => t('Scheduled'))));
-  }
-
-  // Check that the closing time is after the opening time.
-  elseif ($form_state['values']['status'] == ELECTION_STATUS_SCHEDULED
-        && strtotime($form_state['values']['close_time']) <= strtotime($form_state['values']['open_time'])) {
-    form_set_error('voting_schedule', t('The closing time must be after the opening time.'));
-  }
-
-  // Check other Fields.
-  field_attach_form_validate('election', $form_state['election'], $form, $form_state);
-
-}
-
-function election_form_submit($form, &$form_state) {
-  global $user;
-  $election = &$form_state['election'];
-
-  if (empty($election->uid)) {
-    $election->uid = $user->uid;
-  }
-
-  $election->name = $form_state['values']['name'];
-  $election->description = $form_state['values']['description'];
-
-  $election->status = $form_state['values']['status'];
-
-  $election->open_time = strtotime($form_state['values']['open_time']);
-  $election->close_time = strtotime($form_state['values']['close_time']);
-
-  field_attach_submit('election', $election, $form, $form_state);
-
-  // Save the election.
-  election_save($election);
-
-  // Notify the user that the election was saved.
-  $types = election_types();
-  $type = $types[$election->type];
-  drupal_set_message(
-    t('The @type "@name" was saved.', array('@type' => $type->name, '@name' => $election->name))
-  );
-
-  $form_state['redirect'] = 'admin/election/list';
-}
-
-function election_form_delete_submit($form, &$form_state) {
-  $destination = array();
-  if (isset($_GET['destination'])) {
-    $destination = drupal_get_destination();
-    unset($_GET['destination']);
-  }
-  $election = $form['#election'];
-  $form_state['redirect'] = array(
-    election_uri_path($election) . '/delete',
-    array('query' => $destination),
-  );
-}
-
-function election_delete_confirm($form, &$form_state, $election) {
-  $form['#election'] = $election;
-  $form['election_id'] = array(
-    '#type' => 'value',
-    '#value' => $election->election_id,
-  );
-  return confirm_form(
-    $form,
-    t('Are you sure you want to delete %name?', array('%name' => $election->name)),
-    election_uri_path($election),
-    t('This action cannot be undone'),
-    t('Delete'),
-    t('Cancel')
-  );
-}
-
-function election_delete_confirm_submit($form, &$form_state) {
-  if ($form_state['values']['confirm']) {
-    $election = election_load($form_state['values']['election_id']);
-    election_delete($form_state['values']['election_id']);
-    watchdog('election', '@type: deleted %name', array('@type' => $election->type, '%name' => $election->name));
-    $types = election_types();
-    drupal_set_message(
-      t(
-        '@type %name has been deleted.',
-        array(
-          '@type' => $types[$election->type]->name,
-          '%name' => $election->name
-        )
-      )
-    );
-  }
-  $form_state['redirect'] = 'admin/election/list';
-}
 
 function election_delete_multiple(array $election_ids) {
   return entity_get_controller('election')->delete($election_ids);
@@ -696,17 +648,79 @@ function election_save($election) {
   return entity_get_controller('election')->save($election);
 }
 
-function election_page_edit($election) {
-  $types = election_types();
-  drupal_set_title(
-    t(
-      'Edit @type: <em>@name</em>',
-      array(
-        '@type' => $types[$election->type]->name,
-        '@name' => $election->name,
-      )
-    ),
-    PASS_THROUGH
+
+function election_post_save($post) {
+  return entity_get_controller('election_post')->save($post);
+}
+
+/**
+ * Title callback for elections/%/%election/posts.
+ */
+function election_page_postlist_title($election) {
+  return _election_get_posts_title($election);
+}
+
+/**
+ * Title callback for elections/%/%election/posts/%election_post.
+ */
+function election_post_page_title($election, $post) {
+  return $post->title . ' (' . $election->title . ')';
+}
+
+/**
+ * Title callback for elections/%/%election/view.
+ */
+function election_page_title($election) {
+  return check_plain($election->title);
+}
+
+/**
+ * General function for creating breadcrumbs.
+ */
+function _election_build_breadcrumb(stdClass $election = NULL) {
+
+  $args = func_get_args();
+
+  $links = array();
+  $links[] = l(
+    t('Home'),
+    '<front>'
   );
-  return drupal_get_form($election->type . '_election_form', $election);
+  $links[] = l(
+    'Elections',
+    'elections'
+  );
+
+  if (!is_object($election)) {
+    return $links;
+  }
+
+  $election_uri_path = election_uri_path($election);
+
+  $links[] = l(
+    $election->title,
+    election_uri_path($election)
+  );
+
+  $type = _election_type_load($election->type);
+  $post_name_plural = $type->{'post key'};
+  if (!empty($type->{'post name plural'})) {
+    $post_name_plural = $type->{'post name plural'};
+  }
+
+  unset($args[0]);
+  foreach ($args as $arg) {
+
+    $link = $arg;
+    switch ($arg) {
+      case 'Posts':
+        $link = l($post_name_plural, $election_uri_path . '/posts');
+        break;
+    }
+
+    $links[] = $link;
+
+  }
+
+  return $links;
 }

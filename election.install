@@ -29,6 +29,19 @@ function election_schema() {
         'not null' => TRUE,
         'default' => ELECTION_TYPE_REFERENDUM,
       ),
+      'title' => array(
+        'description' => 'The title of the election - a human-readable identifier.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'anonymous' => array(
+        'description' => 'Whether or not votes in this election are anonymous.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
       'status' => array(
         'description' => sprintf(
           'The voting status: open %d, closed %d, or scheduled %d.',
@@ -41,13 +54,6 @@ function election_schema() {
         'not null' => TRUE,
         'default' => ELECTION_STATUS_SCHEDULED,
       ),
-      'anonymous' => array(
-        'description' => 'Whether or not votes in this election are anonymous.',
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 1,
-      ),
       'open_time' => array(
         'description' => 'The Unix timestamp for when voting opens.',
         'type' => 'int',
@@ -56,17 +62,6 @@ function election_schema() {
       'close_time' => array(
         'description' => 'The Unix timestamp for when voting closes.',
         'type' => 'int',
-        'not null' => FALSE,
-      ),
-      'name' => array(
-        'description' => 'The name of the election - a human-readable identifier.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => FALSE,
-      ),
-      'description' => array(
-        'description' => 'A human-readable description of the election.',
-        'type' => 'text',
         'not null' => FALSE,
       ),
       'created' => array(
@@ -87,7 +82,7 @@ function election_schema() {
       'status' => array('status'),
       'voting_period' => array('open_time', 'close_time'),
       'created' => array('created'),
-      'name' => array('name'),
+      'title' => array('title'),
     ),
   );
 
@@ -562,15 +557,15 @@ function election_enable() {
   try {
 
     // Foreign keys for {election_post}.
-    db_query('ALTER TABLE {election_post} ADD FOREIGN KEY (`election_id`) REFERENCES {election} (`election_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_post} ADD FOREIGN KEY (`election_id`) REFERENCES {election} (`election_id`) ON UPDATE CASCADE ON DELETE CASCADE');
 
     // Foreign keys for {election_post_electorate}.
-    db_query('ALTER TABLE {election_post_electorate} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
-    db_query('ALTER TABLE {election_post_electorate} ADD FOREIGN KEY (`electorate_id`) REFERENCES {election_electorate} (`electorate_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_post_electorate} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE ON DELETE CASCADE');
+    db_query('ALTER TABLE {election_post_electorate} ADD FOREIGN KEY (`electorate_id`) REFERENCES {election_electorate} (`electorate_id`) ON UPDATE CASCADE ON DELETE CASCADE');
 
     // Foreign keys for {election_ballot}.
-    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
-    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`vote_id`) REFERENCES {election_vote} (`vote_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE ON DELETE RESTRICT');
+    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`vote_id`) REFERENCES {election_vote} (`vote_id`) ON UPDATE CASCADE ON DELETE CASCADE');
     db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`candidate_id`) REFERENCES {election_candidate} (`candidate_id`) ON UPDATE CASCADE');
 
     // Foreign keys for {election_candidate}.
@@ -578,7 +573,7 @@ function election_enable() {
     db_query('ALTER TABLE {election_candidate} ADD FOREIGN KEY (`uid`) REFERENCES {users} (`uid`) ON UPDATE CASCADE');
 
     // Foreign keys for {election_endorser}.
-    db_query('ALTER TABLE {election_endorser} ADD FOREIGN KEY (`candidate_id`) REFERENCES {election_candidate} (`candidate_id`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_endorser} ADD FOREIGN KEY (`candidate_id`) REFERENCES {election_candidate} (`candidate_id`) ON UPDATE CASCADE ON DELETE CASCADE');
 
     // Foreign keys for {election_vote}.
     db_query('ALTER TABLE {election_vote} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');

@@ -15,8 +15,7 @@ class ElectionController extends DrupalDefaultEntityController {
     return (object) array(
       'election_id' => '',
       'type' => $type,
-      'name' => '',
-      'description' => '',
+      'title' => '',
       'status' => NULL,
       'open_time' => NULL,
       'close_time' => NULL,
