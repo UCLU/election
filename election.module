@@ -762,3 +762,226 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
 
   return $links;
 }
+
+/**
+ * Implements hook_token_info().
+ * See http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_token_info/7.
+ */
+function election_token_info() {
+  $type = array(
+    'name' => t('Elections'),
+    'description' => t('Tokens related to elections.'),
+    'needs-data' => 'election',
+  );
+
+  $tokens = array(
+    'id' => array(
+      'name' => t('Election ID'),
+      'description' => t('The unique ID of the election.'),
+    ),
+    'type' => array(
+      'name' => t('Election type'),
+      'description' => t('The machine-readable name of the election type.'),
+    ),
+    'type-name' => array(
+      'name' => t('Election type name'),
+      'description' => t('The human-readable name of the election type.'),
+    ),
+    'title' => array(
+      'name' => t('Title'),
+      'description' => t('The title of the election.'),
+    ),
+    'created' => array(
+      'name' => t('Date created'),
+      'description' => t('The date the election was created.'),
+      'type' => 'date',
+    ),
+  );
+
+  return array(
+    'types' => array('election' => $type),
+    'tokens' => array('election' => $tokens),
+  );
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function election_tokens($type, array $tokens, array $data = array(), array $options = array()) {
+
+  $sanitize = !empty($options['sanitize']);
+
+  $replacements = array();
+
+  if ($type == 'election' && !empty($data['election'])) {
+
+    $election = $data['election'];
+
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+
+        case 'id':
+          $replacements[$original] = $election->election_id;
+          break;
+
+        case 'type':
+          $replacements[$original] = $sanitize ? check_plain($election->type) : $election->type;
+          break;
+
+        case 'type-name':
+          $type = _election_type_load($election->type);
+          $type_name = $type->name;
+          $replacements[$original] = $sanitize ? check_plain($type_name) : $type_name;
+          break;
+
+        case 'title':
+          $replacements[$original] = $sanitize ? check_plain($election->title) : $election->title;
+          break;
+
+        case 'created':
+          $replacements[$original] = format_date($election->created, 'medium');
+          break;
+
+      }
+
+    }
+  }
+
+  return $replacements;
+
+}
+
+/**
+ * Implements hook_pathauto() (from the Pathauto module).
+ *
+ * @param string $op
+ *
+ * @return stdClass
+ */
+function election_pathauto($op) {
+  switch ($op) {
+    case 'settings':
+      $settings = array();
+      $settings['module'] = 'election';
+      $settings['token_type'] = 'election';
+      $settings['groupheader'] = t('Election paths');
+      $settings['patterndescr'] = t('Default path pattern (applies to all election types with blank patterns below)');
+      $settings['patterndefault'] = 'elections/[election:title]';
+      $settings['batch_update_callback'] = 'election_pathauto_bulk_update_batch_process';
+      $settings['batch_file'] = drupal_get_path('module', 'election') . '/election.module';
+
+
+      foreach (election_types() as $type_mn => $type) {
+        $settings['patternitems'][$type_mn] = t('Pattern for all %type paths', array('%type' => $type->name));
+      }
+      return (object) $settings;
+    default:
+      break;
+  }
+}
+
+function election_pathauto_bulk_update_batch_process(&$context) {
+  if (!isset($context['sandbox']['current'])) {
+    $context['sandbox']['count'] = 0;
+    $context['sandbox']['current'] = 0;
+  }
+
+  $query = db_select('election', 'e');
+  $query->leftJoin('url_alias', 'ua', "CONCAT('election/', e.election_id) = ua.source");
+  $query->addField('e', 'election_id');
+  $query->isNull('ua.source');
+  $query->condition('e.election_id', $context['sandbox']['current'], '>');
+  $query->orderBy('e.election_id');
+  $query->addTag('pathauto_bulk_update');
+  $query->addMetaData('entity', 'election');
+
+  // Get the total amount of items to process.
+  if (!isset($context['sandbox']['total'])) {
+    $context['sandbox']['total'] = $query->countQuery()->execute()->fetchField();
+
+    // If there are no elections to update, the stop immediately.
+    if (!$context['sandbox']['total']) {
+      $context['finished'] = 1;
+      return;
+    }
+  }
+
+  $query->range(0, 25);
+  $ids = $query->execute()->fetchCol();
+
+  pathauto_election_update_alias_multiple($ids, 'bulkupdate');
+  $context['sandbox']['count'] += count($ids);
+  $context['sandbox']['current'] = max($ids);
+  $context['message'] = t('Updated alias for election @id.', array('@id' => end($ids)));
+
+  if ($context['sandbox']['count'] != $context['sandbox']['total']) {
+    $context['finished'] = $context['sandbox']['count'] / $context['sandbox']['total'];
+  }
+
+}
+
+/**
+ * Update the URL aliases for an individual election.
+ *
+ * @param $election
+ *   A election object.
+ * @param $op
+ *   Operation being performed on the election ('insert', 'update' or 'bulkupdate').
+ * @param $options
+ *   An optional array of additional options.
+ */
+function pathauto_election_update_alias(stdClass $election, $op, array $options = array()) {
+  // Skip processing if the user has disabled pathauto for the election.
+  if (isset($election->path['pathauto']) && empty($election->path['pathauto'])) {
+    return;
+  }
+
+  $options += array(
+    'language' => isset($election->language) ? $election->language : LANGUAGE_NONE,
+  );
+
+  // Skip processing if the election has no pattern.
+  if (!pathauto_pattern_load_by_entity('election', $election->type, $options['language'])) {
+    return;
+  }
+
+  module_load_include('inc', 'pathauto');
+  $uri = entity_uri('election', $election);
+  pathauto_create_alias('election', $op, $uri['path'], array('election' => $election), $election->type, $options['language']);
+}
+
+/**
+ * Update the URL aliases for multiple elections.
+ *
+ * @param $election_ids
+ *   An array of election IDs.
+ * @param $op
+ *   Operation being performed on the elections ('insert', 'update' or
+ *   'bulkupdate').
+ * @param $options
+ *   An optional array of additional options.
+ */
+function pathauto_election_update_alias_multiple(array $election_ids, $op, array $options = array()) {
+  $options += array('message' => FALSE);
+
+  $elections = election_load_multiple($election_ids);
+  foreach ($elections as $election) {
+    pathauto_election_update_alias($election, $op, $options);
+  }
+
+  if (!empty($options['message'])) {
+    drupal_set_message(format_plural(count($election_ids), 'Updated URL alias for 1 election.', 'Updated URL aliases for @count elections.'));
+  }
+}
+
+/**
+ * Implements hook_path_alias_types(). See the PathAuto module.
+ *
+ * Used primarily by the bulk delete form.
+ */
+function election_path_alias_types() {
+  $objects = array(
+    'elections/' => t('Elections')
+  );
+  return $objects;
+}
