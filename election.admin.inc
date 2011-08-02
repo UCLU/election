@@ -142,7 +142,7 @@ function election_list_form($form, $form_state) {
       'title' => array(
         'data' => array(
           '#type' => 'link',
-          '#title' => $election->title,
+          '#title' => check_plain($election->title),
           '#href' => election_uri_path($election),
         ),
       ),
@@ -400,8 +400,8 @@ function election_form($form, &$form_state, $election) {
     '#type' => 'select',
     '#default_value' => isset($election->anonymous)? $election->anonymous : 1,
     '#options' => array(
-       1 => 'Anonymous: voters can never be identified.',
-       0 => 'Tracked: voters can be identified if necessary.',
+      1 => 'Anonymous: voters can never be identified.',
+      0 => 'Tracked: voters can be identified if necessary.',
     ),
     '#required' => TRUE,
     '#description' => 'If this is set to Tracked, it is technically possible (although not easy) to link votes with voters. This may be useful for testing purposes. If this is set to Anonymous during voting, it is impossible to make this link. Tracking won\'t work retrospectively.',

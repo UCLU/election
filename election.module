@@ -670,7 +670,7 @@ function election_delete_multiple(array $election_ids) {
 /**
  * Wrapper function to allow deleting an individual election.
  *
- * @see election_delete_multiple().
+ * @see election_delete_multiple()
  *
  * @param mixed $election_id
  *   Single election ID.
@@ -705,7 +705,7 @@ function election_post_delete_multiple(array $post_ids) {
 /**
  * Wrapper function to allow deleting an individual election post.
  *
- * @see election_post_delete_multiple().
+ * @see election_post_delete_multiple()
  *
  * @param mixed $post_id
  *   Single post ID.
@@ -924,7 +924,7 @@ function election_pathauto($op) {
 /**
  * Allow bulk updating of paths. See the Pathauto module.
  *
- * @see election_pathauto().
+ * @see election_pathauto()
  * @param array &$context
  * @return void
  */

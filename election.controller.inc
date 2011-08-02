@@ -109,9 +109,6 @@ class ElectionController extends DrupalDefaultEntityController {
         return FALSE;
       }
 
-// @todo this doesn't make sense
-//      module_invoke_all('entity_delete', $election, 'election');
-
       cache_clear_all();
       $this->resetCache();
 
