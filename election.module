@@ -464,7 +464,7 @@ function election_menu() {
     'title' => 'Election list',
     'title callback' => 'check_plain',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_list'),
+    'page arguments' => array('election_list_form'),
     'access arguments' => array('administer elections'),
     'file' => 'election.admin.inc',
     'description' => 'View, edit, and add new elections.',
@@ -540,7 +540,7 @@ function election_menu() {
   $items['election/%election/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_delete_confirm', 1),
+    'page arguments' => array('election_form_delete_confirm', 1),
     'access callback' => 'election_access',
     'access arguments' => array('delete', 1),
     'file' => 'election.admin.inc',
@@ -605,7 +605,7 @@ function election_menu() {
   $items['election/%election/posts/%election_post/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_post_delete_confirm', 1, 3),
+    'page arguments' => array('election_post_form_delete_confirm', 1, 3),
     'access callback' => 'election_access',
     'access arguments' => array('update', 1),
     'file' => 'election.admin.inc',
@@ -770,32 +770,32 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
 
   $election_uri_path = election_uri_path($election);
 
-  $links[] = l(
-    $election->title,
-    election_uri_path($election)
-  );
+  unset($args[0]);
+  $args_count = count($args);
 
-  $type = _election_type_load($election->type);
-  $post_name_plural = $type->{'post key'};
-  if (!empty($type->{'post name plural'})) {
-    $post_name_plural = $type->{'post name plural'};
+  if ($args_count > 0) {
+    $links[] = l(
+      $election->title, // l() runs check_plain anyway.
+      election_uri_path($election)
+    );
+  }
+  else {
+    $links[] = check_plain($election->title);
   }
 
-  unset($args[0]);
-
-  $args_count = count($args);
   foreach ($args as $key => $arg) {
 
     $link = $arg;
     switch ($arg) {
       case '_POSTS_':
+        $posts_name = _election_get_posts_name($election, TRUE);
         if ($key == $args_count - 1) {
           // Don't link the last item.
-          $link = drupal_ucfirst($post_name_plural);
+          $link = check_plain(drupal_ucfirst($posts_name));
           break;
         }
         else {
-          $link = l(drupal_ucfirst($post_name_plural), $election_uri_path . '/posts');
+          $link = l(drupal_ucfirst($posts_name), $election_uri_path . '/posts');
         }
         break;
     }

@@ -3,7 +3,6 @@ description = "Provides online voting functionality, supporting referendums and 
 package = Democracy
 core = 7.x
 php = 5.3
-dependencies[] = views
 dependencies[] = entity
 dependencies[] = field_ui
 dependencies[] = date

@@ -104,7 +104,7 @@ function election_page_edit($election) {
  * @return array
  *   Render array.
  */
-function election_list($form, $form_state) {
+function election_list_form($form, $form_state) {
 
   // Build the sortable table header.
   $header = array(
@@ -169,15 +169,8 @@ function election_list($form, $form_state) {
       }
     }
 
-    $post_name = 'post';
-    if (!empty($type->{'post name'})) {
-      $post_name = $type->{'post name'};
-    }
-
-    $post_name_plural = $post_name . 's';
-    if (!empty($type->{'post name plural'})) {
-      $post_name_plural = $type->{'post name plural'};
-    }
+    $post_name = _election_get_posts_name($election);
+    $post_name_plural = _election_get_posts_name($election, TRUE);
 
     $operations = array();
     if (election_access('update', $election)) {
@@ -441,6 +434,13 @@ function election_form($form, &$form_state, $election) {
 
 }
 
+/**
+ * Form validate function for the form election_form.
+ *
+ * @param array $form
+ * @param array &$form_state
+ * @return void
+ */
 function election_form_validate($form, &$form_state) {
 
   // Check that the opening and closing times are set if voting is scheduled.
@@ -460,6 +460,13 @@ function election_form_validate($form, &$form_state) {
 
 }
 
+/**
+ * Form submit function for the Save button in the form election_form.
+ *
+ * @param array $form
+ * @param array &$form_state
+ * @return void
+ */
 function election_form_submit($form, &$form_state) {
   global $user;
   $election = &$form_state['election'];
@@ -492,6 +499,13 @@ function election_form_submit($form, &$form_state) {
   $form_state['redirect'] = 'admin/election/list';
 }
 
+/**
+ * Form submit function for the Delete button in the form election_form.
+ *
+ * @param array $form
+ * @param array &$form_state
+ * @return void
+ */
 function election_form_delete_submit($form, &$form_state) {
   $destination = array();
   if (isset($_GET['destination'])) {
@@ -505,7 +519,18 @@ function election_form_delete_submit($form, &$form_state) {
   );
 }
 
-function election_delete_confirm($form, &$form_state, $election) {
+/**
+ * Form builder function to confirm the delete action for an election.
+ * See http://api.drupal.org/api/drupal/modules--system--system.module/function/confirm_form.
+ *
+ * @param array $form
+ * @param array &$form_state
+ * @param stdClass $election
+ *
+ * @return array
+ *   Render array.
+ */
+function election_form_delete_confirm($form, &$form_state, $election) {
 
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, 'Delete')
@@ -527,7 +552,14 @@ function election_delete_confirm($form, &$form_state, $election) {
   );
 }
 
-function election_delete_confirm_submit($form, &$form_state) {
+/**
+ * Form submit function for the Delete button in the form election_form_delete_confirm.
+ *
+ * @param array $form
+ * @param array &$form_state
+ * @return void
+ */
+function election_form_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {
     $election = election_load($form_state['values']['election_id']);
     $delete = election_delete($form_state['values']['election_id']);
@@ -554,7 +586,17 @@ function election_delete_confirm_submit($form, &$form_state) {
 }
 
 
-
+/**
+ * Form builder function for adding or editing an election post.
+ *
+ * @param array $form
+ * @param array &$form_state
+ * @param stdClass $election
+ * @param stdClass $post
+ *
+ * @return array
+ *   Render array.
+ */
 function election_post_form($form, &$form_state, $election, $post) {
 
   $post->is_new = empty($post->post_id);
@@ -583,12 +625,7 @@ function election_post_form($form, &$form_state, $election, $post) {
   $form_state['post'] = $post;
   $form_state['election'] = $election;
 
-  $type = _election_type_load($election->type);
-
-  $post_name = 'post';
-  if (!empty($type->{'post name'})) {
-    $post_name = $type->{'post name'};
-  }
+  $post_name = _election_get_posts_name($election);
 
   $form['title'] = array(
     '#type' => 'textfield',
@@ -622,7 +659,13 @@ function election_post_form($form, &$form_state, $election, $post) {
   return $form;
 }
 
-
+/**
+ * Form submit function for the Delete button in the form election_post_form.
+ *
+ * @param array $form
+ * @param array &$form_state
+ * @return void
+ */
 function election_post_form_delete_submit($form, &$form_state) {
   $destination = array();
   if (isset($_GET['destination'])) {
@@ -638,6 +681,13 @@ function election_post_form_delete_submit($form, &$form_state) {
 }
 
 
+/**
+ * Form validate function for the form election_post_form.
+ *
+ * @param array $form
+ * @param array &$form_state
+ * @return void
+ */
 function election_post_form_validate($form, &$form_state) {
 
   // Run posts form checks here.
@@ -647,7 +697,13 @@ function election_post_form_validate($form, &$form_state) {
 
 }
 
-
+/**
+ * Form submit function for the Save button in the form election_post_form.
+ *
+ * @param array $form
+ * @param array &$form_state
+ * @return void
+ */
 function election_post_form_submit($form, &$form_state) {
 
   $post = &$form_state['post'];
@@ -667,23 +723,28 @@ function election_post_form_submit($form, &$form_state) {
   // Save the post.
   election_post_save($post);
 
-  $post_name = 'post';
-  if ($type = _election_type_load($election->type)) {
-    if (!empty($type->{'post name'})) {
-      $post_name = $type->{'post name'};
-    }
-  }
-
   // Notify the user that the post was saved.
   drupal_set_message(
-    t('The @post_name "@title" was saved.', array('@post_name' => $post_name, '@title' => $post->title))
+    t('The @post_name "@title" was saved.', array('@post_name' => _election_get_posts_name($election), '@title' => $post->title))
   );
 
   $form_state['redirect'] = election_uri_path($election) . '/posts';
 
 }
 
-function election_post_delete_confirm($form, &$form_state, $election, $post) {
+/**
+ * Form builder function to confirm the delete action for an election post.
+ * See http://api.drupal.org/api/drupal/modules--system--system.module/function/confirm_form.
+ *
+ * @param array $form
+ * @param array &$form_state
+ * @param stdClass $election
+ * @param stdClass $post
+ *
+ * @return array
+ *   Render array.
+ */
+function election_post_form_delete_confirm($form, &$form_state, $election, $post) {
 
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, '_POSTS_', l($post->title, election_post_uri_path($post)), 'Delete')
@@ -700,17 +761,12 @@ function election_post_delete_confirm($form, &$form_state, $election, $post) {
 
   $type = _election_type_load($election->type);
 
-  $post_name = 'post';
-  if (!empty($type->{'post name'})) {
-    $post_name = $type->{'post name'};
-  }
-
   return confirm_form(
     $form,
     t(
       'Are you sure you want to delete the @post_name %post_title from the @election_type %election_title?',
       array(
-        '@post_name' => $post_name,
+        '@post_name' => _election_get_posts_name($election),
         '@election_type' => $type->name,
         '%election_title' => $election->title,
         '%post_title' => $post->title,
@@ -723,7 +779,14 @@ function election_post_delete_confirm($form, &$form_state, $election, $post) {
   );
 }
 
-function election_post_delete_confirm_submit($form, &$form_state) {
+/**
+ * Form submit function for the Delete button in the form election_post_form_delete_confirm.
+ *
+ * @param array $form
+ * @param array &$form_state
+ * @return void
+ */
+function election_post_form_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {
 
     $election = election_load($form_state['values']['election_id']);
@@ -733,11 +796,7 @@ function election_post_delete_confirm_submit($form, &$form_state) {
     // Delete the post.
     $delete = election_post_delete($form_state['values']['post_id']);
 
-    $type = _election_type_load($election->type);
-    $post_name = 'post';
-    if (!empty($type->{'post name'})) {
-      $post_name = $type->{'post name'};
-    }
+    $post_name = _election_get_posts_name($election);
 
     if ($delete) {
       watchdog('election', 'Deleted @post_name %title', array('@post_name' => $post_name, '%title' => $post->title));
