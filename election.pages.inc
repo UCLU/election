@@ -32,7 +32,7 @@ function election_post_page_view($election, $post, $view_mode = 'full') {
 }
 
 /**
- * Page callback for elections/%election/posts.
+ * Page callback for election/%election/posts.
  * @todo use Views
  */
 function election_page_postlist($election) {

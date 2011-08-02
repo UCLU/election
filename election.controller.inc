@@ -58,6 +58,10 @@ class ElectionController extends DrupalDefaultEntityController {
 
       module_invoke_all('entity_' . $op, $election, 'election');
 
+      if (function_exists('pathauto_election_update_alias')) {
+        pathauto_election_update_alias($election, $op);
+      }
+
       unset($election->is_new);
 
       // Skip the slave server for this user temporarily.
@@ -87,7 +91,15 @@ class ElectionController extends DrupalDefaultEntityController {
           ->condition('election_id', $ids, 'IN')
           ->execute();
         foreach ($elections as $election_id => $election) {
+
           field_attach_delete('election', $election);
+
+          module_invoke_all('entity_delete', $election, 'election');
+
+          if (function_exists('pathauto_entity_path_delete_all')) {
+            pathauto_entity_path_delete_all('election', $election);
+          }
+
         }
         db_ignore_slave();
       }

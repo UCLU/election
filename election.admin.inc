@@ -9,7 +9,7 @@
 
 /**
  * Page callback for editing an election post, path:
- * elections/%election/posts/%election_post/edit.
+ * election/%election/posts/%election_post/edit.
  *
  * @param stdClass $election
  * @param stdClass $post
@@ -30,7 +30,7 @@ function election_post_page_edit($election, $post) {
 
 /**
  * Page callback for adding an election post, path:
- * elections/%election/posts/add.
+ * election/%election/posts/add.
  *
  * @param stdClass $election
  *
@@ -67,7 +67,7 @@ function election_post_page_add($election) {
 }
 
 /**
- * Page callback for editing an election, path: elections/%election/edit.
+ * Page callback for editing an election, path: election/%election/edit.
  *
  * @param stdClass $election
  *
