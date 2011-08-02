@@ -50,6 +50,10 @@ function election_entity_info() {
     'entity keys' => array(
       'id' => 'post_id',
       'label' => 'title',
+      'bundle' => 'type',
+    ),
+    'bundle keys' => array(
+      'bundle' => 'type',
     ),
     'bundles' => array(),
     'static cache' => TRUE,
@@ -243,23 +247,26 @@ function _election_type_load($type_mn) {
 }
 
 /**
- * Get the title for a list of posts (adapt to the post type name).
+ * Get the post name (i.e. 'motion' or 'position') for an election.
  *
  * @param stdClass $election
- * Election object.
+ * @param bool $plural
  *
  * @return string
  */
-function _election_get_posts_title(stdClass $election) {
-  $title = 'Posts';
+function _election_get_posts_name(stdClass $election, $plural = FALSE) {
+  $name = 'post';
   $type = _election_type_load($election->type);
-  if (property_exists($type, 'post name plural')) {
-    $title = $type->{'post name plural'};
+  if (!$type) {
+    return $name;
   }
-  elseif (property_exists($type, 'post name')) {
-    $title = $type->{'post name'};
+  if (!empty($type->{'post name'})) {
+    $name = $type->{'post name'};
   }
-  return drupal_ucfirst($title);
+  if ($plural && !empty($type->{'post name plural'})) {
+    $name = $type->{'post name plural'};
+  }
+  return $name;
 }
 
 /**
@@ -268,7 +275,7 @@ function _election_get_posts_title(stdClass $election) {
  * @return array
  */
 function election_uri($election) {
-  $path = 'elections/' . $election->type . '/' . $election->election_id;
+  $path = 'elections/' . $election->election_id;
   return array(
     'path' => $path,
   );
@@ -501,52 +508,52 @@ function election_menu() {
     }
   }
 
-  $items['elections/%/%election'] = array(
+  $items['elections/%election'] = array(
     'title callback' => 'election_page_title',
-    'title arguments' => array(2),
+    'title arguments' => array(1),
     'page callback' => 'election_page_view',
-    'page arguments' => array(2),
+    'page arguments' => array(1),
     'access callback' => 'election_access',
     'access arguments' => array('view', 2),
     'file' => 'election.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
-  $items['elections/%/%election/view'] = array(
+  $items['elections/%election/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
 
-  $items['elections/%/%election/edit'] = array(
+  $items['elections/%election/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'election_page_edit',
     'file' => 'election.admin.inc',
-    'page arguments' => array(2),
+    'page arguments' => array(1),
     'access callback' => 'election_access',
-    'access arguments' => array('update', 2),
+    'access arguments' => array('update', 1),
     'weight' => 2,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
-  $items['elections/%/%election/delete'] = array(
+  $items['elections/%election/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_delete_confirm', 2),
+    'page arguments' => array('election_delete_confirm', 1),
     'access callback' => 'election_access',
-    'access arguments' => array('delete', 2),
+    'access arguments' => array('delete', 1),
     'file' => 'election.admin.inc',
     'weight' => 3,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_INLINE,
   );
 
-  $items['elections/%/%election/posts'] = array(
+  $items['elections/%election/posts'] = array(
     'title callback' => 'election_page_postlist_title',
-    'title arguments' => array(2),
+    'title arguments' => array(1),
     'page callback' => 'election_page_postlist',
-    'page arguments' => array(2),
+    'page arguments' => array(1),
     'file' => 'election.pages.inc',
     'access callback' => 'election_access',
     'access arguments' => array('view', 2),
@@ -556,51 +563,51 @@ function election_menu() {
   );
 
 
-  $items['elections/%/%election/posts/add'] = array(
+  $items['elections/%election/posts/add'] = array(
     'title' => 'Add new',
     'page callback' => 'election_post_page_add',
-    'page arguments' => array(2),
+    'page arguments' => array(1),
     'access callback' => 'election_access',
-    'access arguments' => array('update', 2),
+    'access arguments' => array('update', 1),
     'file' => 'election.admin.inc',
     'type' => MENU_LOCAL_ACTION,
   );
 
-  $items['elections/%/%election/posts/%election_post'] = array(
+  $items['elections/%election/posts/%election_post'] = array(
     'title callback' => 'election_post_page_title',
-    'title arguments' => array(2, 4),
-    'page callback' => 'election_post_page',
-    'page arguments' => array(2, 4),
+    'title arguments' => array(1, 3),
+    'page callback' => 'election_post_page_view',
+    'page arguments' => array(1, 3),
     'file' => 'election.pages.inc',
     'access callback' => 'election_access',
-    'access arguments' => array('view', 2),
+    'access arguments' => array('view', 1),
     'type' => MENU_CALLBACK,
   );
 
-  $items['elections/%/%election/posts/%election_post/view'] = array(
+  $items['elections/%election/posts/%election_post/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
 
-  $items['elections/%/%election/posts/%election_post/edit'] = array(
+  $items['elections/%election/posts/%election_post/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'election_post_page_edit',
-    'page arguments' => array(2, 4),
+    'page arguments' => array(1, 3),
     'file' => 'election.admin.inc',
     'access callback' => 'election_access',
-    'access arguments' => array('update', 2),
+    'access arguments' => array('update', 1),
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'weight' => 1,
   );
 
-  $items['elections/%/%election/posts/%election_post/delete'] = array(
+  $items['elections/%election/posts/%election_post/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_post_delete_confirm', 2, 4),
+    'page arguments' => array('election_post_delete_confirm', 1, 3),
     'access callback' => 'election_access',
-    'access arguments' => array('update', 2),
+    'access arguments' => array('update', 1),
     'file' => 'election.admin.inc',
     'weight' => 2,
     'type' => MENU_LOCAL_TASK,
@@ -676,21 +683,21 @@ function election_post_save($post) {
 }
 
 /**
- * Title callback for elections/%/%election/posts.
+ * Title callback for elections/%election/posts.
  */
 function election_page_postlist_title($election) {
-  return _election_get_posts_title($election);
+  return drupal_ucfirst(_election_get_posts_name($election, TRUE));
 }
 
 /**
- * Title callback for elections/%/%election/posts/%election_post.
+ * Title callback for elections/%election/posts/%election_post.
  */
 function election_post_page_title($election, $post) {
-  return $post->title . ' (' . $election->title . ')';
+  return check_plain($post->title);
 }
 
 /**
- * Title callback for elections/%/%election/view.
+ * Title callback for elections/%election/view.
  */
 function election_page_title($election) {
   return check_plain($election->title);
@@ -731,12 +738,21 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
   }
 
   unset($args[0]);
-  foreach ($args as $arg) {
+
+  $args_count = count($args);
+  foreach ($args as $key => $arg) {
 
     $link = $arg;
     switch ($arg) {
-      case 'Posts':
-        $link = l(drupal_ucfirst($post_name_plural), $election_uri_path . '/posts');
+      case '_POSTS_':
+        if ($key == $args_count - 1) {
+          // Don't link the last item.
+          $link = drupal_ucfirst($post_name_plural);
+          break;
+        }
+        else {
+          $link = l(drupal_ucfirst($post_name_plural), $election_uri_path . '/posts');
+        }
         break;
     }
 

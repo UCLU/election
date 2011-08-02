@@ -4,31 +4,49 @@
  * Page callbacks for the Election module.
  */
 
-function election_post_page($election, $post) {
+function election_post_page_view($election, $post, $view_mode = 'full') {
 
   drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, 'Posts', $post->title)
+    _election_build_breadcrumb(
+      $election,
+      l(drupal_ucfirst(_election_get_posts_name($election, TRUE)), election_uri_path($election) . '/posts'),
+      $post->title
+    )
   );
 
-  return array('#markup' => 'Under construction');
+  // Remove previously built content, if it exists.
+  $post->content = array();
+
+  if ($view_mode == 'teaser') {
+    $post->content['title'] = array(
+      '#markup' => filter_xss($post->title),
+      '#weight' => -5,
+    );
+  }
+
+  field_attach_prepare_view('election_post', array($post->post_id => $post), $view_mode);
+  entity_prepare_view('election_post', array($post->post_id => $post));
+  $post->content += field_attach_view('election_post', $post, $view_mode);
+
+  return $post->content;
 }
 
 /**
- * Page callback for elections/%/%election/posts.
+ * Page callback for elections/%election/posts.
  * @todo use Views
  */
 function election_page_postlist($election) {
 
-  $election_posts_title = _election_get_posts_title($election);
-  drupal_set_title($election_posts_title);
+  $posts_name = _election_get_posts_name($election, TRUE);
+  drupal_set_title(drupal_ucfirst($posts_name));
   drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, $election_posts_title)
+    _election_build_breadcrumb($election, drupal_ucfirst($posts_name))
   );
 
   // Build the sortable table header.
   $header = array(
-    'title' => array('data' => t('Title'), 'field' => 'ep.title'),
-    'changed' => array('data' => t('Last updated'), 'field' => 'ep.changed', 'sort' => 'desc'),
+    'title' => array('data' => t('Title'), 'field' => 'ep.title', 'sort' => 'asc'),
+    'changed' => array('data' => t('Last updated'), 'field' => 'ep.changed'),
     'operations' => array('data' => t('Operations')),
   );
 
@@ -93,7 +111,7 @@ function election_page_postlist($election) {
     '#theme' => 'table',
     '#header' => $header,
     '#rows' => $rows,
-    '#empty' => t('No @type available.', array('@type' => $election_posts_title)),
+    '#empty' => t('No @type available.', array('@type' => $posts_name)),
   );
 
   $output['pager'] = array('#markup' => theme('pager'));

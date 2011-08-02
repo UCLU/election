@@ -12,11 +12,15 @@ class ElectionPostController extends DrupalDefaultEntityController {
 
   public function create($election) {
 
+    $type = _election_type_load($election->type);
+    $post_type = $type->{'post key'};
+
     return (object) array(
       'post_id' => '',
       'election_id' => $election->election_id,
       'title' => '',
       'description' => '',
+      'type' => $post_type,
     );
 
   }

@@ -101,6 +101,22 @@ function election_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'type' => array(
+        'description' => 'The type of the election post (machine name).',
+        'type' => 'varchar',
+        'length' => 100,
+      ),
+      'title' => array(
+        'description' => 'The title of the post.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'description' => array(
+        'description' => 'A human-readable description of the post.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
       'allow_abstention' => array(
         'description' => 'For a motion: whether or not to allow voters to abstain.',
         'type' => 'int',
@@ -151,17 +167,6 @@ function election_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
-      'title' => array(
-        'description' => 'The title of the position or motion.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => FALSE,
-      ),
-      'description' => array(
-        'description' => 'A human-readable description of the position or motion.',
-        'type' => 'text',
-        'not null' => FALSE,
-      ),
       'created' => array(
         'description' => 'The Unix timestamp for when the post was created.',
         'type' => 'int',
@@ -180,6 +185,7 @@ function election_schema() {
       'created' => array('created'),
       'title' => array('title'),
       'election_id' => array('election_id'),
+      'type' => array('type'),
     ),
     'foreign keys' => array(
       'post_election' => array(
