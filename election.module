@@ -275,7 +275,7 @@ function _election_get_posts_name(stdClass $election, $plural = FALSE) {
  * @return array
  */
 function election_uri($election) {
-  $path = 'elections/' . $election->election_id;
+  $path = 'election/' . $election->election_id;
   return array(
     'path' => $path,
   );
@@ -297,7 +297,7 @@ function election_uri_path($election) {
  * @return array
  */
 function election_post_uri($post, stdClass $election = NULL) {
-  $path = 'elections/posts/' . $post->post_id;
+  $path = 'election/posts/' . $post->post_id;
   if (!empty($post->election_id)) {
     if (!is_object($election) || $election->election_id != $post->election_id) {
       $election = election_load($post->election_id);
@@ -508,7 +508,7 @@ function election_menu() {
     }
   }
 
-  $items['elections/%election'] = array(
+  $items['election/%election'] = array(
     'title callback' => 'election_page_title',
     'title arguments' => array(1),
     'page callback' => 'election_page_view',
@@ -519,13 +519,13 @@ function election_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['elections/%election/view'] = array(
+  $items['election/%election/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
 
-  $items['elections/%election/edit'] = array(
+  $items['election/%election/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'election_page_edit',
     'file' => 'election.admin.inc',
@@ -537,7 +537,7 @@ function election_menu() {
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
-  $items['elections/%election/delete'] = array(
+  $items['election/%election/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_delete_confirm', 1),
@@ -549,7 +549,7 @@ function election_menu() {
     'context' => MENU_CONTEXT_INLINE,
   );
 
-  $items['elections/%election/posts'] = array(
+  $items['election/%election/posts'] = array(
     'title callback' => 'election_page_postlist_title',
     'title arguments' => array(1),
     'page callback' => 'election_page_postlist',
@@ -563,7 +563,7 @@ function election_menu() {
   );
 
 
-  $items['elections/%election/posts/add'] = array(
+  $items['election/%election/posts/add'] = array(
     'title' => 'Add new',
     'page callback' => 'election_post_page_add',
     'page arguments' => array(1),
@@ -573,7 +573,7 @@ function election_menu() {
     'type' => MENU_LOCAL_ACTION,
   );
 
-  $items['elections/%election/posts/%election_post'] = array(
+  $items['election/%election/posts/%election_post'] = array(
     'title callback' => 'election_post_page_title',
     'title arguments' => array(1, 3),
     'page callback' => 'election_post_page_view',
@@ -584,13 +584,13 @@ function election_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['elections/%election/posts/%election_post/view'] = array(
+  $items['election/%election/posts/%election_post/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
 
-  $items['elections/%election/posts/%election_post/edit'] = array(
+  $items['election/%election/posts/%election_post/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'election_post_page_edit',
     'page arguments' => array(1, 3),
@@ -602,7 +602,7 @@ function election_menu() {
     'weight' => 1,
   );
 
-  $items['elections/%election/posts/%election_post/delete'] = array(
+  $items['election/%election/posts/%election_post/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_post_delete_confirm', 1, 3),
@@ -656,48 +656,92 @@ function election_menu_alter(&$items) {
   }
 }
 
-
+/**
+ * Wrapper function to allow deleting multiple elections.
+ *
+ * @param array $election_ids
+ *   Array of election IDs.
+ * @return bool
+ */
 function election_delete_multiple(array $election_ids) {
   return entity_get_controller('election')->delete($election_ids);
 }
 
+/**
+ * Wrapper function to allow deleting an individual election.
+ *
+ * @see election_delete_multiple().
+ *
+ * @param mixed $election_id
+ *   Single election ID.
+ * @return bool
+ */
 function election_delete($election_id) {
   return election_delete_multiple(array($election_id));
 }
 
+/**
+ * Wrapper function to allow saving an election.
+ *
+ * @param stdClass $election
+ *   Election object.
+ * @return bool
+ */
 function election_save($election) {
   return entity_get_controller('election')->save($election);
 }
 
-
+/**
+ * Wrapper function to allow deleting multiple election posts.
+ *
+ * @param array $post_ids
+ *   Array of post IDs.
+ * @return bool
+ */
 function election_post_delete_multiple(array $post_ids) {
   return entity_get_controller('election_post')->delete($post_ids);
 }
 
+/**
+ * Wrapper function to allow deleting an individual election post.
+ *
+ * @see election_post_delete_multiple().
+ *
+ * @param mixed $post_id
+ *   Single post ID.
+ * @return bool
+ */
 function election_post_delete($post_id) {
   return election_post_delete_multiple(array($post_id));
 }
 
+/**
+ * Wrapper function to allow saving an election post.
+ *
+ * @param stdClass $post
+ *   Election post object.
+ * @return bool
+ */
 function election_post_save($post) {
   return entity_get_controller('election_post')->save($post);
 }
 
 /**
- * Title callback for elections/%election/posts.
+ * Title callback for election/%election/posts.
  */
 function election_page_postlist_title($election) {
   return drupal_ucfirst(_election_get_posts_name($election, TRUE));
 }
 
 /**
- * Title callback for elections/%election/posts/%election_post.
+ * Title callback for election/%election/posts/%election_post.
  */
 function election_post_page_title($election, $post) {
   return check_plain($post->title);
 }
 
 /**
- * Title callback for elections/%election/view.
+ * Title callback for election/%election/view.
  */
 function election_page_title($election) {
   return check_plain($election->title);
@@ -852,10 +896,9 @@ function election_tokens($type, array $tokens, array $data = array(), array $opt
 }
 
 /**
- * Implements hook_pathauto() (from the Pathauto module).
+ * Implements hook_pathauto(). See the Pathauto module.
  *
  * @param string $op
- *
  * @return stdClass
  */
 function election_pathauto($op) {
@@ -866,11 +909,9 @@ function election_pathauto($op) {
       $settings['token_type'] = 'election';
       $settings['groupheader'] = t('Election paths');
       $settings['patterndescr'] = t('Default path pattern (applies to all election types with blank patterns below)');
-      $settings['patterndefault'] = 'elections/[election:title]';
+      $settings['patterndefault'] = 'election/[election:title]';
       $settings['batch_update_callback'] = 'election_pathauto_bulk_update_batch_process';
       $settings['batch_file'] = drupal_get_path('module', 'election') . '/election.module';
-
-
       foreach (election_types() as $type_mn => $type) {
         $settings['patternitems'][$type_mn] = t('Pattern for all %type paths', array('%type' => $type->name));
       }
@@ -880,12 +921,18 @@ function election_pathauto($op) {
   }
 }
 
+/**
+ * Allow bulk updating of paths. See the Pathauto module.
+ *
+ * @see election_pathauto().
+ * @param array &$context
+ * @return void
+ */
 function election_pathauto_bulk_update_batch_process(&$context) {
   if (!isset($context['sandbox']['current'])) {
     $context['sandbox']['count'] = 0;
     $context['sandbox']['current'] = 0;
   }
-
   $query = db_select('election', 'e');
   $query->leftJoin('url_alias', 'ua', "CONCAT('election/', e.election_id) = ua.source");
   $query->addField('e', 'election_id');
@@ -894,30 +941,24 @@ function election_pathauto_bulk_update_batch_process(&$context) {
   $query->orderBy('e.election_id');
   $query->addTag('pathauto_bulk_update');
   $query->addMetaData('entity', 'election');
-
   // Get the total amount of items to process.
   if (!isset($context['sandbox']['total'])) {
     $context['sandbox']['total'] = $query->countQuery()->execute()->fetchField();
-
-    // If there are no elections to update, the stop immediately.
+    // If there are no elections to update, then stop immediately.
     if (!$context['sandbox']['total']) {
       $context['finished'] = 1;
       return;
     }
   }
-
   $query->range(0, 25);
   $ids = $query->execute()->fetchCol();
-
   pathauto_election_update_alias_multiple($ids, 'bulkupdate');
   $context['sandbox']['count'] += count($ids);
   $context['sandbox']['current'] = max($ids);
   $context['message'] = t('Updated alias for election @id.', array('@id' => end($ids)));
-
   if ($context['sandbox']['count'] != $context['sandbox']['total']) {
     $context['finished'] = $context['sandbox']['count'] / $context['sandbox']['total'];
   }
-
 }
 
 /**
@@ -975,13 +1016,13 @@ function pathauto_election_update_alias_multiple(array $election_ids, $op, array
 }
 
 /**
- * Implements hook_path_alias_types(). See the PathAuto module.
+ * Implements hook_path_alias_types(). See Pathauto module.
  *
  * Used primarily by the bulk delete form.
  */
 function election_path_alias_types() {
   $objects = array(
-    'elections/' => t('Elections')
+    'election/' => t('Elections')
   );
   return $objects;
 }
