@@ -42,7 +42,7 @@ function election_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
-      'status' => array(
+      'vstatus' => array(
         'description' => sprintf(
           'The voting status: open %d, closed %d, or scheduled %d.',
           ELECTION_STATUS_OPEN,
@@ -52,15 +52,37 @@ function election_schema() {
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
-        'default' => ELECTION_STATUS_SCHEDULED,
+        'default' => ELECTION_STATUS_CLOSED,
       ),
-      'open_time' => array(
-        'description' => 'The Unix timestamp for when voting opens.',
+      'vopen_time' => array(
+        'description' => 'The Unix timestamp for when voting opens (if scheduled).',
         'type' => 'int',
         'not null' => FALSE,
       ),
-      'close_time' => array(
-        'description' => 'The Unix timestamp for when voting closes.',
+      'vclose_time' => array(
+        'description' => 'The Unix timestamp for when voting closes (if scheduled).',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'nstatus' => array(
+        'description' => sprintf(
+          'The nominations status: open %d, closed %d, or scheduled %d.',
+          ELECTION_STATUS_OPEN,
+          ELECTION_STATUS_CLOSED,
+          ELECTION_STATUS_SCHEDULED
+        ),
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => ELECTION_STATUS_CLOSED,
+      ),
+      'nopen_time' => array(
+        'description' => 'The Unix timestamp for when nominations open (if scheduled).',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'nclose_time' => array(
+        'description' => 'The Unix timestamp for when nominations close (if scheduled).',
         'type' => 'int',
         'not null' => FALSE,
       ),
@@ -79,8 +101,10 @@ function election_schema() {
     'primary key' => array('election_id'),
     'indexes' => array(
       'type' => array('type'),
-      'status' => array('status'),
-      'voting_period' => array('open_time', 'close_time'),
+      'vstatus' => array('vstatus'),
+      'nstatus' => array('nstatus'),
+      'vperiod' => array('vopen_time', 'vclose_time'),
+      'nperiod' => array('nopen_time', 'nclose_time'),
       'created' => array('created'),
       'title' => array('title'),
     ),
@@ -124,6 +148,34 @@ function election_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+      'vstatus' => array(
+        'description' => sprintf(
+          'The post\'s voting status: inherited (%d) or closed (%d).',
+          ELECTION_POST_STATUS_INHERIT,
+          ELECTION_POST_STATUS_CLOSED
+        ),
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => ELECTION_POST_STATUS_INHERIT,
+      ),
+      'nstatus' => array(
+        'description' => sprintf(
+          'For a position: whether its nominations status is inherited (%d) or closed (%d).',
+          ELECTION_POST_STATUS_INHERIT,
+          ELECTION_POST_STATUS_CLOSED
+        ),
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => ELECTION_POST_STATUS_INHERIT,
+      ),
+      'vacancy_count' => array(
+        'description' => 'For a position: the number of vacancies.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
       'require_manifesto' => array(
         'description' => 'For a position: whether or not to require a candidate manifesto.',
         'type' => 'int',
@@ -149,12 +201,6 @@ function election_schema() {
         'description' => 'For a position: whether or not to require the candidate to have a proposer.',
         'type' => 'int',
         'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 1,
-      ),
-      'vacancy_count' => array(
-        'description' => 'For a position: the number of vacancies.',
-        'type' => 'int',
         'not null' => TRUE,
         'default' => 1,
       ),

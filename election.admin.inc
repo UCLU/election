@@ -111,9 +111,9 @@ function election_list_form($form, $form_state) {
     'title' => array('data' => t('Title'), 'field' => 'e.title'),
     'type' => array('data' => t('Type'), 'field' => 'e.type'),
     'anonymity' => array('data' => t('Anonymity'), 'field' => 'e.anonymous'),
-    'status' => array('data' => t('Voting status'), 'field' => 'e.status'),
-    'open' => array('data' => t('Voting opens'), 'field' => 'e.open_time'),
-    'close' => array('data' => t('Voting closes'), 'field' => 'e.close_time'),
+    'vstatus' => array('data' => t('Voting status'), 'field' => 'e.vstatus'),
+    // 'vopen' => array('data' => t('Voting opens'), 'field' => 'e.vopen_time'),
+    // 'vclose' => array('data' => t('Voting closes'), 'field' => 'e.vclose_time'),
     'changed' => array('data' => t('Last updated'), 'field' => 'e.changed', 'sort' => 'desc'),
     'operations' => array('data' => t('Operations')),
   );
@@ -139,24 +139,21 @@ function election_list_form($form, $form_state) {
     $type = _election_type_load($election->type);
 
     $options[$election->election_id] = array(
-      'title' => array(
-        'data' => array(
-          '#type' => 'link',
-          '#title' => check_plain($election->title),
-          '#href' => election_uri_path($election),
-        ),
-      ),
+      'title' => l($election->title, election_uri_path($election)),
       'type' => drupal_ucfirst($type->name),
       'anonymity' => $election->anonymous? t('Anonymous') : t('Tracked'),
-      'status' => _election_format_status($election->status, $election->open_time, $election->close_time),
-      'open' => '',
-      'close' => '',
+      'vstatus' => _election_format_status($election, 'v'),
+      // 'vopen' => '',
+      // 'vclose' => '',
       'changed' => format_date($election->changed, 'short'),
       'operations' => array(),
     );
 
-    foreach (array('open', 'close') as $event) {
-      if ($election->status != ELECTION_STATUS_SCHEDULED) {
+    foreach (array('vopen', 'vclose') as $event) {
+      if (!isset($options[$event])) {
+        continue;
+      }
+      if ($election->vstatus != ELECTION_STATUS_SCHEDULED) {
         $options[$election->election_id][$event] = t('N/A');
         continue;
       }
@@ -164,7 +161,7 @@ function election_list_form($form, $form_state) {
       if (is_numeric($time)) {
         $options[$election->election_id][$event] = format_date($time, 'short');
       }
-      elseif (empty($election->open_time)) {
+      elseif (empty($time)) {
         $options[$election->election_id][$event] = t('Not set');
       }
     }
@@ -174,12 +171,13 @@ function election_list_form($form, $form_state) {
 
     $operations = array();
     if (election_access('update', $election)) {
-      $operations['posts_add'] = l(
-        t('add !post_name', array('!post_name' => $post_name)),
-        election_uri_path($election) . '/posts/add'
-      );
+      // No need for this and it could be confusing
+      // $operations['posts_add'] = l(
+      //   t('add @post_name', array('@post_name' => $post_name)),
+      //   election_uri_path($election) . '/posts/add'
+      // );
       $operations['posts_list'] = l(
-        t('list !post_name_plural', array('!post_name_plural' => $post_name_plural)),
+        t('list @post_name_plural', array('@post_name_plural' => $post_name_plural)),
         election_uri_path($election) . '/posts'
       );
     }
@@ -236,15 +234,106 @@ function election_list_form($form, $form_state) {
 }
 
 /**
- * Internal function that determines whether voting in an election is 'open',
- * based on the election's status, opening time and closing time.
+ * Form builder function for the administrative list of election posts, path:
+ * election/%election/posts.
+ *
+ * @param array $form
+ * @param array $form_state
+ * @param stdClass $election
+ *
+ * @return array
+ *   Render array.
+ */
+function election_post_list_form($form, $form_state, $election) {
+
+  $posts_name = _election_get_posts_name($election, TRUE);
+  drupal_set_title(drupal_ucfirst($posts_name));
+  drupal_set_breadcrumb(
+    _election_build_breadcrumb($election, drupal_ucfirst($posts_name))
+  );
+
+  // Build the sortable table header.
+  $header = array(
+    'title' => array('data' => t('Title'), 'field' => 'ep.title', 'sort' => 'asc'),
+    'changed' => array('data' => t('Last updated'), 'field' => 'ep.changed'),
+    'operations' => array('data' => t('Operations')),
+  );
+
+  // Build the posts query, adding a pager and sorter.
+  $query = db_select('election_post', 'ep')
+    ->extend('PagerDefault')
+    ->extend('TableSort')
+    ->fields('ep', array('post_id'))
+    ->condition('election_id', $election->election_id);
+
+  $query->limit(50)->orderByHeader($header);
+
+  // Get an array of post IDs
+  $post_ids = $query->execute()->fetchCol();
+
+  $posts = election_post_load_multiple($post_ids);
+
+  $destination = drupal_get_destination();
+
+  $rows = array();
+  foreach ($posts as $id => $post) {
+
+    $rows[$post->post_id] = array(
+      'title' => l($post->title, election_post_uri_path($post)),
+      'changed' => format_date($post->changed, 'short'),
+      'operations' => array(),
+    );
+
+    $operations = array();
+    if (election_access('update', $election)) {
+      $operations['edit'] = l(
+        t('edit'),
+        election_post_uri_path($post) . '/edit',
+        array('query' => $destination)
+      );
+      $operations['delete'] = l(
+        t('delete'),
+        election_post_uri_path($post) . '/delete',
+        array('query' => $destination)
+      );
+    }
+
+    if (count($operations)) {
+      // Render an unordered list of operations links.
+      $rows[$post->post_id]['operations'] = array(
+        'data' => array(
+          '#theme' => 'item_list',
+          '#items' => $operations,
+          '#attributes' => array('class' => array('links', 'inline')),
+        ),
+      );
+    }
+
+  }
+
+  $form['election_posts'] = array(
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
+    '#empty' => t('No @type available.', array('@type' => $posts_name)),
+  );
+
+  $form['pager'] = array('#markup' => theme('pager'));
+
+  return $form;
+
+}
+
+/**
+ * Internal function that determines whether voting/nominating in an election is 'open',
+ * based on the status, opening time and closing time.
  *
  * @param int $status
- *   The status of the election (see election.install).
+ *   The vstatus/nstatus of the election (see election.install).
  * @param int $open_time
- *   The UNIX timestamp for the election's opening time.
+ *   The UNIX timestamp for the election's voting opening time.
  * @param int $close_time
- *   The UNIX timestamp for the election's closing time.
+ *   The UNIX timestamp for the election's voting closing time.
  *
  * @return bool
  */
@@ -265,35 +354,79 @@ function _election_is_open($status, $open_time, $close_time) {
 }
 
 /**
- * Internal function to format the "status" field of an election for display.
+ * Internal function to format the voting/nominating status (vstatus/nstatus)
+ * field of an election for display.
  *
  * @todo make this themeable
  *
- * @param int $status_number
- *   The status of the election (see election.install).
- * @param int $open_time
- *   The UNIX timestamp for the election's opening time.
- * @param int $close_time
- *   The UNIX timestamp for the election's closing time.
+ * @param stdClass $election
+ * @param string $status_prefix
+ *   The type of status ('v' for voting, 'n' for nominations).
  *
  * @return string
  */
-function _election_format_status($status_number, $open, $close) {
+function _election_format_status(stdClass $election, $status_prefix = 'v') {
 
-  $is_open = _election_is_open($status_number, $open, $close);
+  $status = $election->{$status_prefix . 'status'};
+  $open_time = $election->{$status_prefix . 'open_time'};
+  $close_time = $election->{$status_prefix . 'close_time'};
 
   $open_status = t('<span class="election-status-open">Open</span>');
   $closed_status = t('<span class="election-status-closed">Closed</span>');
 
-  $status = $is_open? $open_status : $closed_status;
+  if ($status == ELECTION_STATUS_SCHEDULED) {
 
-  if ($status_number == ELECTION_STATUS_SCHEDULED) {
-    return t('Scheduled (!status)', array(
-      '!status' => $status,
-    ));
+    $scheduled_future = t('Scheduled for the future');
+    $scheduled_past = t('Scheduled for the past');
+    $scheduled_now = t('Scheduled (now open)');
+
+    if (REQUEST_TIME < $open_time) {
+      return $scheduled_future;
+    }
+    elseif (REQUEST_TIME < $close_time) {
+      return $scheduled_now;
+    }
+    else {
+      return $scheduled_past;
+    }
+
   }
 
-  return $status;
+  $is_open = _election_is_open($status, $open_time, $close_time);
+  return $is_open? $open_status : $closed_status;
+
+}
+
+/**
+ * Internal function to format the status field of an election post for display.
+ * Election posts can either inherit the election's status, or they can be
+ * closed. This applies to both voting and nominations.
+ *
+ * @todo make this themeable
+ *
+ * @param stdClass $election
+ * @param stdClass $post
+ * @param string $type
+ *   The type of status ('v' for voting, 'n' for nominations).
+ *
+ * @return string
+ */
+function _election_post_format_status(stdClass $election, stdClass $post, $status_prefix = 'v') {
+
+  $status = $post->{$status_prefix . 'status'};
+
+  if ($status == ELECTION_POST_STATUS_INHERIT) {
+    return t('!status (inherited)', array('!status' => _election_format_status($election, $status_prefix)));
+  }
+
+  $is_open = FALSE; // only two options for now are inherited or closed.
+
+  $open_status = t('<span class="election-post-status-open">Open</span>');
+  $closed_status = t('<span class="election-post-status-closed">Closed</span>');
+  $status_formatted = $is_open? $open_status : $closed_status;
+
+  return t('!status_formatted (overridden)', array('!status_formatted' => $status_formatted));
+
 }
 
 /**
@@ -350,46 +483,81 @@ function election_form($form, &$form_state, $election) {
     '#required' => TRUE,
   );
 
-  $form['status'] = array(
+  $date_format = variable_get('date_format_long', 'Y-m-d H:i');
+
+  $nopen_default = isset($election->nopen_time)? $election->nopen_time : strtotime('+1 Friday 10am');
+  $nclose_default = isset($election->nclose_time)? $election->nclose_time : strtotime('+2 Friday 10am');
+  $form['nstatus'] = array(
     '#type' => 'select',
-    '#title' => t('Voting status'),
-    '#default_value' => isset($election->status)? $election->status : ELECTION_STATUS_CLOSED,
+    '#title' => t('Nominations status'),
+    '#default_value' => isset($election->nstatus)? $election->nstatus : ELECTION_STATUS_CLOSED,
     '#options' => array(
       ELECTION_STATUS_CLOSED => t('Closed'),
       ELECTION_STATUS_OPEN => t('Open'),
       ELECTION_STATUS_SCHEDULED => t('Scheduled'),
     ),
   );
-
-  $form['voting_schedule'] = array(
-    '#title' => t('Voting schedule'),
+  $form['nschedule'] = array(
+    '#title' => t('Nominations schedule'),
     '#type' => 'fieldset',
-    '#description' => 'Set the opening and closing times for voting.',
+    '#description' => 'Set the opening and closing times for nominations.',
     '#states' => array(
       'visible' => array(
-        ':input[name=status]' => array('value' => (string) ELECTION_STATUS_SCHEDULED),
+        ':input[name=nstatus]' => array('value' => (string) ELECTION_STATUS_SCHEDULED),
       ),
     ),
   );
-
-  $open_default = isset($election->open_time)? $election->open_time : strtotime('+1 Friday 10am');
-  $close_default = isset($election->close_time)? $election->close_time : strtotime('+2 Friday 10am');
-
-  $date_format = variable_get('date_format_long', 'Y-m-d H:i');
-
-  $form['voting_schedule']['open_time'] = array(
+  $form['nschedule']['nopen_time'] = array(
     '#title' => t('Opening time'),
     '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
-    '#default_value' => $open_default? date('Y-m-d H:i:s', $open_default) : NULL,
+    '#default_value' => $nopen_default? date('Y-m-d H:i:s', $nopen_default) : NULL,
+    '#date_format' => $date_format,
+    '#date_increment' => 5,
+    '#date_year_range' => '-2:+5',
+  );
+  $form['nschedule']['nclose_time'] = array(
+    '#title' => t('Closing time'),
+    '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
+    '#default_value' => $nclose_default? date('Y-m-d H:i:s', $nclose_default) : NULL,
     '#date_format' => $date_format,
     '#date_increment' => 5,
     '#date_year_range' => '-2:+5',
   );
 
-  $form['voting_schedule']['close_time'] = array(
+  $vopen_default = isset($election->vopen_time)? $election->vopen_time : strtotime('+3 Friday 10am');
+  $vclose_default = isset($election->vclose_time)? $election->vclose_time : strtotime('+4 Friday 10am');
+  $form['vstatus'] = array(
+    '#type' => 'select',
+    '#title' => t('Voting status'),
+    '#default_value' => isset($election->vstatus)? $election->vstatus : ELECTION_STATUS_CLOSED,
+    '#options' => array(
+      ELECTION_STATUS_CLOSED => t('Closed'),
+      ELECTION_STATUS_OPEN => t('Open'),
+      ELECTION_STATUS_SCHEDULED => t('Scheduled'),
+    ),
+  );
+  $form['vschedule'] = array(
+    '#title' => t('Voting schedule'),
+    '#type' => 'fieldset',
+    '#description' => 'Set the opening and closing times for voting.',
+    '#states' => array(
+      'visible' => array(
+        ':input[name=vstatus]' => array('value' => (string) ELECTION_STATUS_SCHEDULED),
+      ),
+    ),
+  );
+  $form['vschedule']['vopen_time'] = array(
+    '#title' => t('Opening time'),
+    '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
+    '#default_value' => $vopen_default? date('Y-m-d H:i:s', $vopen_default) : NULL,
+    '#date_format' => $date_format,
+    '#date_increment' => 5,
+    '#date_year_range' => '-2:+5',
+  );
+  $form['vschedule']['vclose_time'] = array(
     '#title' => t('Closing time'),
     '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
-    '#default_value' => $close_default? date('Y-m-d H:i:s', $close_default) : NULL,
+    '#default_value' => $vclose_default? date('Y-m-d H:i:s', $vclose_default) : NULL,
     '#date_format' => $date_format,
     '#date_increment' => 5,
     '#date_year_range' => '-2:+5',
@@ -443,16 +611,37 @@ function election_form($form, &$form_state, $election) {
  */
 function election_form_validate($form, &$form_state) {
 
-  // Check that the opening and closing times are set if voting is scheduled.
-  if ($form_state['values']['status'] == ELECTION_STATUS_SCHEDULED
-      && (empty($form_state['values']['open_time']) || empty($form_state['values']['close_time']))) {
-    form_set_error('voting_schedule', t('You must set the opening and closing times when the voting status is !scheduled.', array('!scheduled' => t('Scheduled'))));
+  // VALIDATE NOMINATIONS SCHEDULE
+  // Check that the opening and closing times are set if nominations are scheduled.
+  if ($form_state['values']['nstatus'] == ELECTION_STATUS_SCHEDULED
+      && (empty($form_state['values']['nopen_time']) || empty($form_state['values']['nclose_time']))) {
+    form_set_error('vschedule', t('You must set the opening and closing times when the nominations status is scheduled.'));
+  }
+  // Check that the closing time is after the opening time.
+  elseif ($form_state['values']['nstatus'] == ELECTION_STATUS_SCHEDULED
+        && strtotime($form_state['values']['nclose_time']) <= strtotime($form_state['values']['nopen_time'])) {
+    form_set_error('vschedule', t('The closing time of nominations must be after the opening time.'));
   }
 
+  // VALIDATE VOTING SCHEDULE
+  // Check that the opening and closing times are set if voting is scheduled.
+  if ($form_state['values']['vstatus'] == ELECTION_STATUS_SCHEDULED
+      && (empty($form_state['values']['vopen_time']) || empty($form_state['values']['vclose_time']))) {
+    form_set_error('vschedule', t('You must set the opening and closing times when the voting status is scheduled.'));
+  }
   // Check that the closing time is after the opening time.
-  elseif ($form_state['values']['status'] == ELECTION_STATUS_SCHEDULED
-        && strtotime($form_state['values']['close_time']) <= strtotime($form_state['values']['open_time'])) {
-    form_set_error('voting_schedule', t('The closing time must be after the opening time.'));
+  elseif ($form_state['values']['vstatus'] == ELECTION_STATUS_SCHEDULED
+        && strtotime($form_state['values']['vclose_time']) <= strtotime($form_state['values']['vopen_time'])) {
+    form_set_error('vschedule', t('The closing time of voting must be after the opening time.'));
+  }
+  // Check that the voting time is after the nominations time.
+  elseif (
+        $form_state['values']['vstatus'] == ELECTION_STATUS_SCHEDULED
+        && (
+          strtotime($form_state['values']['vopen_time']) <= strtotime($form_state['values']['nopen_time'])
+          || strtotime($form_state['values']['vopen_time']) <= strtotime($form_state['values']['nclose_time'])
+        )) {
+    form_set_error('vschedule', t('Voting can only be scheduled after nominations.'));
   }
 
   // Check other Fields.
@@ -477,10 +666,13 @@ function election_form_submit($form, &$form_state) {
 
   $election->title = $form_state['values']['title'];
 
-  $election->status = $form_state['values']['status'];
+  $election->vstatus = $form_state['values']['vstatus'];
+  $election->vopen_time = strtotime($form_state['values']['vopen_time']);
+  $election->vclose_time = strtotime($form_state['values']['vclose_time']);
 
-  $election->open_time = strtotime($form_state['values']['open_time']);
-  $election->close_time = strtotime($form_state['values']['close_time']);
+  $election->nstatus = $form_state['values']['nstatus'];
+  $election->nopen_time = strtotime($form_state['values']['nopen_time']);
+  $election->nclose_time = strtotime($form_state['values']['nclose_time']);
 
   $election->anonymous = $form_state['values']['anonymous'];
 
@@ -634,6 +826,27 @@ function election_post_form($form, &$form_state, $election, $post) {
     '#required' => TRUE,
   );
 
+  $form['nstatus'] = array(
+    '#type' => 'radios',
+    '#title' => t('Nominations status'),
+    '#default_value' => isset($post->nstatus)? $post->nstatus : ELECTION_POST_STATUS_INHERIT,
+    '#options' => array(
+      ELECTION_POST_STATUS_INHERIT => t('Inherited (currently: %status)', array('%status' => strip_tags(_election_format_status($election, 'n')))),
+      ELECTION_POST_STATUS_CLOSED => t('Closed'),
+    ),
+    '#required' => TRUE,
+  );
+  $form['vstatus'] = array(
+    '#type' => 'radios',
+    '#title' => t('Voting status'),
+    '#default_value' => isset($post->vstatus)? $post->vstatus : ELECTION_POST_STATUS_INHERIT,
+    '#options' => array(
+      ELECTION_POST_STATUS_INHERIT => t('Inherited (currently: %status)', array('%status' => strip_tags(_election_format_status($election, 'v')))),
+      ELECTION_POST_STATUS_CLOSED => t('Closed'),
+    ),
+    '#required' => TRUE,
+  );
+
   $form['buttons'] = array();
   $form['buttons']['#weight'] = 100;
   $form['buttons']['submit'] = array(
@@ -717,6 +930,8 @@ function election_post_form_submit($form, &$form_state) {
   }
 
   $post->title = $form_state['values']['title'];
+  $post->vstatus = $form_state['values']['vstatus'];
+  $post->nstatus = $form_state['values']['nstatus'];
 
   field_attach_submit('election_post', $post, $form, $form_state);
 
