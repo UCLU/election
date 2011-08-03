@@ -391,7 +391,6 @@ function election_permission() {
     ),
     'view any election' => array(
       'title' => t('View any election'),
-      'description' => t('The user must have both this and the "access content" permission to view an election.'),
     ),
   );
   return $permissions;
