@@ -3,7 +3,8 @@
  * @file
  * Administration page callbacks for the Election module.
  *
- * @todo Implement all of this with Views.
+ * @todo
+ * Theming and Views
  */
 
 
@@ -111,6 +112,7 @@ function election_list_form($form, $form_state) {
     'title' => array('data' => t('Title'), 'field' => 'e.title'),
     'type' => array('data' => t('Type'), 'field' => 'e.type'),
     'anonymity' => array('data' => t('Anonymity'), 'field' => 'e.anonymous'),
+    'nstatus' => array('data' => t('Nominations status'), 'field' => 'e.nstatus'),
     'vstatus' => array('data' => t('Voting status'), 'field' => 'e.vstatus'),
     // 'vopen' => array('data' => t('Voting opens'), 'field' => 'e.vopen_time'),
     // 'vclose' => array('data' => t('Voting closes'), 'field' => 'e.vclose_time'),
@@ -142,6 +144,7 @@ function election_list_form($form, $form_state) {
       'title' => l($election->title, election_uri_path($election)),
       'type' => drupal_ucfirst($type->name),
       'anonymity' => $election->anonymous? t('Anonymous') : t('Tracked'),
+      'nstatus' => _election_format_status($election, 'n'),
       'vstatus' => _election_format_status($election, 'v'),
       // 'vopen' => '',
       // 'vclose' => '',
@@ -485,44 +488,46 @@ function election_form($form, &$form_state, $election) {
 
   $date_format = variable_get('date_format_long', 'Y-m-d H:i');
 
-  $nopen_default = isset($election->nopen_time)? $election->nopen_time : strtotime('+1 Friday 10am');
-  $nclose_default = isset($election->nclose_time)? $election->nclose_time : strtotime('+2 Friday 10am');
-  $form['nstatus'] = array(
-    '#type' => 'select',
-    '#title' => t('Nominations status'),
-    '#default_value' => isset($election->nstatus)? $election->nstatus : ELECTION_STATUS_CLOSED,
-    '#options' => array(
-      ELECTION_STATUS_CLOSED => t('Closed'),
-      ELECTION_STATUS_OPEN => t('Open'),
-      ELECTION_STATUS_SCHEDULED => t('Scheduled'),
-    ),
-  );
-  $form['nschedule'] = array(
-    '#title' => t('Nominations schedule'),
-    '#type' => 'fieldset',
-    '#description' => 'Set the opening and closing times for nominations.',
-    '#states' => array(
-      'visible' => array(
-        ':input[name=nstatus]' => array('value' => (string) ELECTION_STATUS_SCHEDULED),
+  if ($election->type != 'referendum') {
+    $nopen_default = isset($election->nopen_time)? $election->nopen_time : strtotime('+1 Friday 10am');
+    $nclose_default = isset($election->nclose_time)? $election->nclose_time : strtotime('+2 Friday 10am');
+    $form['nstatus'] = array(
+      '#type' => 'select',
+      '#title' => t('Nominations status'),
+      '#default_value' => isset($election->nstatus)? $election->nstatus : ELECTION_STATUS_CLOSED,
+      '#options' => array(
+        ELECTION_STATUS_CLOSED => t('Closed'),
+        ELECTION_STATUS_OPEN => t('Open'),
+        ELECTION_STATUS_SCHEDULED => t('Scheduled'),
       ),
-    ),
-  );
-  $form['nschedule']['nopen_time'] = array(
-    '#title' => t('Opening time'),
-    '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
-    '#default_value' => $nopen_default? date('Y-m-d H:i:s', $nopen_default) : NULL,
-    '#date_format' => $date_format,
-    '#date_increment' => 5,
-    '#date_year_range' => '-2:+5',
-  );
-  $form['nschedule']['nclose_time'] = array(
-    '#title' => t('Closing time'),
-    '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
-    '#default_value' => $nclose_default? date('Y-m-d H:i:s', $nclose_default) : NULL,
-    '#date_format' => $date_format,
-    '#date_increment' => 5,
-    '#date_year_range' => '-2:+5',
-  );
+    );
+    $form['nschedule'] = array(
+      '#title' => t('Nominations schedule'),
+      '#type' => 'fieldset',
+      '#description' => 'Set the opening and closing times for nominations.',
+      '#states' => array(
+        'visible' => array(
+          ':input[name=nstatus]' => array('value' => (string) ELECTION_STATUS_SCHEDULED),
+        ),
+      ),
+    );
+    $form['nschedule']['nopen_time'] = array(
+      '#title' => t('Opening time'),
+      '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
+      '#default_value' => $nopen_default? date('Y-m-d H:i:s', $nopen_default) : NULL,
+      '#date_format' => $date_format,
+      '#date_increment' => 5,
+      '#date_year_range' => '-2:+5',
+    );
+    $form['nschedule']['nclose_time'] = array(
+      '#title' => t('Closing time'),
+      '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
+      '#default_value' => $nclose_default? date('Y-m-d H:i:s', $nclose_default) : NULL,
+      '#date_format' => $date_format,
+      '#date_increment' => 5,
+      '#date_year_range' => '-2:+5',
+    );
+  }
 
   $vopen_default = isset($election->vopen_time)? $election->vopen_time : strtotime('+3 Friday 10am');
   $vclose_default = isset($election->vclose_time)? $election->vclose_time : strtotime('+4 Friday 10am');
@@ -612,36 +617,36 @@ function election_form($form, &$form_state, $election) {
 function election_form_validate($form, &$form_state) {
 
   // VALIDATE NOMINATIONS SCHEDULE
-  // Check that the opening and closing times are set if nominations are scheduled.
-  if ($form_state['values']['nstatus'] == ELECTION_STATUS_SCHEDULED
-      && (empty($form_state['values']['nopen_time']) || empty($form_state['values']['nclose_time']))) {
-    form_set_error('vschedule', t('You must set the opening and closing times when the nominations status is scheduled.'));
-  }
-  // Check that the closing time is after the opening time.
-  elseif ($form_state['values']['nstatus'] == ELECTION_STATUS_SCHEDULED
-        && strtotime($form_state['values']['nclose_time']) <= strtotime($form_state['values']['nopen_time'])) {
-    form_set_error('vschedule', t('The closing time of nominations must be after the opening time.'));
+  if (isset($form_state['values']['nstatus'])) {
+    // Check that the opening and closing times are set if nominations are scheduled.
+    if ($form_state['values']['nstatus'] == ELECTION_STATUS_SCHEDULED
+        && (empty($form_state['values']['nopen_time']) || empty($form_state['values']['nclose_time']))) {
+      form_set_error('vschedule', t('You must set the opening and closing times when the nominations status is scheduled.'));
+    }
+    // Check that the closing time is after the opening time.
+    elseif ($form_state['values']['nstatus'] == ELECTION_STATUS_SCHEDULED
+          && strtotime($form_state['values']['nclose_time']) <= strtotime($form_state['values']['nopen_time'])) {
+      form_set_error('vschedule', t('The closing time of nominations must be after the opening time.'));
+    }
   }
 
   // VALIDATE VOTING SCHEDULE
-  // Check that the opening and closing times are set if voting is scheduled.
-  if ($form_state['values']['vstatus'] == ELECTION_STATUS_SCHEDULED
-      && (empty($form_state['values']['vopen_time']) || empty($form_state['values']['vclose_time']))) {
-    form_set_error('vschedule', t('You must set the opening and closing times when the voting status is scheduled.'));
-  }
-  // Check that the closing time is after the opening time.
-  elseif ($form_state['values']['vstatus'] == ELECTION_STATUS_SCHEDULED
-        && strtotime($form_state['values']['vclose_time']) <= strtotime($form_state['values']['vopen_time'])) {
-    form_set_error('vschedule', t('The closing time of voting must be after the opening time.'));
-  }
-  // Check that the voting time is after the nominations time.
-  elseif (
-        $form_state['values']['vstatus'] == ELECTION_STATUS_SCHEDULED
-        && (
-          strtotime($form_state['values']['vopen_time']) <= strtotime($form_state['values']['nopen_time'])
-          || strtotime($form_state['values']['vopen_time']) <= strtotime($form_state['values']['nclose_time'])
-        )) {
-    form_set_error('vschedule', t('Voting can only be scheduled after nominations.'));
+  if (isset($form_state['values']['vstatus'])) {
+    // Check that the opening and closing times are set if voting is scheduled.
+    if ($form_state['values']['vstatus'] == ELECTION_STATUS_SCHEDULED
+        && (empty($form_state['values']['vopen_time']) || empty($form_state['values']['vclose_time']))) {
+      form_set_error('vschedule', t('You must set the opening and closing times when the voting status is scheduled.'));
+    }
+    // Check that the closing time is after the opening time.
+    elseif ($form_state['values']['vstatus'] == ELECTION_STATUS_SCHEDULED
+          && strtotime($form_state['values']['vclose_time']) <= strtotime($form_state['values']['vopen_time'])) {
+      form_set_error('vschedule', t('The closing time of voting must be after the opening time.'));
+    }
+    // Check that the voting time is after the nominations close.
+    elseif ($form_state['values']['vstatus'] == ELECTION_STATUS_SCHEDULED
+          && strtotime($form_state['values']['vopen_time']) < strtotime($form_state['values']['nclose_time'])) {
+      form_set_error('vschedule', t('Voting can only be scheduled to open after the close of nominations.'));
+    }
   }
 
   // Check other Fields.
@@ -826,20 +831,23 @@ function election_post_form($form, &$form_state, $election, $post) {
     '#required' => TRUE,
   );
 
-  $form['nstatus'] = array(
-    '#type' => 'radios',
-    '#title' => t('Nominations status'),
-    '#default_value' => isset($post->nstatus)? $post->nstatus : ELECTION_POST_STATUS_INHERIT,
-    '#options' => array(
-      ELECTION_POST_STATUS_INHERIT => t('Inherited (currently: %status)', array('%status' => strip_tags(_election_format_status($election, 'n')))),
-      ELECTION_POST_STATUS_CLOSED => t('Closed'),
-    ),
-    '#required' => TRUE,
-  );
-  $form['vstatus'] = array(
+  if ($election->type != 'referendum') {
+    $form['nstatus_inheritance'] = array(
+      '#type' => 'radios',
+      '#title' => t('Nominations status'),
+      '#default_value' => isset($post->nstatus_inheritance)? $post->nstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
+      '#options' => array(
+        ELECTION_POST_STATUS_INHERIT => t('Inherited (currently: %status)', array('%status' => strip_tags(_election_format_status($election, 'n')))),
+        ELECTION_POST_STATUS_CLOSED => t('Closed'),
+      ),
+      '#required' => TRUE,
+    );
+  }
+
+  $form['vstatus_inheritance'] = array(
     '#type' => 'radios',
     '#title' => t('Voting status'),
-    '#default_value' => isset($post->vstatus)? $post->vstatus : ELECTION_POST_STATUS_INHERIT,
+    '#default_value' => isset($post->vstatus_inheritance)? $post->vstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
     '#options' => array(
       ELECTION_POST_STATUS_INHERIT => t('Inherited (currently: %status)', array('%status' => strip_tags(_election_format_status($election, 'v')))),
       ELECTION_POST_STATUS_CLOSED => t('Closed'),
@@ -930,8 +938,8 @@ function election_post_form_submit($form, &$form_state) {
   }
 
   $post->title = $form_state['values']['title'];
-  $post->vstatus = $form_state['values']['vstatus'];
-  $post->nstatus = $form_state['values']['nstatus'];
+  $post->vstatus_inheritance = $form_state['values']['vstatus_inheritance'];
+  $post->nstatus_inheritance = $form_state['values']['nstatus_inheritance'];
 
   field_attach_submit('election_post', $post, $form, $form_state);
 

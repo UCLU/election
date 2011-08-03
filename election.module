@@ -371,6 +371,8 @@ function election_post_load_multiple(array $post_ids = array()) {
 
 /**
  * Implements hook_permission().
+ *
+ * @return array
  */
 function election_permission() {
   $permissions = array(

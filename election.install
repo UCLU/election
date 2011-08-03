@@ -148,7 +148,7 @@ function election_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
-      'vstatus' => array(
+      'vstatus_inheritance' => array(
         'description' => sprintf(
           'The post\'s voting status: inherited (%d) or closed (%d).',
           ELECTION_POST_STATUS_INHERIT,
@@ -159,7 +159,7 @@ function election_schema() {
         'not null' => TRUE,
         'default' => ELECTION_POST_STATUS_INHERIT,
       ),
-      'nstatus' => array(
+      'nstatus_inheritance' => array(
         'description' => sprintf(
           'For a position: whether its nominations status is inherited (%d) or closed (%d).',
           ELECTION_POST_STATUS_INHERIT,
@@ -230,6 +230,8 @@ function election_schema() {
       'use_ron' => array('use_ron'),
       'created' => array('created'),
       'title' => array('title'),
+      'vstatus_inheritance' => array('vstatus_inheritance'),
+      'nstatus_inheritance' => array('nstatus_inheritance'),
       'election_id' => array('election_id'),
       'type' => array('type'),
     ),

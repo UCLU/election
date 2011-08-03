@@ -21,8 +21,8 @@ class ElectionPostController extends DrupalDefaultEntityController {
       'title' => '',
       'description' => '',
       'type' => $post_type,
-      'vstatus' => ELECTION_POST_STATUS_INHERIT,
-      'nstatus' => ELECTION_POST_STATUS_INHERIT,
+      'vstatus_inheritance' => ELECTION_POST_STATUS_INHERIT,
+      'nstatus_inheritance' => ELECTION_POST_STATUS_INHERIT,
     );
 
   }
