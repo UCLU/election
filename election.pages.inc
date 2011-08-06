@@ -59,7 +59,7 @@ function election_post_page_view($election, $post, $view_mode = 'full') {
   drupal_set_breadcrumb(
     _election_build_breadcrumb(
       $election,
-      l(drupal_ucfirst(_election_get_posts_name($election, TRUE)), election_uri_path($election) . '/posts'),
+      l(drupal_ucfirst(_election_get_posts_name($election->type, TRUE)), election_uri_path($election) . '/posts'),
       check_plain($post->title)
     )
   );

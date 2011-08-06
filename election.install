@@ -27,7 +27,6 @@ function election_schema() {
         'type' => 'varchar',
         'length' => 100,
         'not null' => TRUE,
-        'default' => ELECTION_TYPE_REFERENDUM,
       ),
       'title' => array(
         'description' => 'The title of the election - a human-readable identifier.',

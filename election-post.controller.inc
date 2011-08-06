@@ -13,7 +13,7 @@ class ElectionPostController extends DrupalDefaultEntityController {
   public function create($election) {
 
     $type = _election_type_load($election->type);
-    $post_type = $type->{'post key'};
+    $post_type = $type['post key'];
 
     return (object) array(
       'post_id' => '',
@@ -23,6 +23,10 @@ class ElectionPostController extends DrupalDefaultEntityController {
       'type' => $post_type,
       'vstatus_inheritance' => ELECTION_POST_STATUS_INHERIT,
       'nstatus_inheritance' => ELECTION_POST_STATUS_INHERIT,
+      'require_manifesto' => 1,
+      'require_phone' => 0,
+      'require_proposer' => 1,
+      'require_photo' => 0,
     );
 
   }
