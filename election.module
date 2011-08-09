@@ -137,7 +137,7 @@ function election_types() {
  * electorate's machine name. Each element is also a structured array defining at
  * least 'name' and 'access callback'. The key 'access callback' refers to a
  * function that takes one argument (the Drupal $user object) and returns
- * whether or not the user may vote (as a Boolean value).
+ * whether or not the user is part of the electorate (as a Boolean value).
  *
  * This function uses hook_electorate_info() to allow other modules to
  * define electorates.
