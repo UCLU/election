@@ -1,0 +1,6 @@
+name = Electorates
+description = "Defines some test electorates."
+package = Democracy
+core = 7.x
+php = 5.3
+dependencies[] = election

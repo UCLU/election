@@ -492,7 +492,7 @@ function election_form_delete_confirm($form, &$form_state, $election) {
     $form,
     t('Are you sure you want to delete %title?', array('%title' => $election->title)),
     election_uri_path($election),
-    t('Deleting an election also deletes all associated data, for example votes. This action cannot be undone.'),
+    t('Deleting an election also deletes ALL associated data, for example votes. This action cannot be undone.'),
     t('Delete'),
     t('Cancel')
   );

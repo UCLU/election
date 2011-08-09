@@ -50,15 +50,23 @@ function election_post_form($form, &$form_state, $election, $post) {
     '#required' => TRUE,
   );
 
+  $form['vtabs'] = array(
+    '#type' => 'vertical_tabs',
+    '#weight' => 99,
+  );
+
   $type = _election_type_load($election->type);
   $post_key = $type['post key'];
-
   $post_form_function = 'election_post_' . $post_key . '_form';
   if (function_exists($post_form_function)) {
     $form = $post_form_function($form, $form_state, $election, $post);
   }
 
-  $form['vstatus_inheritance'] = array(
+  $form['vtabs']['voting'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Voting settings'),
+  );
+  $form['vtabs']['voting']['vstatus_inheritance'] = array(
     '#type' => 'radios',
     '#title' => t('Voting status'),
     '#default_value' => isset($post->vstatus_inheritance)? $post->vstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
@@ -66,7 +74,52 @@ function election_post_form($form, &$form_state, $election, $post) {
       ELECTION_POST_STATUS_INHERIT => t('Inherited (currently: %status)', array('%status' => strip_tags(_election_format_status($election, 'v')))),
       ELECTION_POST_STATUS_CLOSED => t('Closed'),
     ),
-    '#required' => TRUE,
+  );
+
+  $form['vtabs']['conditions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Authorised electorates'),
+  );
+  $form['vtabs']['conditions']['help'] = array(
+    'title' => array(
+      '#prefix' => '<label for="edit-electorates">',
+      '#markup' => t('Assign authorised electorates'),
+      '#suffix' => '</label>',
+    ),
+    'help' => array(
+      '#prefix' => '<p class="voting-conditions-help">',
+      '#markup' => t('If a user belongs to ANY of the electorates assigned below, then he or she may vote.'),
+      '#suffix' => '</p>',
+    ),
+  );
+  $electorate_headers = array(
+    'name' => t('Name'),
+    'source' => t('Filters'),
+    'description' => t('Description'),
+  );
+  $electorate_options = array();
+  foreach (election_electorate_types() as $electorate_mn => $electorate) {
+    if (empty($electorate['access callback'])) {
+      continue;
+    }
+    elseif (!function_exists($electorate['access callback'])) {
+      continue;
+    }
+    $electorate_options[(string) $electorate_mn] = array(
+      'name' => $electorate['name'],
+      'source' => t('Function: %callback', array('%callback' => $electorate['access callback'] . '()')),
+      'description' => $electorate['description'],
+    );
+  }
+  $form['vtabs']['conditions']['electorates'] = array(
+    '#type' => 'tableselect',
+    '#attributes' => array('class', 'select-electorates'),
+    '#default_value' => isset($post->electorates)? (array) $post->electorates : array(),
+    '#header' => $electorate_headers,
+    '#options' => $electorate_options,
+    '#multiple' => TRUE,
+    '#js_select' => FALSE,
+    '#empty' => t('No electorates available.'),
   );
 
   $form['buttons'] = array();
@@ -76,7 +129,6 @@ function election_post_form($form, &$form_state, $election, $post) {
     '#value' => t('Save'),
     '#submit' => array('election_post_form_submit'),
   );
-
   if (!$post->is_new) {
     $form['buttons']['delete'] = array(
       '#type' => 'submit',
@@ -168,32 +220,12 @@ function election_post_position_form($form, &$form_state, $election, $post) {
     ),
   );
 
-  $form['nominations'] = array(
+  $form['vtabs']['nominations'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Nominations form settings'),
+    '#title' => t('Nominations settings'),
   );
 
-  $form['nominations']['require_manifesto'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Require a manifesto'),
-    '#default_value' => empty($post->require_manifesto)? 0 : 1,
-  );
-  $form['nominations']['require_proposer'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Require proposer details'),
-    '#default_value' => empty($post->require_proposer)? 0 : 1,
-  );
-  $form['nominations']['require_phone'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Require a phone number'),
-    '#default_value' => empty($post->require_phone)? 0 : 1,
-  );
-  $form['nominations']['require_photo'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Require a photo'),
-    '#default_value' => empty($post->require_photo)? 0 : 1,
-  );
-  $form['nominations']['nstatus_inheritance'] = array(
+  $form['vtabs']['nominations']['nstatus_inheritance'] = array(
     '#type' => 'radios',
     '#title' => t('Nominations status'),
     '#default_value' => isset($post->nstatus_inheritance)? $post->nstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
@@ -201,7 +233,31 @@ function election_post_position_form($form, &$form_state, $election, $post) {
       ELECTION_POST_STATUS_INHERIT => t('Inherited (currently: %status)', array('%status' => strip_tags(_election_format_status($election, 'n')))),
       ELECTION_POST_STATUS_CLOSED => t('Closed'),
     ),
-    '#required' => TRUE,
+  );
+
+  $nominations_required_fields_default = array();
+  if (!empty($post->require_manifesto)) {
+    $nominations_required_fields_default[] = 'manifesto';
+  }
+  if (!empty($post->require_proposer)) {
+    $nominations_required_fields_default[] = 'proposer';
+  }
+  if (!empty($post->require_phone)) {
+    $nominations_required_fields_default[] = 'phone';
+  }
+  if (!empty($post->require_photo)) {
+    $nominations_required_fields_default[] = 'photo';
+  }
+  $form['vtabs']['nominations']['nominations_required_fields'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Nomination form required fields'),
+    '#default_value' => $nominations_required_fields_default,
+    '#options' => array(
+      'manifesto' => t('Require a manifesto'),
+      'proposer' => t('Require proposer details'),
+      'phone' => t('Require a phone number'),
+      'photo' => t('Require a photograph'),
+    ),
   );
 
   return $form;
@@ -273,10 +329,26 @@ function election_post_form_submit($form, &$form_state) {
   $post->nstatus_inheritance = $form_state['values']['nstatus_inheritance'];
   $post->vacancy_count = $form_state['values']['vacancy_count'];
   $post->use_ron = $form_state['values']['use_ron'];
-  $post->require_phone = $form_state['values']['require_phone'];
-  $post->require_proposer = $form_state['values']['require_proposer'];
-  $post->require_manifesto = $form_state['values']['require_manifesto'];
-  $post->require_photo = $form_state['values']['require_photo'];
+
+  $required_fields = (array) $form_state['values']['nominations_required_fields'];
+  foreach ($required_fields as $required_field) {
+    switch ($required_field) {
+      case 'phone':
+        $post->require_phone = '1';
+        break;
+      case 'photo':
+        $post->require_photo = '1';
+        break;
+      case 'manifesto':
+        $post->require_manifesto = '1';
+        break;
+      case 'proposer':
+        $post->require_proposer = '1';
+        break;
+    }
+  }
+
+  $post->electorates = $form_state['values']['electorates'];
 
   field_attach_submit('election_post', $post, $form, $form_state);
 
@@ -288,7 +360,9 @@ function election_post_form_submit($form, &$form_state) {
     t('The @post_name "@title" was saved.', array('@post_name' => _election_get_posts_name($election->type), '@title' => $post->title))
   );
 
-  //$form_state['redirect'] = election_uri_path($election) . '/posts';
+  if (empty($_GET['destination'])) {
+    $form_state['redirect'] = election_uri_path($election) . '/posts';
+  }
 
 }
 
@@ -324,11 +398,9 @@ function election_post_form_delete_confirm($form, &$form_state, $election, $post
   return confirm_form(
     $form,
     t(
-      'Are you sure you want to delete the @post_name %post_title from the @election_type %election_title?',
+      'Are you sure you want to delete the @post_name %post_title?',
       array(
         '@post_name' => _election_get_posts_name($election->type),
-        '@election_type' => $type['name'],
-        '%election_title' => $election->title,
         '%post_title' => $post->title,
       )
     ),

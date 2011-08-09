@@ -99,14 +99,18 @@ function election_entity_info() {
 }
 
 /**
- * Return information about election types in a structured array of stdClass
- * objects, keyed by each type's machine name.
+ * Return information about election types in a structured array, keyed by
+ * each type's machine name. Each element is also a structured array defining at
+ * least 'name' and 'post key'.
+ *
+ * This uses hook_election_type_info() to allow other modules to define types.
  *
  * @return array
  */
 function election_types() {
   $types = &drupal_static(__FUNCTION__);
   if (empty($types)) {
+    $types = array();
     $types['referendum'] = array(
       'name' => t('referendum'),
       'description' => t('A simple referendum, where people can vote once (yes, no, or abstain) in response to a motion.'),
@@ -123,9 +127,30 @@ function election_types() {
       'post key' => 'position',
       'weight' => 1,
     );
+    $types += module_invoke_all('election_type_info');
   }
-  $types += module_invoke_all('election_type_info');
   return $types;
+}
+
+/**
+ * Return information about electorates in a structured array, keyed by each
+ * electorate's machine name. Each element is also a structured array defining at
+ * least 'name' and 'access callback'. The key 'access callback' refers to a
+ * function that takes one argument (the Drupal $user object) and returns
+ * whether or not the user may vote (as a Boolean value).
+ *
+ * This function uses hook_electorate_info() to allow other modules to
+ * define electorates.
+ *
+ * @return array
+ */
+function election_electorate_types() {
+  $electorates = &drupal_static(__FUNCTION__);
+  if (empty($electorates)) {
+    $electorates = array();
+    $electorates += module_invoke_all('electorate_info');
+  }
+  return $electorates;
 }
 
 /**
@@ -268,7 +293,7 @@ function election_permission() {
     ),
     'delete any elections' => array(
       'title' => t('Delete any election'),
-      'description' => t('This permission is dangerous: deleting an election automatically deletes all associated data (including votes).'),
+      'description' => t('This permission is dangerous: deleting an election automatically deletes ALL associated data, for example votes.'),
       'restrict access' => TRUE,
     ),
     'edit any election' => array(
@@ -911,6 +936,12 @@ function _election_is_open($status, $open_time, $close_time) {
  * @return string
  */
 function _election_format_status(stdClass $election, $status_prefix = 'v') {
+
+  // Nominations aren't relevant to referendums.
+  // @todo make this extensible
+  if ($election->type == 'referendum' && $status_prefix == 'n') {
+    return t('N/A');
+  }
 
   $status = $election->{$status_prefix . 'status'};
   $open_time = $election->{$status_prefix . 'open_time'};
