@@ -76,6 +76,17 @@ function election_post_form($form, &$form_state, $election, $post) {
     ),
   );
 
+  $post->electorates = array();
+  if (!$post->is_new) {
+    $result = db_select('election_post_electorate', 'epe')
+      ->fields('epe', array('electorate_id'))
+      ->condition('post_id', $post->post_id)
+      ->execute();
+    while ($row = $result->fetchAssoc()) {
+      $post->electorates[$row['electorate_id']] = 1;
+    }
+  }
+
   $form['vtabs']['conditions'] = array(
     '#type' => 'fieldset',
     '#title' => t('Authorised electorates'),
@@ -94,20 +105,31 @@ function election_post_form($form, &$form_state, $election, $post) {
   );
   $electorate_headers = array(
     'name' => t('Name'),
-    'source' => t('Filters'),
+    'conditions' => t('Conditions'),
     'description' => t('Description'),
   );
   $electorate_options = array();
-  foreach (election_electorate_types() as $electorate_mn => $electorate) {
-    if (empty($electorate['access callback'])) {
-      continue;
+  foreach (election_electorates() as $electorate_mn => $electorate) {
+    if (!is_array($electorate['conditions']) || !count($electorate['conditions'])) {
+      $conditions = '<span class="error">'
+                  . t(
+                      'Error! No valid code found for the electorate %machine_name.',
+                      array('%machine_name' => $electorate_mn)
+                    )
+                  . '</span>';
     }
-    elseif (!function_exists($electorate['access callback'])) {
-      continue;
+    else {
+      $items = $electorate['conditions'];
+      foreach ($items as $key => $item) {
+        if ($key == 'function') {
+          $items[$key] = t('Function: %function', array('%function' => $item . '()'));
+        }
+      }
+      $conditions = theme('item_list', array('items' => $items));
     }
-    $electorate_options[(string) $electorate_mn] = array(
+    $electorate_options[$electorate['electorate_id']] = array(
       'name' => $electorate['name'],
-      'source' => t('Function: %callback', array('%callback' => $electorate['access callback'] . '()')),
+      'conditions' => $conditions,
       'description' => $electorate['description'],
     );
   }
@@ -348,7 +370,13 @@ function election_post_form_submit($form, &$form_state) {
     }
   }
 
-  $post->electorates = $form_state['values']['electorates'];
+  $post->electorates = array();
+  $electorates = (array) $form_state['values']['electorates'];
+  foreach ($electorates as $electorate_id => $value) {
+    if (!empty($value)) {
+      $post->electorates[] = $electorate_id;
+    }
+  }
 
   field_attach_submit('election_post', $post, $form, $form_state);
 

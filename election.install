@@ -255,7 +255,7 @@ function election_schema() {
         'description' => 'Relates to {election_electorate}.electorate_id.',
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
     ),
     'unique keys' => array(
@@ -282,6 +282,23 @@ function election_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'machine_name' => array(
+        'description' => 'The unique machine name of the electorate.',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'The name of the electorate - a human-readable identifier.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'description' => array(
+        'description' => 'A human-readable description of the electorate.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
       'conditions' => array(
         'description' => 'A serialized array of conditions, all of which users must pass to be part of the electorate.',
         'type' => 'blob',
@@ -289,11 +306,12 @@ function election_schema() {
         'serialize' => TRUE,
         'not null' => FALSE,
       ),
-      'name' => array(
-        'description' => 'The name of the electorate - a human-readable identifier.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => FALSE,
+      'locked' => array(
+        'description' => 'Whether or not the electorate is locked (i.e. created in code, not editable).',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
       ),
       'created' => array(
         'description' => 'The Unix timestamp for when the electorate was created.',
@@ -308,6 +326,9 @@ function election_schema() {
       ),
     ),
     'primary key' => array('electorate_id'),
+    'unique keys' => array(
+      'machine_name' => array('machine_name'),
+    ),
     'indexes' => array(
       'created' => array('created'),
       'name' => array('name'),
@@ -585,11 +606,45 @@ function election_schema() {
 }
 
 /**
- * Implements hook_enable().
- *
- * Sets up foreign key constraints for a MySQL/InnoDB database.
+ * Implements hook_install().
  */
-function election_enable() {
+function election_install() {
+
+  _election_add_foreign_keys();
+
+}
+
+/**
+ * Implements hook_uninstall().
+ *
+ * Delete tables in an order that satisfies foreign key integrity constraints.
+ */
+function election_uninstall() {
+  db_query('DROP TABLE IF EXISTS {election_endorser}, {election_ballot}, {election_vote}, {election_candidate}, {election_post_electorate}, {election_electorate}, {election_post}, {election}');
+}
+
+/**
+ * Check whether or not all the database tables for this module exist.
+ *
+ * @return bool
+ */
+function _election_db_tables_exist() {
+  foreach (array_keys(election_schema()) as $table) {
+    if (!db_table_exists($table)) {
+      return FALSE;
+    }
+  }
+  return TRUE;
+}
+
+/**
+ * Set up foreign key constraints for a MySQL/InnoDB database.
+ *
+ * @see election_install()
+ *
+ * @return void
+ */
+function _election_add_foreign_keys() {
 
   if (db_driver() != 'mysql') {
     watchdog(
@@ -642,27 +697,4 @@ function election_enable() {
 
   }
 
-}
-
-/**
- * Implements hook_uninstall().
- *
- * Delete tables in an order that satisfies foreign key integrity constraints.
- */
-function election_uninstall() {
-  db_query('DROP TABLE IF EXISTS {election_endorser}, {election_ballot}, {election_vote}, {election_candidate}, {election_post_electorate}, {election_electorate}, {election_post}, {election}');
-}
-
-/**
- * Check whether or not all the database tables for this module exist.
- *
- * @return bool
- */
-function _election_db_tables_exist() {
-  foreach (array_keys(election_schema()) as $table) {
-    if (!db_table_exists($table)) {
-      return FALSE;
-    }
-  }
-  return TRUE;
 }

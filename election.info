@@ -1,6 +1,6 @@
 name = Election
 description = "Provides online voting functionality, supporting referendums and STV elections."
-package = Democracy
+package = Election
 core = 7.x
 php = 5.3
 dependencies[] = entity

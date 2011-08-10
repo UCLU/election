@@ -27,6 +27,7 @@ class ElectionPostController extends DrupalDefaultEntityController {
       'require_phone' => 0,
       'require_proposer' => 1,
       'require_photo' => 0,
+      'electorates' => array(),
     );
 
   }
@@ -48,7 +49,6 @@ class ElectionPostController extends DrupalDefaultEntityController {
       }
 
       $post->changed = REQUEST_TIME;
-      $update_election_post = TRUE;
 
       field_attach_presave('election_post', $post);
 
@@ -65,6 +65,19 @@ class ElectionPostController extends DrupalDefaultEntityController {
       $function('election_post', $post);
 
       module_invoke_all('entity_' . $op, $post, 'election_post');
+
+      /** @todo change this to an update, rather than delete all and insert new */
+      db_delete('election_post_electorate')
+          ->condition('post_id', $post->post_id)
+          ->execute();
+      if (count($post->electorates)) {
+        foreach ($post->electorates as $electorate_id) {
+          db_insert('election_post_electorate')->fields(array(
+            'post_id' => $post->post_id,
+            'electorate_id' => $electorate_id,
+          ))->execute();
+        }
+      }
 
       unset($post->is_new);
 
@@ -94,6 +107,9 @@ class ElectionPostController extends DrupalDefaultEntityController {
         db_delete('election_post')
           ->condition('post_id', $ids, 'IN')
           ->execute();
+        db_delete('election_post_electorate')
+          ->condition('post_id', $ids, 'IN')
+          ->execute();
         foreach ($posts as $post_id => $post) {
           field_attach_delete('election_post', $post);
         }
@@ -105,8 +121,7 @@ class ElectionPostController extends DrupalDefaultEntityController {
         return FALSE;
       }
 
-// @todo this doesn't make sense
-//      module_invoke_all('entity_delete', $posts, 'election_post');
+      module_invoke_all('entity_delete', $posts, 'election_post');
 
       cache_clear_all();
       $this->resetCache();

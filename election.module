@@ -133,27 +133,6 @@ function election_types() {
 }
 
 /**
- * Return information about electorates in a structured array, keyed by each
- * electorate's machine name. Each element is also a structured array defining at
- * least 'name' and 'access callback'. The key 'access callback' refers to a
- * function that takes one argument (the Drupal $user object) and returns
- * whether or not the user is part of the electorate (as a Boolean value).
- *
- * This function uses hook_electorate_info() to allow other modules to
- * define electorates.
- *
- * @return array
- */
-function election_electorate_types() {
-  $electorates = &drupal_static(__FUNCTION__);
-  if (empty($electorates)) {
-    $electorates = array();
-    $electorates += module_invoke_all('electorate_info');
-  }
-  return $electorates;
-}
-
-/**
  * Implements hook_views_api().
  */
 function election_views_api() {
@@ -233,6 +212,160 @@ function election_load($election_id = NULL) {
   }
   return reset($result);
 }
+
+/**
+ * Return information about all electorates.
+ *
+ * @todo document this
+ *
+ * @return array
+ */
+function election_electorates() {
+  $query = db_select('election_electorate', 'ee');
+  $query->fields('ee');
+  $query->orderBy('name');
+  $result = $query->execute();
+
+  $electorates = array();
+
+  $code_electorates = _election_get_code_electorates();
+
+  while ($electorate = $result->fetchAssoc()) {
+    $electorate['conditions'] = unserialize($electorate['conditions']);
+    if ($electorate['locked']) {
+      if (isset($code_electorates[$electorate['machine_name']])) {
+        $code_electorate = $code_electorates[$electorate['machine_name']];
+        if (isset($code_electorate['access callback']) && function_exists($code_electorate['access callback'])) {
+          $electorate['conditions'] = array(
+            'function' => @$code_electorate['access callback'],
+          );
+        }
+      }
+    }
+    $electorates[$electorate['machine_name']] = $electorate;
+  }
+
+  return $electorates;
+}
+
+/**
+ * Return information about code electorates in a structured array, keyed by each
+ * electorate's machine name. Each element is also a structured array defining at
+ * least 'name' and 'access callback'. The key 'access callback' refers to a
+ * function that takes one argument (the Drupal $user object) and returns
+ * whether or not the user is part of the electorate (as a Boolean value).
+ *
+ * This function uses hook_electorate_info() to allow other modules to
+ * define electorates.
+ *
+ * @return array
+ */
+function _election_get_code_electorates() {
+  $electorates = &drupal_static(__FUNCTION__);
+  if (empty($electorates)) {
+    $electorates = array();
+    $electorates += module_invoke_all('electorate_info');
+  }
+  return $electorates;
+}
+
+/**
+ * Implements hook_modules_enabled().
+ */
+function election_modules_enabled($modules = array()) {
+  // If any module implements hook_electorate_info, run _election_install_code_electorates().
+  foreach ($modules as $module) {
+    if (function_exists($module . '_electorate_info')) {
+      _election_install_code_electorates();
+      break;
+    }
+  }
+}
+
+/**
+ * Implements hook_modules_disabled().
+ */
+function election_modules_disabled($modules = array()) {
+  // If any module implements hook_electorate_info, run _election_uninstall_code_electorates().
+  foreach ($modules as $module) {
+    if (function_exists($module . '_electorate_info')) {
+      _election_uninstall_code_electorates();
+      break;
+    }
+  }
+}
+
+/*
+ * Delete electorates from the DB only if they don't exist in
+ * election_post_electorate AND they don't exist in code.
+ *
+ * @return void
+ */
+function _election_uninstall_code_electorates() {
+  $code_electorates = _election_get_code_electorates();
+  $transaction = db_transaction();
+  try {
+    $db_electorates = db_select('election_electorate', 'ee')->fields('ee', array('electorate_id', 'machine_name'))->condition('locked', '1')->execute();
+    while ($db_electorate = $db_electorates->fetchAssoc()) {
+      if (isset($code_electorates[$db_electorate['machine_name']])) {
+        continue;
+      }
+      $assigned = db_select('election_post_electorate', 'epe')
+        ->fields('epe')
+        ->condition('electorate_id', $db_electorate['electorate_id'])
+        ->range(0,1)
+        ->execute()
+        ->fetchCol();
+      if (count($assigned)) {
+        continue;
+      }
+      db_delete('election_electorate')
+        ->condition('electorate_id', $db_electorate['electorate_id'])
+        ->execute();
+      watchdog(
+        'election',
+        'Deleted the electorate %machine_name from the database as it is no longer in use.',
+        array('%machine_name' => $db_electorate['machine_name'])
+      );
+    }
+  }
+  catch (Exception $e) {
+    $transaction->rollback();
+    watchdog_exception('election', $e, NULL, WATCHDOG_ERROR);
+    return FALSE;
+  }
+}
+
+/**
+ * Find electorates in code and write them (identified by 'machine name') to the
+ * {election_electorate} table. This uses a Merge Query, see:
+ * http://drupal.org/node/310085
+ * and:
+ * http://api.drupal.org/api/drupal/includes--database--query.inc/class/MergeQuery/7
+ *
+ * @return void
+ */
+function _election_install_code_electorates() {
+  foreach (_election_get_code_electorates() as $electorate_mn => $electorate) {
+    $record = array(
+      'machine_name' => $electorate_mn,
+      'name' => empty($electorate['name'])? $electorate_mn : $electorate['name'],
+      'description' => @$electorate['description'],
+      'locked' => 1,
+      'changed' => REQUEST_TIME,
+    );
+    db_merge('election_electorate')
+      ->key(
+        array(
+          'machine_name' => $electorate_mn,
+        )
+      )
+      ->updateFields($record)
+      ->insertFields($record + array('created' => REQUEST_TIME))
+      ->execute();
+  }
+}
+
 
 /**
  * Load multiple elections.
@@ -340,8 +473,33 @@ function election_access($op, $election = NULL, $account = NULL) {
 }
 
 /**
+ * Check whether a user is part of an electorate. The user must match ALL of
+ * the electorate's conditions.
  *
+ * @param array $electorate
+ * @param stdClass $user
+ *
+ * @return bool
  */
+function election_electorate_authorise(array $electorate, stdClass $user) {
+  $conditions = $electorate['conditions'];
+  if (!is_array($conditions)) {
+    return FALSE;
+  }
+  foreach ($conditions as $type => $condition) {
+    switch ($type) {
+      case 'function':
+        if (!function_exists($condition)) {
+          return FALSE;
+        }
+        if (!$condition($user)) {
+          return FALSE;
+        }
+        break;
+    }
+  }
+  return TRUE;
+}
 
 /**
  * Implements hook_menu().
@@ -1072,6 +1230,28 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
   }
 
   return $links;
+}
+
+/**
+ * Implements hook_admin_theme_info(). See the Administration Theme module.
+ */
+function election_admin_theme_info() {
+  $options = array();
+  $options['election'] = array(
+    'title' => t('Use the administration theme for editing election information.'),
+    'description' => t('Use the administration theme for editing election information.'),
+  );
+}
+
+/**
+ * Implements hook_admin_theme_check(). See the Administration Theme module.
+ */
+function election_admin_theme_check($option = NULL) {
+  switch ($option) {
+    case 'election':
+      return arg(0) == 'election';
+      break;
+  }
 }
 
 /**
