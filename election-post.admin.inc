@@ -89,18 +89,18 @@ function election_post_form($form, &$form_state, $election, $post) {
 
   $form['vtabs']['conditions'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Authorised electorates'),
+    '#title' => t('Conditional voting'),
   );
   $form['vtabs']['conditions']['help'] = array(
     'title' => array(
-      '#prefix' => '<label for="edit-electorates">',
-      '#markup' => t('Assign authorised electorates'),
+      '#prefix' => '<div class="form-item"><label for="edit-electorates">',
+      '#markup' => t('Assign electorates'),
       '#suffix' => '</label>',
     ),
     'help' => array(
       '#prefix' => '<p class="voting-conditions-help">',
-      '#markup' => t('If a user belongs to ANY of the electorates assigned below, then he or she may vote.'),
-      '#suffix' => '</p>',
+      '#markup' => t('To be part of an electorate, the user must match ALL of that electorate\'s conditions. If the user is part of ANY of the electorates assigned below, AND has the permission "vote in elections", then he/she may cast a vote for this @post_type_name.', array('@post_type_name' => _election_get_posts_name($election->type))),
+      '#suffix' => '</p></div>',
     ),
   );
   $electorate_headers = array(
@@ -236,7 +236,7 @@ function election_post_position_form($form, &$form_state, $election, $post) {
       0 => t('Do not include RON'),
     ),
     '#states' => array(
-      'enabled' => array(
+      'visible' => array(
         ':input[name=vacancy_count]' => array('value' => '1'),
       ),
     ),

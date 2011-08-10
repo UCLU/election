@@ -11,12 +11,12 @@ function election_example_electorates_electorate_info() {
   $electorates = array();
   $electorates['gmail'] = array(
     'name' => t('GMail users'),
-    'access callback' => 'election_example_electorates_access_gmail',
+    'conditions' => array('election_example_electorates_access_gmail'),
     'description' => t('Users whose registered email addresses end with either "gmail.com" or "googlemail.com".'),
   );
   $electorates['hotmail'] = array(
     'name' => t('Hotmail users'),
-    'access callback' => 'election_example_electorates_access_hotmail',
+    'conditions' => array('election_example_electorates_access_hotmail'),
     'description' => t('Users whose registered email addresses end with "hotmail.com" or "hotmail.co.uk".'),
   );
   return $electorates;

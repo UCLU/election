@@ -66,18 +66,16 @@ class ElectionPostController extends DrupalDefaultEntityController {
 
       module_invoke_all('entity_' . $op, $post, 'election_post');
 
-      /** @todo change this to an update, rather than delete all and insert new */
       db_delete('election_post_electorate')
           ->condition('post_id', $post->post_id)
           ->execute();
-      if (count($post->electorates)) {
-        foreach ($post->electorates as $electorate_id) {
-          db_insert('election_post_electorate')->fields(array(
-            'post_id' => $post->post_id,
-            'electorate_id' => $electorate_id,
-          ))->execute();
-        }
+      foreach ($post->electorates as $electorate_id) {
+        db_insert('election_post_electorate')->fields(array(
+          'post_id' => $post->post_id,
+          'electorate_id' => $electorate_id,
+        ))->execute();
       }
+      _election_uninstall_code_electorates();
 
       unset($post->is_new);
 

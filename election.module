@@ -235,11 +235,7 @@ function election_electorates() {
     if ($electorate['locked']) {
       if (isset($code_electorates[$electorate['machine_name']])) {
         $code_electorate = $code_electorates[$electorate['machine_name']];
-        if (isset($code_electorate['access callback']) && function_exists($code_electorate['access callback'])) {
-          $electorate['conditions'] = array(
-            'function' => @$code_electorate['access callback'],
-          );
-        }
+        $electorate['conditions'] = $code_electorate['conditions'];
       }
     }
     $electorates[$electorate['machine_name']] = $electorate;
@@ -273,7 +269,10 @@ function _election_get_code_electorates() {
  * Implements hook_modules_enabled().
  */
 function election_modules_enabled($modules = array()) {
-  // If any module implements hook_electorate_info, run _election_install_code_electorates().
+  /*
+    If any of the enabled modules contains an implementation of
+    hook_electorate_info, run _election_install_code_electorates().
+  */
   foreach ($modules as $module) {
     if (function_exists($module . '_electorate_info')) {
       _election_install_code_electorates();
@@ -286,7 +285,10 @@ function election_modules_enabled($modules = array()) {
  * Implements hook_modules_disabled().
  */
 function election_modules_disabled($modules = array()) {
-  // If any module implements hook_electorate_info, run _election_uninstall_code_electorates().
+  /*
+    If any of the disabled modules contains an implementation of
+    hook_electorate_info, run _election_uninstall_code_electorates().
+  */
   foreach ($modules as $module) {
     if (function_exists($module . '_electorate_info')) {
       _election_uninstall_code_electorates();
@@ -305,7 +307,10 @@ function _election_uninstall_code_electorates() {
   $code_electorates = _election_get_code_electorates();
   $transaction = db_transaction();
   try {
-    $db_electorates = db_select('election_electorate', 'ee')->fields('ee', array('electorate_id', 'machine_name'))->condition('locked', '1')->execute();
+    $db_electorates = db_select('election_electorate', 'ee')
+      ->fields('ee', array('electorate_id', 'machine_name'))
+      ->condition('locked', '1')
+      ->execute();
     while ($db_electorate = $db_electorates->fetchAssoc()) {
       if (isset($code_electorates[$db_electorate['machine_name']])) {
         continue;
@@ -313,7 +318,7 @@ function _election_uninstall_code_electorates() {
       $assigned = db_select('election_post_electorate', 'epe')
         ->fields('epe')
         ->condition('electorate_id', $db_electorate['electorate_id'])
-        ->range(0,1)
+        ->range(0, 1)
         ->execute()
         ->fetchCol();
       if (count($assigned)) {
@@ -435,6 +440,10 @@ function election_permission() {
     'view any election' => array(
       'title' => t('View any election'),
     ),
+    'vote in elections' => array(
+      'title' => t('Vote in elections'),
+      'description' => t('Users must have this permission in order to vote. They must also belong to the relevant electorate(s).'),
+    ),
   );
   return $permissions;
 }
@@ -489,10 +498,7 @@ function election_electorate_authorise(array $electorate, stdClass $user) {
   foreach ($conditions as $type => $condition) {
     switch ($type) {
       case 'function':
-        if (!function_exists($condition)) {
-          return FALSE;
-        }
-        if (!$condition($user)) {
+        if (!function_exists($condition) || !$condition($user)) {
           return FALSE;
         }
         break;
@@ -720,6 +726,18 @@ function election_menu_alter(&$items) {
     }
 
   }
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function election_admin_paths() {
+  $paths = array(
+    'election/*/add' => TRUE,
+    'election/*/edit' => TRUE,
+    'election/*/delete' => TRUE,
+  );
+  return $paths;
 }
 
 /**
@@ -1230,28 +1248,6 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
   }
 
   return $links;
-}
-
-/**
- * Implements hook_admin_theme_info(). See the Administration Theme module.
- */
-function election_admin_theme_info() {
-  $options = array();
-  $options['election'] = array(
-    'title' => t('Use the administration theme for editing election information.'),
-    'description' => t('Use the administration theme for editing election information.'),
-  );
-}
-
-/**
- * Implements hook_admin_theme_check(). See the Administration Theme module.
- */
-function election_admin_theme_check($option = NULL) {
-  switch ($option) {
-    case 'election':
-      return arg(0) == 'election';
-      break;
-  }
 }
 
 /**
