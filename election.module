@@ -99,24 +99,6 @@ function election_entity_info() {
 }
 
 /**
- * Implements hook_field_info().
- */
-function election_field_info() {
-  drupal_set_message('Defining field info');
-  $types = array();
-  $types['endorser'] = array(
-    'label' => t('Endorser'),
-    'description' => t('A field that describes a candidate\'s endorser (proposer or seconder) for an election.'),
-    'settings' => array(), // todo
-    'instance_settings' => array(), // todo
-    'default_widget' => 'text_textfield', // todo
-    'default_formatter' => 'text_default', // todo
-    'no_ui' => FALSE, // todo
-  );
-  return $types;
-}
-
-/**
  * Return information about election types in a structured array, keyed by
  * each type's machine name. Each element is also a structured array defining at
  * least 'name' and 'post key'.

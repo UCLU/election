@@ -615,60 +615,6 @@ function election_install() {
 }
 
 /**
- * Implements hook_enable().
- */
-function election_enable() {
-  _election_create_fields();
-}
-
-/**
- * Set up the custom fields.
- */
-function _election_create_fields() {
-
-  $proposer_field = array(
-    'field_name' => 'election_proposer',
-    'type' => 'endorser',
-  );
-  field_create_field($proposer_field);
-
-  $proposer_field_instance = array(
-    'field_name' => 'election_proposer',
-    'entity_type' => 'election_post',
-    'label' => 'Test proposer field',
-    'bundle' => 'position',
-    'required' => FALSE,
-    'widget' => array(
-      'type' => 'textfield',
-    ),
-    'display' => array(
-      'default' => array(
-        'label' => 'hidden',
-        'type' => 'text_default',
-        'weight' => 10,
-      ),
-      'teaser' => array(
-        'label' => 'hidden',
-        'type' => 'text_default',
-        'weight' => 10,
-      ),
-    ),
-  );
-  field_create_instance($proposer_field_instance);
-
-/*
-  $seconder_field = array(
-    'field_name' => 'election_seconder',
-    'type' => 'endorser',
-    'cardinality' => 10,
-  );
-  field_create_field($seconder_field);
-*/
-
-
-}
-
-/**
  * Implements hook_uninstall().
  *
  * Delete tables in an order that satisfies foreign key integrity constraints.
