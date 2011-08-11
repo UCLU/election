@@ -112,18 +112,17 @@ function election_post_form($form, &$form_state, $election, $post) {
   foreach (election_electorates() as $electorate_mn => $electorate) {
     if (!is_array($electorate['conditions']) || !count($electorate['conditions'])) {
       $conditions = '<span class="error">'
-                  . t(
-                      'Error! No valid code found for the electorate %machine_name.',
-                      array('%machine_name' => $electorate_mn)
-                    )
+                  . t('No valid conditions found for the electorate %machine_name.',
+                      array('%machine_name' => $electorate_mn))
                   . '</span>';
     }
     else {
       $items = $electorate['conditions'];
       foreach ($items as $key => $item) {
-        if ($key == 'function') {
-          $items[$key] = t('Function: %function', array('%function' => $item . '()'));
-        }
+        $items[$key] = t('@key: %item', array(
+          '@key' => is_string($key)? drupal_ucfirst($key) : 'Function',
+          '%item' => $item . '()',
+        ));
       }
       $conditions = theme('item_list', array('items' => $items));
     }

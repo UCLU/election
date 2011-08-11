@@ -99,6 +99,24 @@ function election_entity_info() {
 }
 
 /**
+ * Implements hook_field_info().
+ */
+function election_field_info() {
+  drupal_set_message('Defining field info');
+  $types = array();
+  $types['endorser'] = array(
+    'label' => t('Endorser'),
+    'description' => t('A field that describes a candidate\'s endorser (proposer or seconder) for an election.'),
+    'settings' => array(), // todo
+    'instance_settings' => array(), // todo
+    'default_widget' => 'text_textfield', // todo
+    'default_formatter' => 'text_default', // todo
+    'no_ui' => FALSE, // todo
+  );
+  return $types;
+}
+
+/**
  * Return information about election types in a structured array, keyed by
  * each type's machine name. Each element is also a structured array defining at
  * least 'name' and 'post key'.
@@ -231,14 +249,17 @@ function election_electorates() {
   $code_electorates = _election_get_code_electorates();
 
   while ($electorate = $result->fetchAssoc()) {
-    $electorate['conditions'] = unserialize($electorate['conditions']);
+    $key = $electorate['machine_name'];
     if ($electorate['locked']) {
-      if (isset($code_electorates[$electorate['machine_name']])) {
-        $code_electorate = $code_electorates[$electorate['machine_name']];
-        $electorate['conditions'] = $code_electorate['conditions'];
+      if (isset($code_electorates[$key])) {
+        $electorate['conditions'] = (array) @$code_electorates[$key]['conditions'];
       }
     }
-    $electorates[$electorate['machine_name']] = $electorate;
+    else {
+      $electorate['conditions'] = (array) unserialize($electorate['conditions']);
+    }
+    $key = $electorate['machine_name'];
+    $electorates[$key] = $electorate;
   }
 
   return $electorates;
@@ -360,11 +381,7 @@ function _election_install_code_electorates() {
       'changed' => REQUEST_TIME,
     );
     db_merge('election_electorate')
-      ->key(
-        array(
-          'machine_name' => $electorate_mn,
-        )
-      )
+      ->key(array('machine_name' => $electorate_mn))
       ->updateFields($record)
       ->insertFields($record + array('created' => REQUEST_TIME))
       ->execute();
@@ -479,32 +496,6 @@ function election_access($op, $election = NULL, $account = NULL) {
       break;
   }
   return FALSE;
-}
-
-/**
- * Check whether a user is part of an electorate. The user must match ALL of
- * the electorate's conditions.
- *
- * @param array $electorate
- * @param stdClass $user
- *
- * @return bool
- */
-function election_electorate_authorise(array $electorate, stdClass $user) {
-  $conditions = $electorate['conditions'];
-  if (!is_array($conditions)) {
-    return FALSE;
-  }
-  foreach ($conditions as $type => $condition) {
-    switch ($type) {
-      case 'function':
-        if (!function_exists($condition) || !$condition($user)) {
-          return FALSE;
-        }
-        break;
-    }
-  }
-  return TRUE;
 }
 
 /**
