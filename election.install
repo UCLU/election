@@ -611,6 +611,7 @@ function election_schema() {
 function election_install() {
 
   _election_add_foreign_keys();
+  _election_install_code_electorates();
 
 }
 
