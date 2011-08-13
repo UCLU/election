@@ -116,6 +116,14 @@ function election_entity_info() {
         'custom settings' => TRUE,
       ),
     ),
+    'bundles' => array(
+      'candidate' => array(
+        'admin' => array(
+          'path' => 'admin/election/candidate',
+          'access arguments' => array('administer elections'),
+        ),
+      ),
+    ),
   );
 
   return $entities;
@@ -618,6 +626,22 @@ function election_menu() {
     }
   }
 
+  $items['admin/election/candidate'] = array(
+    'title' => 'Candidate settings',
+    'description' => 'Manage fields and display settings for election candidates (not applicable to referendums).',
+    'title callback' => 'check_plain',
+    'page callback' => 'system_admin_menu_block_page',
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+    'access arguments' => array('administer elections'),
+  );
+  $items['admin/election/candidate/settings'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+
+
   $items['election/%election'] = array(
     'title callback' => 'election_page_title',
     'title arguments' => array(1),
@@ -771,6 +795,13 @@ function election_menu_alter(&$items) {
     }
 
   }
+
+  unset($items['admin/election/candidate/settings']);
+  $items['admin/election/candidate/fields']['type'] = MENU_NORMAL_ITEM;
+  $items['admin/election/candidate/fields']['description'] = t('Manage fields for election candidates.');
+  $items['admin/election/candidate/display']['type'] = MENU_NORMAL_ITEM;
+  $items['admin/election/candidate/display']['description'] = t('Manage display for election candidates.');
+
 }
 
 /**
