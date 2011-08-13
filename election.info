@@ -8,3 +8,4 @@ dependencies[] = field_ui
 dependencies[] = date
 files[] = election.controller.inc
 files[] = election-post.controller.inc
+files[] = election-candidate.controller.inc

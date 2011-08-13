@@ -94,6 +94,30 @@ function election_entity_info() {
     }
   }
 
+  $entities['election_candidate'] = array(
+    'label' => t('Election candidate'),
+    'uri callback' => 'election_candidate_uri',
+    'controller class' => 'ElectionCandidateController',
+    'base table' => 'election_candidate',
+    'label callback' => 'election_candidate_label',
+    'entity keys' => array(
+      'id' => 'candidate_id',
+    ),
+    'static cache' => TRUE,
+    'fieldable' => TRUE,
+    'module' => 'election',
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full content'),
+        'custom settings' => TRUE,
+      ),
+      'summary' => array(
+        'label' => t('Summary information'),
+        'custom settings' => TRUE,
+      ),
+    ),
+  );
+
   return $entities;
 
 }
@@ -194,6 +218,54 @@ function election_post_uri($post) {
 function election_post_uri_path($post) {
   $uri = entity_uri('election_post', $post);
   return $uri['path'];
+}
+
+/**
+ * URI callback for a single election candidate.
+ *
+ * @return array
+ */
+function election_candidate_uri($candidate) {
+  $path = 'election-candidates/' . $candidate->candidate_id;
+  if (!empty($candidate->post_id)) {
+    $post = election_post_load($candidate->post_id);
+    $path = election_post_uri_path($post) . '/candidates/' . $candidate->candidate_id;
+  }
+  return array(
+    'path' => $path,
+  );
+}
+
+/**
+ * Return the path part of the election candidate URI callback as a string.
+ *
+ * @return string.
+ */
+function election_candidate_uri_path($candidate) {
+  $uri = entity_uri('election_candidate', $candidate);
+  return $uri['path'];
+}
+
+/**
+ * Label callback for an election_candidate, returning the candidate's name.
+ *
+ * @param stdClass $entity
+ * @param string $entity_type
+ *
+ * @return string
+ */
+function election_candidate_label(stdClass $entity, $entity_type) {
+  if ($entity_type == 'election_candidate' && !empty($entity->uid)) {
+    $account = user_load($entity->uid);
+    if ($items = field_get_items('user', $account, 'name')) {
+      foreach ($items as $item) {
+        if (!empty($item['name'])) {
+          return $item['name'];
+        }
+      }
+    }
+    return t('No name found.');
+  }
 }
 
 /**
@@ -703,12 +775,15 @@ function election_menu_alter(&$items) {
 
 /**
  * Implements hook_admin_paths().
+ *
+ * @todo sort this out
  */
 function election_admin_paths() {
   $paths = array(
-    'election/*/add' => TRUE,
-    'election/*/edit' => TRUE,
-    'election/*/delete' => TRUE,
+    //'election/*/add' => TRUE,
+    //'election/*/edit' => TRUE,
+    //'election/*/delete' => TRUE,
+    'election/*' => TRUE,
   );
   return $paths;
 }
