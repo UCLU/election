@@ -231,6 +231,13 @@ function election_form($form, &$form_state, $election) {
   );
 
   $date_format = variable_get('date_format_short', 'Y-m-d H:i');
+  $date_widget = 'textfield';
+  if (module_exists('date_popup')) {
+    $date_widget = 'date_popup';
+  }
+  elseif (module_exists('date')) {
+    $date_widget = 'date_text';
+  }
 
   if ($election->type != 'referendum') {
     //$nopen_default = isset($election->nopen_time)? $election->nopen_time : strtotime('+1 Friday 10am');
@@ -260,7 +267,7 @@ function election_form($form, &$form_state, $election) {
     );
     $form['nschedule']['nopen_time'] = array(
       '#title' => t('Opening time'),
-      '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
+      '#type' => $date_widget,
       '#default_value' => $nopen_default? date('Y-m-d H:i:s', $nopen_default) : NULL,
       '#date_format' => $date_format,
       '#date_increment' => 5,
@@ -268,7 +275,7 @@ function election_form($form, &$form_state, $election) {
     );
     $form['nschedule']['nclose_time'] = array(
       '#title' => t('Closing time'),
-      '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
+      '#type' => $date_widget,
       '#default_value' => $nclose_default? date('Y-m-d H:i:s', $nclose_default) : NULL,
       '#date_format' => $date_format,
       '#date_increment' => 5,
@@ -303,7 +310,7 @@ function election_form($form, &$form_state, $election) {
   );
   $form['vschedule']['vopen_time'] = array(
     '#title' => t('Opening time'),
-    '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
+    '#type' => $date_widget,
     '#default_value' => $vopen_default? date('Y-m-d H:i:s', $vopen_default) : NULL,
     '#date_format' => $date_format,
     '#date_increment' => 5,
@@ -311,7 +318,7 @@ function election_form($form, &$form_state, $election) {
   );
   $form['vschedule']['vclose_time'] = array(
     '#title' => t('Closing time'),
-    '#type' => module_exists('date_popup')? 'date_popup' : 'date_text',
+    '#type' => $date_widget,
     '#default_value' => $vclose_default? date('Y-m-d H:i:s', $vclose_default) : NULL,
     '#date_format' => $date_format,
     '#date_increment' => 5,

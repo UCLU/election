@@ -100,9 +100,7 @@ function election_entity_info() {
     'controller class' => 'ElectionCandidateController',
     'base table' => 'election_candidate',
     'label callback' => 'election_candidate_label',
-    'entity keys' => array(
-      'id' => 'candidate_id',
-    ),
+    'entity keys' => array('id' => 'candidate_id', 'bundle' => 'type'),
     'static cache' => TRUE,
     'fieldable' => TRUE,
     'module' => 'election',
@@ -118,6 +116,7 @@ function election_entity_info() {
     ),
     'bundles' => array(
       'candidate' => array(
+        'label' => t('Election candidate'),
         'admin' => array(
           'path' => 'admin/election/candidate',
           'access arguments' => array('administer elections'),
@@ -579,7 +578,6 @@ function election_menu() {
 
   $items['admin/election/list'] = array(
     'title' => 'Election list',
-    'title callback' => 'check_plain',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_list_form'),
     'access arguments' => array('administer elections'),
@@ -641,6 +639,14 @@ function election_menu() {
     'weight' => 0,
   );
 
+  $items['election'] = array(
+    'title' => 'Elections',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_list_form'),
+    'access callback' => 'election_access',
+    'access arguments' => array('view'),
+    'file' => 'election.admin.inc',
+  );
 
   $items['election/%election'] = array(
     'title callback' => 'election_page_title',
@@ -650,13 +656,37 @@ function election_menu() {
     'access callback' => 'election_access',
     'access arguments' => array('view', 2),
     'file' => 'election.pages.inc',
-    'type' => MENU_CALLBACK,
   );
 
   $items['election/%election/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
+  );
+
+  $items['election/%election/nomination'] = array(
+    'title' => 'Nomination form',
+    'page callback' => 'election_page_nomination',
+    'page arguments' => array(1),
+    'access callback' => 'election_access',
+    'access arguments' => array('view', 1),
+    'file' => 'election-candidate.pages.inc',
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'weight' => 1,
+  );
+
+  $items['election/%election/posts'] = array(
+    'title callback' => 'election_page_postlist_title',
+    'title arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_post_list_form', 1),
+    'file' => 'election-post.admin.inc',
+    'access callback' => 'election_access',
+    'access arguments' => array('update', 2),
+    'weight' => 2,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
   $items['election/%election/edit'] = array(
@@ -666,7 +696,7 @@ function election_menu() {
     'page arguments' => array(1),
     'access callback' => 'election_access',
     'access arguments' => array('update', 1),
-    'weight' => 2,
+    'weight' => 3,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
@@ -678,24 +708,10 @@ function election_menu() {
     'access callback' => 'election_access',
     'access arguments' => array('delete', 1),
     'file' => 'election.admin.inc',
-    'weight' => 3,
+    'weight' => 4,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_INLINE,
   );
-
-  $items['election/%election/posts'] = array(
-    'title callback' => 'election_page_postlist_title',
-    'title arguments' => array(1),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_post_list_form', 1),
-    'file' => 'election-post.admin.inc',
-    'access callback' => 'election_access',
-    'access arguments' => array('update', 2),
-    'weight' => 1,
-    'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-  );
-
 
   $items['election/%election/posts/add'] = array(
     'title' => 'Add new',
@@ -771,7 +787,6 @@ function election_menu_alter(&$items) {
       'Manage display for the election type %type.',
       array('%type' => $type['name'])
     );
-
     if (!empty($type['post key'])) {
       $post_key = $type['post key'];
       $post_name_plural = _election_get_posts_name($type_mn, TRUE);
@@ -793,15 +808,12 @@ function election_menu_alter(&$items) {
         )
       );
     }
-
   }
-
   unset($items['admin/election/candidate/settings']);
   $items['admin/election/candidate/fields']['type'] = MENU_NORMAL_ITEM;
   $items['admin/election/candidate/fields']['description'] = t('Manage fields for election candidates.');
   $items['admin/election/candidate/display']['type'] = MENU_NORMAL_ITEM;
   $items['admin/election/candidate/display']['description'] = t('Manage display for election candidates.');
-
 }
 
 /**
@@ -937,7 +949,6 @@ function election_token_info() {
     'description' => t('Tokens related to elections.'),
     'needs-data' => 'election',
   );
-
   $tokens = array(
     'id' => array(
       'name' => t('Election ID'),
@@ -961,7 +972,6 @@ function election_token_info() {
       'type' => 'date',
     ),
   );
-
   return array(
     'types' => array('election' => $type),
     'tokens' => array('election' => $tokens),
@@ -972,47 +982,33 @@ function election_token_info() {
  * Implements hook_tokens().
  */
 function election_tokens($type, array $tokens, array $data = array(), array $options = array()) {
-
   $sanitize = !empty($options['sanitize']);
-
   $replacements = array();
-
   if ($type == 'election' && !empty($data['election'])) {
-
     $election = $data['election'];
-
     foreach ($tokens as $name => $original) {
       switch ($name) {
-
         case 'id':
           $replacements[$original] = $election->election_id;
           break;
-
         case 'type':
           $replacements[$original] = $sanitize ? check_plain($election->type) : $election->type;
           break;
-
         case 'type-name':
           $type = _election_type_load($election->type);
           $type_name = $type['name'];
           $replacements[$original] = $sanitize ? check_plain($type_name) : $type_name;
           break;
-
         case 'title':
           $replacements[$original] = $sanitize ? check_plain($election->title) : $election->title;
           break;
-
         case 'created':
           $replacements[$original] = format_date($election->created, 'medium');
           break;
-
       }
-
     }
   }
-
   return $replacements;
-
 }
 
 /**
@@ -1096,16 +1092,13 @@ function pathauto_election_update_alias(stdClass $election, $op, array $options 
   if (isset($election->path['pathauto']) && empty($election->path['pathauto'])) {
     return;
   }
-
   $options += array(
     'language' => isset($election->language) ? $election->language : LANGUAGE_NONE,
   );
-
   // Skip processing if the election has no pattern.
   if (!pathauto_pattern_load_by_entity('election', $election->type, $options['language'])) {
     return;
   }
-
   module_load_include('inc', 'pathauto');
   $uri = entity_uri('election', $election);
   pathauto_create_alias('election', $op, $uri['path'], array('election' => $election), $election->type, $options['language']);
@@ -1124,12 +1117,10 @@ function pathauto_election_update_alias(stdClass $election, $op, array $options 
  */
 function pathauto_election_update_alias_multiple(array $election_ids, $op, array $options = array()) {
   $options += array('message' => FALSE);
-
   $elections = election_load_multiple($election_ids);
   foreach ($elections as $election) {
     pathauto_election_update_alias($election, $op, $options);
   }
-
   if (!empty($options['message'])) {
     drupal_set_message(format_plural(count($election_ids), 'Updated URL alias for 1 election.', 'Updated URL aliases for @count elections.'));
   }
@@ -1163,19 +1154,16 @@ function election_path_alias_types() {
  * @return bool
  */
 function _election_is_open($status, $open_time, $close_time) {
-
   if ($status == ELECTION_STATUS_OPEN) {
     return TRUE;
   }
   if ($status == ELECTION_STATUS_CLOSED) {
     return FALSE;
   }
-
   return (
     $open_time && REQUEST_TIME >= $open_time
     && (!$close_time || REQUEST_TIME < $close_time)
   );
-
 }
 
 /**
@@ -1191,26 +1179,20 @@ function _election_is_open($status, $open_time, $close_time) {
  * @return string
  */
 function _election_format_status(stdClass $election, $status_prefix = 'v') {
-
   // Nominations aren't relevant to referendums.
   // @todo make this extensible
   if ($election->type == 'referendum' && $status_prefix == 'n') {
     return t('N/A');
   }
-
   $status = $election->{$status_prefix . 'status'};
   $open_time = $election->{$status_prefix . 'open_time'};
   $close_time = $election->{$status_prefix . 'close_time'};
-
   $open_status = t('<span class="election-status-open">Open</span>');
   $closed_status = t('<span class="election-status-closed">Closed</span>');
-
   if ($status == ELECTION_STATUS_SCHEDULED) {
-
     $scheduled_future = t('Scheduled for the future');
     $scheduled_past = t('Scheduled for the past');
     $scheduled_now = t('Scheduled (now open)');
-
     if (REQUEST_TIME < $open_time) {
       return $scheduled_future;
     }
@@ -1220,12 +1202,9 @@ function _election_format_status(stdClass $election, $status_prefix = 'v') {
     else {
       return $scheduled_past;
     }
-
   }
-
   $is_open = _election_is_open($status, $open_time, $close_time);
   return $is_open? $open_status : $closed_status;
-
 }
 
 /**
@@ -1243,21 +1222,15 @@ function _election_format_status(stdClass $election, $status_prefix = 'v') {
  * @return string
  */
 function _election_post_format_status(stdClass $election, stdClass $post, $status_prefix = 'v') {
-
   $status = $post->{$status_prefix . 'status'};
-
   if ($status == ELECTION_POST_STATUS_INHERIT) {
     return t('!status (inherited)', array('!status' => _election_format_status($election, $status_prefix)));
   }
-
   $is_open = FALSE; // only two options for now are inherited or closed.
-
   $open_status = t('<span class="election-post-status-open">Open</span>');
   $closed_status = t('<span class="election-post-status-closed">Closed</span>');
   $status_formatted = $is_open? $open_status : $closed_status;
-
   return t('!status_formatted (overridden)', array('!status_formatted' => $status_formatted));
-
 }
 
 /**
@@ -1273,9 +1246,7 @@ function _election_post_format_status(stdClass $election, stdClass $post, $statu
  *   An array of breadcrumb parts that can be provided to drupal_set_breadcrumb().
  */
 function _election_build_breadcrumb(stdClass $election = NULL) {
-
   $args = func_get_args();
-
   $links = array();
   $links[] = l(
     t('Home'),
@@ -1283,18 +1254,14 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
   );
   $links[] = l(
     'Elections',
-    'elections'
+    'election'
   );
-
   if (!is_object($election)) {
     return $links;
   }
-
   $election_uri_path = election_uri_path($election);
-
   unset($args[0]);
   $args_count = count($args);
-
   if ($args_count > 0) {
     $links[] = l(
       $election->title, // l() runs check_plain anyway.
@@ -1304,9 +1271,7 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
   else {
     $links[] = check_plain($election->title);
   }
-
   foreach ($args as $key => $arg) {
-
     $link = $arg;
     switch ($arg) {
       case '_POSTS_':
@@ -1321,11 +1286,8 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
         }
         break;
     }
-
     $links[] = $link;
-
   }
-
   return $links;
 }
 

@@ -341,30 +341,27 @@ function election_post_form_submit($form, &$form_state) {
     $post->uid = $user->uid;
   }
 
-  $post->title = $form_state['values']['title'];
-  $post->description = $form_state['values']['description'];
-  $post->vstatus_inheritance = $form_state['values']['vstatus_inheritance'];
-
-  $post->allow_abstention = $form_state['values']['allow_abstention'];
-
-  $post->nstatus_inheritance = $form_state['values']['nstatus_inheritance'];
-  $post->vacancy_count = $form_state['values']['vacancy_count'];
-  $post->use_ron = $form_state['values']['use_ron'];
+  foreach ($post as $property => $value) {
+    switch ($property) {
+      case 'electorates':
+        // continue
+        break;
+      default:
+        if (isset($form_state['values'][$property])) {
+          $post->$property = $form_state['values'][$property];
+        }
+    }
+  }
 
   $required_fields = (array) $form_state['values']['nominations_required_fields'];
-  foreach ($required_fields as $required_field) {
+  foreach ($required_fields as $required_field => $value) {
     switch ($required_field) {
       case 'phone':
-        $post->require_phone = '1';
-        break;
       case 'photo':
-        $post->require_photo = '1';
-        break;
       case 'manifesto':
-        $post->require_manifesto = '1';
-        break;
       case 'proposer':
-        $post->require_proposer = '1';
+        $value = empty($value)? '0' : '1';
+        $post->{'require_' . $required_field} = $value;
         break;
     }
   }
@@ -606,8 +603,6 @@ function election_post_page_add($election) {
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, '_POSTS_', 'Add new')
   );
-
-  global $user;
 
   if (!is_object($election)) {
     return MENU_NOT_FOUND;

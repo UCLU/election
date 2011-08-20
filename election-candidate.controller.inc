@@ -10,18 +10,25 @@
  */
 class ElectionCandidateController extends DrupalDefaultEntityController {
 
-  public function create($post) {
+  public function create($election) {
 
     return (object) array(
       'candidate_id' => '',
-      'post_id' => $post->post_id,
+      'post_id' => '',
+      'status' => ELECTION_CANDIDATE_PENDING,
       'uid' => '',
+      'username' => '',
+      'first_name' => '',
+      'last_name' => '',
       'phone' => '',
       'summary' => '',
       'manifesto' => '',
       'photo' => '',
-      'proposer' => array(),
+      'proposer' => new stdClass(),
       'seconders' => array(),
+      'created' => 0,
+      'changed' => 0,
+      'type' => 'candidate', // @todo work out how to use a single bundle
     );
 
   }

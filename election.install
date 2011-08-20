@@ -501,11 +501,47 @@ function election_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'status' => array(
+        'description' => sprintf(
+          'The candidate\'s nomination status: pending %d, approved %d, or rejected %d.',
+          ELECTION_CANDIDATE_PENDING,
+          ELECTION_CANDIDATE_APPROVED,
+          ELECTION_CANDIDATE_REJECTED
+        ),
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => ELECTION_CANDIDATE_PENDING,
+      ),
       'uid' => array(
         'description' => 'The {users}.uid of the candidate.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => FALSE,
+      ),
+      'username' => array(
+        'description' => 'The {users}.name of the candidate.',
+        'type' => 'varchar',
+        'length' => 60,
+        'not null' => FALSE,
+      ),
+      'first_name' => array(
+        'description' => 'The candidate\'s first name.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'last_name' => array(
+        'description' => 'The candidate\'s last name.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'mail' => array(
+        'description' => 'The candidate\'s email address.',
+        'type' => 'varchar',
+        'length' => 254,
+        'not null' => TRUE,
       ),
       'phone' => array(
         'description' => 'The phone number of the candidate.',
@@ -518,11 +554,25 @@ function election_schema() {
         'type' => 'text',
         'not null' => FALSE,
       ),
+      'created' => array(
+        'description' => 'The Unix timestamp for when the candidate was created/nominated.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp for when the candidate was most recently changed.',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('candidate_id'),
     'indexes' => array(
       'post_id' => array('post_id'),
       'uid' => array('uid'),
+      'name' => array('first_name', 'last_name'),
+      'mail' => array('mail'),
+      'created' => array('created'),
     ),
     'foreign keys' => array(
       'post' => array(
@@ -583,6 +633,12 @@ function election_schema() {
       'notes' => array(
         'description' => 'Any optional notes about the endorser.',
         'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'weight' => array(
+        'description' => 'The weight (order index) of the endorser.',
+        'type' => 'int',
+        'size' => 'tiny',
         'not null' => FALSE,
       ),
     ),
