@@ -672,11 +672,23 @@ function election_install() {
 }
 
 /**
+ * Implements hook_enable().
+ */
+function election_enable() {
+
+  _election_add_fields();
+
+}
+
+/**
  * Implements hook_uninstall().
  *
  * Delete tables in an order that satisfies foreign key integrity constraints.
  */
 function election_uninstall() {
+
+  _election_remove_fields();
+
   db_query('DROP TABLE IF EXISTS {election_endorser}, {election_ballot}, {election_vote}, {election_candidate}, {election_post_electorate}, {election_electorate}, {election_post}, {election}');
 }
 
@@ -692,6 +704,60 @@ function _election_db_tables_exist() {
     }
   }
   return TRUE;
+}
+
+/**
+ * Set up entity fields.
+ *
+ * @todo work out full name settings.
+ * @todo add endorser field.
+ */
+function _election_add_fields() {
+  field_create_field(array(
+    'type' => 'name',
+    'field_name' => 'full_name',
+    'locked' => FALSE,
+    'settings' => array(
+      'components' => array('given', 'family'),
+      'minimum_components' => array('given', 'family'),
+      'labels' => array(
+        'given' => t('First name'),
+        'family' => t('Last name'),
+      ),
+      'max_length' => array(
+        'given' => 100,
+        'family' => 100,
+      ),
+    ),
+  ));
+  foreach (_election_field_instances() as $instance) {
+    field_create_instance($instance);
+  }
+}
+
+/**
+ * Remove entity fields.
+ */
+function _election_remove_fields() {
+  foreach (_election_field_instances() as $instance) {
+    field_delete_instance($instance);
+  }
+}
+
+/**
+ * Define field instances that this module needs.
+ */
+function _election_field_instances() {
+  $instances = array();
+  $instances['full_name'] = array(
+    'field_name' => 'full_name',
+    'entity_type' => 'election_candidate',
+    'bundle' => 'candidate',
+    'label' => t('Full name'),
+    'description' => '',
+    'required' => TRUE,
+  );
+  return $instances;
 }
 
 /**

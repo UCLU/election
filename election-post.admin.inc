@@ -298,7 +298,7 @@ function election_post_form_delete_submit($form, &$form_state) {
     unset($_GET['destination']);
   }
   $post = $form['#post'];
-  $election = $form['#election'];
+  $election = $form_state['election'];
   $form_state['redirect'] = array(
     election_post_uri_path($post, $election) . '/delete',
     array('query' => $destination),

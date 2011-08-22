@@ -426,17 +426,11 @@ function election_form_submit($form, &$form_state) {
     $election->uid = $user->uid;
   }
 
-  $election->title = $form_state['values']['title'];
-
-  $election->vstatus = $form_state['values']['vstatus'];
-  $election->vopen_time = strtotime($form_state['values']['vopen_time']);
-  $election->vclose_time = strtotime($form_state['values']['vclose_time']);
-
-  $election->nstatus = $form_state['values']['nstatus'];
-  $election->nopen_time = strtotime($form_state['values']['nopen_time']);
-  $election->nclose_time = strtotime($form_state['values']['nclose_time']);
-
-  $election->anonymous = $form_state['values']['anonymous'];
+  foreach ($election as $property => $value) {
+    if (isset($form_state['values'][$property])) {
+      $election->$property = $form_state['values'][$property];
+    }
+  }
 
   field_attach_submit('election', $election, $form, $form_state);
 
