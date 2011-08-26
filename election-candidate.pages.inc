@@ -41,11 +41,10 @@ function election_nomination_form($form, &$form_state, $election, $candidate) {
 
   $posts_name = _election_get_posts_name($election->type);
 
-  $posts_query = db_select('election_post', 'ep');
-  $posts_query->fields('ep', array('post_id'));
-  $posts_query->condition('election_id', $election->election_id);
-  $posts_result = $posts_query->execute();
-  $post_ids = $posts_result->fetchCol();
+  $post_ids = db_query(
+    'SELECT post_id FROM {election_post} WHERE election_id = :eid',
+    array(':eid' => $election->election_id)
+  )->fetchCol();
   $posts = election_post_load_multiple($post_ids);
   $post_options = array();
   foreach ($posts as $post) {

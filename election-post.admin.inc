@@ -78,10 +78,7 @@ function election_post_form($form, &$form_state, $election, $post) {
 
   $post->electorates = array();
   if (!$post->is_new) {
-    $result = db_select('election_post_electorate', 'epe')
-      ->fields('epe', array('electorate_id'))
-      ->condition('post_id', $post->post_id)
-      ->execute();
+    $result = db_query('SELECT electorate_id FROM {election_post_electorate} WHERE post_id = :pid', array(':pid' => $post->post_id));
     while ($row = $result->fetchAssoc()) {
       $post->electorates[$row['electorate_id']] = 1;
     }

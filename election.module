@@ -300,10 +300,7 @@ function election_load($election_id = NULL) {
  * @return array
  */
 function election_electorates() {
-  $query = db_select('election_electorate', 'ee');
-  $query->fields('ee');
-  $query->orderBy('name');
-  $result = $query->execute();
+  $result = db_query('SELECT * FROM {election_electorate} ORDER BY name');
 
   $electorates = array();
 
@@ -389,21 +386,13 @@ function _election_uninstall_code_electorates() {
   $code_electorates = _election_get_code_electorates();
   $transaction = db_transaction();
   try {
-    $db_electorates = db_select('election_electorate', 'ee')
-      ->fields('ee', array('electorate_id', 'machine_name'))
-      ->condition('locked', '1')
-      ->execute();
+    $db_electorates = db_query('SELECT electorate_id, machine_name FROM {election_electorate} WHERE locked = 1');
     while ($db_electorate = $db_electorates->fetchAssoc()) {
       if (isset($code_electorates[$db_electorate['machine_name']])) {
         continue;
       }
-      $assigned = db_select('election_post_electorate', 'epe')
-        ->fields('epe')
-        ->condition('electorate_id', $db_electorate['electorate_id'])
-        ->range(0, 1)
-        ->execute()
-        ->fetchCol();
-      if (count($assigned)) {
+      $assigned = db_query('SELECT 1 FROM {election_post_electorate} WHERE electorate_id = :eid LIMIT 1', array(':eid', $db_electorate['electorate_id']));
+      if ($assigned->rowCount()) {
         continue;
       }
       db_delete('election_electorate')
