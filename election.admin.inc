@@ -193,7 +193,7 @@ function election_page_add($type_mn) {
     return MENU_NOT_FOUND;
   }
 
-  $election = entity_get_controller('election')->create($type_mn);
+  $election = entity_get_controller('election')->create(array('type' => $type_mn));
 
   drupal_set_title(
     t('Add new @type', array('@type' => $type['name'])),

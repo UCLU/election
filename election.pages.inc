@@ -64,19 +64,12 @@ function election_post_page_view($election, $post, $view_mode = 'full') {
     )
   );
 
-  // Remove previously built content, if it exists.
   $post->content = array();
 
   if ($view_mode == 'teaser') {
     $post->content['title'] = array(
       '#markup' => filter_xss($post->title),
       '#weight' => -5,
-    );
-  }
-  else {
-    $post->content['description'] = array(
-      '#markup' => filter_xss($post->description),
-      '#weight' => 0,
     );
   }
 

@@ -168,7 +168,7 @@ function election_types() {
  */
 function election_views_api() {
   return array(
-    'api' => 3,
+    'api' => '3.0',
     'path' => drupal_get_path('module', 'election') . '/views',
   );
 }
@@ -391,7 +391,11 @@ function _election_uninstall_code_electorates() {
       if (isset($code_electorates[$db_electorate['machine_name']])) {
         continue;
       }
-      $assigned = db_query('SELECT 1 FROM {election_post_electorate} WHERE electorate_id = :eid LIMIT 1', array(':eid', $db_electorate['electorate_id']));
+      $assigned = db_query_range(
+        'SELECT 1 FROM {election_post_electorate} WHERE electorate_id = :eid',
+        array(':eid', $db_electorate['electorate_id']),
+        0, 1
+      );
       if ($assigned->rowCount()) {
         continue;
       }
@@ -812,10 +816,10 @@ function election_menu_alter(&$items) {
  */
 function election_admin_paths() {
   $paths = array(
-    //'election/*/add' => TRUE,
-    //'election/*/edit' => TRUE,
-    //'election/*/delete' => TRUE,
-    'election/*' => TRUE,
+//    'election/*/add' => TRUE,
+//    'election/*/edit' => TRUE,
+//    'election/*/delete' => TRUE,
+//    'election/*' => TRUE,
   );
   return $paths;
 }
@@ -853,6 +857,24 @@ function election_delete($election_id) {
  */
 function election_save($election) {
   return entity_get_controller('election')->save($election);
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function election_election_presave($election) {
+  if (function_exists('pathauto_election_update_alias')) {
+    pathauto_election_update_alias($election, $op);
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function election_election_delete($election) {
+  if (function_exists('pathauto_entity_path_delete_all')) {
+    pathauto_entity_path_delete_all('election', $election);
+  }
 }
 
 /**

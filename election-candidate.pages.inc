@@ -1,4 +1,9 @@
 <?php
+/**
+ * @file
+ * Page callbacks for election candidates and nominations (Election module).
+ */
+
 function election_page_nomination($election) {
 
   $title = t('Candidate nomination form');
@@ -78,7 +83,7 @@ function election_nomination_form($form, &$form_state, $election, $candidate) {
     '#size' => 20,
     '#required' => TRUE,
   );
-*/
+ */
 
   $form['mail'] = array(
     '#type' => 'textfield',
@@ -209,9 +214,9 @@ function election_nomination_form_add_seconder_js($form, &$form_state) {
 }
 
 function election_nomination_validate_email($element, &$form_state, $form) {
-   if (!empty($element['#value']) && !filter_var($element['#value'], FILTER_VALIDATE_EMAIL)) {
-     form_error($element, t('Please enter a valid email address'));
-   }
+  if (!empty($element['#value']) && !filter_var($element['#value'], FILTER_VALIDATE_EMAIL)) {
+    form_error($element, t('Please enter a valid email address'));
+  }
 }
 
 function election_nomination_form_validate($form, &$form_state) {

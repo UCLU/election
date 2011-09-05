@@ -1,4 +1,10 @@
 <?php
+/**
+ * @file
+ * Views integration for the Election module.
+ *
+ * @todo this is totally unfinished and doesn't work at all.
+ */
 
 
 function election_views_data_alter(&$data) {
