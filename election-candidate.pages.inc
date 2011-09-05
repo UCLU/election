@@ -22,7 +22,7 @@ function election_page_nomination($election) {
     ),
   );
 
-  $candidate = entity_get_controller('election_candidate')->create($election);
+  $candidate = entity_get_controller('election_candidate')->create();
 
   return array(
     $status_message,
