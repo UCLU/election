@@ -27,4 +27,5 @@ define('ELECTION_CANDIDATE_APPROVED', 1);
 define('ELECTION_CANDIDATE_PENDING', 0);
 define('ELECTION_CANDIDATE_REJECTED', -1);
 
+// Cardinality of the nomination form's "seconder" field (instance of "endorser").
 define('ELECTION_CANDIDATE_MAX_SECONDERS', 10);

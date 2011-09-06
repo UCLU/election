@@ -860,11 +860,20 @@ function election_save($election) {
 }
 
 /**
- * Implements hook_entity_presave().
+ * Implements hook_entity_insert().
  */
-function election_election_presave($election) {
+function election_election_insert($election) {
   if (function_exists('pathauto_election_update_alias')) {
-    pathauto_election_update_alias($election, $op);
+    pathauto_election_update_alias($election, 'insert');
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function election_election_update($election) {
+  if (function_exists('pathauto_election_update_alias')) {
+    pathauto_election_update_alias($election, 'update');
   }
 }
 
@@ -1111,8 +1120,14 @@ function pathauto_election_update_alias(stdClass $election, $op, array $options 
     return;
   }
   module_load_include('inc', 'pathauto');
-  $uri = entity_uri('election', $election);
-  pathauto_create_alias('election', $op, $uri['path'], array('election' => $election), $election->type, $options['language']);
+  pathauto_create_alias(
+    'election',
+    $op,
+    election_uri_path($election),
+    array('election' => $election),
+    $election->type,
+    $options['language']
+  );
 }
 
 /**
