@@ -50,11 +50,6 @@ function election_post_form($form, &$form_state, $election, $post) {
     '#required' => TRUE,
   );
 
-  $form['vtabs'] = array(
-    '#type' => 'vertical_tabs',
-    '#weight' => 99,
-  );
-
   $type = _election_type_load($election->type);
   $post_key = $type['post key'];
   $post_form_function = 'election_post_' . $post_key . '_form';
@@ -62,11 +57,14 @@ function election_post_form($form, &$form_state, $election, $post) {
     $form = $post_form_function($form, $form_state, $election, $post);
   }
 
-  $form['vtabs']['voting'] = array(
+  $form['voting'] = array(
     '#type' => 'fieldset',
     '#title' => t('Voting settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#weight' => 98,
   );
-  $form['vtabs']['voting']['vstatus_inheritance'] = array(
+  $form['voting']['vstatus_inheritance'] = array(
     '#type' => 'radios',
     '#title' => t('Voting status'),
     '#default_value' => isset($post->vstatus_inheritance)? $post->vstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
@@ -83,12 +81,14 @@ function election_post_form($form, &$form_state, $election, $post) {
       $post->electorates[$row['electorate_id']] = 1;
     }
   }
-
-  $form['vtabs']['conditions'] = array(
+  $form['conditions'] = array(
     '#type' => 'fieldset',
     '#title' => t('Conditional voting'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#weight' => 99,
   );
-  $form['vtabs']['conditions']['help'] = array(
+  $form['conditions']['help'] = array(
     'title' => array(
       '#prefix' => '<div class="form-item"><label for="edit-electorates">',
       '#markup' => t('Assign electorates'),
@@ -96,7 +96,7 @@ function election_post_form($form, &$form_state, $election, $post) {
     ),
     'help' => array(
       '#prefix' => '<p class="voting-conditions-help">',
-      '#markup' => t('To be part of an electorate, the user must match ALL of that electorate\'s conditions. If the user is part of ANY of the electorates assigned below, AND has the permission "vote in elections", then he/she may cast a vote for this @post_type_name.', array('@post_type_name' => _election_get_posts_name($election->type))),
+      '#markup' => t('A user may cast a vote for this @post_type_name if he/she is a member of ANY of the electorates assigned here.', array('@post_type_name' => _election_get_posts_name($election->type))),
       '#suffix' => '</p></div>',
     ),
   );
@@ -129,7 +129,7 @@ function election_post_form($form, &$form_state, $election, $post) {
       'description' => $electorate['description'],
     );
   }
-  $form['vtabs']['conditions']['electorates'] = array(
+  $form['conditions']['electorates'] = array(
     '#type' => 'tableselect',
     '#attributes' => array('class', 'select-electorates'),
     '#default_value' => isset($post->electorates)? (array) $post->electorates : array(),
@@ -238,12 +238,15 @@ function election_post_position_form($form, &$form_state, $election, $post) {
     ),
   );
 
-  $form['vtabs']['nominations'] = array(
+  $form['nominations'] = array(
     '#type' => 'fieldset',
     '#title' => t('Nominations settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#weight' => 97,
   );
 
-  $form['vtabs']['nominations']['nstatus_inheritance'] = array(
+  $form['nominations']['nstatus_inheritance'] = array(
     '#type' => 'radios',
     '#title' => t('Nominations status'),
     '#default_value' => isset($post->nstatus_inheritance)? $post->nstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
@@ -266,7 +269,7 @@ function election_post_position_form($form, &$form_state, $election, $post) {
   if (!empty($post->require_photo)) {
     $nominations_required_fields_default[] = 'photo';
   }
-  $form['vtabs']['nominations']['nominations_required_fields'] = array(
+  $form['nominations']['nominations_required_fields'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Nomination form required fields'),
     '#default_value' => $nominations_required_fields_default,

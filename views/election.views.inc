@@ -2,8 +2,10 @@
 /**
  * @file
  * Views integration for the Election module.
- *
- * @todo this is totally unfinished and doesn't work at all.
+ */
+
+/**
+ * Implements hook_views_data_alter().
  */
 function election_views_data_alter(&$data) {
 

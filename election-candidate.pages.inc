@@ -68,23 +68,6 @@ function election_nomination_form($form, &$form_state, $election, $candidate) {
     '#required' => TRUE,
   );
 
-/*
-  $form['first_name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('First name'),
-    '#default_value' => isset($candidate->first_name)? $candidate->first_name : NULL,
-    '#size' => 20,
-    '#required' => TRUE,
-  );
-  $form['last_name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Last name'),
-    '#default_value' => isset($candidate->first_name)? $candidate->first_name : NULL,
-    '#size' => 20,
-    '#required' => TRUE,
-  );
- */
-
   $form['mail'] = array(
     '#type' => 'textfield',
     '#title' => t('Email address'),

@@ -377,8 +377,8 @@ function election_modules_disabled($modules = array()) {
 }
 
 /*
- * Delete electorates from the DB only if they don't exist in
- * election_post_electorate AND they don't exist in code.
+ * Delete electorates from the DB only if they are not assigned to any posts AND
+ * they do not (or no longer) exist in code.
  *
  * @return void
  */
@@ -388,9 +388,12 @@ function _election_uninstall_code_electorates() {
   try {
     $db_electorates = db_query('SELECT electorate_id, machine_name FROM {election_electorate} WHERE locked = 1');
     while ($db_electorate = $db_electorates->fetchAssoc()) {
+      // Don't delete electorates that (still) exist in code.
       if (isset($code_electorates[$db_electorate['machine_name']])) {
         continue;
       }
+      // Don't delete assigned electorates.
+      // @todo with a bit of thought this could be run as a JOIN on the $db_electorates query above.
       $assigned = db_query_range(
         'SELECT 1 FROM {election_post_electorate} WHERE electorate_id = :eid',
         0, 1,
@@ -411,7 +414,12 @@ function _election_uninstall_code_electorates() {
   }
   catch (Exception $e) {
     $transaction->rollback();
-    watchdog_exception('election', $e, NULL, WATCHDOG_ERROR);
+    watchdog_exception(
+      'election',
+      $e,
+      'Failed to remove from the database those electorates that no longer exist in code.',
+      WATCHDOG_ERROR
+    );
     return FALSE;
   }
 }
@@ -426,26 +434,19 @@ function _election_uninstall_code_electorates() {
  * @return void
  */
 function _election_install_code_electorates() {
-  $transaction = db_transaction();
-  try {
-    foreach (_election_get_code_electorates() as $electorate_mn => $electorate) {
-      $record = array(
-        'machine_name' => $electorate_mn,
-        'name' => empty($electorate['name'])? $electorate_mn : $electorate['name'],
-        'description' => @$electorate['description'],
-        'locked' => 1,
-        'changed' => REQUEST_TIME,
-      );
-      db_merge('election_electorate')
-        ->key(array('machine_name' => $electorate_mn))
-        ->updateFields($record)
-        ->insertFields($record + array('created' => REQUEST_TIME))
-        ->execute();
-    }
-  }
-  catch (Exception $e) {
-    $transaction->rollback();
-    watchdog_exception('election', $e, NULL, WATCHDOG_ERROR);
+  foreach (_election_get_code_electorates() as $electorate_mn => $electorate) {
+    $record = array(
+      'machine_name' => $electorate_mn,
+      'name' => empty($electorate['name'])? $electorate_mn : $electorate['name'],
+      'description' => @$electorate['description'],
+      'locked' => 1,
+      'changed' => REQUEST_TIME,
+    );
+    db_merge('election_electorate')
+      ->key(array('machine_name' => $electorate_mn))
+      ->updateFields($record)
+      ->insertFields($record + array('created' => REQUEST_TIME))
+      ->execute();
   }
 }
 
@@ -641,7 +642,7 @@ function election_menu() {
 
   $items['election'] = array(
     'title' => 'Elections',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'drupal_get_form', // @todo make this views_embed_view or a wrapper
     'page arguments' => array('election_list_form'),
     'access callback' => 'election_access',
     'access arguments' => array('view'),
@@ -1212,7 +1213,7 @@ function _election_is_open($status, $open_time, $close_time) {
 function _election_format_status(stdClass $election, $status_prefix = 'v') {
   // Nominations aren't relevant to referendums.
   // @todo make this extensible
-  if ($election->type == 'referendum' && $status_prefix == 'n') {
+  if (@$election->type == 'referendum' && $status_prefix == 'n') {
     return t('N/A');
   }
   $status = $election->{$status_prefix . 'status'};
