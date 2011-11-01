@@ -28,7 +28,7 @@ function election_page_edit($election) {
 
   drupal_set_title($title, PASS_THROUGH);
   drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, 'Edit')
+    _election_build_breadcrumb($election)
   );
 
   return drupal_get_form('election_form', $election);
@@ -334,7 +334,7 @@ function election_form($form, &$form_state, $election) {
       0 => 'Tracked: voters can be identified if necessary.',
     ),
     '#required' => TRUE,
-    '#description' => 'If this is set to Tracked, it is technically possible (although not easy) to link votes with voters. This may be useful for testing purposes. If this is set to Anonymous during voting, it is impossible to make this link. Tracking won\'t work retrospectively.',
+    //'#description' => 'If this is set to Tracked, it is technically possible (although not easy) to link votes with voters. This may be useful for testing purposes. If this is set to Anonymous during voting, it is impossible to make this link. Tracking won\'t work retrospectively.',
     '#weight' => 80,
   );
 
@@ -480,7 +480,7 @@ function election_form_delete_submit($form, &$form_state) {
 function election_form_delete_confirm($form, &$form_state, $election) {
 
   drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, 'Delete')
+    _election_build_breadcrumb($election)
   );
 
   $form['#election'] = $election;

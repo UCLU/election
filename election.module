@@ -100,7 +100,10 @@ function election_entity_info() {
     'controller class' => 'ElectionCandidateController',
     'base table' => 'election_candidate',
     'label callback' => 'election_candidate_label',
-    'entity keys' => array('id' => 'candidate_id', 'bundle' => 'type'),
+    'entity keys' => array(
+      'id' => 'candidate_id',
+      'bundle' => 'type',
+    ),
     'static cache' => TRUE,
     'fieldable' => TRUE,
     'module' => 'election',
@@ -168,7 +171,7 @@ function election_types() {
  */
 function election_views_api() {
   return array(
-    'api' => '3.0',
+    'api' => '2.0',
     'path' => drupal_get_path('module', 'election') . '/views',
   );
 }
@@ -771,6 +774,7 @@ function election_menu() {
  * Implements hook_menu_alter().
  */
 function election_menu_alter(&$items) {
+  return;
   foreach (election_types() as $type_mn => $type) {
     $path = 'admin/election/' . $type_mn;
     unset($items[$path . '/settings']);
@@ -1217,8 +1221,8 @@ function _election_format_status(stdClass $election, $status_prefix = 'v') {
     return t('N/A');
   }
   $status = $election->{$status_prefix . 'status'};
-  $open_time = $election->{$status_prefix . 'open_time'};
-  $close_time = $election->{$status_prefix . 'close_time'};
+  $open_time = @$election->{$status_prefix . 'open_time'};
+  $close_time = @$election->{$status_prefix . 'close_time'};
   $open_status = t('<span class="election-status-open">Open</span>');
   $closed_status = t('<span class="election-status-closed">Closed</span>');
   if ($status == ELECTION_STATUS_SCHEDULED) {

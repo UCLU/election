@@ -135,11 +135,6 @@ function election_schema() {
         'length' => 255,
         'not null' => FALSE,
       ),
-      'description' => array(
-        'description' => 'A human-readable description of the post.',
-        'type' => 'text',
-        'not null' => FALSE,
-      ),
       'allow_abstention' => array(
         'description' => 'For a motion: whether or not to allow voters to abstain.',
         'type' => 'int',
@@ -668,14 +663,6 @@ function election_install() {
 
   _election_add_foreign_keys();
   _election_install_code_electorates();
-
-}
-
-/**
- * Implements hook_enable().
- */
-function election_enable() {
-
   _election_add_fields();
 
 }
@@ -713,24 +700,27 @@ function _election_db_tables_exist() {
  * @todo add endorser field.
  */
 function _election_add_fields() {
-  field_create_field(array(
-    'type' => 'name',
-    'field_name' => 'full_name',
-    'locked' => FALSE,
-    'settings' => array(
-      'components' => array('given', 'family'),
-      'minimum_components' => array('given', 'family'),
-      'labels' => array(
-        'given' => t('First name'),
-        'family' => t('Last name'),
+  if (field_info_field('full_name') === NULL) {
+    field_create_field(array(
+      'type' => 'name',
+      'field_name' => 'full_name',
+      'locked' => FALSE,
+      'settings' => array(
+        'components' => array('given', 'family'),
+        'minimum_components' => array('given', 'family'),
+        'labels' => array(
+          'given' => t('First name'),
+          'family' => t('Last name'),
+        ),
+        'max_length' => array(
+          'given' => 100,
+          'family' => 100,
+        ),
       ),
-      'max_length' => array(
-        'given' => 100,
-        'family' => 100,
-      ),
-    ),
-  ));
+    ));
+  }
   foreach (_election_field_instances() as $instance) {
+    // @todo fix duplicate instance error.
     field_create_instance($instance);
   }
 }

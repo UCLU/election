@@ -19,10 +19,6 @@
  */
 function election_page_view($election, $view_mode = 'full') {
 
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb($election)
-  );
-
   // Remove previously built content, if it exists.
   $election->content = array();
 
@@ -41,6 +37,7 @@ function election_page_view($election, $view_mode = 'full') {
   $election->content += field_attach_view('election', $election, $view_mode);
 
   return $election->content;
+
 }
 
 /**
@@ -78,4 +75,5 @@ function election_post_page_view($election, $post, $view_mode = 'full') {
   $post->content += field_attach_view('election_post', $post, $view_mode);
 
   return $post->content;
+
 }

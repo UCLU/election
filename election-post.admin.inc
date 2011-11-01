@@ -22,16 +22,14 @@ function election_post_form($form, &$form_state, $election, $post) {
   if ($post->is_new) {
     $breadcrumb = _election_build_breadcrumb(
       $election,
-      '_POSTS_',
-      t('Add new')
+      '_POSTS_'
     );
   }
   else {
     $breadcrumb = _election_build_breadcrumb(
       $election,
       '_POSTS_',
-      l($post->title, election_post_uri_path($post)),
-      t('Edit')
+      l($post->title, election_post_uri_path($post))
     );
   }
 
@@ -405,7 +403,7 @@ function election_post_form_submit($form, &$form_state) {
 function election_post_form_delete_confirm($form, &$form_state, $election, $post) {
 
   drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_POSTS_', l($post->title, election_post_uri_path($post)), 'Delete')
+    _election_build_breadcrumb($election, '_POSTS_', l($post->title, election_post_uri_path($post)))
   );
 
   $form['election_id'] = array(
@@ -447,7 +445,7 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
 
     $election = election_load($form_state['values']['election_id']);
 
-    $post = election_post_load($form_state['values']['post_id']);
+    //$post = election_post_load($form_state['values']['post_id']);
 
     // Delete the post.
     $delete = election_post_delete($form_state['values']['post_id']);
@@ -492,7 +490,7 @@ function election_post_list_form($form, $form_state, $election) {
   $posts_name = _election_get_posts_name($election->type, TRUE);
   drupal_set_title(drupal_ucfirst($posts_name));
   drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, drupal_ucfirst($posts_name))
+    _election_build_breadcrumb($election)
   );
 
   // Build the sortable table header.
@@ -583,7 +581,7 @@ function election_post_page_edit($election, $post) {
   drupal_set_title(t('Edit: %title', array('%title' => $title)), PASS_THROUGH);
 
   drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_POSTS_', l($post->title, election_post_uri_path($post)), 'Edit')
+    _election_build_breadcrumb($election, '_POSTS_', l($post->title, election_post_uri_path($post)))
   );
 
   return drupal_get_form('election_post_form', $election, $post);
@@ -601,7 +599,7 @@ function election_post_page_edit($election, $post) {
 function election_post_page_add($election) {
 
   drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_POSTS_', 'Add new')
+    _election_build_breadcrumb($election, '_POSTS_')
   );
 
   if (!is_object($election)) {

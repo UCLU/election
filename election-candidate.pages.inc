@@ -7,7 +7,7 @@
 function election_page_nomination($election) {
 
   $title = t('Candidate nomination form');
-  drupal_set_breadcrumb(_election_build_breadcrumb($election, $title));
+  drupal_set_breadcrumb(_election_build_breadcrumb($election));
   drupal_set_title($title);
 
   // Check nominations status (debugging)

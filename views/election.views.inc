@@ -14,7 +14,7 @@ function election_views_data_alter(&$data) {
 
   // Define the base group of this table. Fields that don't
   // have a group defined will go into this field by default.
-  $data['election']['table']['group']  = t('Elections');
+  $data['election']['table']['group']  = t('Election');
 
   // Advertise this table as a possible base table
   $data['election']['table']['base'] = array(
@@ -37,7 +37,7 @@ function election_views_data_alter(&$data) {
     'help' => t('The unique ID of the election.'), // The help that appears on the UI,
     // Information for displaying the election_id
     'field' => array(
-      'handler' => 'views_handler_field', // @todo create a handler
+      'handler' => 'views_handler_field_election',
       'click sortable' => TRUE,
     ),
     // Information for accepting an election_id as an argument
@@ -63,8 +63,9 @@ function election_views_data_alter(&$data) {
     'help' => t('The title of the election.'), // The help that appears on the UI,
      // Information for displaying a title as a field
     'field' => array(
-      'handler' => 'views_handler_field', // @todo create a handler
+      'handler' => 'views_handler_field_election',
       'click sortable' => TRUE,
+      'link_to_election default' => TRUE,
      ),
     'sort' => array(
       'handler' => 'views_handler_sort',
@@ -234,6 +235,34 @@ function election_views_data_alter(&$data) {
 
   // anonymous
   $data['election']['anonymous'] = array();
+
+
+  // election links
+
+  $data['election']['view_election'] = array(
+    'field' => array(
+      'title' => t('Link'),
+      'help' => t('Provide a simple link to the election.'),
+      'handler' => 'views_handler_field_election_link',
+    ),
+  );
+
+  $data['election']['edit_election'] = array(
+    'field' => array(
+      'title' => t('Edit link'),
+      'help' => t('Provide a simple link to edit the election.'),
+      'handler' => 'views_handler_field_election_link_edit',
+    ),
+  );
+
+  $data['election']['delete_election'] = array(
+    'field' => array(
+      'title' => t('Delete link'),
+      'help' => t('Provide a simple link to delete the election.'),
+      'handler' => 'views_handler_field_election_link_delete',
+    ),
+  );
+
 
   return $data;
 
