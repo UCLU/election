@@ -26,6 +26,8 @@ class ElectionPostController extends DrupalDefaultEntityController {
       'require_phone' => 0,
       'require_proposer' => 1,
       'require_photo' => 0,
+      'vacancy_count' => 1,
+      'use_ron' => 1,
       'electorates' => array(),
     );
 

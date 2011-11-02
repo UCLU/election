@@ -1174,7 +1174,252 @@ function election_path_alias_types() {
   return $objects;
 }
 
+/**
+ * Implements hook_theme().
+ */
+function election_theme() {
+  return array(
+    'election' => array(
+      'render element' => 'elements',
+      'template' => 'election',
+    ),
+    'election_post' => array(
+      'render element' => 'elements',
+      'template' => 'election-post',
+    ),
+  );
+}
 
+/**
+ * Generate an array for rendering the given election.
+ *
+ * @param $election
+ *   An election object.
+ * @param $view_mode
+ *   View mode, e.g. 'full', 'teaser'...
+ *
+ * @return
+ *   An array as expected by drupal_render().
+ */
+function election_view($election, $view_mode = 'full') {
+
+  // Remove previously built content, if it exists.
+  $election->content = array();
+
+  if ($view_mode == 'teaser') {
+    $election->content['title'] = array(
+      '#markup' => filter_xss($election->title),
+      '#weight' => -5,
+    );
+  }
+  else {
+    drupal_set_title($election->title);
+  }
+
+  // Build fields content.
+  // In case of a multiple view, node_view_multiple() already ran the
+  // 'prepare_view' step. An internal flag prevents the operation from running
+  // twice.
+  field_attach_prepare_view('election', array($election->election_id => $election), $view_mode);
+  entity_prepare_view('election', array($election->election_id => $election));
+  $election->content += field_attach_view('election', $election, $view_mode);
+
+  $build = $election->content;
+  // We don't need duplicate rendering info in election->content.
+  unset($election->content);
+
+  $build += array(
+    '#theme' => 'election',
+    '#election' => $election,
+    '#view_mode' => $view_mode,
+  );
+
+  // Add contextual links for this election, except when the election is already being
+  // displayed on its own page. Modules may alter this behavior (for example,
+  // to restrict contextual links to certain view modes) by implementing
+  // hook_election_view_alter().
+  if (!empty($election->election_id) && $view_mode != 'full') {
+    $build['#contextual_links']['election'] = array('election', array($election->election_id));
+  }
+
+  // Allow modules to modify the structured election.
+  $type = 'election'; // $type is passed by reference to drupal_alter() so it must be a variable.
+  drupal_alter(array('election_view', 'entity_view'), $build, $type);
+
+  return $build;
+
+}
+
+/**
+ * Process variables for election.tpl.php
+ *
+ * The $variables array contains the following arguments:
+ * - $election
+ * - $view_mode
+ * - $page
+ *
+ * @see election.tpl.php
+ */
+function template_preprocess_election(&$variables) {
+  $variables['view_mode'] = $variables['elements']['#view_mode'];
+  // Provide a distinct $teaser boolean.
+  $variables['teaser'] = $variables['view_mode'] == 'teaser';
+  $variables['election'] = $variables['elements']['#election'];
+  $election = $variables['election'];
+
+  $variables['date']      = format_date($election->created);
+  $variables['name']      = theme('username', array('account' => $election));
+
+  $uri = entity_uri('election', $election);
+  $variables['election_url'] = url($uri['path'], $uri['options']);
+  $variables['title']     = check_plain($election->title);
+  $variables['page']      = $variables['view_mode'] == 'full';
+
+  $variables['vstatus'] = _election_format_status($election, 'v');
+  $variables['nstatus'] = _election_format_status($election, 'n');
+
+  // Flatten the election object's member fields.
+  $variables = array_merge((array) $election, $variables);
+
+  // Helpful $content variable for templates.
+  $variables += array('content' => array());
+  foreach (element_children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+
+  // Make the field variables available with the appropriate language.
+  field_attach_preprocess('election', $election, $variables['content'], $variables);
+
+  // Display post information.
+  if (variable_get('election_submitted', FALSE)) {
+    $variables['display_submitted'] = TRUE;
+    $variables['submitted'] = t('Submitted by !username on !datetime', array('!username' => $variables['name'], '!datetime' => $variables['date']));
+    $variables['user_picture'] = theme_get_setting('toggle_node_user_picture') ? theme('user_picture', array('account' => $election)) : '';
+  }
+  else {
+    $variables['display_submitted'] = FALSE;
+    $variables['submitted'] = '';
+    $variables['user_picture'] = '';
+  }
+
+  // Gather election classes.
+  $variables['classes_array'][] = drupal_html_class('election-' . $election->type);
+
+  // Clean up name so there are no underscores.
+  $variables['theme_hook_suggestions'][] = 'election__' . $election->type;
+  $variables['theme_hook_suggestions'][] = 'election__' . $election->election_id;
+
+}
+
+/**
+ * Generate an array for rendering the given election post.
+ *
+ * @param $election
+ *   An election object.
+ * @param $view_mode
+ *   View mode, e.g. 'full', 'teaser'...
+ *
+ * @return
+ *   An array as expected by drupal_render().
+ */
+function election_post_view($election, $post, $view_mode = 'full') {
+
+  // Remove previously built content, if it exists.
+  $post->content = array();
+
+  if ($view_mode == 'teaser') {
+    $post->content['title'] = array(
+      '#markup' => filter_xss($post->title),
+      '#weight' => -5,
+    );
+  }
+  else {
+    drupal_set_title($post->title);
+  }
+
+  // Build fields content.
+  // In case of a multiple view, node_view_multiple() already ran the
+  // 'prepare_view' step. An internal flag prevents the operation from running
+  // twice.
+  field_attach_prepare_view('election_post', array($post->post_id => $post), $view_mode);
+  entity_prepare_view('election_post', array($post->post_id => $post));
+  $post->content += field_attach_view('election_post', $post, $view_mode);
+
+  $build = $post->content;
+  // We don't need duplicate rendering info in post->content.
+  unset($post->content);
+
+  $build += array(
+    '#theme' => 'election_post',
+    '#election' => $election,
+    '#post' => $post,
+    '#view_mode' => $view_mode,
+  );
+
+  // Add contextual links for this post, except when the post is already being
+  // displayed on its own page. Modules may alter this behavior (for example,
+  // to restrict contextual links to certain view modes) by implementing
+  // hook_post_view_alter().
+  if (!empty($post->post_id) && $view_mode != 'full') {
+    $build['#contextual_links']['election_post'] = array('election_post', array($post->post_id));
+  }
+
+  // Allow modules to modify the structured post.
+  $type = 'election_post'; // $type is passed by reference to drupal_alter() so it must be a variable.
+  drupal_alter(array('post_view', 'entity_view'), $build, $type);
+
+  return $build;
+
+}
+
+/**
+ * Process variables for election-post.tpl.php
+ *
+ * The $variables array contains the following arguments:
+ * - $election
+ * - $view_mode
+ * - $page
+ *
+ * @see election-post.tpl.php
+ */
+function template_preprocess_election_post(&$variables) {
+
+  $variables['view_mode'] = $variables['elements']['#view_mode'];
+
+  // Provide a distinct $teaser boolean.
+  $variables['teaser'] = $variables['view_mode'] == 'teaser';
+
+  $variables['election'] = $variables['elements']['#election'];
+  $election = $variables['election'];
+
+  $variables['post'] = $variables['elements']['#post'];
+  $post = $variables['post'];
+
+  $uri = entity_uri('election_post', $post);
+  $variables['election_post_url'] = url($uri['path'], $uri['options']);
+  $variables['title']     = check_plain($post->title);
+  $variables['page']      = $variables['view_mode'] == 'full';
+
+  // Flatten the election object's member fields.
+  $variables = array_merge((array) $post, $variables);
+
+  // Helpful $content variable for templates.
+  $variables += array('content' => array());
+  foreach (element_children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+
+  // Make the field variables available with the appropriate language.
+  field_attach_preprocess('election', $election, $variables['content'], $variables);
+
+  // Gather classes.
+  $variables['classes_array'][] = drupal_html_class('election-post-' . $election->type);
+
+  // Clean up name so there are no underscores.
+  $variables['theme_hook_suggestions'][] = 'election_post__' . $election->type;
+  $variables['theme_hook_suggestions'][] = 'election_post__' . $election->election_id;
+
+}
 
 /**
  * Internal function that determines whether voting/nominating in an election is 'open',
@@ -1298,15 +1543,10 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
   $election_uri_path = election_uri_path($election);
   unset($args[0]);
   $args_count = count($args);
-  if ($args_count > 0) {
-    $links[] = l(
-      $election->title, // l() runs check_plain anyway.
-      election_uri_path($election)
-    );
-  }
-  else {
-    $links[] = check_plain($election->title);
-  }
+  $links[] = l(
+    $election->title, // l() runs check_plain anyway.
+    election_uri_path($election)
+  );
   foreach ($args as $key => $arg) {
     $link = $arg;
     switch ($arg) {
