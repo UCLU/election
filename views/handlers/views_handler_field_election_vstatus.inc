@@ -19,8 +19,11 @@ class views_handler_field_election_vstatus extends views_handler_field {
   }
 
   function render($values) {
-    // Dummy election object
-    $election = (object) $values;
+    // Create dummy election object
+    $election = new stdClass;
+    foreach ($values as $key => $value) {
+      $election->{str_replace('election_', '', $key)} = $value;
+    }
     return _election_format_status($election, 'v');
   }
 

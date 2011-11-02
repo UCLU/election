@@ -81,8 +81,8 @@ function election_views_data_alter(&$data) {
 
   // voting status
   $data['election']['vstatus'] = array(
-    'title' => t('Voting open'),
-    'help' => t('Whether voting is open for this election.'),
+    'title' => t('Voting status'),
+    'help' => t('The voting status for this election.'),
     'field' => array(
       'handler' => 'views_handler_field_election_vstatus',
       'click sortable' => FALSE,
@@ -99,7 +99,7 @@ function election_views_data_alter(&$data) {
   // nominations status
   // @todo make the filter always true if it's a referendum.
   $data['election']['nstatus'] = array(
-    'title' => t('Nominations open'),
+    'title' => t('Nominations status'),
     'help' => t('Whether nominations are open for this election (not relevant for referendums).'),
     'field' => array(
       'handler' => 'views_handler_field_election_nstatus',
