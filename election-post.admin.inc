@@ -46,6 +46,7 @@ function election_post_form($form, &$form_state, $election, $post) {
     '#title' => t('Title'),
     '#default_value' => isset($post->title)? $post->title : '',
     '#required' => TRUE,
+    '#weight' => -100,
   );
 
   $type = _election_type_load($election->type);
@@ -192,6 +193,7 @@ function election_post_motion_form($form, &$form_state, $election, $post) {
       1 => t('Allow abstention'),
       0 => t('Do not allow abstention'),
     ),
+    '#weight' => -10,
   );
 
   return $form;
@@ -218,6 +220,7 @@ function election_post_position_form($form, &$form_state, $election, $post) {
     '#size' => 2,
     '#maxlength' => 2,
     '#required' => TRUE,
+    '#weight' => -20,
   );
 
   $form['use_ron'] = array(
@@ -234,6 +237,7 @@ function election_post_position_form($form, &$form_state, $election, $post) {
         ':input[name=vacancy_count]' => array('value' => '1'),
       ),
     ),
+    '#weight' => -10,
   );
 
   $form['nominations'] = array(

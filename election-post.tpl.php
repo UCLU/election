@@ -15,7 +15,7 @@
     <?php print render($content); ?>
   </div>
 
-  <?php if ($post->type != 'motion') { ?>
+  <?php if ($view_mode == 'full' && $post->type != 'motion') { ?>
 
     <p><strong>Number of vacancies: </strong><?php print $vacancy_count; ?></p>
 
