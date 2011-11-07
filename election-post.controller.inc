@@ -120,8 +120,6 @@ class ElectionPostController extends DrupalDefaultEntityController {
         return FALSE;
       }
 
-      module_invoke_all('entity_delete', $posts, 'election_post');
-
       cache_clear_all();
       $this->resetCache();
 
