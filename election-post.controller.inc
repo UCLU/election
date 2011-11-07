@@ -8,18 +8,14 @@
  * @extends
  * DrupalDefaultEntityController
  */
-class ElectionPostController extends DrupalDefaultEntityController {
+class ElectionPostController extends ElectionDefaultController {
 
-  public function create($election) {
-
-    $type = _election_type_load($election->type);
-    $post_type = $type['post key'];
-
-    return (object) array(
+  public function create(array $values = array()) {
+    $default_values = array(
       'post_id' => '',
-      'election_id' => $election->election_id,
+      'election_id' => '',
       'title' => '',
-      'type' => $post_type,
+      'type' => '',
       'vstatus_inheritance' => ELECTION_POST_STATUS_INHERIT,
       'nstatus_inheritance' => ELECTION_POST_STATUS_INHERIT,
       'require_manifesto' => 1,
@@ -30,103 +26,9 @@ class ElectionPostController extends DrupalDefaultEntityController {
       'use_ron' => 1,
       'electorates' => array(),
     );
-
-  }
-
-  public function save($post) {
-
-    $transaction = db_transaction();
-
-    try {
-
-      global $user;
-
-      // Determine whether the post is new.
-      $post->is_new = empty($post->post_id);
-
-      // Set timestamp fields.
-      if (empty($post->created)) {
-        $post->created = REQUEST_TIME;
-      }
-
-      $post->changed = REQUEST_TIME;
-
-      field_attach_presave('election_post', $post);
-
-      if ($post->is_new) {
-        drupal_write_record('election_post', $post);
-        $op = 'insert';
-      }
-      else {
-        drupal_write_record('election_post', $post, 'post_id');
-        $op = 'update';
-      }
-
-      $function = 'field_attach_' . $op;
-      $function('election_post', $post);
-
-      module_invoke_all('entity_' . $op, $post, 'election_post');
-
-      db_delete('election_post_electorate')
-          ->condition('post_id', $post->post_id)
-          ->execute();
-      foreach ($post->electorates as $electorate_id) {
-        db_insert('election_post_electorate')->fields(array(
-          'post_id' => $post->post_id,
-          'electorate_id' => $electorate_id,
-        ))->execute();
-      }
-      _election_uninstall_code_electorates();
-
-      unset($post->is_new);
-
-      // Skip the slave server for this user temporarily.
-      db_ignore_slave();
-
-      return $post;
-
-    }
-    catch (Exception $e) {
-
-      $transaction->rollback();
-      watchdog_exception('election_post', $e, NULL, WATCHDOG_ERROR);
-      return FALSE;
-
-    }
-
-  }
-
-  public function delete($ids) {
-
-    if (!empty($ids)) {
-      $posts = $this->load($ids, array());
-      $transaction = db_transaction();
-
-      try {
-        db_delete('election_post')
-          ->condition('post_id', $ids, 'IN')
-          ->execute();
-        db_delete('election_post_electorate')
-          ->condition('post_id', $ids, 'IN')
-          ->execute();
-        foreach ($posts as $post_id => $post) {
-          field_attach_delete('election_post', $post);
-        }
-        db_ignore_slave();
-      }
-      catch (Exception $e) {
-        $transaction->rollback();
-        watchdog_exception('election', $e, NULL, WATCHDOG_ERROR);
-        return FALSE;
-      }
-
-      cache_clear_all();
-      $this->resetCache();
-
-    }
-
-    return TRUE;
-
+    // Overwrite default values with supplied values.
+    $values = array_merge($default_values, $values);
+    return parent::create($values);
   }
 
 }

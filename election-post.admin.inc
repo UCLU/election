@@ -610,7 +610,12 @@ function election_post_page_add($election) {
     return MENU_NOT_FOUND;
   }
 
-  $post = entity_get_controller('election_post')->create($election);
+  $values = array();
+  $values['election_id'] = $election->election_id;
+  $type = _election_type_load($election->type);
+  $values['type'] = $type['post key'];
+
+  $post = entity_get_controller('election_post')->create($values);
 
   $post_name = 'post';
   $type = _election_type_load($election->type);

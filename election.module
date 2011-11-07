@@ -104,6 +104,9 @@ function election_entity_info() {
       'id' => 'candidate_id',
       'bundle' => 'type',
     ),
+    'bundle keys' => array(
+      'bundle' => 'type',
+    ),
     'static cache' => TRUE,
     'fieldable' => TRUE,
     'module' => 'election',
@@ -870,29 +873,62 @@ function election_save($election) {
 }
 
 /**
- * Implements hook_entity_insert().
- */
-function election_election_insert($election) {
-  if (function_exists('pathauto_election_update_alias')) {
-    pathauto_election_update_alias($election, 'insert');
-  }
-}
-
-/**
  * Implements hook_entity_update().
  */
-function election_election_update($election) {
-  if (function_exists('pathauto_election_update_alias')) {
-    pathauto_election_update_alias($election, 'update');
+function election_entity_update($entity, $type) {
+  switch ($type) {
+    case 'election':
+      if (function_exists('pathauto_election_update_alias')) {
+        pathauto_election_update_alias($entity, 'update');
+      }
+    break;
   }
 }
 
 /**
  * Implements hook_entity_delete().
  */
-function election_election_delete($election) {
-  if (function_exists('pathauto_entity_path_delete_all')) {
-    pathauto_entity_path_delete_all('election', $election);
+function election_entity_delete($entity, $type) {
+  switch ($type) {
+    case 'election':
+      if (function_exists('pathauto_entity_path_delete_all')) {
+        pathauto_entity_path_delete_all('election', $entity);
+      }
+    break;
+  }
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function election_entity_insert($entity, $type) {
+  switch ($type) {
+    case 'election':
+      if (function_exists('pathauto_election_update_alias')) {
+        pathauto_election_update_alias($entity, 'insert');
+      }
+    break;
+    case 'election_post':
+      $transaction = db_transaction();
+      try {
+        db_delete('election_post_electorate')
+          ->condition('post_id', $entity->post_id)
+          ->execute();
+        foreach ($entity->electorates as $electorate_id) {
+          db_insert('election_post_electorate')->fields(array(
+            'post_id' => $entity->post_id,
+            'electorate_id' => $electorate_id,
+          ))->execute();
+        }
+        _election_uninstall_code_electorates();
+      }
+      catch (Exception $e) {
+        $transaction->rollback();
+        watchdog_exception('election', $e, NULL, WATCHDOG_ERROR);
+        return FALSE;
+      }
+      return TRUE;
+    break;
   }
 }
 
