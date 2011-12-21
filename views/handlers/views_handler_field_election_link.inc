@@ -1,5 +1,6 @@
 <?php
 /**
+ * @file
  * Field handler to present a link to the election.
  */
 class views_handler_field_election_link extends views_handler_field {

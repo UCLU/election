@@ -1,6 +1,7 @@
 <?php
 /**
- * Filter by voting status
+ * @file
+ * Filter by voting status = open.
  */
 class views_handler_filter_election_vstatus extends views_handler_filter {
 

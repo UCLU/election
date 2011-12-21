@@ -695,16 +695,75 @@ function _election_db_tables_exist() {
 
 /**
  * Set up entity fields.
- *
- * @todo work out full name settings.
- * @todo add endorser field.
  */
 function _election_add_fields() {
-  if (field_info_field('full_name') === NULL) {
-    field_create_field(array(
+  foreach (_election_fields_info() as $field) {
+    $field_name = $field['field_name'];
+    $instances = array();
+    if (isset($field['instances'])) {
+      $instances = $field['instances'];
+    }
+    if (field_info_field($field_name) === NULL) {
+      field_create_field($field);
+      watchdog('election', 'Created field @field_name', array('@field_name' => $field_name));
+    }
+    foreach ($instances as $instance) {
+      if (!isset($instance['field_name'])) {
+        $instance['field_name'] = $field_name;
+      }
+      if (!field_info_instance($instance['entity_type'], $instance['field_name'], $instance['bundle'])) {
+        field_create_instance($instance);
+        watchdog(
+          'election',
+          'Created instance of @field_name on @entity--@bundle',
+          array(
+            '@field_name' => $field_name,
+            '@entity' => $instance['entity_type'],
+            '@bundle' => $instance['bundle'],
+          )
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Remove entity fields.
+ */
+function _election_remove_fields() {
+  foreach (_election_fields_info() as $field) {
+    if (strpos($field['type'], 'election_') === 0) {
+      field_delete_field($field);
+      break;
+    }
+    if (isset($field['instances'])) {
+      foreach ((array) $field['instances'] as $instance) {
+        if (!isset($instance['field_name'])) {
+          $instance['field_name'] = $field['field_name'];
+        }
+        field_delete_instance($instance);
+      }
+    }
+  }
+}
+
+/**
+ * Define field and instances that this module needs. Data is extracted from
+ * this for the functions field_create_field() and field_create_instance().
+ *
+ * @see _election_add_fields()
+ *
+ * @return array
+ */
+function _election_fields_info() {
+  $fields = array(
+    array(
       'type' => 'name',
       'field_name' => 'full_name',
       'locked' => FALSE,
+      'entity_types' => NULL, // any entities
+      'cardinality' => 1,
+      'translatable' => 0,
       'settings' => array(
         'components' => array('given', 'family'),
         'minimum_components' => array('given', 'family'),
@@ -717,37 +776,19 @@ function _election_add_fields() {
           'family' => 100,
         ),
       ),
-    ));
-  }
-  foreach (_election_field_instances() as $instance) {
-    // @todo fix duplicate instance error.
-    field_create_instance($instance);
-  }
-}
-
-/**
- * Remove entity fields.
- */
-function _election_remove_fields() {
-  foreach (_election_field_instances() as $instance) {
-    field_delete_instance($instance);
-  }
-}
-
-/**
- * Define field instances that this module needs.
- */
-function _election_field_instances() {
-  $instances = array();
-  $instances['full_name'] = array(
-    'field_name' => 'full_name',
-    'entity_type' => 'election_candidate',
-    'bundle' => 'candidate',
-    'label' => t('Full name'),
-    'description' => '',
-    'required' => TRUE,
+      'instances' => array(
+        array(
+          // @todo default_value_function
+          'entity_type' => 'election_candidate',
+          'bundle' => 'candidate',
+          'label' => t('Full name'),
+          'description' => t('The candidate\'s full name.'),
+          'required' => TRUE,
+        ),
+      ),
+    ),
   );
-  return $instances;
+  return $fields;
 }
 
 /**

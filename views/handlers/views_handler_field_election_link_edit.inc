@@ -1,6 +1,7 @@
 <?php
 /**
- * Field handler to present a link election edit.
+ * @file
+ * Field handler to present a link to edit an election.
  */
 class views_handler_field_election_link_edit extends views_handler_field_election_link {
   function construct() {

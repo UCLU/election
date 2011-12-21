@@ -76,6 +76,7 @@ function election_entity_info() {
       'label' => drupal_ucfirst($type['name']),
       'admin' => array(
         'path' => 'admin/election/' . $type_mn,
+        'real path' => 'admin/election/' . $type_mn,
         'bundle argument' => 2,
         'access arguments' => array('administer elections'),
       ),
@@ -87,6 +88,7 @@ function election_entity_info() {
         'label' => drupal_ucfirst($post_name),
         'admin' => array(
           'path' => 'admin/election/' . $type_mn . '/' . $post_key,
+          'real path' => 'admin/election/' . $type_mn . '/' . $post_key,
           'bundle argument' => 3,
           'access arguments' => array('administer elections'),
         ),
@@ -102,24 +104,10 @@ function election_entity_info() {
     'label callback' => 'election_candidate_label',
     'entity keys' => array(
       'id' => 'candidate_id',
-      'bundle' => 'type',
-    ),
-    'bundle keys' => array(
-      'bundle' => 'type',
     ),
     'static cache' => TRUE,
     'fieldable' => TRUE,
     'module' => 'election',
-    'view modes' => array(
-      'full' => array(
-        'label' => t('Full content'),
-        'custom settings' => TRUE,
-      ),
-      'summary' => array(
-        'label' => t('Summary information'),
-        'custom settings' => TRUE,
-      ),
-    ),
     'bundles' => array(
       'candidate' => array(
         'label' => t('Election candidate'),
@@ -127,6 +115,16 @@ function election_entity_info() {
           'path' => 'admin/election/candidate',
           'access arguments' => array('administer elections'),
         ),
+      ),
+    ),
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full content'),
+        'custom settings' => TRUE,
+      ),
+      'teaser' => array(
+        'label' => t('Teaser'),
+        'custom settings' => TRUE,
       ),
     ),
   );
@@ -268,7 +266,7 @@ function election_candidate_uri_path($candidate) {
  * @return string
  */
 function election_candidate_label(stdClass $entity, $entity_type) {
-  if ($entity_type == 'election_candidate' && !empty($entity->uid)) {
+  if (!empty($entity->uid)) {
     $account = user_load($entity->uid);
     if ($items = field_get_items('user', $account, 'name')) {
       foreach ($items as $item) {
@@ -277,8 +275,8 @@ function election_candidate_label(stdClass $entity, $entity_type) {
         }
       }
     }
-    return t('No name found.');
   }
+  return FALSE;
 }
 
 /**
@@ -789,6 +787,8 @@ function election_menu_alter(&$items) {
     );
     $items[$path . '/display']['weight'] = -1;
     $items[$path . '/display']['type'] = MENU_NORMAL_ITEM;
+    $items[$path . '/display/full']['type'] = MENU_NORMAL_ITEM;
+    $items[$path . '/display/teaser']['type'] = MENU_NORMAL_ITEM;
     $items[$path . '/display']['description'] = t(
       'Manage display for the election type %type.',
       array('%type' => $type['name'])
@@ -806,6 +806,8 @@ function election_menu_alter(&$items) {
         )
       );
       $items[$path . '/' . $post_key . '/display']['type'] = MENU_NORMAL_ITEM;
+      $items[$path . '/' . $post_key . '/display/full']['type'] = MENU_NORMAL_ITEM;
+      $items[$path . '/' . $post_key . '/display/teaser']['type'] = MENU_NORMAL_ITEM;
       $items[$path . '/' . $post_key . '/display']['description'] = t(
         'Manage display for %type @posts_name_plural.',
         array(
@@ -820,6 +822,53 @@ function election_menu_alter(&$items) {
   $items['admin/election/candidate/fields']['description'] = t('Manage fields for election candidates.');
   $items['admin/election/candidate/display']['type'] = MENU_NORMAL_ITEM;
   $items['admin/election/candidate/display']['description'] = t('Manage display for election candidates.');
+}
+
+/*
+ * Implements hook_field_extra_fields().
+ *
+ * @return array
+ */
+function election_field_extra_fields() {
+  $extra = array();
+  $extra['election_candidate']['candidate'] = array(
+    'form' => array(
+      'post' => array(
+        'label' => t('Post'),
+        'description' => t('The post/position for this nomination.'),
+        'weight' => -1,
+      ),
+      'mail' => array(
+        'label' => t('Email address'),
+        'description' => t('The candidate\'s email address.'),
+        'weight' => 3,
+      ),
+    ),
+    'display' => array(
+      'post' => array(
+        'label' => t('Post'),
+        'description' => t('The post/position for this nomination.'),
+        'weight' => -1,
+      ),
+      'mail' => array(
+        'label' => t('Email address'),
+        'description' => t('The candidate\'s email address.'),
+        'weight' => 3,
+      ),
+    ),
+  );
+  return $extra;
+}
+
+/*
+ * Implements hook_field_extra_fields_alter().
+ *
+ * @return array
+ */
+function election_field_extra_fields_alter(&$info) {
+  if (isset($info['election_candidate']['candidate']['redirect']['form'])) {
+    $info['election_candidate']['candidate']['redirect']['form']['weight'] = 20;
+  }
 }
 
 /**

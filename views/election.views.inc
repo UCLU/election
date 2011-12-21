@@ -5,9 +5,11 @@
  */
 
 /**
- * Implements hook_views_data_alter().
+ * Implements hook_views_data().
  */
-function election_views_data_alter(&$data) {
+function election_views_data() {
+
+  $data = array();
 
   // ----------------------------------------------------------------
   // election table -- basic table information.
@@ -66,7 +68,7 @@ function election_views_data_alter(&$data) {
       'handler' => 'views_handler_field_election',
       'click sortable' => TRUE,
       'link_to_election default' => TRUE,
-     ),
+    ),
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),

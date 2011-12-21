@@ -1,5 +1,6 @@
 <?php
 /**
+ * @file
  * Filter by nominations status
  */
 class views_handler_filter_election_nstatus extends views_handler_filter {

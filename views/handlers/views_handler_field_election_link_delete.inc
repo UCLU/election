@@ -1,5 +1,6 @@
 <?php
 /**
+ * @file
  * Field handler to present a link to delete a election.
  */
 class views_handler_field_election_link_delete extends views_handler_field_election_link {
