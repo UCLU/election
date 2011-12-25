@@ -10,24 +10,14 @@ function election_page_nomination($election) {
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
   drupal_set_title($title);
 
-  // Check nominations status (debugging)
-  // @todo remove this
-  $status = _election_is_open($election->nstatus, $election->nopen_time, $election->nclose_time);
-  $status_message = array(
-    '#markup' => t(
-      'Nominations are !status.',
-      array(
-        '!status' => $status? t('open') : t('closed'),
-      )
-    ),
-  );
+  $nopen = _election_is_open($election->nstatus, $election->nopen_time, $election->nclose_time);
+  if (!$nopen && !user_access('bypass nomination access control')) {
+    drupal_set_message(t('Nominations are currently closed.'), 'error', FALSE);
+    return MENU_ACCESS_DENIED;
+  }
 
   $candidate = entity_get_controller('election_candidate')->create();
-
-  return array(
-    $status_message,
-    drupal_get_form('election_nomination_form', $election, $candidate),
-  );
+  return drupal_get_form('election_nomination_form', $election, $candidate);
 
 }
 
@@ -51,9 +41,10 @@ function election_nomination_form($form, &$form_state, $election, $candidate) {
     array(':eid' => $election->election_id)
   )->fetchCol();
   $posts = election_post_load_multiple($post_ids);
+  $bypass = user_access('bypass nomination access control');
   $post_options = array();
   foreach ($posts as $post) {
-    if ($post->nstatus_inheritance == ELECTION_POST_STATUS_INHERIT) {
+    if ($bypass || $post->nstatus_inheritance == ELECTION_POST_STATUS_INHERIT) {
       $post_options[$post->post_id] = $post->title;
     }
   }
@@ -74,6 +65,7 @@ function election_nomination_form($form, &$form_state, $election, $candidate) {
     '#default_value' => isset($candidate->mail)? $candidate->mail : NULL,
     '#size' => 30,
     '#required' => TRUE,
+    '#element_validate' => array('election_nomination_validate_email'),
   );
 
   $form['phone'] = array(
@@ -83,8 +75,10 @@ function election_nomination_form($form, &$form_state, $election, $candidate) {
     '#default_value' => isset($candidate->phone)? $candidate->phone : NULL,
     '#size' => 12,
     '#required' => TRUE,
+    '#element_validate' => array('election_nomination_validate_phone'),
   );
 
+/*
   $form['proposer'] = array(
     '#type' => 'fieldset',
     '#title' => t('Proposer'),
@@ -142,6 +136,7 @@ function election_nomination_form($form, &$form_state, $election, $candidate) {
       'effect' => 'slide',
     ),
   );
+*/
 
   // Add custom fields from the Field system.
   field_attach_form('election_candidate', $candidate, $form, $form_state);
@@ -202,21 +197,21 @@ function election_nomination_validate_email($element, &$form_state, $form) {
   }
 }
 
+function election_nomination_validate_phone($element, &$form_state, $form) {
+  if (!empty($element['#value']) && !preg_match('/\b\+?([0-9]+[\s-\+]?)+\b/', $element['#value'])) {
+    form_error($element, t('Please enter a valid phone number.'));
+  }
+}
+
 function election_nomination_form_validate($form, &$form_state) {
 
-  // Run nomination form checks here.
-  if (!preg_match('/\b\+?([0-9]+[\s-\+]?)+\b/', $form_state['values']['phone'])) {
-    form_set_error('phone', t('Please enter a valid phone number.'));
-  }
-
-  // Check other Fields.
   field_attach_form_validate('election_candidate', $form_state['candidate'], $form, $form_state);
 
 }
 
 function election_nomination_form_submit($form, &$form_state) {
 
-  $candidate = &$form_state['candidate'];
+  $candidate = &$form_state['election_candidate'];
 
   // election object won't be changed, no need to pass by reference
   $election = $form_state['election'];

@@ -109,7 +109,8 @@ function election_entity_info() {
     'fieldable' => TRUE,
     'module' => 'election',
     'bundles' => array(
-      'candidate' => array(
+      // Single bundles are named after the entity type (see entity_extract_ids()).
+      'election_candidate' => array(
         'label' => t('Election candidate'),
         'admin' => array(
           'path' => 'admin/election/candidate',
@@ -517,6 +518,11 @@ function election_permission() {
       'description' => t('This permission is dangerous: deleting an election automatically deletes ALL associated data, for example votes.'),
       'restrict access' => TRUE,
     ),
+    'bypass nomination access control' => array(
+      'title' => t('Bypass nomination access control'),
+      'description' => t('This allows the user to submit a nomination when nominations are closed (per position <em>or</em> per election).'),
+      'restrict access' => TRUE,
+    ),
     'edit any election' => array(
       'title' => t('Edit any election'),
     ),
@@ -831,7 +837,7 @@ function election_menu_alter(&$items) {
  */
 function election_field_extra_fields() {
   $extra = array();
-  $extra['election_candidate']['candidate'] = array(
+  $extra['election_candidate']['election_candidate'] = array(
     'form' => array(
       'post' => array(
         'label' => t('Post'),
@@ -841,7 +847,7 @@ function election_field_extra_fields() {
       'mail' => array(
         'label' => t('Email address'),
         'description' => t('The candidate\'s email address.'),
-        'weight' => 3,
+        'weight' => 40,
       ),
     ),
     'display' => array(
@@ -853,7 +859,7 @@ function election_field_extra_fields() {
       'mail' => array(
         'label' => t('Email address'),
         'description' => t('The candidate\'s email address.'),
-        'weight' => 3,
+        'weight' => 40,
       ),
     ),
   );
@@ -866,8 +872,8 @@ function election_field_extra_fields() {
  * @return array
  */
 function election_field_extra_fields_alter(&$info) {
-  if (isset($info['election_candidate']['candidate']['redirect']['form'])) {
-    $info['election_candidate']['candidate']['redirect']['form']['weight'] = 20;
+  if (isset($info['election_candidate']['election_candidate']['redirect']['form'])) {
+    $info['election_candidate']['election_candidate']['redirect']['form']['weight'] = 20;
   }
 }
 

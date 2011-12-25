@@ -30,7 +30,6 @@ class ElectionCandidateController extends ElectionDefaultController {
       'seconders' => array(),
       'created' => 0,
       'changed' => 0,
-      'type' => 'candidate', // @todo work out how to use a single bundle
     );
     // Overwrite default values with supplied values.
     $values = array_merge($default_values, $values);
