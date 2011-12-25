@@ -7,7 +7,6 @@ dependencies[] = entity
 dependencies[] = field_ui
 dependencies[] = rules
 dependencies[] = views
-dependencies[] = name
 files[] = election-default.controller.inc
 files[] = election.controller.inc
 files[] = election-post.controller.inc

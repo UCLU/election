@@ -745,39 +745,7 @@ function _election_remove_fields() {
  * @return array
  */
 function _election_fields_info() {
-  $t = get_t();
-  $fields = array(
-    array(
-      'type' => 'name',
-      'field_name' => 'full_name',
-      'locked' => FALSE,
-      'entity_types' => NULL, // any entities
-      'cardinality' => 1,
-      'translatable' => 0,
-      'settings' => array(
-        'components' => array('given', 'family'),
-        'minimum_components' => array('given' => 'given', 'family' => 'family'),
-        'labels' => array(
-          'given' => $t('First name'),
-          'family' => $t('Last name'),
-        ),
-        'max_length' => array(
-          'given' => 100,
-          'family' => 100,
-        ),
-      ),
-      'instances' => array(
-        array(
-          // @todo default_value_function
-          'entity_type' => 'election_candidate',
-          'bundle' => 'election_candidate',
-          'label' => $t('Full name'),
-          'description' => $t('The candidate\'s full name.'),
-          'required' => TRUE,
-        ),
-      ),
-    ),
-  );
+  $fields = array(); // empty for now, left in for convenience
   return $fields;
 }
 

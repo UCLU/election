@@ -267,17 +267,7 @@ function election_candidate_uri_path($candidate) {
  * @return string
  */
 function election_candidate_label(stdClass $entity, $entity_type) {
-  if (!empty($entity->uid)) {
-    $account = user_load($entity->uid);
-    if ($items = field_get_items('user', $account, 'name')) {
-      foreach ($items as $item) {
-        if (!empty($item['name'])) {
-          return $item['name'];
-        }
-      }
-    }
-  }
-  return FALSE;
+  return $entity->first_name . ' ' . $entity->last_name;
 }
 
 /**
@@ -844,10 +834,15 @@ function election_field_extra_fields() {
         'description' => t('The post/position for this nomination.'),
         'weight' => -1,
       ),
+      'name' => array(
+        'label' => t('Name'),
+        'description' => t('The candidate\'s first and last names.'),
+        'weight' => 0,
+      ),
       'mail' => array(
         'label' => t('Email address'),
         'description' => t('The candidate\'s email address.'),
-        'weight' => 40,
+        'weight' => 1,
       ),
     ),
     'display' => array(
@@ -856,10 +851,15 @@ function election_field_extra_fields() {
         'description' => t('The post/position for this nomination.'),
         'weight' => -1,
       ),
+      'name' => array(
+        'label' => t('Name'),
+        'description' => t('The candidate\'s first and last names.'),
+        'weight' => 0,
+      ),
       'mail' => array(
         'label' => t('Email address'),
         'description' => t('The candidate\'s email address.'),
-        'weight' => 40,
+        'weight' => 1,
       ),
     ),
   );
@@ -1059,6 +1059,16 @@ function election_page_title($election) {
   return $election->title;
 }
 
+/**
+ * Wrapper function to allow saving an election candidate.
+ *
+ * @param stdClass $candidate
+ *   Election candidate object.
+ * @return bool
+ */
+function election_candidate_save($candidate) {
+  return entity_get_controller('election_candidate')->save($candidate);
+}
 
 /**
  * Implements hook_token_info().

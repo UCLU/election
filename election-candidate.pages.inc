@@ -34,8 +34,25 @@ function election_nomination_form($form, &$form_state, $election, $candidate) {
   $form_state['candidate'] = $candidate;
   $form_state['election'] = $election;
 
-  $posts_name = _election_get_posts_name($election->type);
+  $form['name']['first_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('First name(s)'),
+    '#default_value' => isset($candidate->first_name)? $candidate->first_name : NULL,
+    '#max_length' => 100,
+    '#size' => 50,
+    '#required' => TRUE,
+  );
 
+  $form['name']['last_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Last name(s)'),
+    '#default_value' => isset($candidate->last_name)? $candidate->last_name : NULL,
+    '#max_length' => 100,
+    '#size' => 50,
+    '#required' => TRUE,
+  );
+
+  $posts_name = _election_get_posts_name($election->type);
   $post_ids = db_query(
     'SELECT post_id FROM {election_post} WHERE election_id = :eid',
     array(':eid' => $election->election_id)
@@ -211,7 +228,7 @@ function election_nomination_form_validate($form, &$form_state) {
 
 function election_nomination_form_submit($form, &$form_state) {
 
-  $candidate = &$form_state['election_candidate'];
+  $candidate = &$form_state['candidate'];
 
   // election object won't be changed, no need to pass by reference
   $election = $form_state['election'];
@@ -239,12 +256,14 @@ function election_nomination_form_submit($form, &$form_state) {
   // Save the nomination.
   election_candidate_save($candidate);
 
-  $post_name = _election_get_posts_name($election->type);
-
   // Notify the user that the post was saved.
-  drupal_set_message(
-    t('Your nomination for the @posts_name %title was successfully submitted.')
-  );
+  drupal_set_message(t(
+    'Your nomination for the @posts_name %title was successfully submitted.',
+    array(
+      '@posts_name' => _election_get_posts_name($election->type),
+      '%title' => $post->title,
+    )
+  ));
 
   if (empty($_GET['destination'])) {
     $form_state['redirect'] = election_uri_path($election);
