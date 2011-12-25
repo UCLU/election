@@ -88,10 +88,11 @@ function election_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_election_vstatus',
       'click sortable' => FALSE,
-      'label' => t('Voting status'), // @todo check if this is valid
     ),
     'filter' => array(
+      'label' => t('Voting is open'),
       'handler' => 'views_handler_filter_election_vstatus',
+      'type' => 'yes-no',
     ),
     'sort' => array(
       'handler' => 'views_handler_sort',
@@ -106,10 +107,11 @@ function election_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_election_nstatus',
       'click sortable' => FALSE,
-      'label' => t('Nominations status'), // @todo check if this is valid
     ),
     'filter' => array(
+      'label' => t('Nominations are open'),
       'handler' => 'views_handler_filter_election_nstatus',
+      'type' => 'yes-no',
     ),
     'sort' => array(
       'handler' => 'views_handler_sort',
