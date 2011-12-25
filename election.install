@@ -39,7 +39,7 @@ function election_schema() {
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
-        'default' => 1,
+        'default' => 0,
       ),
       'vstatus' => array(
         'description' => sprintf(
@@ -732,18 +732,7 @@ function _election_add_fields() {
  */
 function _election_remove_fields() {
   foreach (_election_fields_info() as $field) {
-    if (strpos($field['type'], 'election_') === 0) {
-      field_delete_field($field);
-      break;
-    }
-    if (isset($field['instances'])) {
-      foreach ((array) $field['instances'] as $instance) {
-        if (!isset($instance['field_name'])) {
-          $instance['field_name'] = $field['field_name'];
-        }
-        field_delete_instance($instance);
-      }
-    }
+    field_delete_field($field['field_name']);
   }
 }
 
@@ -756,6 +745,7 @@ function _election_remove_fields() {
  * @return array
  */
 function _election_fields_info() {
+  $t = get_t();
   $fields = array(
     array(
       'type' => 'name',
@@ -766,10 +756,10 @@ function _election_fields_info() {
       'translatable' => 0,
       'settings' => array(
         'components' => array('given', 'family'),
-        'minimum_components' => array('given', 'family'),
+        'minimum_components' => array('given' => 'given', 'family' => 'family'),
         'labels' => array(
-          'given' => t('First name'),
-          'family' => t('Last name'),
+          'given' => $t('First name'),
+          'family' => $t('Last name'),
         ),
         'max_length' => array(
           'given' => 100,
@@ -780,9 +770,9 @@ function _election_fields_info() {
         array(
           // @todo default_value_function
           'entity_type' => 'election_candidate',
-          'bundle' => 'candidate',
-          'label' => t('Full name'),
-          'description' => t('The candidate\'s full name.'),
+          'bundle' => 'election_candidate',
+          'label' => $t('Full name'),
+          'description' => $t('The candidate\'s full name.'),
           'required' => TRUE,
         ),
       ),
