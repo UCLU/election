@@ -10,18 +10,51 @@ function election_page_nomination($election) {
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
   drupal_set_title($title);
 
+  if ($election->type == 'referendum') {
+    return MENU_NOT_FOUND;
+  }
+
   $nopen = _election_is_open($election->nstatus, $election->nopen_time, $election->nclose_time);
   if (!$nopen && !user_access('bypass nomination access control')) {
     drupal_set_message(t('Nominations are currently closed.'), 'error', FALSE);
     return MENU_ACCESS_DENIED;
   }
 
+  if ($nominations = election_candidate_user_nominations($election)) {
+    foreach ($nominations as $nomination) {
+      drupal_set_message(
+        t(
+          'You have already submitted a nomination for this election (name %name, position %position).',
+          array(
+            '%name' => $nomination->first_name . ' ' . $nomination->last_name,
+            '%position' => $nomination->post_title,
+          )
+        ),
+        'warning',
+        FALSE
+      );
+    }
+  }
+
+  $post_ids = election_candidate_available_posts($election, $nominations);
+  if (empty($post_ids)) {
+    return array(
+      '#markup' => t('There are no more positions available for nomination in this election.'),
+    );
+  }
+
+  $posts = election_post_load_multiple($post_ids);
+
   $candidate = entity_get_controller('election_candidate')->create();
-  return drupal_get_form('election_nomination_form', $election, $candidate);
+
+  return drupal_get_form('election_nomination_form', $election, $candidate, $posts);
 
 }
 
-function election_nomination_form($form, &$form_state, $election, $candidate) {
+/*
+ * Election nominations form function. This creates election_candidate entities.
+ */
+function election_nomination_form($form, &$form_state, $election, $candidate, array $posts) {
 
   $candidate->is_new = empty($candidate->candidate_id);
 
@@ -52,12 +85,6 @@ function election_nomination_form($form, &$form_state, $election, $candidate) {
     '#required' => TRUE,
   );
 
-  $posts_name = _election_get_posts_name($election->type);
-  $post_ids = db_query(
-    'SELECT post_id FROM {election_post} WHERE election_id = :eid',
-    array(':eid' => $election->election_id)
-  )->fetchCol();
-  $posts = election_post_load_multiple($post_ids);
   $bypass = user_access('bypass nomination access control');
   $post_options = array();
   foreach ($posts as $post) {
@@ -66,9 +93,10 @@ function election_nomination_form($form, &$form_state, $election, $candidate) {
     }
   }
 
+  $posts_name = _election_get_posts_name($election->type);
   $form['post'] = array(
     '#type' => 'select',
-    '#title' => drupal_ucfirst($posts_name),
+    '#title' => check_plain(drupal_ucfirst($posts_name)),
     '#description' => t('Select the @posts_name you wish to stand for.', array('@posts_name' => $posts_name)),
     '#default_value' => isset($candidate->post_id)? $candidate->post_id : NULL,
     '#options' => $post_options,
@@ -94,66 +122,6 @@ function election_nomination_form($form, &$form_state, $election, $candidate) {
     '#required' => TRUE,
     '#element_validate' => array('election_nomination_validate_phone'),
   );
-
-/*
-  $form['proposer'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Proposer'),
-    '#collapsible' => TRUE,
-  );
-  $form['proposer']['proposer_name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Name'),
-    '#default_value' => isset($candidate->proposer->name)? $candidate->proposer->name : NULL,
-    '#size' => 50,
-  );
-  $form['proposer']['proposer_mail'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Email address'),
-    '#default_value' => isset($candidate->proposer->mail)? $candidate->proposer->mail : NULL,
-    '#size' => 30,
-    '#element_validate' => array('election_nomination_validate_email'),
-  );
-
-  $form['seconders'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Seconders'),
-    '#collapsible' => TRUE,
-    '#collapsed' => empty($form_state['seconder_expand'])? TRUE : FALSE,
-  );
-  for ($i = 0; $i < $form_state['seconder_count']; $i++) {
-    $form['seconders']['seconder_' . $i] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Seconder !number', array('!number' => $i + 1)),
-    );
-    $form['seconders']['seconder_' . $i]['seconder_' . $i . '_name'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Name'),
-      '#default_value' => isset($candidate->seconders[$i]->name)? $candidate->seconders[$i]->name : NULL,
-      '#size' => 50,
-    );
-    $form['seconders']['seconder_' . $i]['seconder_' . $i . '_mail'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Email address'),
-      '#default_value' => isset($candidate->seconders[$i]->mail)? $candidate->seconders[$i]->mail : NULL,
-      '#size' => 30,
-      '#element_validate' => array('election_nomination_validate_email'),
-    );
-  }
-  $form['seconders']['seconder_addnew'] = array(
-    '#type' => 'submit',
-    '#value' => t('Add another seconder'),
-    '#submit' => array('election_nomination_form_add_seconder'),
-    '#limit_validation_errors' => array(),
-    '#ajax' => array(
-      'event' => 'click',
-      'callback' => 'election_nomination_form_add_seconder_js',
-      'wrapper' => 'edit-seconder-addnew',
-      'method' => 'before',
-      'effect' => 'slide',
-    ),
-  );
-*/
 
   // Add custom fields from the Field system.
   field_attach_form('election_candidate', $candidate, $form, $form_state);
@@ -186,25 +154,6 @@ function election_nomination_form_add_seconder($form, &$form_state) {
     $form_state['seconder_count']++;
     $form_state['rebuild'] = TRUE;
   }
-
-}
-
-/**
- * AJAX callback function for the 'Add another seconder' button in the form
- * election_nomination_form.
- *
- * @param array $form
- * @param array &$form_state
- * @return array
- */
-function election_nomination_form_add_seconder_js($form, &$form_state) {
-
-  if ($form_state['rebuild']) {
-    $form = drupal_rebuild_form('election_nomination_form', $form_state, $form);
-    return $form['seconders']['seconder_' . ($form_state['seconder_count'] -1)];
-  }
-
-  return NULL;
 
 }
 

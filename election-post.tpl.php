@@ -17,6 +17,11 @@
 
   <?php if ($view_mode == 'full' && $post->type != 'motion') { ?>
 
+    <p>
+      <strong>Exclusivity: </strong><?php print $exclusivity; ?>
+      <br /><span class="tips"><?php print $exclusivity_help; ?></span>
+    </p>
+
     <p><strong>Number of vacancies: </strong><?php print $vacancy_count; ?></p>
 
     <?php if ($post->use_ron) { ?>

@@ -23,6 +23,7 @@ class ElectionPostController extends ElectionDefaultController {
       'require_proposer' => 1,
       'require_photo' => 0,
       'vacancy_count' => 1,
+      'exclusive' => 1,
       'use_ron' => 1,
       'electorates' => array(),
     );

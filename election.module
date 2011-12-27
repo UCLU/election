@@ -1070,6 +1070,68 @@ function election_candidate_save($candidate) {
   return entity_get_controller('election_candidate')->save($candidate);
 }
 
+/*
+ * Find the nominations (election_candidate entities) for a specified election
+ * and user.
+ *
+ * @param stdClass $election
+ *   Election object.
+ * @param stdClass $account
+ *   Optional $user object.
+ *
+ * @return
+ *   FALSE if the account is anonymous, or a SelectQuery object.
+ */
+function election_candidate_user_nominations(stdClass $election, $account = NULL) {
+  if ($account === NULL) {
+    global $user;
+    $account = $user;
+  }
+  if ($account->uid == 0) {
+    return FALSE;
+  }
+  $select = db_query('SELECT ec.*, ep.title AS post_title, ep.exclusive FROM {election_candidate} ec LEFT JOIN {election_post} ep USING (post_id) WHERE ec.uid = :uid AND ep.election_id = :eid', array(':eid' => $election->election_id, ':uid' => $account->uid));
+  return $select->fetchAll();
+}
+
+/*
+ * Find the posts/positions that a candidate may be nominated for.
+ *
+ * @param stdClass $election
+ * @param stdClass $account
+ *
+ * @return
+ *   Array of post IDs.
+ */
+function election_candidate_available_posts(stdClass $election, $nominations = NULL, $account = NULL) {
+  if ($nominations === NULL) {
+    if ($account === NULL) {
+      global $user;
+      $account = $user;
+    }
+    $nominations = election_candidate_user_nominations($election, $account);
+  }
+  $has_exclusive = FALSE;
+  $prev_post_ids = array();
+  foreach ($nominations as $nomination) {
+    if ($nomination->exclusive) {
+      $has_exclusive = TRUE;
+    }
+    $prev_post_ids[] = $nomination->post_id;
+  }
+  $select = db_select('election_post', 'ep')->fields('ep', array('post_id'));
+  $select->condition('election_id', $election->election_id, '=');
+  if ($prev_post_ids) {
+    $select->condition('post_id', $prev_post_ids, 'NOT IN');
+  }
+  if ($has_exclusive) {
+    $select->condition('exclusive', 0, '=');
+  }
+  $select->orderBy('title');
+  $result = $select->execute();
+  return $result->fetchCol();
+}
+
 /**
  * Implements hook_token_info().
  * See http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_token_info/7.
@@ -1498,8 +1560,10 @@ function template_preprocess_election_post(&$variables) {
 
   $uri = entity_uri('election_post', $post);
   $variables['election_post_url'] = url($uri['path'], $uri['options']);
-  $variables['title']     = check_plain($post->title);
-  $variables['page']      = $variables['view_mode'] == 'full';
+  $variables['title'] = check_plain($post->title);
+  $variables['page'] = $variables['view_mode'] == 'full';
+  $variables['exclusivity'] = $post->exclusive? t('This is an exclusive position.') : t('This is not an exclusive position.');
+  $variables['exclusivity_help'] = t('Candidates may only stand for one exclusive position per election.');
 
   // Flatten the election object's member fields.
   $variables = array_merge((array) $post, $variables);

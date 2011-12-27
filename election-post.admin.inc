@@ -213,6 +213,14 @@ function election_post_motion_form($form, &$form_state, $election, $post) {
  */
 function election_post_position_form($form, &$form_state, $election, $post) {
 
+  $form['exclusive'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Exclusive'),
+    '#description' => t('A candidate can only stand for one exclusive position per election.'),
+    '#default_value' => isset($post->exclusive)? $post->exclusive : 1,
+    '#weight' => -30,
+  );
+
   $form['vacancy_count'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of vacancies'),
@@ -355,7 +363,11 @@ function election_post_form_submit($form, &$form_state) {
     }
   }
 
-  $required_fields = (array) $form_state['values']['nominations_required_fields'];
+  if (empty($form_state['values']['exclusive'])) {
+    $post->exclusive = 0;
+  }
+
+  $required_fields = (array) @$form_state['values']['nominations_required_fields'];
   foreach ($required_fields as $required_field => $value) {
     switch ($required_field) {
       case 'phone':
