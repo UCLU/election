@@ -17,7 +17,7 @@
  */
 function election_page_edit($election) {
 
-  $type = _election_type_load($election->type);
+  $type = _election_type_get_info($election->type);
   $title = t(
     'Edit @type: %title',
     array(
@@ -78,7 +78,7 @@ function election_list_form($form, $form_state) {
   $options = array();
   foreach ($elections as $id => $election) {
 
-    $type = _election_type_load($election->type);
+    $type = _election_type_get_info($election->type);
 
     $options[$election->election_id] = array(
       'title' => l($election->title, election_uri_path($election)),
@@ -86,49 +86,34 @@ function election_list_form($form, $form_state) {
       'anonymity' => $election->anonymous? t('Anonymous') : t('Tracked'),
       'nstatus' => _election_format_status($election, 'n'),
       'vstatus' => _election_format_status($election, 'v'),
-      // 'vopen' => '',
-      // 'vclose' => '',
       'changed' => format_date($election->changed, 'short'),
       'operations' => array(),
     );
 
-    foreach (array('vopen', 'vclose') as $event) {
-      if (!isset($options[$event])) {
-        continue;
-      }
-      if ($election->vstatus != ELECTION_STATUS_SCHEDULED) {
-        $options[$election->election_id][$event] = t('N/A');
-        continue;
-      }
-      $time = $election->{$event . '_time'};
-      if (is_numeric($time)) {
-        $options[$election->election_id][$event] = format_date($time, 'short');
-      }
-      elseif (empty($time)) {
-        $options[$election->election_id][$event] = t('Not set');
-      }
-    }
-
     $post_name = _election_get_posts_name($election->type);
     $post_name_plural = _election_get_posts_name($election->type, TRUE);
 
+    $election_uri_path = election_uri_path($election);
+
     $operations = array();
     if (entity_access('update', 'election', $election)) {
-      // No need for this and it could be confusing
-      // $operations['posts_add'] = l(
-      //   t('add @post_name', array('@post_name' => $post_name)),
-      //   election_uri_path($election) . '/posts/add'
-      // );
-      $operations['posts_list'] = l(
-        t('list @post_name_plural', array('@post_name_plural' => $post_name_plural)),
-        election_uri_path($election) . '/posts'
+      $operations['posts_edit'] = l(
+        t('edit @post_name_plural', array('@post_name_plural' => $post_name_plural)),
+        $election_uri_path . '/posts'
+      );
+    }
+
+    if ($election->type != 'referendum' && entity_access('edit candidates', 'election', $election)) {
+      $operations['candidates_edit'] = l(
+        t('edit candidates'),
+        $election_uri_path . '/candidates'
       );
     }
 
     if (entity_access('update', 'election', $election)) {
       $operations['edit'] = l(
         t('edit'),
-        election_uri_path($election) . '/edit',
+        $election_uri_path . '/edit',
         array('query' => $destination)
       );
     }
@@ -136,7 +121,7 @@ function election_list_form($form, $form_state) {
     if (entity_access('delete', 'election', $election)) {
       $operations['delete'] = l(
         t('delete'),
-        election_uri_path($election) . '/delete',
+        $election_uri_path . '/delete',
         array('query' => $destination)
       );
     }
@@ -189,7 +174,7 @@ function election_page_add($type_mn) {
 
   global $user;
 
-  if (!$type = _election_type_load($type_mn)) {
+  if (!$type = _election_type_get_info($type_mn)) {
     return MENU_NOT_FOUND;
   }
 
@@ -439,7 +424,7 @@ function election_form_submit($form, &$form_state) {
   election_save($election);
 
   // Notify the user that the election was saved.
-  $type = _election_type_load($election->type);
+  $type = _election_type_get_info($election->type);
   drupal_set_message(
     t('The @type "@title" was saved.', array('@type' => $type['name'], '@title' => $election->title))
   );
@@ -515,7 +500,7 @@ function election_form_delete_confirm_submit($form, &$form_state) {
       watchdog('election', 'Deleted election "%title" (type: @type)', array('@type' => $election->type, '%title' => $election->title));
     }
 
-    $type = _election_type_load($election->type);
+    $type = _election_type_get_info($election->type);
 
     if ($delete) {
       drupal_set_message(

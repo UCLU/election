@@ -12,25 +12,20 @@
  *
  * @param stdClass $election
  * @param string $view_mode
- *   Optional.
  *
  * @return array
  *   Render array.
  */
 function election_page_view($election, $view_mode = 'full') {
 
-  // If there is a menu link to this node, the link becomes the last part
-  // of the active trail, and the link name becomes the page title.
-  // Thus, we must explicitly set the page title to be the election title.
-  drupal_set_title($election->title);
+  if ($view_mode == 'full') {
+    drupal_set_title($election->title);
+    $uri = entity_uri('election', $election);
+    drupal_add_html_head_link(array('rel' => 'canonical', 'href' => url($uri['path'], $uri['options'])), TRUE);
+    drupal_add_html_head_link(array('rel' => 'shortlink', 'href' => url($uri['path'], array_merge($uri['options'], array('alias' => TRUE)))), TRUE);
+  }
 
-  $uri = entity_uri('election', $election);
-  // Set the election path as the canonical URL to prevent duplicate content.
-  drupal_add_html_head_link(array('rel' => 'canonical', 'href' => url($uri['path'], $uri['options'])), TRUE);
-  // Set the non-aliased path as a default shortlink.
-  drupal_add_html_head_link(array('rel' => 'shortlink', 'href' => url($uri['path'], array_merge($uri['options'], array('alias' => TRUE)))), TRUE);
-
-  return election_view($election, 'full');
+  return election_view($election, $view_mode);
 
 }
 
@@ -40,19 +35,20 @@ function election_page_view($election, $view_mode = 'full') {
  * @param stdClass $election
  * @param stdClass $post
  * @param string $view_mode
- *   Optional.
  *
  * @return array
  *   Render array.
  */
 function election_post_page_view($election, $post, $view_mode = 'full') {
 
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb(
-      $election,
-      l(drupal_ucfirst(_election_get_posts_name($election->type, TRUE)), election_uri_path($election) . '/posts')
-    )
-  );
+  if ($view_mode == 'full') {
+    drupal_set_breadcrumb(
+      _election_build_breadcrumb(
+        $election,
+        l(drupal_ucfirst(_election_get_posts_name($election->type, TRUE)), election_uri_path($election) . '/posts')
+      )
+    );
+  }
 
   return election_post_view($election, $post, $view_mode);
 

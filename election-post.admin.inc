@@ -49,7 +49,7 @@ function election_post_form($form, &$form_state, $election, $post) {
     '#weight' => -100,
   );
 
-  $type = _election_type_load($election->type);
+  $type = _election_type_get_info($election->type);
   $post_key = $type['post key'];
   $post_form_function = 'election_post_' . $post_key . '_form';
   if (function_exists($post_form_function)) {
@@ -431,7 +431,7 @@ function election_post_form_delete_confirm($form, &$form_state, $election, $post
     '#value' => $post->post_id,
   );
 
-  $type = _election_type_load($election->type);
+  $type = _election_type_get_info($election->type);
 
   return confirm_form(
     $form,
@@ -625,13 +625,13 @@ function election_post_page_add($election) {
 
   $values = array();
   $values['election_id'] = $election->election_id;
-  $type = _election_type_load($election->type);
+  $type = _election_type_get_info($election->type);
   $values['type'] = $type['post key'];
 
   $post = entity_get_controller('election_post')->create($values);
 
   $post_name = 'post';
-  $type = _election_type_load($election->type);
+  $type = _election_type_get_info($election->type);
   if (!empty($type['post name'])) {
     $post_name = $type['post name'];
   }

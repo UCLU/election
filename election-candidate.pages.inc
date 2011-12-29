@@ -7,8 +7,11 @@
 
 /**
  * Page callback for election/%election/candidates/%election_candidate
+ *
+ * @param stdClass $election
+ * @param stdClass $candidate
  */
-function election_candidate_page_view($election, $candidate) {
+function election_candidate_page_view(stdClass $election, stdClass $candidate) {
 
   drupal_set_title(
     t(
@@ -31,7 +34,7 @@ function election_candidate_page_view($election, $candidate) {
   // Set the non-aliased path as a default shortlink.
   drupal_add_html_head_link(array('rel' => 'shortlink', 'href' => url($uri['path'], array_merge($uri['options'], array('alias' => TRUE)))), TRUE);
 
-  $view_mode = entity_access('edit', 'election_candidate', $candidate)? 'details' : 'full';
+  $view_mode = entity_access('view details', 'election_candidate', $candidate)? 'details' : 'full';
 
   return election_candidate_view($candidate, $election, $view_mode);
 
@@ -39,6 +42,9 @@ function election_candidate_page_view($election, $candidate) {
 
 /**
  * Generate a table of a user's previous nominations in an election.
+ *
+ * @param stdClass $election
+ * @param array $previous_nominations
  */
 function election_candidate_display_previous_nominations(stdClass $election, array $previous_nominations) {
   if (empty($previous_nominations)) {
@@ -90,9 +96,9 @@ function election_page_nomination_form(stdClass $election) {
     );
   }
 
-  $previous_nominations = (array) election_candidate_user_nominations($election);
+  $previous_nominations = (array) election_candidate_get_user_nominations($election);
 
-  $available_post_ids = (array) election_candidate_available_posts($election, $previous_nominations);
+  $available_post_ids = (array) election_candidate_get_available_posts($election, $previous_nominations);
 
   // End with an error message if there are no available posts.
   if (empty($available_post_ids)) {
@@ -115,6 +121,12 @@ function election_page_nomination_form(stdClass $election) {
 
 /*
  * Election nominations form function. This creates election_candidate entities.
+ *
+ * @param array $form
+ * @param array $form_state
+ * @param stdClass $election
+ * @param array $previous_nominations
+ * @param array $available_posts
  */
 function election_candidate_nomination_form($form, &$form_state, stdClass $election, array $previous_nominations, array $available_posts) {
 
@@ -170,48 +182,20 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
     '#required' => TRUE,
   );
 
-  $form['details'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Candidate details'),
-    '#collapsible' => FALSE,
-  );
 
-  $form['details']['first_name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('First name(s)'),
-    '#max_length' => 100,
-    '#size' => 50,
-    '#required' => TRUE,
-  );
+  // Add fields common to other election_candidate forms.
+  election_candidate_add_common_fields($form, $candidate);
 
-  $form['details']['last_name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Last name(s)'),
-    '#max_length' => 100,
-    '#size' => 50,
-    '#required' => TRUE,
-  );
-
-  $form['details']['mail'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Email address'),
-    '#default_value' => empty($user->mail)? NULL: $user->mail,
-    '#size' => 30,
-    '#required' => TRUE,
-  );
-
-  $form['details']['phone'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Contact telephone number'),
-    '#description' => t('Please enter a valid phone number so that we can contact you about your nomination.'),
-    '#size' => 12,
-    '#required' => TRUE,
-  );
+  // Set user's email address as the default value for ['details']['mail'].
+  if (isset($form['details']['mail'])) {
+    $form['details']['mail']['#default_value'] = empty($user->mail)? NULL: $user->mail;
+  }
 
   // Add custom fields from the Field system.
   field_attach_form('election_candidate', $candidate, $form, $form_state);
 
   $form['#validate'][] = 'election_candidate_form_validate';
+  $form['#validate'][] = 'election_candidate_nomination_form_validate';
 
   $form['buttons'] = array(
     '#type' => 'actions',
@@ -229,6 +213,9 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
 
 /**
  * Validation function for both the candidate edit form and the nomination form.
+ *
+ * @param array $form
+ * @param array $form_state
  */
 function election_candidate_form_validate($form, &$form_state) {
 
@@ -246,11 +233,35 @@ function election_candidate_form_validate($form, &$form_state) {
 
 /**
  * Validation function for just the nomination form.
+ *
+ * @param array $form
+ * @param array $form_state
  */
 function election_candidate_nomination_form_validate($form, &$form_state) {
   // @todo validate post again
 }
 
+/**
+ * Validation function for just the edit form.
+ *
+ * @param array $form
+ * @param array $form_state
+ */
+function election_candidate_edit_form_validate($form, &$form_state) {
+  if (!empty($form_state['values']['new_user'])) {
+    if (!$account = user_load_by_name($form_state['values']['new_user'])) {
+      form_set_error('new_user', t('The username %name does not exist', array('%name' => $form_state['values']['new_user'])));
+    }
+  }
+}
+
+
+/**
+ * Submit callback for the nomination form.
+ *
+ * @param array $form
+ * @param array $form_state
+ */
 function election_candidate_nomination_form_submit($form, &$form_state) {
 
   $candidate = &$form_state['candidate'];
@@ -269,7 +280,7 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
   $candidate->last_name = $values['last_name'];
   $candidate->mail = $values['mail'];
   $candidate->phone = $values['phone'];
-  $candidate->status = ELECTION_CANDIDATE_PENDING;
+  $candidate->cstatus = ELECTION_CANDIDATE_PENDING;
 
   // @todo set up manifesto, summary, photo fields
 
@@ -397,6 +408,58 @@ function election_candidate_edit_form($form, $form_state, stdClass $election, st
   $form_state['election'] = $election;
   $form_state['candidate'] = $candidate;
 
+  election_candidate_add_common_fields($form, $candidate);
+
+  if (isset($form['details'])) {
+    $form['details']['#collapsible'] = TRUE;
+  }
+
+  $form['cstatus'] = array(
+    '#type' => 'select',
+    '#options' => array(
+      ELECTION_CANDIDATE_PENDING => t('Pending approval'),
+      ELECTION_CANDIDATE_APPROVED => t('Approved'),
+      ELECTION_CANDIDATE_REJECTED => t('Rejected'),
+    ),
+    '#title' => t('Candidate status'),
+    '#required' => TRUE,
+    '#default_value' => $candidate->cstatus,
+    '#empty_option' => t('- Select status -'),
+    '#description' => t(
+      'If the status is set to !approved, the candidate will be visible to all those who have permission to view the election.',
+      array('!approved' => t('Approved'))
+    ),
+  );
+
+  if (!empty($candidate->uid)) {
+    $account = user_load($candidate->uid);
+  }
+  $form['user_info']['current_user'] = array(
+    '#title' => t('Associated user account'),
+    '#type' => 'item',
+    '#default_value' => empty($account)? NULL : $account->name,
+  );
+  if (empty($account)) {
+    $form['user_info']['current_user']['#markup'] = t('No user account associated.');
+  }
+  else {
+    $form['user_info']['current_user']['#markup'] = theme(
+      'username',
+      array('account' => $account, 'link_options' => array('target' => '_blank'))
+    );
+    $form['user_info']['current_user']['#description'] = t('The account that submitted the nomination.');
+  }
+
+/*
+  $form['user_info']['new_user'] = array(
+    '#title' => t('Change associated user account'),
+    '#type' => 'textfield',
+    '#autocomplete_path' => 'user/autocomplete',
+    '#default_value' => empty($account)? NULL : $account->name,
+    '#description' => t('This is initially set to the account (if any) that submitted the nomination.'),
+  );
+*/
+
   $form['buttons'] = array(
     '#type' => 'actions',
     '#weight' => 100,
@@ -404,7 +467,7 @@ function election_candidate_edit_form($form, $form_state, stdClass $election, st
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
-    '#submit' => array('election_form_submit'),
+    '#submit' => array('election_candidate_form_submit'),
   );
   $form['buttons']['delete'] = array(
     '#type' => 'submit',
@@ -414,6 +477,7 @@ function election_candidate_edit_form($form, $form_state, stdClass $election, st
   );
 
   $form['#validate'][] = 'election_candidate_form_validate';
+  $form['#validate'][] = 'election_candidate_edit_form_validate';
 
   // Add custom fields from the Field system.
   field_attach_form('election_candidate', $candidate, $form, $form_state);
@@ -421,6 +485,47 @@ function election_candidate_edit_form($form, $form_state, stdClass $election, st
   return $form;
 
 }
+
+/**
+ * Form submit function for the Save button in the form election_candidate_edit_form().
+ *
+ * @param array $form
+ * @param array &$form_state
+ * @return void
+ */
+function election_candidate_form_submit($form, &$form_state) {
+
+  $candidate = &$form_state['candidate'];
+
+  foreach ($candidate as $property => $value) {
+    if (isset($form_state['values'][$property])) {
+      $candidate->$property = $form_state['values'][$property];
+    }
+  }
+
+  if (!empty($form_state['values']['new_user'])) {
+    if ($account = user_load_by_name($form_state['values']['new_user'])) {
+      $candidate->uid = $account->uid;
+      $candidate->username = $account->username;
+    }
+  }
+
+  field_attach_submit('election_candidate', $candidate, $form, $form_state);
+
+  election_candidate_save($candidate);
+
+  drupal_set_message(
+    t(
+      'The candidate %first_name %last_name was saved.',
+      array(
+        '%first_name' => $candidate->first_name,
+        '%last_name' => $candidate->last_name,
+      )
+    )
+  );
+
+}
+
 
 /**
  * Form builder function for the main administrative election candidate list.
@@ -448,7 +553,8 @@ function election_candidate_list_form($form, $form_state, $election) {
     'post_title' => array('data' => drupal_ucfirst($post_name), 'field' => 'ep.title'),
     'first_name' => array('data' => t('First name'), 'field' => 'ec.first_name'),
     'last_name' => array('data' => t('Last name'), 'field' => 'ec.last_name'),
-    'status' => array('data' => t('Status')),
+    'username' => array('data' => t('Username'), 'field' => 'ec.username'),
+    'cstatus' => array('data' => t('Status')),
     'operations' => array('data' => t('Operations')),
   );
 
@@ -456,7 +562,7 @@ function election_candidate_list_form($form, $form_state, $election) {
   $query = db_select('election_candidate', 'ec')
     ->extend('PagerDefault')
     ->extend('TableSort')
-    ->fields('ec', array('candidate_id', 'post_id'))
+    ->fields('ec', array('candidate_id'))
     ->condition('ec.election_id', $election->election_id)
     ->limit(50)
     ->orderByHeader($header);
@@ -479,12 +585,15 @@ function election_candidate_list_form($form, $form_state, $election) {
       $post_title = check_plain($post->title);
     }
 
+    $account = user_load($candidate->uid);
+
     $options[$candidate->candidate_id] = array(
       'created' => format_date($candidate->created, 'short'),
       'post_title' => $post_title,
       'first_name' => check_plain($candidate->first_name),
       'last_name' => check_plain($candidate->last_name),
-      'status' => _election_candidate_format_status($candidate),
+      'username' => $account? theme('username', array('account' => $account)) : t('Anonymous'),
+      'cstatus' => _election_candidate_format_status($candidate),
     );
 
     $operations = array();
@@ -528,4 +637,54 @@ function election_candidate_list_form($form, $form_state, $election) {
   $form['pager'] = array('#markup' => theme('pager'));
 
   return $form;
+}
+
+/**
+ * Form fields for election candidates, common to both the edit form and the
+ * nomination form.
+ *
+ * @param array $form
+ * @param stdClass $candidate
+ */
+function election_candidate_add_common_fields(&$form, stdClass $candidate) {
+
+  $form['details'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Contact details'),
+    '#collapsible' => FALSE,
+  );
+
+  $form['details']['first_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('First name(s)'),
+    '#max_length' => 100,
+    '#default_value' => $candidate->first_name,
+    '#size' => 50,
+    '#required' => TRUE,
+  );
+
+  $form['details']['last_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Last name(s)'),
+    '#max_length' => 100,
+    '#default_value' => $candidate->last_name,
+    '#size' => 50,
+    '#required' => TRUE,
+  );
+
+  $form['details']['mail'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email address'),
+    '#size' => 30,
+    '#required' => TRUE,
+    '#default_value' => $candidate->mail,
+  );
+
+  $form['details']['phone'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Contact telephone number'),
+    '#size' => 12,
+    '#required' => TRUE,
+    '#default_value' => $candidate->phone,
+  );
 }

@@ -510,7 +510,7 @@ function election_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
-      'status' => array(
+      'cstatus' => array( // 'status' as field name causes Entity API confusion
         'description' => sprintf(
           'The candidate\'s nomination status: pending %d, approved %d, or rejected %d.',
           ELECTION_CANDIDATE_PENDING,

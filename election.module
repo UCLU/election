@@ -71,6 +71,7 @@ function election_entity_info() {
         'custom settings' => TRUE,
       ),
     ),
+    'redirect' => FALSE, // for the Redirect module
   );
 
   foreach (election_types() as $type_mn => $type) {
@@ -135,6 +136,7 @@ function election_entity_info() {
         'custom settings' => TRUE,
       ),
     ),
+    'redirect' => FALSE, // for the Redirect module
   );
 
   return $entities;
@@ -649,13 +651,17 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
   }
   switch ($op) {
     case 'view':
-      if (user_access('view any election', $account)) {
+      if (user_access('edit any election', $account)) {
+        return TRUE;
+      }
+      if ($candidate && $candidate->cstatus == ELECTION_CANDIDATE_APPROVED && user_access('view any election', $account)) {
         return TRUE;
       }
       break;
     case 'edit':
     case 'update':
     case 'delete':
+    case 'view details':
       if (user_access('edit any election', $account)) {
         return TRUE;
       }
@@ -671,6 +677,10 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
   }
   // This is the $acccount's nomination.
   switch ($op) {
+    case 'view':
+    case 'view details':
+      return TRUE;
+      break;
     case 'edit':
     case 'update':
       return (bool) user_access('edit own nominations', $account);
@@ -1244,7 +1254,7 @@ function election_candidate_save($candidate) {
  * @return
  *   FALSE if the account is anonymous, or a SelectQuery object.
  */
-function election_candidate_user_nominations(stdClass $election, $account = NULL) {
+function election_candidate_get_user_nominations(stdClass $election, $account = NULL) {
   if ($account === NULL) {
     global $user;
     $account = $user;
@@ -1271,13 +1281,13 @@ function election_candidate_user_nominations(stdClass $election, $account = NULL
  * @return
  *   Array of post IDs.
  */
-function election_candidate_available_posts(stdClass $election, $nominations = NULL, $account = NULL) {
+function election_candidate_get_available_posts(stdClass $election, $nominations = NULL, $account = NULL) {
   if ($nominations === NULL) {
     if ($account === NULL) {
       global $user;
       $account = $user;
     }
-    $nominations = election_candidate_user_nominations($election, $account);
+    $nominations = election_candidate_get_user_nominations($election, $account);
   }
   $has_exclusive = FALSE;
   $prev_post_ids = array();
@@ -1356,7 +1366,7 @@ function election_tokens($type, array $tokens, array $data = array(), array $opt
           $replacements[$original] = $sanitize ? check_plain($election->type) : $election->type;
           break;
         case 'type-name':
-          $type = _election_type_load($election->type);
+          $type = _election_type_get_info($election->type);
           $type_name = $type['name'];
           $replacements[$original] = $sanitize ? check_plain($type_name) : $type_name;
           break;
@@ -1912,7 +1922,7 @@ function _election_post_format_status(stdClass $election, stdClass $post, $statu
  * @return string
  */
 function _election_candidate_format_status(stdClass $candidate) {
-  switch ($candidate->status) {
+  switch ($candidate->cstatus) {
     case ELECTION_CANDIDATE_APPROVED:
       return t('Approved');
       break;
@@ -1983,7 +1993,7 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
  * @return mixed
  *   A stdClass election type object, or FALSE on failure.
  */
-function _election_type_load($type_mn) {
+function _election_type_get_info($type_mn) {
   $type = array(
     'name' => t('Unknown type'),
     'post key' => 'post',
@@ -2007,7 +2017,7 @@ function _election_type_load($type_mn) {
  */
 function _election_get_posts_name($type_mn, $plural = FALSE) {
   $name = 'post';
-  $type = _election_type_load($type_mn);
+  $type = _election_type_get_info($type_mn);
   if (!$type) {
     return $name;
   }
