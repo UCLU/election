@@ -1,0 +1,51 @@
+<?php
+/**
+ * @file
+ * 'Example electorates' primary module file.
+ */
+
+/**
+ * Define the example electorates. Implements hook_electorate_info().
+ */
+function election_example_electorates_electorate_info() {
+  $electorates = array();
+  $electorates['gmail'] = array(
+    'name' => t('GMail users'),
+    'conditions' => array('election_example_electorates_access_gmail'),
+    'description' => t('Users whose registered email addresses end with either "gmail.com" or "googlemail.com".'),
+  );
+  $electorates['hotmail'] = array(
+    'name' => t('Hotmail users'),
+    'conditions' => array('election_example_electorates_access_hotmail'),
+    'description' => t('Users whose registered email addresses end with "hotmail.com" or "hotmail.co.uk".'),
+  );
+  return $electorates;
+}
+
+/**
+ * Access callback function to authorise users whose registered email addresses
+ * end with either "gmail.com" or "googlemail.com".
+ *
+ * @see election_electorates_electorate_info()
+ *
+ * @param stdClass $user
+ *
+ * @return bool
+ */
+function election_example_electorates_access_gmail(stdClass $user) {
+  return (bool) preg_match('/g(oogle)?mail\.com\s*\b/i', $user->mail);
+}
+
+/**
+ * Access callback function to authorise users whose registered email addresses
+ * end with either "hotmail.com" or "hotmail.co.uk".
+ *
+ * @see election_electorates_electorate_info()
+ *
+ * @param stdClass $user
+ *
+ * @return bool
+ */
+function election_example_electorates_access_hotmail(stdClass $user) {
+  return (bool) preg_match('/hotmail\.com\s*\b/i', $user->mail);
+}
