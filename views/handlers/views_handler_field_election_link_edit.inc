@@ -24,7 +24,7 @@ class views_handler_field_election_link_edit extends views_handler_field_electio
     $this->options['alter']['path'] = "election/{$election->election_id}/edit";
     $this->options['alter']['query'] = drupal_get_destination();
 
-    $text = !empty($this->options['text']) ? $this->options['text'] : t('edit');
+    $text = !empty($this->options['text']) ? $this->options['text'] : t('Edit');
     return $text;
   }
 }

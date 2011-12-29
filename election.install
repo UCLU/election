@@ -4,7 +4,7 @@
  *   Install functions for the Election module.
  */
 
-require_once 'election.constants.inc';
+require_once 'includes/election.constants.inc';
 
 /**
  * Implements hook_schema().
@@ -504,6 +504,12 @@ function election_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'election_id' => array(
+        'description' => 'The election in which the candidate is standing. Relates to {election}.election_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
       'status' => array(
         'description' => sprintf(
           'The candidate\'s nomination status: pending %d, approved %d, or rejected %d.',
@@ -797,15 +803,15 @@ function _election_add_foreign_keys() {
     db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`candidate_id`) REFERENCES {election_candidate} (`candidate_id`) ON UPDATE CASCADE');
 
     // Foreign keys for {election_candidate}.
-    db_query('ALTER TABLE {election_candidate} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
-    db_query('ALTER TABLE {election_candidate} ADD FOREIGN KEY (`uid`) REFERENCES {users} (`uid`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_candidate} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE ON DELETE SET NULL');
+    db_query('ALTER TABLE {election_candidate} ADD FOREIGN KEY (`uid`) REFERENCES {users} (`uid`) ON UPDATE CASCADE ON DELETE SET NULL');
 
     // Foreign keys for {election_endorser}.
     db_query('ALTER TABLE {election_endorser} ADD FOREIGN KEY (`candidate_id`) REFERENCES {election_candidate} (`candidate_id`) ON UPDATE CASCADE ON DELETE CASCADE');
 
     // Foreign keys for {election_vote}.
-    db_query('ALTER TABLE {election_vote} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE');
-    db_query('ALTER TABLE {election_vote} ADD FOREIGN KEY (`uid`) REFERENCES {users} (`uid`) ON UPDATE CASCADE');
+    db_query('ALTER TABLE {election_vote} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE ON DELETE SET NULL');
+    db_query('ALTER TABLE {election_vote} ADD FOREIGN KEY (`uid`) REFERENCES {users} (`uid`) ON UPDATE CASCADE ON DELETE SET NULL');
 
   } catch (Exception $e) {
 

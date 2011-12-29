@@ -113,7 +113,7 @@ function election_list_form($form, $form_state) {
     $post_name_plural = _election_get_posts_name($election->type, TRUE);
 
     $operations = array();
-    if (election_access('update', $election)) {
+    if (entity_access('update', 'election', $election)) {
       // No need for this and it could be confusing
       // $operations['posts_add'] = l(
       //   t('add @post_name', array('@post_name' => $post_name)),
@@ -125,7 +125,7 @@ function election_list_form($form, $form_state) {
       );
     }
 
-    if (election_access('update', $election)) {
+    if (entity_access('update', 'election', $election)) {
       $operations['edit'] = l(
         t('edit'),
         election_uri_path($election) . '/edit',
@@ -133,7 +133,7 @@ function election_list_form($form, $form_state) {
       );
     }
 
-    if (election_access('delete', $election)) {
+    if (entity_access('delete', 'election', $election)) {
       $operations['delete'] = l(
         t('delete'),
         election_uri_path($election) . '/delete',
@@ -352,7 +352,7 @@ function election_form($form, &$form_state, $election) {
       '#type' => 'submit',
       '#value' => t('Delete'),
       '#submit' => array('election_form_delete_submit'),
-      '#access' => election_access('delete', $election),
+      '#access' => entity_access('delete', 'election', $election),
     );
   }
 

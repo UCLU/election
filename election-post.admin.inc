@@ -151,7 +151,7 @@ function election_post_form($form, &$form_state, $election, $post) {
       '#type' => 'submit',
       '#value' => t('Delete'),
       '#submit' => array('election_post_form_delete_submit'),
-      '#access' => election_access('update', $election), // deleting a post is really 'updating' an election
+      '#access' => entity_access('update', 'election', $election), // deleting a post is really 'updating' an election
     );
   }
 
@@ -216,7 +216,7 @@ function election_post_position_form($form, &$form_state, $election, $post) {
   $form['exclusive'] = array(
     '#type' => 'checkbox',
     '#title' => t('Exclusive'),
-    '#description' => t('A candidate can only stand for one exclusive position per election.'),
+    '#description' => t('A candidate can only stand for one exclusive position per election.<br /><strong>N.B. if anonymous users are given permission to submit nominations, exclusivity cannot be enforced.</strong>'),
     '#default_value' => isset($post->exclusive)? $post->exclusive : 1,
     '#weight' => -30,
   );
@@ -503,6 +503,7 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
  */
 function election_post_list_form($form, $form_state, $election) {
 
+  // @todo this should not be necessary
   $posts_name = _election_get_posts_name($election->type, TRUE);
   drupal_set_title(drupal_ucfirst($posts_name));
   drupal_set_breadcrumb(
@@ -542,7 +543,7 @@ function election_post_list_form($form, $form_state, $election) {
     );
 
     $operations = array();
-    if (election_access('update', $election)) {
+    if (entity_access('update', 'election', $election)) {
       $operations['edit'] = l(
         t('edit'),
         election_post_uri_path($post) . '/edit',

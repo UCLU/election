@@ -4,7 +4,7 @@
  * Election primary module file.
  */
 
-require_once 'election.constants.inc';
+require_once 'includes/election.constants.inc';
 
 /**
  * Implements hook_entity_info().
@@ -15,6 +15,7 @@ function election_entity_info() {
 
   $entities['election'] = array(
     'label' => t('Election'),
+    'access callback' => 'election_access',
     'uri callback' => 'election_uri',
     'controller class' => 'ElectionController',
     'base table' => 'election',
@@ -44,6 +45,7 @@ function election_entity_info() {
 
   $entities['election_post'] = array(
     'label' => t('Election post'),
+    'access callback' => 'election_post_access',
     'uri callback' => 'election_post_uri',
     'controller class' => 'ElectionPostController',
     'base table' => 'election_post',
@@ -98,6 +100,7 @@ function election_entity_info() {
 
   $entities['election_candidate'] = array(
     'label' => t('Election candidate'),
+    'access callback' => 'election_candidate_access',
     'uri callback' => 'election_candidate_uri',
     'controller class' => 'ElectionCandidateController',
     'base table' => 'election_candidate',
@@ -120,11 +123,15 @@ function election_entity_info() {
     ),
     'view modes' => array(
       'full' => array(
-        'label' => t('Full content'),
+        'label' => t('Normal view'),
         'custom settings' => TRUE,
       ),
       'teaser' => array(
         'label' => t('Teaser'),
+        'custom settings' => TRUE,
+      ),
+      'details' => array(
+        'label' => t('Details'),
         'custom settings' => TRUE,
       ),
     ),
@@ -239,9 +246,9 @@ function election_post_uri_path($post) {
  */
 function election_candidate_uri($candidate) {
   $path = 'election-candidates/' . $candidate->candidate_id;
-  if (!empty($candidate->post_id)) {
-    $post = election_post_load($candidate->post_id);
-    $path = election_post_uri_path($post) . '/candidates/' . $candidate->candidate_id;
+  if (!empty($candidate->election_id)) {
+    $election = election_load($candidate->election_id);
+    $path = election_uri_path($election) . '/candidates/' . $candidate->candidate_id;
   }
   return array(
     'path' => $path,
@@ -483,11 +490,42 @@ function election_post_load($post_id = NULL) {
  *   An array of post IDs.
  *
  * @return stdClass
- *   A stdClass election post object.
+ *   A stdClass election_post object.
  */
 function election_post_load_multiple(array $post_ids = array()) {
   return entity_load('election_post', $post_ids);
 }
+
+/**
+ * Load an individual election candidate.
+ *
+ * @param mixed $candidate_id
+ *   A single election candidate ID.
+ *
+ * @return stdClass
+ *   A stdClass election_candidate object.
+ */
+function election_candidate_load($candidate_id = NULL) {
+  $result = entity_load('election_candidate', (array) $candidate_id);
+  if (!is_array($result) || !count($result)) {
+    return FALSE;
+  }
+  return reset($result);
+}
+
+/**
+ * Load multiple candidates.
+ *
+ * @param mixed $candidate_ids
+ *   An array of election candidate IDs.
+ *
+ * @return stdClass
+ *   A stdClass election_candidate object.
+ */
+function election_candidate_load_multiple(array $candidate_ids = array()) {
+  return entity_load('election_candidate', $candidate_ids);
+}
+
 
 /**
  * Implements hook_permission().
@@ -500,6 +538,10 @@ function election_permission() {
       'title' => t('Administer elections'),
       'description' => t('Alter the fields and display settings for election types.'),
     ),
+    'vote in elections' => array(
+      'title' => t('Vote in elections'),
+      'description' => t('Users must have this permission in order to vote. They must also belong to the relevant electorate(s).'),
+    ),
     'create elections' => array(
       'title' => t('Create elections'),
     ),
@@ -508,20 +550,26 @@ function election_permission() {
       'description' => t('This permission is dangerous: deleting an election automatically deletes ALL associated data, for example votes.'),
       'restrict access' => TRUE,
     ),
-    'bypass nomination access control' => array(
-      'title' => t('Bypass nomination access control'),
-      'description' => t('This allows the user to submit a nomination when nominations are closed (per position <em>or</em> per election).'),
-      'restrict access' => TRUE,
-    ),
     'edit any election' => array(
       'title' => t('Edit any election'),
+      'description' => t('This permission allows the user not only to edit elections, but also to administer the posts and candidates for those elections.'),
     ),
     'view any election' => array(
       'title' => t('View any election'),
+      'description' => t('This permission allows the user to view elections, including those elections\' posts and approved candidates.'),
     ),
-    'vote in elections' => array(
-      'title' => t('Vote in elections'),
-      'description' => t('Users must have this permission in order to vote. They must also belong to the relevant electorate(s).'),
+    'bypass nomination schedule' => array(
+      'title' => t('Bypass nomination schedule'),
+      'description' => t('This allows the user to submit a nomination at any time, regardless of whether or not nominations are open.'),
+      'restrict access' => TRUE,
+    ),
+    'submit nominations' => array(
+      'title' => t('Submit nominations'),
+      'description' => t('This allows the user to submit a nomination, only when nominations are open.'),
+    ),
+    'edit own nominations' => array(
+      'title' => t('Edit own nominations'),
+      'description' => t('This allows the user to edit his/her own nominations.'),
     ),
   );
   return $permissions;
@@ -553,11 +601,84 @@ function election_access($op, $election = NULL, $account = NULL) {
     case 'edit':
       return (bool) user_access('edit any election', $account);
       break;
+    case 'nomination':
+      if (empty($election) || $election->type == 'referendum') {
+        return FALSE;
+      }
+      if (user_access('bypass nominations schedule', $account)) {
+        return TRUE;
+      }
+      $nopen = _election_is_open($election->nstatus, $election->nopen_time, $election->nclose_time);
+      if ($nopen) {
+        return (bool) user_access('submit nominations', $account);
+      }
+      return FALSE;
+      break;
+    case 'edit candidates':
+      if (empty($election) || $election->type == 'referendum') {
+        // candidates are n/a
+        return FALSE;
+      }
+      return (bool) election_candidate_access('edit', NULL, $account);
+      break;
     case 'delete':
       return (bool) user_access('delete any election', $account);
       break;
   }
   return FALSE;
+}
+
+/**
+ * Determines whether the given user has access to a given election candidate.
+ *
+ * @param $op
+ *   The operation being performed. One of 'view', 'update', 'create', 'delete'
+ *   or just 'edit' (being the same as 'create' or 'update').
+ * @param $candidate
+ *   Optionally a candidate to check access for. If nothing is
+ *   given, access for all candidates is determined.
+ * @param $account
+ *   The user to check for. Leave it to NULL to check for the global user.
+ * @return boolean
+ *   Whether access is allowed or not.
+ */
+function election_candidate_access($op, $candidate = NULL, $account = NULL) {
+  if ($account === NULL) {
+    global $user;
+    $account = $user;
+  }
+  switch ($op) {
+    case 'view':
+      if (user_access('view any election', $account)) {
+        return TRUE;
+      }
+      break;
+    case 'edit':
+    case 'update':
+    case 'delete':
+      if (user_access('edit any election', $account)) {
+        return TRUE;
+      }
+      break;
+    case 'create':
+      // Creating must happen through the nomination form, not via entity_access.
+      return FALSE;
+      break;
+  }
+  if ($candidate === NULL || empty($candidate->uid) || $candidate->uid !== $account->uid) {
+    // This is not the account's nomination, and global checks have failed.
+    return FALSE;
+  }
+  // This is the $acccount's nomination.
+  switch ($op) {
+    case 'edit':
+    case 'update':
+      return (bool) user_access('edit own nominations', $account);
+      break;
+    default:
+      return FALSE;
+      break;
+  }
 }
 
 /**
@@ -665,6 +786,30 @@ function election_menu() {
     'weight' => 0,
   );
 
+  $items['election/%election/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'election_page_edit',
+    'file' => 'election.admin.inc',
+    'page arguments' => array(1),
+    'access callback' => 'election_access',
+    'access arguments' => array('update', 1),
+    'weight' => 1,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+
+  $items['election/%election/nomination-form'] = array(
+    'title' => 'Nomination form',
+    'page callback' => 'election_page_nomination_form',
+    'page arguments' => array(1),
+    'access callback' => 'election_access',
+    'access arguments' => array('nomination', 1),
+    'file' => 'election-candidate.pages.inc',
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'weight' => 2,
+  );
+
   $items['election/%election/posts'] = array(
     'title callback' => 'election_page_postlist_title',
     'title arguments' => array(1),
@@ -673,20 +818,20 @@ function election_menu() {
     'file' => 'election-post.admin.inc',
     'access callback' => 'election_access',
     'access arguments' => array('update', 2),
-    'weight' => 1,
+    'weight' => 3,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
-  $items['election/%election/edit'] = array(
-    'title' => 'Edit',
-    'page callback' => 'election_page_edit',
-    'file' => 'election.admin.inc',
-    'page arguments' => array(1),
+  $items['election/%election/candidates'] = array(
+    'title' => 'Candidates',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_candidate_list_form', 1),
     'access callback' => 'election_access',
-    'access arguments' => array('update', 1),
-    'weight' => 2,
+    'access arguments' => array('edit candidates', 1),
+    'file' => 'election-candidate.pages.inc',
     'type' => MENU_LOCAL_TASK,
+    'weight' => 4,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
@@ -697,19 +842,38 @@ function election_menu() {
     'access callback' => 'election_access',
     'access arguments' => array('delete', 1),
     'file' => 'election.admin.inc',
-    'weight' => 3,
+    'weight' => 5,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_INLINE,
   );
 
-  $items['election/%election/nomination'] = array(
-    'title' => 'Nomination form',
-    'page callback' => 'election_page_nomination',
-    'page arguments' => array(1),
-    'access callback' => 'election_access',
-    'access arguments' => array('view', 1),
+  $items['election/%election/candidates/%election_candidate'] = array(
+    'title callback' => 'election_candidate_page_title',
+    'title arguments' => array(1, 3),
+    'page callback' => 'election_candidate_page_view',
+    'page arguments' => array(1, 3),
     'file' => 'election-candidate.pages.inc',
+    'access callback' => 'election_candidate_access',
+    'access arguments' => array('view', 3),
     'type' => MENU_CALLBACK,
+  );
+
+  $items['election/%election/candidates/%election_candidate/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+
+  $items['election/%election/candidates/%election_candidate/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_candidate_edit_form', 1, 3),
+    'file' => 'election-candidate.pages.inc',
+    'access callback' => 'election_candidate_access',
+    'access arguments' => array('update', 3),
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'weight' => 1,
   );
 
   $items['election/%election/posts/add'] = array(
@@ -829,20 +993,15 @@ function election_field_extra_fields() {
   $extra = array();
   $extra['election_candidate']['election_candidate'] = array(
     'form' => array(
-      'post' => array(
+      'post_fieldset' => array(
         'label' => t('Post'),
         'description' => t('The post/position for this nomination.'),
         'weight' => -1,
       ),
-      'name' => array(
-        'label' => t('Name'),
-        'description' => t('The candidate\'s first and last names.'),
+      'details' => array(
+        'label' => t('Candidate details'),
+        'description' => t('The candidate\'s name, contact details, etc.'),
         'weight' => 0,
-      ),
-      'mail' => array(
-        'label' => t('Email address'),
-        'description' => t('The candidate\'s email address.'),
-        'weight' => 1,
       ),
     ),
     'display' => array(
@@ -850,16 +1009,6 @@ function election_field_extra_fields() {
         'label' => t('Post'),
         'description' => t('The post/position for this nomination.'),
         'weight' => -1,
-      ),
-      'name' => array(
-        'label' => t('Name'),
-        'description' => t('The candidate\'s first and last names.'),
-        'weight' => 0,
-      ),
-      'mail' => array(
-        'label' => t('Email address'),
-        'description' => t('The candidate\'s email address.'),
-        'weight' => 1,
       ),
     ),
   );
@@ -1060,6 +1209,19 @@ function election_page_title($election) {
 }
 
 /**
+ * Title callback for election/%election_candidate/view (output should not be escaped here
+ * as it is done later).
+ *
+ * @param stdClass $election
+ * @param stdClass $candidate
+ *
+ * @return string
+ */
+function election_candidate_page_title($election, $candidate) {
+  return $candidate->first_name . ' ' . $candidate->last_name;
+}
+
+/**
  * Wrapper function to allow saving an election candidate.
  *
  * @param stdClass $candidate
@@ -1088,9 +1250,15 @@ function election_candidate_user_nominations(stdClass $election, $account = NULL
     $account = $user;
   }
   if ($account->uid == 0) {
-    return FALSE;
+    return array();
   }
-  $select = db_query('SELECT ec.*, ep.title AS post_title, ep.exclusive FROM {election_candidate} ec LEFT JOIN {election_post} ep USING (post_id) WHERE ec.uid = :uid AND ep.election_id = :eid', array(':eid' => $election->election_id, ':uid' => $account->uid));
+  $select = db_query(
+    'SELECT ec.*, ep.title AS post_title, ep.exclusive FROM {election_candidate} ec LEFT JOIN {election_post} ep USING (post_id) WHERE ec.uid = :uid AND ep.election_id = :eid',
+    array(
+      ':eid' => $election->election_id,
+      ':uid' => $account->uid,
+    )
+  );
   return $select->fetchAll();
 }
 
@@ -1350,6 +1518,10 @@ function election_theme() {
       'render element' => 'elements',
       'template' => 'election-post',
     ),
+    'election_candidate' => array(
+      'render element' => 'elements',
+      'template' => 'election-candidate',
+    ),
   );
 }
 
@@ -1453,22 +1625,9 @@ function template_preprocess_election(&$variables) {
   // Make the field variables available with the appropriate language.
   field_attach_preprocess('election', $election, $variables['content'], $variables);
 
-  // Display post information.
-  if (variable_get('election_submitted', FALSE)) {
-    $variables['display_submitted'] = TRUE;
-    $variables['submitted'] = t('Submitted by !username on !datetime', array('!username' => $variables['name'], '!datetime' => $variables['date']));
-    $variables['user_picture'] = theme_get_setting('toggle_node_user_picture') ? theme('user_picture', array('account' => $election)) : '';
-  }
-  else {
-    $variables['display_submitted'] = FALSE;
-    $variables['submitted'] = '';
-    $variables['user_picture'] = '';
-  }
-
   // Gather election classes.
-  $variables['classes_array'][] = drupal_html_class('election-' . $election->type);
+  $variables['classes_array'][] = drupal_html_class('election-type-' . $election->type);
 
-  // Clean up name so there are no underscores.
   $variables['theme_hook_suggestions'][] = 'election__' . $election->type;
   $variables['theme_hook_suggestions'][] = 'election__' . $election->election_id;
 
@@ -1587,6 +1746,70 @@ function template_preprocess_election_post(&$variables) {
 }
 
 /**
+ * Process variables for election-candidate.tpl.php
+ *
+ * The $variables array contains the following arguments:
+ * - $candidate
+ * - $election
+ * - $view_mode
+ * - $page
+ *
+ * @see election-candidate.tpl.php
+ */
+function template_preprocess_election_candidate(&$variables) {
+  $variables['view_mode'] = $variables['elements']['#view_mode'];
+
+  // Provide a distinct $teaser boolean.
+  $variables['teaser'] = $variables['view_mode'] == 'teaser';
+
+  // Provide a distinct $details boolean.
+  $variables['details'] = $variables['view_mode'] == 'details';
+
+  $variables['election'] = $variables['elements']['#election'];
+  $variables['candidate'] = $variables['elements']['#candidate'];
+  $variables['post'] = $variables['elements']['#post'];
+
+  $election = $variables['election'];
+  $candidate = $variables['candidate'];
+  $post = $variables['post'];
+
+  $uri = entity_uri('election_candidate', $candidate, $election);
+  $variables['url'] = url($uri['path'], $uri['options']);
+
+  $election_uri = entity_uri('election', $election);
+  $variables['election_url'] = url($election_uri['path'], $election_uri['options']);
+  $variables['election_link'] = l(check_plain($election->title), $election_uri['path'], $election_uri['options']);
+
+  $post_uri = entity_uri('election_post', $post);
+  $variables['post_url'] = url($post_uri['path'], $post_uri['options']);
+  $variables['post_link'] = l(check_plain($post->title), $post_uri['path'], $post_uri['options']);
+
+  $variables['name']     = $candidate->first_name . ' ' . $candidate->last_name;
+  $variables['page']      = ($variables['view_mode'] == 'full' || $variables['view_mode'] == 'details');
+
+  // Flatten the candidate object's member fields.
+  $variables = array_merge((array) $candidate, $variables);
+
+  // Helpful $content variable for templates.
+  $variables += array('content' => array());
+  foreach (element_children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+
+  // Make the field variables available with the appropriate language.
+  field_attach_preprocess('election_candidate', $candidate, $variables['content'], $variables);
+
+  // Gather election classes.
+  $variables['classes_array'][] = drupal_html_class('election-' . $election->type . '-candidate');
+
+  $variables['theme_hook_suggestions'][] = 'election_candidate__' . $candidate->candidate_id;
+  $variables['theme_hook_suggestions'][] = 'election__' . $election->type . '__candidate';
+  $variables['theme_hook_suggestions'][] = 'election__' . $election->election_id . '__candidate';
+
+}
+
+
+/**
  * Internal function that determines whether voting/nominating in an election is 'open',
  * based on the status, opening time and closing time.
  *
@@ -1680,6 +1903,30 @@ function _election_post_format_status(stdClass $election, stdClass $post, $statu
 }
 
 /**
+ * Internal function to format the status field of an election candidate for display.
+ *
+ * @todo make this themeable
+ *
+ * @param stdClass $candidate
+ *
+ * @return string
+ */
+function _election_candidate_format_status(stdClass $candidate) {
+  switch ($candidate->status) {
+    case ELECTION_CANDIDATE_APPROVED:
+      return t('Approved');
+      break;
+    case ELECTION_CANDIDATE_REJECTED:
+      return t('Nomination rejected');
+      break;
+    case ELECTION_CANDIDATE_PENDING:
+    default:
+      return t('Pending approval');
+      break;
+  }
+}
+
+/**
  * General function for creating breadcrumbs. Accepts any number of parameters,
  * each corresponding to the breadcrumb link. Output must be sanitized before
  * passing to this function. The string '_POST_' will be replaced by the
@@ -1699,7 +1946,7 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
     '<front>'
   );
   $links[] = l(
-    'Elections',
+    t('Elections'),
     'election'
   );
   if (!is_object($election)) {
@@ -1717,14 +1964,10 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
     switch ($arg) {
       case '_POSTS_':
         $posts_name = _election_get_posts_name($election->type, TRUE);
-        if ($key == $args_count) {
-          // Don't link the last item.
-          $link = check_plain(drupal_ucfirst($posts_name));
-          break;
-        }
-        else {
-          $link = l(drupal_ucfirst($posts_name), $election_uri_path . '/posts');
-        }
+        $link = l(drupal_ucfirst($posts_name), $election_uri_path . '/posts');
+        break;
+      case '_CANDIDATES_':
+        $link = l(t('Candidates'), $election_uri_path . '/candidates');
         break;
     }
     $links[] = $link;
