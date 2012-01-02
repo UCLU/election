@@ -132,7 +132,7 @@ function election_list_form($form, $form_state) {
         'data' => array(
           '#theme' => 'item_list',
           '#items' => $operations,
-          '#attributes' => array('class' => array('links', 'inline')),
+          '#attributes' => array('class' => array('operations')),
         ),
       );
     }
@@ -324,8 +324,10 @@ function election_form($form, &$form_state, $election) {
     '#weight' => 80,
   );
 
-  $form['buttons'] = array();
-  $form['buttons']['#weight'] = 100;
+  $form['buttons'] = array(
+    '#type' => 'actions',
+    '#weight' => 100,
+  );
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),

@@ -1,0 +1,158 @@
+<?php
+/**
+ * Implements hook_enable().
+ */
+function election_endorser_enable() {
+}
+
+/**
+ * Implements hook_field_info().
+ */
+function election_endorser_field_info() {
+  $types = array();
+  $types['endorser'] = array(
+    'label' => t('Endorser'),
+    'description' => t('A field that describes a candidate\'s endorser (proposer or seconder) for an election.'),
+    'settings' => array(),
+    'instance_settings' => array(),
+    'default_widget' => 'election_endorser_combined',
+    'default_formatter' => 'election_endorser_default',
+    'no_ui' => FALSE,
+  );
+  return $types;
+}
+
+/**
+ * Implements hook_field_schema().
+ */
+function election_endorser_field_schema($field) {
+  if ($field['type'] == 'endorser') {
+    $schema = array(
+      'columns' => array(
+        'first_name' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => FALSE,
+        ),
+        'last_name' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => FALSE,
+        ),
+        'email' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+        ),
+      ),
+      'indexes' => array(
+        'first_name' => array('first_name'),
+        'last_name' => array('last_name'),
+        'email' => array('email'),
+      ),
+    );
+    return $schema;
+  }
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function election_endorser_field_is_empty($item, $field) {
+  if ($field['type'] == 'endorser') {
+    if (empty($item['last_name']) || empty($item['email'])) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+}
+
+/**
+ * Implements hook_field_validate().
+ * See http://api.drupal.org/api/drupal/modules--field--field.api.php/function/hook_field_validate/7
+ */
+function election_endorser_field_validate($obj_type, $object, $field, $instance, $langcode, $items, &$errors) {
+  if ($field['type'] == 'endorser') {
+    foreach ($items as $delta => $item) {
+      if (!valid_email_address($item['email'])) {
+        $errors[$field['field_name']][$delta][] = array(
+          'error' => 'election_endorser_email',
+          'message' => t('@instance_label: invalid email address', array('@instance_label' => $instance['label'])),
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function election_endorser_field_widget_info() {
+  $widgets = array();
+  $widgets['election_endorser_combined'] = array(
+    'label' => t('Combined text fields'),
+    'description' => t('Enter the name and email address together in text fields.'),
+    'field types' => array('endorser'),
+    'behaviors' => array(
+      'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+      'default value' => FIELD_BEHAVIOR_DEFAULT,
+    ),
+  );
+  return $widgets;
+}
+
+/**
+ * Implements hook_field_widget_form().
+ * See http://api.drupal.org/api/drupal/modules--field--field.api.php/function/hook_field_widget_form/7
+ */
+function election_endorser_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+
+  if ($instance['widget']['type'] == 'election_endorser_combined') {
+
+    $base = $element;
+
+    $element['#element_validate'] = array('_election_endorser_combined_validate');
+
+    $item = NULL;
+    if (isset($items[$delta])) {
+      $item = $items[$delta];
+    }
+
+    $element['election_endorser_combined_wrapper']['#theme'] = 'election_endorser_combined_wrapper';
+
+    $element['election_endorser_combined_wrapper']['set'] = array(
+      '#title' => $element['#title'],
+      '#type' => 'fieldset',
+    ) + $base;
+    $element['election_endorser_combined_wrapper']['set']['first_name'] = array(
+      '#title' => t('First name'),
+      '#type' => 'textfield',
+      '#default_value' => empty($item['first_name'])? '' : $item['first_name'],
+      '#size' => 30,
+    );
+    $element['election_endorser_combined_wrapper']['set']['last_name'] = array(
+      '#title' => t('Last name'),
+      '#type' => 'textfield',
+      '#default_value' => empty($item['last_name'])? '' : $item['last_name'],
+      '#size' => 30,
+    );
+    $element['election_endorser_combined_wrapper']['set']['email'] = array(
+      '#title' => t('Email address'),
+      '#type' => 'textfield',
+      '#default_value' => empty($item['last_name'])? '' : $item['last_name'],
+      '#size' => 40,
+    );
+
+    return $element;
+
+  }
+}
+
+/**
+ * Use validation callback to split the combined field values.
+ */
+function _election_endorser_combined_validate($element, &$form_state) {
+
+  $values = $form_state['values'];
+
+}

@@ -177,34 +177,6 @@ function election_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
-      'require_manifesto' => array(
-        'description' => 'For a position: whether or not to require a candidate manifesto.',
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 1,
-      ),
-      'require_phone' => array(
-        'description' => 'For a position: whether or not to require a candidate phone number.',
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'require_photo' => array(
-        'description' => 'For a position: whether or not to require a candidate photograph.',
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'require_proposer' => array(
-        'description' => 'For a position: whether or not to require the candidate to have a proposer.',
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 1,
-      ),
       'use_ron' => array(
         'description' => 'For a position: whether or not RON (Re-Open Nominations)'
                        . ' is to be provided as a candidate. This is ignored if'

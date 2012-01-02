@@ -20,6 +20,7 @@ function election_page_view($election, $view_mode = 'full') {
 
   if ($view_mode == 'full') {
     drupal_set_title($election->title);
+    drupal_set_breadcrumb(_election_build_breadcrumb());
     $uri = entity_uri('election', $election);
     drupal_add_html_head_link(array('rel' => 'canonical', 'href' => url($uri['path'], $uri['options'])), TRUE);
     drupal_add_html_head_link(array('rel' => 'shortlink', 'href' => url($uri['path'], array_merge($uri['options'], array('alias' => TRUE)))), TRUE);

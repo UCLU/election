@@ -120,7 +120,7 @@ function election_post_form($form, &$form_state, $election, $post) {
           '%item' => $item . '()',
         ));
       }
-      $conditions = theme('item_list', array('items' => $items));
+      $conditions = theme('item_list', array('#items' => $items));
     }
     $electorate_options[$electorate['electorate_id']] = array(
       'name' => $electorate['name'],
@@ -139,8 +139,10 @@ function election_post_form($form, &$form_state, $election, $post) {
     '#empty' => t('No electorates available.'),
   );
 
-  $form['buttons'] = array();
-  $form['buttons']['#weight'] = 100;
+  $form['buttons'] = array(
+    '#type' => 'actions',
+    '#weight' => 100,
+  );
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -266,31 +268,6 @@ function election_post_position_form($form, &$form_state, $election, $post) {
     ),
   );
 
-  $nominations_required_fields_default = array();
-  if (!empty($post->require_manifesto)) {
-    $nominations_required_fields_default[] = 'manifesto';
-  }
-  if (!empty($post->require_proposer)) {
-    $nominations_required_fields_default[] = 'proposer';
-  }
-  if (!empty($post->require_phone)) {
-    $nominations_required_fields_default[] = 'phone';
-  }
-  if (!empty($post->require_photo)) {
-    $nominations_required_fields_default[] = 'photo';
-  }
-  $form['nominations']['nominations_required_fields'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Nomination form required fields'),
-    '#default_value' => $nominations_required_fields_default,
-    '#options' => array(
-      'manifesto' => t('Require a manifesto'),
-      'proposer' => t('Require proposer details'),
-      'phone' => t('Require a phone number'),
-      'photo' => t('Require a photograph'),
-    ),
-  );
-
   return $form;
 }
 
@@ -365,19 +342,6 @@ function election_post_form_submit($form, &$form_state) {
 
   if (empty($form_state['values']['exclusive'])) {
     $post->exclusive = 0;
-  }
-
-  $required_fields = (array) @$form_state['values']['nominations_required_fields'];
-  foreach ($required_fields as $required_field => $value) {
-    switch ($required_field) {
-      case 'phone':
-      case 'photo':
-      case 'manifesto':
-      case 'proposer':
-        $value = empty($value)? '0' : '1';
-        $post->{'require_' . $required_field} = $value;
-        break;
-    }
   }
 
   $post->electorates = array();
@@ -562,7 +526,7 @@ function election_post_list_form($form, $form_state, $election) {
         'data' => array(
           '#theme' => 'item_list',
           '#items' => $operations,
-          '#attributes' => array('class' => array('links', 'inline')),
+          '#attributes' => array('class' => array('operations')),
         ),
       );
     }

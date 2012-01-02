@@ -4,6 +4,7 @@
  * Election primary module file.
  */
 
+// Required files.
 require_once 'includes/election.constants.inc';
 
 /**
@@ -123,16 +124,8 @@ function election_entity_info() {
       ),
     ),
     'view modes' => array(
-      'full' => array(
-        'label' => t('Normal view'),
-        'custom settings' => TRUE,
-      ),
       'teaser' => array(
         'label' => t('Teaser'),
-        'custom settings' => TRUE,
-      ),
-      'details' => array(
-        'label' => t('Details'),
         'custom settings' => TRUE,
       ),
     ),
@@ -175,6 +168,23 @@ function election_types() {
     $types += module_invoke_all('election_type_info');
   }
   return $types;
+}
+
+/*
+ * Return an array of election type names, keyed by machine name.
+ *
+ * @param bool $ucfirst
+ *   Whether to apply drupal_ucfirst() to each election type name.
+ *
+ * @return array
+ */
+function election_type_get_names($ucfirst = TRUE) {
+  $names = array();
+  $types = election_types();
+  foreach ($types as $mn => $type) {
+    $names[$mn] = $ucfirst? drupal_ucfirst($type['name']) : $type['name'];
+  }
+  return $names;
 }
 
 /**
@@ -247,10 +257,10 @@ function election_post_uri_path($post) {
  * @return array
  */
 function election_candidate_uri($candidate) {
-  $path = 'election-candidates/' . $candidate->candidate_id;
+  $path = 'election-candidate/' . $candidate->candidate_id;
   if (!empty($candidate->election_id)) {
     $election = election_load($candidate->election_id);
-    $path = election_uri_path($election) . '/candidates/' . $candidate->candidate_id;
+    $path = election_uri_path($election) . '/candidate/' . $candidate->candidate_id;
   }
   return array(
     'path' => $path,
@@ -771,13 +781,14 @@ function election_menu() {
     'weight' => 0,
   );
 
-  $items['election'] = array(
+  $items['elections'] = array(
     'title' => 'Elections',
-    'page callback' => 'drupal_get_form', // @todo make this views_embed_view or a wrapper
-    'page arguments' => array('election_list_form'),
+    'page callback' => 'views_page', // @todo make this views_embed_view or a wrapper
+    'page arguments' => array('elections', 'default'),
     'access callback' => 'election_access',
     'access arguments' => array('view'),
-    'file' => 'election.admin.inc',
+    'file path' => drupal_get_path('module', 'views'),
+    'file' => 'views.module',
   );
 
   $items['election/%election'] = array(
@@ -857,7 +868,7 @@ function election_menu() {
     'context' => MENU_CONTEXT_INLINE,
   );
 
-  $items['election/%election/candidates/%election_candidate'] = array(
+  $items['election/%election/candidate/%election_candidate'] = array(
     'title callback' => 'election_candidate_page_title',
     'title arguments' => array(1, 3),
     'page callback' => 'election_candidate_page_view',
@@ -868,13 +879,25 @@ function election_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['election/%election/candidates/%election_candidate/view'] = array(
+  $items['election/%election/candidate/%election_candidate/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
 
-  $items['election/%election/candidates/%election_candidate/edit'] = array(
+  $items['election/%election/candidate/%election_candidate/details'] = array(
+    'title' => 'Details',
+    'page callback' => 'election_candidate_details_page_view',
+    'page arguments' => array(1, 3),
+    'file' => 'election-candidate.pages.inc',
+    'access callback' => 'election_candidate_access',
+    'access arguments' => array('view details', 3),
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'weight' => 1,
+  );
+
+  $items['election/%election/candidate/%election_candidate/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_candidate_edit_form', 1, 3),
@@ -883,7 +906,19 @@ function election_menu() {
     'access arguments' => array('update', 3),
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-    'weight' => 1,
+    'weight' => 2,
+  );
+
+  $items['election/%election/candidate/%election_candidate/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_candidate_edit_form_delete_confirm', 1, 3),
+    'access callback' => 'election_candidate_access',
+    'access arguments' => array('delete', 3),
+    'file' => 'election-candidate.pages.inc',
+    'weight' => 3,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE,
   );
 
   $items['election/%election/posts/add'] = array(
@@ -1001,39 +1036,105 @@ function election_menu_alter(&$items) {
  */
 function election_field_extra_fields() {
   $extra = array();
+  $extra['election']['referendum'] = array(
+    'form' => array(
+      'title' => array(
+        'label' => t('Title'),
+        'description' => t('The referendum title.'),
+        'weight' => 0,
+      ),
+      'vstatus' => array(
+        'label' => t('Voting status'),
+        'weight' => 1,
+      ),
+      'vschedule' => array(
+        'label' => t('Voting schedule'),
+        'weight' => 2,
+      ),
+      'anonymous' => array(
+        'label' => t('Voter anonymity'),
+        'description' => t('The anonymity settings for this referendum.'),
+        'weight' => 3,
+      ),
+    ),
+  );
+  $extra['election']['stv'] = array(
+    'form' => array(
+      'title' => array(
+        'label' => t('Title'),
+        'description' => t('The election title.'),
+        'weight' => 0,
+      ),
+      'nstatus' => array(
+        'label' => t('Nominations status'),
+        'weight' => 1,
+      ),
+      'nschedule' => array(
+        'label' => t('Nominations schedule'),
+        'weight' => 2,
+      ),
+      'vstatus' => array(
+        'label' => t('Voting status'),
+        'weight' => 3,
+      ),
+      'vschedule' => array(
+        'label' => t('Voting schedule'),
+        'weight' => 4,
+      ),
+      'anonymous' => array(
+        'label' => t('Voter anonymity'),
+        'description' => t('The anonymity settings for this election.'),
+        'weight' => 5,
+      ),
+    ),
+  );
   $extra['election_candidate']['election_candidate'] = array(
     'form' => array(
-      'post_fieldset' => array(
+      'post' => array(
         'label' => t('Post'),
-        'description' => t('The post/position for this nomination.'),
+        'description' => t('The post for this nomination.'),
         'weight' => -1,
       ),
-      'details' => array(
-        'label' => t('Candidate details'),
-        'description' => t('The candidate\'s name, contact details, etc.'),
+      'first_name' => array(
+        'label' => t('First name'),
+        'description' => t('The candidate\'s first name(s).'),
         'weight' => 0,
+      ),
+      'last_name' => array(
+        'label' => t('Last name'),
+        'description' => t('The candidate\'s last name(s).'),
+        'weight' => 1,
+      ),
+      'mail' => array(
+        'label' => t('Email address'),
+        'description' => t('The candidate\'s email address.'),
+        'weight' => 2,
+      ),
+      'phone' => array(
+        'label' => t('Phone number'),
+        'description' => t('The candidate\'s phone number.'),
+        'weight' => 3,
       ),
     ),
     'display' => array(
+      'election' => array(
+        'label' => t('Election'),
+        'description' => t('The election for this nomination.'),
+        'weight' => 0,
+      ),
       'post' => array(
         'label' => t('Post'),
         'description' => t('The post/position for this nomination.'),
-        'weight' => -1,
+        'weight' => 1,
+      ),
+      'full-name' => array(
+        'label' => t('Name'),
+        'description' => t('The candidate\'s name.'),
+        'weight' => 2,
       ),
     ),
   );
   return $extra;
-}
-
-/*
- * Implements hook_field_extra_fields_alter().
- *
- * @return array
- */
-function election_field_extra_fields_alter(&$info) {
-  if (isset($info['election_candidate']['election_candidate']['redirect']['form'])) {
-    $info['election_candidate']['election_candidate']['redirect']['form']['weight'] = 20;
-  }
 }
 
 /**
@@ -1242,6 +1343,31 @@ function election_candidate_save($candidate) {
   return entity_get_controller('election_candidate')->save($candidate);
 }
 
+/**
+ * Wrapper function to allow deleting multiple candidates.
+ *
+ * @param array $candidate_ids
+ *   Array of candidate IDs.
+ * @return bool
+ */
+function election_candidate_delete_multiple(array $candidate_ids) {
+  return entity_get_controller('election_candidate')->delete($candidate_ids);
+}
+
+/**
+ * Wrapper function to allow deleting an individual election.
+ *
+ * @see election_candidate_delete_multiple()
+ *
+ * @param mixed $candidate_id
+ *   Single candidate ID.
+ * @return bool
+ */
+function election_candidate_delete($candidate_id) {
+  return election_candidate_delete_multiple(array($candidate_id));
+}
+
+
 /*
  * Find the nominations (election_candidate entities) for a specified election
  * and user.
@@ -1273,10 +1399,14 @@ function election_candidate_get_user_nominations(stdClass $election, $account = 
 }
 
 /*
- * Find the posts/positions that a candidate may be nominated for.
+ * Find the posts that a candidate may be nominated for.
  *
  * @param stdClass $election
+ *   Election object.
+ * @param array $nominations
+ *   Array of the user's previous nominations (election_candidate objects).
  * @param stdClass $account
+ *   User object.
  *
  * @return
  *   Array of post IDs.
@@ -1532,6 +1662,10 @@ function election_theme() {
       'render element' => 'elements',
       'template' => 'election-candidate',
     ),
+    'election_candidate_details' => array(
+      'render element' => 'elements',
+      'template' => 'election-candidate-details',
+    ),
   );
 }
 
@@ -1612,9 +1746,6 @@ function template_preprocess_election(&$variables) {
   $variables['election'] = $variables['elements']['#election'];
   $election = $variables['election'];
 
-  $variables['date']      = format_date($election->created);
-  $variables['name']      = theme('username', array('account' => $election));
-
   $uri = entity_uri('election', $election);
   $variables['election_url'] = url($uri['path'], $uri['options']);
   $variables['title']     = check_plain($election->title);
@@ -1635,7 +1766,6 @@ function template_preprocess_election(&$variables) {
   // Make the field variables available with the appropriate language.
   field_attach_preprocess('election', $election, $variables['content'], $variables);
 
-  // Gather election classes.
   $variables['classes_array'][] = drupal_html_class('election-type-' . $election->type);
 
   $variables['theme_hook_suggestions'][] = 'election__' . $election->type;
@@ -1769,11 +1899,12 @@ function template_preprocess_election_post(&$variables) {
 function template_preprocess_election_candidate(&$variables) {
   $variables['view_mode'] = $variables['elements']['#view_mode'];
 
-  // Provide a distinct $teaser boolean.
+  // $teaser boolean
   $variables['teaser'] = $variables['view_mode'] == 'teaser';
-
-  // Provide a distinct $details boolean.
+  // $details boolean
   $variables['details'] = $variables['view_mode'] == 'details';
+  // $page boolean
+  $variables['page'] = ($variables['view_mode'] == 'full' || $variables['view_mode'] == 'details');
 
   $variables['election'] = $variables['elements']['#election'];
   $variables['candidate'] = $variables['elements']['#candidate'];
@@ -1782,25 +1913,32 @@ function template_preprocess_election_candidate(&$variables) {
   $election = $variables['election'];
   $candidate = $variables['candidate'];
   $post = $variables['post'];
+  $election_type = _election_type_get_info($election->type);
+
+  if (empty($post)) {
+    // Handle gracefully when the candidate's post is deleted prematurely.
+    $post = entity_get_controller('election_post')->create(array(
+      'type' => $election_type['post key'],
+    ));
+  }
 
   $uri = entity_uri('election_candidate', $candidate, $election);
   $variables['url'] = url($uri['path'], $uri['options']);
 
   $election_uri = entity_uri('election', $election);
   $variables['election_url'] = url($election_uri['path'], $election_uri['options']);
-  $variables['election_link'] = l(check_plain($election->title), $election_uri['path'], $election_uri['options']);
+  $variables['election_title'] = check_plain($election->title);
+  $variables['election_link'] = l($election->title, $election_uri['path'], $election_uri['options']);
+  $variables['election_type'] = check_plain($election_type['name']);
 
   $post_uri = entity_uri('election_post', $post);
   $variables['post_url'] = url($post_uri['path'], $post_uri['options']);
-  $variables['post_link'] = l(check_plain($post->title), $post_uri['path'], $post_uri['options']);
+  $variables['post_title'] = check_plain($post->title);
+  $variables['post_link'] = l($post->title, $post_uri['path'], $post_uri['options']);
+  $variables['post_name'] = check_plain($election_type['post name']);
 
-  $variables['name']     = $candidate->first_name . ' ' . $candidate->last_name;
-  $variables['page']      = ($variables['view_mode'] == 'full' || $variables['view_mode'] == 'details');
+  $variables['full_name'] = t('@first_name @last_name', array('@first_name' => $candidate->first_name, '@last_name' => $candidate->last_name));
 
-  // Flatten the candidate object's member fields.
-  $variables = array_merge((array) $candidate, $variables);
-
-  // Helpful $content variable for templates.
   $variables += array('content' => array());
   foreach (element_children($variables['elements']) as $key) {
     $variables['content'][$key] = $variables['elements'][$key];
@@ -1809,7 +1947,6 @@ function template_preprocess_election_candidate(&$variables) {
   // Make the field variables available with the appropriate language.
   field_attach_preprocess('election_candidate', $candidate, $variables['content'], $variables);
 
-  // Gather election classes.
   $variables['classes_array'][] = drupal_html_class('election-' . $election->type . '-candidate');
 
   $variables['theme_hook_suggestions'][] = 'election_candidate__' . $candidate->candidate_id;
@@ -1818,6 +1955,117 @@ function template_preprocess_election_candidate(&$variables) {
 
 }
 
+/**
+ * Process variables for election-candidate-details.tpl.php
+ *
+ * The $variables array contains the following arguments:
+ * - $candidate
+ * - $election
+ * - $page
+ *
+ * @see election-candidate.tpl.php
+ */
+function template_preprocess_election_candidate_details(&$variables) {
+
+  $variables['election'] = $variables['elements']['#election'];
+  $variables['candidate'] = $variables['elements']['#candidate'];
+  $variables['post'] = $variables['elements']['#post'];
+
+  $election = $variables['election'];
+  $candidate = $variables['candidate'];
+  $post = $variables['post'];
+  $election_type = _election_type_get_info($election->type);
+
+  if (empty($post)) {
+    // Handle gracefully when the candidate's post is deleted prematurely.
+    $post = entity_get_controller('election_post')->create(array(
+      'type' => $election_type['post key'],
+    ));
+  }
+
+  $uri = entity_uri('election_candidate', $candidate, $election);
+  $variables['url'] = url($uri['path'], $uri['options']);
+
+  $election_uri = entity_uri('election', $election);
+  $variables['election_url'] = url($election_uri['path'], $election_uri['options']);
+  $variables['election_link'] = l($election->title, $election_uri['path'], $election_uri['options']);
+
+  $post_uri = entity_uri('election_post', $post);
+  $variables['post_url'] = url($post_uri['path'], $post_uri['options']);
+  $variables['post_link'] = l($post->title, $post_uri['path'], $post_uri['options']);
+
+  $variables['full_name'] = t('@first_name @last_name', array('@first_name' => $candidate->first_name, '@last_name' => $candidate->last_name));
+
+  $variables['content']['election'] = array(
+    '#theme' => 'container',
+    '#attributes' => array(
+      'class' => array('pseudo-field', 'candidate-election'),
+    ),
+    '#markup' => '<span class="label">' . t('Election:') . '</span>'
+               . ' <span class="item">' . $variables['election_link'] . '</span>',
+  );
+
+  $variables['content']['post'] = array(
+    '#theme' => 'container',
+    '#attributes' => array(
+      'class' => array('pseudo-field', 'candidate-post'),
+    ),
+    '#markup' => '<span class="label">' . drupal_ucfirst($election_type['post name'] . ':') . '</span>'
+               . ' <span class="item">' . $variables['post_link'] . '</span>',
+  );
+
+  $variables['content']['full-name'] = array(
+    '#theme' => 'container',
+    '#attributes' => array(
+      'class' => array('pseudo-field', 'candidate-full-name'),
+    ),
+    '#markup' => '<span class="label">' . t('Name:') . '</span>'
+               . ' <span class="item">' . $variables['full_name'] . '</span>',
+  );
+
+  $variables['username'] = theme('username', array('#account' => $candidate->uid? user_load($candidate->uid) : NULL));
+  $variables['phone'] = check_plain($candidate->phone);
+  $variables['mail'] = l($candidate->mail, 'mailto:' . $candidate->mail, array('absolute' => TRUE));
+
+  $variables['content']['mail'] = array(
+    '#theme' => 'container',
+    '#attributes' => array(
+      'class' => array('pseudo-field', 'candidate-email-address')
+    ),
+    '#markup' => '<span class="label">' . t('Email address:') . '</span>'
+               . ' <span class="item">' . $variables['mail'] . '</span>',
+  );
+
+  $variables['content']['phone'] = array(
+    '#theme' => 'container',
+    '#attributes' => array(
+      'class' => array('pseudo-field', 'candidate-phone'),
+    ),
+    '#markup' => '<span class="label">' . t('Phone number:') . '</span>'
+               . ' <span class="item">' . $variables['phone'] . '</span>',
+  );
+
+  $variables['content']['candidate-username'] = array(
+    '#theme' => 'container',
+    '#attributes' => array(
+      'class' => array('pseudo-field', 'candidate-username'),
+    ),
+    '#markup' => '<span class="label">' . t('Username:') . '</span>'
+               . ' <span class="item">' . $variables['username'] . '</span>',
+  );
+
+  $variables += array('content' => array());
+  foreach (element_children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+
+  $variables['classes_array'][] = drupal_html_class('election-' . $election->type . '-candidate', 'election-candidate-details');
+
+  $variables['theme_hook_suggestions'][] = 'election_candidate_details__' . $candidate->candidate_id;
+  $variables['theme_hook_suggestions'][] = 'election__' . $election->type . '__candidate_details';
+  $variables['theme_hook_suggestions'][] = 'election__' . $election->election_id . '__candidate_details';
+
+}
 
 /**
  * Internal function that determines whether voting/nominating in an election is 'open',
@@ -1956,8 +2204,8 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
     '<front>'
   );
   $links[] = l(
-    t('Elections'),
-    'election'
+    t('Elections  '),
+    'elections'
   );
   if (!is_object($election)) {
     return $links;
@@ -1967,7 +2215,7 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
   $args_count = count($args);
   $links[] = l(
     $election->title, // l() runs check_plain anyway.
-    election_uri_path($election)
+    $election_uri_path
   );
   foreach ($args as $key => $arg) {
     $link = $arg;
@@ -2028,4 +2276,54 @@ function _election_get_posts_name($type_mn, $plural = FALSE) {
     $name = $type['post name plural'];
   }
   return $name;
+}
+
+/*
+ * Implements hook_file_download_access().
+ *
+ * Allow private files to be downloaded when they are attached to an election
+ * entity via a file field.
+ *
+ * @param string $field
+ * @param string $entity_type
+ * @param string $entity
+ */
+function election_file_download_access($field, $entity_type, $entity) {
+  if ($entity_type == 'election') {
+    return election_access('view', $entity);
+  }
+  if ($entity_type == 'election_post' && !empty($entity->election_id)) {
+    $election = election_load($entity->election_id);
+    return election_access('view', $election);
+  }
+  if ($entity_type == 'election_candidate') {
+    return election_candidate_access('view', $entity);
+  }
+}
+
+/*
+ * Implements hook_views_default_views().
+ */
+function election_views_default_views() {
+  $views_files = array(
+    './' . drupal_get_path('module', 'election') . '/views/all_elections.inc'
+  );
+  $views = array();
+  foreach ($views_files as $filename) {
+    include_once $filename;
+  }
+  return $views;
+}
+
+/**
+ * Implements hook_menu_position_rule_plugins().
+ */
+function election_menu_position_rule_plugins() {
+  return array(
+    'election' => array(
+      'form_callback' => 'election_menu_position_rule_election_form',
+      'condition_callback' => 'election_menu_position_condition_election',
+      'file' => 'includes/election.menu-position.inc',
+    ),
+  );
 }
