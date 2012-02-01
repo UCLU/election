@@ -362,10 +362,6 @@ function election_post_form_submit($form, &$form_state) {
     t('The @post_name "@title" was saved.', array('@post_name' => _election_get_posts_name($election->type), '@title' => $post->title))
   );
 
-  if (empty($_GET['destination'])) {
-    $form_state['redirect'] = election_uri_path($election) . '/posts';
-  }
-
 }
 
 /**

@@ -1138,21 +1138,6 @@ function election_field_extra_fields() {
 }
 
 /**
- * Implements hook_admin_paths().
- *
- * @todo sort this out
- */
-function election_admin_paths() {
-  $paths = array(
-//    'election/*/add' => TRUE,
-//    'election/*/edit' => TRUE,
-//    'election/*/delete' => TRUE,
-//    'election/*' => TRUE,
-  );
-  return $paths;
-}
-
-/**
  * Wrapper function to allow deleting multiple elections.
  *
  * @param array $election_ids

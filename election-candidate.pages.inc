@@ -197,6 +197,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
       $post_options[$post->post_id] = truncate_utf8($post->title, 100, TRUE, TRUE, 80);
     }
   }
+  drupal_alter('election_candidate_post_options', $post_options);
   $post_name = _election_get_posts_name($election->type);
   $form['post_id'] = array(
     '#type' => 'select',
@@ -204,10 +205,6 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
     '#title' => check_plain(drupal_ucfirst($post_name)),
     '#empty_option' => t('- Select @post_name -', array('@post_name' => $post_name)),
     '#required' => TRUE,
-    '#description' => t(
-      'If you cannot find a @post_name in this list, it may be because you have already submitted a nomination.',
-      array('@post_name' => $post_name)
-    ),
   );
 
   $form['first_name'] = array(
@@ -238,7 +235,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
     '#type' => 'textfield',
     '#title' => t('Contact telephone number'),
     '#size' => 12,
-    '#required' => FALSE,
+    '#required' => TRUE, // @todo make this alterable
   );
 
   // Add custom fields from the Field system.
@@ -637,11 +634,11 @@ function election_candidate_list_form($form, $form_state, $election) {
   // Build the sortable table header.
   $header = array(
     'created' => array('data' => t('Nominated'), 'field' => 'ec.created', 'sort' => 'desc'),
-    'post_title' => array('data' => drupal_ucfirst($post_name), 'field' => 'ep.title'),
+    'post_title' => array('data' => drupal_ucfirst($post_name)),
     'first_name' => array('data' => t('First name'), 'field' => 'ec.first_name'),
     'last_name' => array('data' => t('Last name'), 'field' => 'ec.last_name'),
     'username' => array('data' => t('Username'), 'field' => 'ec.username'),
-    'cstatus' => array('data' => t('Status')),
+    'cstatus' => array('data' => t('Status'), 'field' => 'ec.cstatus'),
     'operations' => array('data' => t('Operations')),
   );
 
