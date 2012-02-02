@@ -314,11 +314,11 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
 
   $candidate = &$form_state['candidate'];
 
+  $values = $form_state['values'];
+
   // election object won't be changed, no need to pass by reference
   $election = $form_state['election'];
   $post = election_post_load($values['post_id']);
-
-  $values = $form_state['values'];
 
   $candidate->election_id = $election->election_id;
 
