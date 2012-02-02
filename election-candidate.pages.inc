@@ -17,7 +17,7 @@ function election_candidate_page_view(stdClass $election, stdClass $candidate, $
     t(
       'Candidate: @first-name @last-name',
       array(
-        '@first-name' => $candidate->first_name,
+        '@first-name' => $candidatle->first_name,
         '@last-name' => $candidate->last_name,
       )
     ),
@@ -194,6 +194,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
   $post_options = array();
   foreach ($available_posts as $post) {
     if ($bypass || $post->nstatus_inheritance == ELECTION_POST_STATUS_INHERIT) {
+      // @todo make this alterable
       $post_options[$post->post_id] = truncate_utf8($post->title, 100, TRUE, TRUE, 80);
     }
   }
@@ -315,12 +316,13 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
 
   // election object won't be changed, no need to pass by reference
   $election = $form_state['election'];
+  $post = election_post_load($values['post_id']);
 
   $values = $form_state['values'];
 
   $candidate->election_id = $election->election_id;
 
-  $candidate->post_id = $values['post'];
+  $candidate->post_id = $values['post_id'];
 
   $candidate->first_name = $values['first_name'];
   $candidate->last_name = $values['last_name'];
@@ -340,6 +342,11 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
 
   // Save the nomination.
   election_candidate_save($candidate);
+
+  // Trigger a Rules action.
+  if (function_exists('rules_invoke_event')) {
+    rules_invoke_event('election_candidate_nomination_submitted', $candidate, $post, $election);
+  }
 
   // Notify the user that the nomination was saved.
   drupal_set_message(t(
@@ -610,6 +617,50 @@ function election_candidate_edit_form_submit($form, &$form_state) {
 
 }
 
+/**
+ * Page callback for election/%election/candidates.
+ */
+function election_candidate_list_page(stdClass $election) {
+
+ // @todo this should not be necessary
+  drupal_set_title(t('Candidates'), PASS_THROUGH);
+  drupal_set_breadcrumb(
+    _election_build_breadcrumb($election)
+  );
+
+  return array(
+    'totals' => election_candidate_list_totals($election),
+    'list' => drupal_get_form('election_candidate_list_form', $election),
+  );
+
+}
+
+/**
+ * Display total numbers of candidates per post.
+ */
+function election_candidate_list_totals(stdClass $election) {
+
+  $result = db_query(
+    'SELECT ep.post_id, ep.title, COUNT(DISTINCT ec.candidate_id) AS num_candidates FROM {election_post} ep LEFT JOIN {election_candidate} ec USING (post_id) WHERE ep.election_id = :election_id GROUP BY ep.post_id HAVING num_candidates > 0 ORDER BY ep.title',
+    array(
+      ':election_id' => $election->election_id,
+    )
+  );
+  $totals = $result->fetchAllAssoc('post_id');
+
+  $items = array();
+
+  foreach ($totals as $post_id => $total) {
+    $items[] = check_plain($total->title) . ': ' . $total->num_candidates;
+  }
+
+  return array(
+    '#theme' => 'item_list',
+    '#title' => t('Totals'),
+    '#items' => $items,
+  );
+
+}
 
 /**
  * Form builder function for the main administrative election candidate list.
@@ -623,22 +674,16 @@ function election_candidate_edit_form_submit($form, &$form_state) {
  */
 function election_candidate_list_form($form, $form_state, $election) {
 
- // @todo this should not be necessary
-  drupal_set_title(t('Candidates'), PASS_THROUGH);
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb($election)
-  );
-
   $post_name = _election_get_posts_name($election->type);
 
   // Build the sortable table header.
   $header = array(
     'created' => array('data' => t('Nominated'), 'field' => 'ec.created', 'sort' => 'desc'),
-    'post_title' => array('data' => drupal_ucfirst($post_name)),
+    'post_title' => array('data' => drupal_ucfirst($post_name), 'field' => 'ep.title'),
     'first_name' => array('data' => t('First name'), 'field' => 'ec.first_name'),
     'last_name' => array('data' => t('Last name'), 'field' => 'ec.last_name'),
     'username' => array('data' => t('Username'), 'field' => 'ec.username'),
-    'cstatus' => array('data' => t('Status'), 'field' => 'ec.cstatus'),
+    'cstatus' => array('data' => t('Status')),
     'operations' => array('data' => t('Operations')),
   );
 

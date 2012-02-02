@@ -846,8 +846,8 @@ function election_menu() {
 
   $items['election/%election/candidates'] = array(
     'title' => 'Candidates',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_candidate_list_form', 1),
+    'page callback' => 'election_candidate_list_page',
+    'page arguments' => array(1),
     'access callback' => 'election_access',
     'access arguments' => array('edit candidates', 1),
     'file' => 'election-candidate.pages.inc',
@@ -1430,38 +1430,55 @@ function election_candidate_get_available_posts(stdClass $election, $nominations
  * See http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_token_info/7.
  */
 function election_token_info() {
-  $type = array(
-    'name' => t('Elections'),
-    'description' => t('Tokens related to elections.'),
-    'needs-data' => 'election',
-  );
-  $tokens = array(
-    'id' => array(
-      'name' => t('Election ID'),
-      'description' => t('The unique ID of the election.'),
+  $info = array();
+  $info['types'] = array(
+    'election' => array(
+      'name' => t('Elections'),
+      'description' => t('Tokens related to elections.'),
+      'needs-data' => 'election',
     ),
-    'type' => array(
-      'name' => t('Election type'),
-      'description' => t('The machine-readable name of the election type.'),
-    ),
-    'type-name' => array(
-      'name' => t('Election type name'),
-      'description' => t('The human-readable name of the election type.'),
-    ),
-    'title' => array(
-      'name' => t('Title'),
-      'description' => t('The title of the election.'),
-    ),
-    'created' => array(
-      'name' => t('Date created'),
-      'description' => t('The date the election was created.'),
-      'type' => 'date',
+    'election_candidate' => array(
+      'name' => t('Candidates'),
+      'description' => t('Tokens related to election candidates.'),
+      'needs-data' => 'election_candidate',
     ),
   );
-  return array(
-    'types' => array('election' => $type),
-    'tokens' => array('election' => $tokens),
+  $info['tokens'] = array(
+    'election' => array(
+      'id' => array(
+        'name' => t('Election ID'),
+        'description' => t('The unique ID of the election.'),
+      ),
+      'type' => array(
+        'name' => t('Election type'),
+        'description' => t('The machine-readable name of the election type.'),
+      ),
+      'type_name' => array(
+        'name' => t('Election type name'),
+        'description' => t('The human-readable name of the election type.'),
+      ),
+      'title' => array(
+        'name' => t('Title'),
+        'description' => t('The title of the election.'),
+      ),
+      'created' => array(
+        'name' => t('Date created'),
+        'description' => t('The date the election was created.'),
+        'type' => 'date',
+      ),
+    ),
+    'election_candidate' => array(
+      'id' => array(
+        'name' => t('Election candidate ID'),
+        'description' => t('The unique ID of the candidate.'),
+      ),
+      'mail' => array(
+        'name' => t('Email address'),
+        'description' => t('The email address of the candidate.'),
+      ),
+    ),
   );
+  return $info;
 }
 
 /**
@@ -1480,7 +1497,7 @@ function election_tokens($type, array $tokens, array $data = array(), array $opt
         case 'type':
           $replacements[$original] = $sanitize ? check_plain($election->type) : $election->type;
           break;
-        case 'type-name':
+        case 'type_name':
           $type = _election_type_get_info($election->type);
           $type_name = $type['name'];
           $replacements[$original] = $sanitize ? check_plain($type_name) : $type_name;
@@ -1490,6 +1507,19 @@ function election_tokens($type, array $tokens, array $data = array(), array $opt
           break;
         case 'created':
           $replacements[$original] = format_date($election->created, 'medium');
+          break;
+      }
+    }
+  }
+  else if ($type == 'election_candidate' && !empty($data['election_candidate'])) {
+    $candidate = $data['election_candidate'];
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+        case 'id':
+          $replacements[$original] = $candidate->candidate_id;
+          break;
+        case 'mail':
+          $replacements[$original] = $sanitize ? check_plain($candidate->mail) : $candidate->mail;
           break;
       }
     }
