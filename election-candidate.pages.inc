@@ -640,17 +640,23 @@ function election_candidate_list_page(stdClass $election) {
  */
 function election_candidate_list_totals(stdClass $election) {
 
+  $result = db_query('SELECT COUNT(DISTINCT candidate_id) FROM {election_candidate} WHERE election_id = :election_id', array(
+  ':election_id' => $election->election_id));
+  $totalAll = $result->fetchField();
+
   $result = db_query(
-    'SELECT ep.post_id, ep.title, COUNT(DISTINCT ec.candidate_id) AS num_candidates FROM {election_post} ep LEFT JOIN {election_candidate} ec USING (post_id) WHERE ep.election_id = :election_id GROUP BY ep.post_id HAVING num_candidates > 0 ORDER BY ep.title',
+    'SELECT ep.title, COUNT(DISTINCT ec.candidate_id) AS num_candidates FROM {election_post} ep LEFT JOIN {election_candidate} ec USING (post_id) WHERE ep.election_id = :election_id GROUP BY ep.post_id ORDER BY ep.title',
     array(
       ':election_id' => $election->election_id,
     )
   );
-  $totals = $result->fetchAllAssoc('post_id');
+  $totals = $result->fetchAll();
 
   $items = array();
 
-  foreach ($totals as $post_id => $total) {
+  $items[] = t('All positions: !totalAll', array('!totalAll' => $totalAll));
+
+  foreach ($totals as $total) {
     $items[] = check_plain($total->title) . ': ' . $total->num_candidates;
   }
 
