@@ -479,7 +479,7 @@ function election_candidate_edit_form($form, $form_state, stdClass $election, st
   $form['user_info']['current_user'] = array(
     '#title' => t('Associated user account'),
     '#type' => 'item',
-    '#default_value' => empty($account)? NULL : $account->name,
+    '#default_value' => empty($candidate_account)? NULL : $candidate_account->name,
     '#weight' => 1,
   );
   if (empty($account)) {
@@ -488,12 +488,12 @@ function election_candidate_edit_form($form, $form_state, stdClass $election, st
   else {
     $form['user_info']['current_user']['#markup'] = theme(
       'username',
-      array('account' => $account, 'link_options' => array('target' => '_blank'))
+      array('account' => $candidate_account, 'link_options' => array('target' => '_blank'))
     );
     $form['user_info']['current_user']['#description'] = t('The account that submitted the nomination.');
   }
 
-  $post_ids = election_candidate_get_available_posts($election, NULL, $candidate_account);
+  $post_ids = election_candidate_get_available_posts($election, NULL, FALSE);
   $available_posts = election_post_load_multiple($post_ids);
   $post_options = array();
   foreach ($available_posts as $post) {
