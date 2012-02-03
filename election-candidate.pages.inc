@@ -17,7 +17,7 @@ function election_candidate_page_view(stdClass $election, stdClass $candidate, $
     t(
       'Candidate: @first-name @last-name',
       array(
-        '@first-name' => $candidatle->first_name,
+        '@first-name' => $candidate->first_name,
         '@last-name' => $candidate->last_name,
       )
     ),

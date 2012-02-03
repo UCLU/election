@@ -573,7 +573,14 @@ function election_permission() {
     'bypass nomination schedule' => array(
       'title' => t('Bypass nomination schedule'),
       'description' => t('This allows the user to submit a nomination at any time, regardless of whether or not nominations are open.'),
-      'restrict access' => TRUE,
+    ),
+    'bypass nomination exclusivity' => array(
+      'title' => t('Bypass nomination exclusivity'),
+      'description' => t('This allows the user to submit a nomination for more than one exclusive position.'),
+    ),
+    'allow duplicate nominations' => array(
+      'title' => t('Allow duplicate nominations'),
+      'description' => t('This allows the user to submit more than one nomination for the same position.'),
     ),
     'submit nominations' => array(
       'title' => t('Submit nominations'),
@@ -617,14 +624,7 @@ function election_access($op, $election = NULL, $account = NULL) {
       if (empty($election) || $election->type == 'referendum') {
         return FALSE;
       }
-      if (user_access('bypass nominations schedule', $account)) {
-        return TRUE;
-      }
-      $nopen = _election_is_open($election->nstatus, $election->nopen_time, $election->nclose_time);
-      if ($nopen) {
-        return (bool) user_access('submit nominations', $account);
-      }
-      return FALSE;
+      return (bool) user_access('submit nominations', $account);
       break;
     case 'edit candidates':
       if (empty($election) || $election->type == 'referendum') {
@@ -1414,10 +1414,10 @@ function election_candidate_get_available_posts(stdClass $election, $nominations
   }
   $select = db_select('election_post', 'ep')->fields('ep', array('post_id'));
   $select->condition('election_id', $election->election_id, '=');
-  if ($prev_post_ids) {
+  if ($prev_post_ids && !user_access('allow duplicate nominations')) {
     $select->condition('post_id', $prev_post_ids, 'NOT IN');
   }
-  if ($has_exclusive) {
+  if ($has_exclusive && !user_access('bypass nomination exclusivity')) {
     $select->condition('exclusive', 0, '=');
   }
   $select->orderBy('title');
