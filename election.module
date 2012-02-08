@@ -846,11 +846,11 @@ function election_menu() {
 
   $items['election/%election/candidates'] = array(
     'title' => 'Candidates',
-    'page callback' => 'election_candidate_list_page',
-    'page arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_candidate_list_form', 1),
     'access callback' => 'election_access',
     'access arguments' => array('edit candidates', 1),
-    'file' => 'election-candidate.pages.inc',
+    'file' => 'election-candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 4,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -862,6 +862,18 @@ function election_menu() {
     'weight' => 0,
   );
 
+  $items['election/%election/candidates/totals'] = array(
+    'title' => 'View totals',
+    'page callback' => 'election_candidate_totals_page',
+    'page arguments' => array(1),
+    'access callback' => 'election_access',
+    'access arguments' => array('edit candidates', 1),
+    'file' => 'election-candidate.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+
   $items['election/%election/candidates/download'] = array(
     'title' => 'Download data',
     'page callback' => 'drupal_get_form',
@@ -870,7 +882,7 @@ function election_menu() {
     'access arguments' => array('edit candidates', 1),
     'file' => 'election-candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 1,
+    'weight' => 2,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
