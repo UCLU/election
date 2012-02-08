@@ -267,7 +267,6 @@ function election_views_data() {
     ),
   );
 
-
   return $data;
 
 }

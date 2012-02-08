@@ -1,0 +1,224 @@
+<?php
+/**
+ * @file
+ * Administrative page callbacks for election candidates and nominations
+ * (Election module).
+ */
+
+/**
+ * Form builder function for the form at "election/%election/candidates/download".
+ *
+ * @param array $form
+ * @param array $form_state
+ * @param stdClass $election
+ */
+function election_candidate_download_form($form, &$form_state, stdClass $election) {
+
+  drupal_set_title(t('Download candidate data'));
+
+  // @todo allow new candidate bundles.
+  $candidate_field_instances = field_info_instances('election_candidate', 'election_candidate');
+
+  $post_name = _election_get_posts_name($election->type);
+
+  $properties = array(
+    'election_id' => array(
+      'label' => t('Election ID'),
+      'default' => TRUE,
+    ),
+    'election_title' => array(
+      'label' => t('Election title'),
+      'default' => TRUE,
+    ),
+    'candidate_id' => array(
+      'label' => t('Candidate ID'),
+      'default' => TRUE,
+    ),
+    'first_name' => array(
+      'label' => t('First name'),
+      'default' => TRUE,
+    ),
+    'last_name' => array(
+      'label' => t('Last name'),
+      'default' => TRUE,
+    ),
+    'post_id' => array(
+      'label' => t('@post_name ID', array('@post_name' => drupal_ucfirst($post_name))),
+    ),
+    'post_title' => array(
+      'label' => t('@post_name title', array('@post_name' => drupal_ucfirst($post_name))),
+      'default' => TRUE,
+    ),
+    'cstatus' => array(
+      'label' => t('Candidate status'),
+      'default' => TRUE,
+    ),
+    'mail' => array(
+      'label' => t('Email address'),
+      'default' => TRUE,
+    ),
+    'phone' => array(
+      'label' => t('Phone number'),
+      'default' => TRUE,
+    ),
+    'uid' => array(
+      'label' => t('User ID'),
+      'default' => TRUE,
+    ),
+    'username' => array(
+      'label' => t('Username'),
+      'default' => TRUE,
+    ),
+    'created' => array(
+      'label' => t('Created date'),
+      'default' => TRUE,
+      'type' => 'timestamp',
+    ),
+    'changed' => array(
+      'label' => t('Last modified date'),
+      'default' => TRUE,
+      'type' => 'timestamp',
+    ),
+  );
+  foreach ($candidate_field_instances as $field_name => $cfi) {
+    $field = field_info_field($field_name);
+    $properties[$field_name] = array(
+      'label' => $cfi['label'],
+      'type' => $field['type'],
+      'default' => FALSE,
+    );
+  }
+
+  $property_options = array();
+  $default_properties = array();
+  foreach ($properties as $property_key => $property) {
+    $label = is_string($property)? $property : $property['label'];
+    $property_options[$property_key] = $label;
+    if (!empty($property['default'])) {
+      $default_properties[] = $property_key;
+    }
+  }
+
+  $form_state['#election'] = $election;
+  $form_state['#properties'] = $properties;
+  $form_state['#property_options'] = $property_options;
+
+  $form['include_properties'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Properties to include'),
+    '#options' => $property_options,
+    '#default_value' => $default_properties,
+  );
+
+  $form['buttons'] = array(
+    '#type' => 'actions',
+    '#weight' => 100,
+  );
+  $form['buttons']['download'] = array(
+    '#type' => 'submit',
+    '#value' => t('Download candidate spreadsheet'),
+    '#submit' => array('election_candidate_download_form_submit'),
+  );
+
+  return $form;
+
+}
+
+/**
+ * Submit callback for the "Download spreadsheet" button in the form election_candidate_download_form.
+ *
+ * @param array $form
+ * @param array $form_state
+ */
+function election_candidate_download_form_submit($form, &$form_state) {
+
+  $election = $form_state['#election'];
+
+  $fileName = 'candidates_election' . $election->election_id . '_' . date('Y-m-d_His', REQUEST_TIME) . '.csv';
+
+  $properties = array_intersect_key($form_state['#properties'], $form_state['values']['include_properties']);
+
+  $separator = ',';
+  $enclosure = '"';
+  $empty = '';
+
+  $outstream = fopen('php://output', 'w');
+
+  $candidate_ids = db_select('election_candidate')
+    ->fields('election_candidate', array('candidate_id'))
+    ->condition('election_id', $election->election_id)
+    ->orderBy('created', 'DESC')
+    ->execute()
+    ->fetchCol();
+  $candidates = election_candidate_load_multiple($candidate_ids);
+
+  drupal_add_http_header('Content-Type', 'text/csv; charset=UTF-8');
+  drupal_add_http_header('Cache-Control', 'no-store, max-age=0, must-revalidate');
+  drupal_add_http_header('Pragma', FALSE);
+  drupal_add_http_header('Content-Description', 'File Transfer');
+  drupal_add_http_header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+
+  $property_headers = array();
+  foreach ($properties as $property) {
+    $property_headers[] = is_string($property)? $property : $property['label'];
+  }
+
+  fputcsv($outstream, $property_headers, $separator, $enclosure);
+
+  foreach ($candidates as $candidate) {
+
+    $row = array();
+    foreach ($properties as $property_key => $property) {
+      $value = _election_candidate_download_format_property($candidate, $property_key, $property);
+      $row[$property_key] = strlen($value)? $value : $empty;
+    }
+
+    fputcsv($outstream, $row, $separator, $enclosure);
+    fpassthru($outstream);
+  }
+
+  fpassthru($outstream);
+  fclose($outstream);
+
+  exit();
+
+}
+
+/**
+ * Format a candidate property.
+ *
+ * @param stdClass $candidate
+ */
+function _election_candidate_download_format_property(stdClass $candidate, $property_key, $property) {
+  $value = isset($candidate->{$property_key})? $candidate->{$property_key} : NULL;
+  switch ($property_key) {
+    case 'election_title':
+      $election = election_load($candidate->election_id);
+      return $election->title;
+      break;
+    case 'post_title':
+      if (empty($candidate->post_id)) {
+        return;
+      }
+      $post = election_post_load($candidate->post_id);
+      return $post->title;
+      break;
+  }
+  $type = empty($property['type'])? 'string' : $property['type'];
+  switch ($type) {
+    case 'timestamp':
+      return date('Y-m-d H:i:s', $value);
+      break;
+    case 'string':
+      if (is_string($value)) {
+        return check_plain($value);
+      }
+      break;
+    // Commonly, fields contain a value in field_name['und'][0]['value'].
+    default:
+      // @todo find out how to i18n this.
+      if (isset($candidate->{$property_key}['und'][0]['value'])) {
+        return $candidate->{$property_key}['und'][0]['value'];
+      }
+  }
+}

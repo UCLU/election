@@ -856,6 +856,24 @@ function election_menu() {
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
+  $items['election/%election/candidates/list'] = array(
+    'title' => 'List candidates',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+
+  $items['election/%election/candidates/download'] = array(
+    'title' => 'Download data',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_candidate_download_form', 1),
+    'access callback' => 'election_access',
+    'access arguments' => array('edit candidates', 1),
+    'file' => 'election-candidate.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+
   $items['election/%election/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'drupal_get_form',
