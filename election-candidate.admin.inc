@@ -61,14 +61,8 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
       'label' => t('Phone number'),
       'default' => TRUE,
     ),
-    'uid' => array(
-      'label' => t('User ID'),
-      'default' => TRUE,
-    ),
-    'username' => array(
-      'label' => t('Username'),
-      'default' => TRUE,
-    ),
+    'uid' => t('User ID'),
+    'username' => t('Username'),
     'created' => array(
       'label' => t('Created date'),
       'default' => TRUE,
@@ -117,7 +111,6 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
   $form['buttons']['download'] = array(
     '#type' => 'submit',
     '#value' => t('Download candidate spreadsheet'),
-    '#submit' => array('election_candidate_download_form_submit'),
   );
 
   return $form;
@@ -125,7 +118,7 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
 }
 
 /**
- * Submit callback for the "Download spreadsheet" button in the form election_candidate_download_form.
+ * Submit callback for the form election_candidate_download_form.
  *
  * @param array $form
  * @param array $form_state
@@ -136,7 +129,14 @@ function election_candidate_download_form_submit($form, &$form_state) {
 
   $fileName = 'candidates_election' . $election->election_id . '_' . date('Y-m-d_His', REQUEST_TIME) . '.csv';
 
-  $properties = array_intersect_key($form_state['#properties'], $form_state['values']['include_properties']);
+  $include_properties = $form_state['values']['include_properties'];
+  foreach ($include_properties as $key => $value) {
+    if ($value === 0) {
+      unset($include_properties[$key]);
+    }
+  }
+
+  $properties = array_intersect_key($form_state['#properties'], $include_properties);
 
   $separator = ',';
   $enclosure = '"';
@@ -203,8 +203,14 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
       $post = election_post_load($candidate->post_id);
       return $post->title;
       break;
+    case 'cstatus':
+      return _election_candidate_format_status($candidate);
+      break;
   }
-  $type = empty($property['type'])? 'string' : $property['type'];
+  $type = 'string';
+  if (is_array($property) && !empty($property['type'])) {
+    $type = $property['type'];
+  }
   switch ($type) {
     case 'timestamp':
       return date('Y-m-d H:i:s', $value);
@@ -217,8 +223,8 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
     // Commonly, fields contain a value in field_name['und'][0]['value'].
     default:
       // @todo find out how to i18n this.
-      if (isset($candidate->{$property_key}['und'][0]['value'])) {
-        return $candidate->{$property_key}['und'][0]['value'];
+      if (is_array($value) && isset($value['und'][0]['value'])) {
+        return $value['und'][0]['value'];
       }
   }
 }
