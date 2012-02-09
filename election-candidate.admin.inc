@@ -32,7 +32,7 @@ function election_candidate_list_form($form, $form_state, $election) {
     'first_name' => array('data' => t('First name'), 'field' => 'ec.first_name'),
     'last_name' => array('data' => t('Last name'), 'field' => 'ec.last_name'),
     'username' => array('data' => t('Username'), 'field' => 'ec.username'),
-    'cstatus' => array('data' => t('Status')),
+    'cstatus' => array('data' => t('Status'), 'field' => 'ec.cstatus'),
     'operations' => array('data' => t('Operations')),
   );
 
