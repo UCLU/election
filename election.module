@@ -797,7 +797,7 @@ function election_menu() {
     'page callback' => 'election_page_view',
     'page arguments' => array(1),
     'access callback' => 'election_access',
-    'access arguments' => array('view', 2),
+    'access arguments' => array('view', 1),
     'file' => 'election.pages.inc',
   );
 
