@@ -130,36 +130,40 @@ function election_candidate_list_form($form, $form_state, $election) {
  */
 function election_candidate_totals_page(stdClass $election) {
 
-  drupal_set_title(t('Total candidate numbers'));
+  drupal_set_title(t('Candidate totals'));
 
-  $result = db_query('SELECT COUNT(DISTINCT candidate_id) FROM {election_candidate} WHERE election_id = :election_id', array(
+  $result = db_query('SELECT COUNT(DISTINCT candidate_id) AS num_candidates, COUNT(DISTINCT IF (cstatus=0, candidate_id, NULL)) AS num_pending, COUNT(DISTINCT IF (cstatus=1, candidate_id, NULL)) AS num_approved, COUNT(DISTINCT IF (cstatus=-1, candidate_id, NULL)) AS num_rejected FROM {election_candidate} WHERE election_id = :election_id', array(
   ':election_id' => $election->election_id));
-  $totalAll = $result->fetchField();
+  $totalAll = $result->fetch();
 
-  $result = db_query(
-    'SELECT ep.title, COUNT(DISTINCT ec.candidate_id) AS num_candidates FROM {election_post} ep LEFT JOIN {election_candidate} ec USING (post_id) WHERE ep.election_id = :election_id GROUP BY ep.post_id ORDER BY ep.title',
-    array(
-      ':election_id' => $election->election_id,
-    )
-  );
-  $totals = $result->fetchAll();
-
-  $items = array();
-
-  $items[] = t('All positions: !totalAll', array('!totalAll' => $totalAll));
-
-  foreach ($totals as $total) {
-    $items[] = check_plain($total->title) . ': ' . $total->num_candidates;
-  }
-
-  return array(
-    'totals' => array(
-      '#theme' => 'item_list',
-      '#title' => t('Totals'),
-      '#items' => $items,
+  $output = array(
+    'total' => array(
+      '#markup' => '<p>' . t('Total number of candidates: !totalAll', array('!totalAll' => $totalAll->num_candidates)) . '</p>',
     ),
   );
 
+  if ($totalAll->num_candidates > 0) {
+    $result = db_query(
+      'SELECT ep.title, COUNT(DISTINCT ec.candidate_id) AS num_candidates, COUNT(DISTINCT IF (ec.cstatus=0, ec.candidate_id, NULL)) AS num_pending, COUNT(DISTINCT IF (ec.cstatus=1, ec.candidate_id, NULL)) AS num_approved, COUNT(DISTINCT IF (ec.cstatus=-1, ec.candidate_id, NULL)) AS num_rejected FROM {election_post} ep LEFT JOIN {election_candidate} ec USING (post_id) WHERE ep.election_id = :election_id GROUP BY ep.post_id ORDER BY ep.title',
+      array(
+        ':election_id' => $election->election_id,
+      )
+    );
+    $totals = $result->fetchAll();
+    $header = array(t('Position'), t('Pending'), t('Approved'), t('Rejected'));
+    $rows = array();
+    $rows[] = array(t('TOTAL'), $totalAll->num_pending, $totalAll->num_approved, $totalAll->num_rejected);
+    foreach ($totals as $total) {
+      $rows[] = array(check_plain($total->title), $total->num_pending, $total->num_approved, $total->num_rejected);
+    }
+    $output['by_position'] = array(
+      '#theme' => 'table',
+      '#header' => $header,
+      '#rows' => $rows,
+    );
+  }
+
+  return $output;
 }
 
 /**
