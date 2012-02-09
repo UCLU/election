@@ -40,8 +40,9 @@ function election_candidate_list_form($form, $form_state, $election) {
   $query = db_select('election_candidate', 'ec')
     ->extend('PagerDefault')
     ->extend('TableSort')
-    ->fields('ec', array('candidate_id'))
-    ->condition('ec.election_id', $election->election_id)
+    ->fields('ec', array('candidate_id'));
+  $query->leftJoin('election_post', 'ep', 'ec.post_id=ep.post_id');
+  $query->condition('ec.election_id', $election->election_id)
     ->limit(50)
     ->orderByHeader($header);
   $result = $query->execute();
