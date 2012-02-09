@@ -381,11 +381,20 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
         return check_plain($value);
       }
       break;
-    // Commonly, fields contain a value in field_name['und'][0]['value'].
+    case 'file':
+    case 'image':
+      if (is_array($value) && isset($value['und'][0]['uri'])) {
+        return file_create_url($value['und'][0]['uri']);
+      }
+      break;
     default:
-      // @todo find out how to i18n this.
-      if (is_array($value) && isset($value['und'][0]['value'])) {
-        return $value['und'][0]['value'];
+      if (is_array($value)) {
+        if (isset($value['und'][0]['safe_value'])) {
+          return $value['und'][0]['safe_value'];
+        }
+        else if (isset($value['und'][0]['value'])) {
+          return check_plain($value['und'][0]['value']);
+        }
       }
   }
 }
