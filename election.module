@@ -313,8 +313,15 @@ function election_load($election_id = NULL) {
  *
  * @return array
  */
-function election_electorates() {
-  $result = db_query('SELECT * FROM {election_electorate} ORDER BY name');
+function election_electorates($post = NULL) {
+  $query = db_select('election_electorate', 'ee');
+  $query->fields('ee');
+  if (is_object($post)) {
+    $query->leftJoin('election_post_electorate', 'epe', 'ee.post_id=epe.post_id');
+    $query->condition('epe.post_id', $post->post_id);
+  }
+  $query->orderBy('ee.name');
+  $result = $query->execute();
 
   $electorates = array();
 
@@ -328,6 +335,7 @@ function election_electorates() {
       }
     }
     else {
+      // @todo this is envisioned to allow conditions to be configured dynamically.
       $electorate['conditions'] = (array) unserialize($electorate['conditions']);
     }
     $key = $electorate['machine_name'];
@@ -619,6 +627,9 @@ function election_access($op, $election = NULL, $account = NULL) {
     case 'update':
     case 'edit':
       return (bool) user_access('edit any election', $account);
+      break;
+    case 'vote':
+      return (bool) user_access('vote in elections', $account);
       break;
     case 'nomination':
       if (empty($election) || $election->type == 'referendum') {
