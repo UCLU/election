@@ -132,7 +132,7 @@ function election_candidate_totals_page(stdClass $election) {
 
   drupal_set_title(t('Candidate totals'));
 
-  $result = db_query('SELECT COUNT(DISTINCT candidate_id) AS num_candidates, COUNT(DISTINCT IF (cstatus=0, candidate_id, NULL)) AS num_pending, COUNT(DISTINCT IF (cstatus=1, candidate_id, NULL)) AS num_approved, COUNT(DISTINCT IF (cstatus=-1, candidate_id, NULL)) AS num_rejected FROM {election_candidate} WHERE election_id = :election_id', array(
+  $result = db_query('SELECT COUNT(DISTINCT candidate_id) AS num_candidates, COUNT(DISTINCT IF (cstatus=0, candidate_id, NULL)) AS num_pending, COUNT(DISTINCT IF (cstatus=1, candidate_id, NULL)) AS num_approved, COUNT(DISTINCT IF (cstatus=-1, candidate_id, NULL)) AS num_withdrawn, COUNT(DISTINCT IF (cstatus=-2, candidate_id, NULL)) AS num_rejected FROM {election_candidate} WHERE election_id = :election_id', array(
   ':election_id' => $election->election_id));
   $totalAll = $result->fetch();
 
@@ -144,17 +144,17 @@ function election_candidate_totals_page(stdClass $election) {
 
   if ($totalAll->num_candidates > 0) {
     $result = db_query(
-      'SELECT ep.title, COUNT(DISTINCT ec.candidate_id) AS num_candidates, COUNT(DISTINCT IF (ec.cstatus=0, ec.candidate_id, NULL)) AS num_pending, COUNT(DISTINCT IF (ec.cstatus=1, ec.candidate_id, NULL)) AS num_approved, COUNT(DISTINCT IF (ec.cstatus=-1, ec.candidate_id, NULL)) AS num_rejected FROM {election_post} ep LEFT JOIN {election_candidate} ec USING (post_id) WHERE ep.election_id = :election_id GROUP BY ep.post_id ORDER BY ep.title',
+      'SELECT ep.title, COUNT(DISTINCT ec.candidate_id) AS num_candidates, COUNT(DISTINCT IF (ec.cstatus=0, ec.candidate_id, NULL)) AS num_pending, COUNT(DISTINCT IF (ec.cstatus=1, ec.candidate_id, NULL)) AS num_approved, COUNT(DISTINCT IF (ec.cstatus=-1, ec.candidate_id, NULL)) AS num_withdrawn, COUNT(DISTINCT IF (ec.cstatus=-2, ec.candidate_id, NULL)) AS num_rejected FROM {election_post} ep LEFT JOIN {election_candidate} ec USING (post_id) WHERE ep.election_id = :election_id GROUP BY ep.post_id ORDER BY ep.title',
       array(
         ':election_id' => $election->election_id,
       )
     );
     $totals = $result->fetchAll();
-    $header = array(t('Position'), t('Pending'), t('Approved'), t('Rejected'));
+    $header = array(t('Position'), t('Pending'), t('Approved'), t('Rejected'), t('Withdrawn'));
     $rows = array();
-    $rows[] = array(t('TOTAL'), $totalAll->num_pending, $totalAll->num_approved, $totalAll->num_rejected);
+    $rows[] = array(t('TOTAL'), $totalAll->num_pending, $totalAll->num_approved, $totalAll->num_withdrawn, $totalAll->num_rejected);
     foreach ($totals as $total) {
-      $rows[] = array(check_plain($total->title), $total->num_pending, $total->num_approved, $total->num_rejected);
+      $rows[] = array(check_plain($total->title), $total->num_pending, $total->num_approved, $total->num_withdrawn, $total->num_rejected);
     }
     $output['by_position'] = array(
       '#theme' => 'table',

@@ -484,9 +484,10 @@ function election_schema() {
       ),
       'cstatus' => array( // 'status' as field name causes Entity API confusion
         'description' => sprintf(
-          'The candidate\'s nomination status: pending %d, approved %d, or rejected %d.',
+          'The candidate\'s status: pending %d, approved %d, withdrawn %d, or rejected %d.',
           ELECTION_CANDIDATE_PENDING,
           ELECTION_CANDIDATE_APPROVED,
+          ELECTION_CANDIDATE_WITHDRAWN,
           ELECTION_CANDIDATE_REJECTED
         ),
         'type' => 'int',
@@ -554,6 +555,7 @@ function election_schema() {
       'name' => array('first_name', 'last_name'),
       'mail' => array('mail'),
       'created' => array('created'),
+      'cstatus' => array('cstatus'),
     ),
     'foreign keys' => array(
       'post' => array(
@@ -796,3 +798,17 @@ function _election_add_foreign_keys() {
   }
 
 }
+
+/**
+ * Alter candidate status to reflect new constants.
+ */
+function election_update_7001() {
+  $schema = election_schema();
+  db_drop_index('election_candidate', 'cstatus');
+  db_change_field('election_candidate', 'cstatus', 'cstatus', $schema['election_candidate']['fields']['cstatus'], array('indexes' => array('cstatus' => array('cstatus'))));
+  db_query(
+    'UPDATE {election_candidate} SET cstatus = ? WHERE cstatus = ?',
+    array(ELECTION_CANDIDATE_REJECTED, -1)
+  );
+}
+

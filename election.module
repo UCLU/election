@@ -336,6 +336,7 @@ function election_electorates($post = NULL) {
     }
     else {
       // @todo this is envisioned to allow conditions to be configured dynamically.
+      // @todo look into ctools exportables.
       $electorate['conditions'] = (array) unserialize($electorate['conditions']);
     }
     $key = $electorate['machine_name'];
