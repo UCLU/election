@@ -463,6 +463,7 @@ function election_candidate_edit_form($form, $form_state, stdClass $election, st
     '#options' => array(
       ELECTION_CANDIDATE_PENDING => t('Pending approval'),
       ELECTION_CANDIDATE_APPROVED => t('Approved'),
+      ELECTION_CANDIDATE_WITHDRAWN => t('Withdrawn'),
       ELECTION_CANDIDATE_REJECTED => t('Rejected'),
     ),
     '#title' => t('Candidate status'),
