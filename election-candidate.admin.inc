@@ -185,7 +185,6 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
   $properties = array(
     'election_id' => array(
       'label' => t('Election ID'),
-      'default' => TRUE,
     ),
     'election_title' => array(
       'label' => t('Election title'),
@@ -233,6 +232,10 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
       'label' => t('Last modified date'),
       'default' => TRUE,
       'type' => 'timestamp',
+    ),
+    'profile_link' => array(
+      'label' => t('Profile link'),
+      'default' => TRUE,
     ),
   );
   foreach ($candidate_field_instances as $field_name => $cfi) {
@@ -353,6 +356,10 @@ function election_candidate_download_form_submit($form, &$form_state) {
 function _election_candidate_download_format_property(stdClass $candidate, $property_key, $property) {
   $value = isset($candidate->{$property_key})? $candidate->{$property_key} : NULL;
   switch ($property_key) {
+    case 'profile_link':
+      return url(election_candidate_uri_path($candidate), array('absolute' => TRUE));
+      return $election->title;
+      break;
     case 'election_title':
       $election = election_load($candidate->election_id);
       return $election->title;
