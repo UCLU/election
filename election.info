@@ -3,6 +3,7 @@ description = "Provides online voting functionality, supporting referendums and 
 package = Election
 core = 7.x
 php = 5.3
+version = 2.x-dev
 dependencies[] = entity
 dependencies[] = views
 files[] = includes/election-default.controller.inc
