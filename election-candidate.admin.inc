@@ -183,17 +183,12 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
   $post_name = _election_get_posts_name($election->type);
 
   $properties = array(
-    'election_id' => array(
-      'label' => t('Election ID'),
-    ),
+    'election_id' => t('Election ID'),
     'election_title' => array(
       'label' => t('Election title'),
       'default' => TRUE,
     ),
-    'candidate_id' => array(
-      'label' => t('Candidate ID'),
-      'default' => TRUE,
-    ),
+    'candidate_id' => t('Candidate ID'),
     'first_name' => array(
       'label' => t('First name'),
       'default' => TRUE,
@@ -202,9 +197,7 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
       'label' => t('Last name'),
       'default' => TRUE,
     ),
-    'post_id' => array(
-      'label' => t('@post_name ID', array('@post_name' => drupal_ucfirst($post_name))),
-    ),
+    'post_id' => t('@post_name ID', array('@post_name' => drupal_ucfirst($post_name))),
     'post_title' => array(
       'label' => t('@post_name title', array('@post_name' => drupal_ucfirst($post_name))),
       'default' => TRUE,
@@ -222,7 +215,10 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
       'default' => TRUE,
     ),
     'uid' => t('User ID'),
-    'username' => t('Username'),
+    'username' => array(
+      'label' => t('Username'),
+      'default' => TRUE,
+    ),
     'created' => array(
       'label' => t('Created date'),
       'default' => TRUE,
@@ -252,7 +248,7 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
   foreach ($properties as $property_key => $property) {
     $label = is_string($property)? $property : $property['label'];
     $property_options[$property_key] = $label;
-    if (!empty($property['default'])) {
+    if (isset($property['default']) && $property['default'] === TRUE) {
       $default_properties[] = $property_key;
     }
   }
