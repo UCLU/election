@@ -1,0 +1,6 @@
+name = Election Candidate
+description = "Allows elections to have candidates."
+package = Election
+core = 7.x
+php = 5.3
+dependencies[] = election

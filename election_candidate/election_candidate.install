@@ -1,0 +1,81 @@
+<?php
+/**
+ * @file
+ *   Install functions for the Election Candidate module.
+ */
+
+require_once 'election_candidate.constants.inc';
+
+/**
+ * Implements hook_install().
+ */
+function election_candidate_install() {
+
+  _election_candidate_add_fields();
+
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function election_candidate_uninstall() {
+
+  _election_candidate_remove_fields();
+
+}
+
+/**
+ * Set up entity fields.
+ */
+function _election_candidate_add_fields() {
+  foreach (_election_candidate_fields_info() as $field) {
+    $field_name = $field['field_name'];
+    $instances = array();
+    if (isset($field['instances'])) {
+      $instances = $field['instances'];
+    }
+    if (field_info_field($field_name) === NULL) {
+      field_create_field($field);
+      watchdog('election', 'Created field @field_name', array('@field_name' => $field_name));
+    }
+    foreach ($instances as $instance) {
+      if (!isset($instance['field_name'])) {
+        $instance['field_name'] = $field_name;
+      }
+      if (!field_info_instance($instance['entity_type'], $instance['field_name'], $instance['bundle'])) {
+        field_create_instance($instance);
+        watchdog(
+          'election_candidate',
+          'Created instance of @field_name on @entity--@bundle',
+          array(
+            '@field_name' => $field_name,
+            '@entity' => $instance['entity_type'],
+            '@bundle' => $instance['bundle'],
+          )
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Remove entity fields.
+ */
+function _election_candidate_remove_fields() {
+  foreach (_election_candidate_fields_info() as $field) {
+    field_delete_field($field['field_name']);
+  }
+}
+
+/**
+ * Define field and instances that this module needs. Data is extracted from
+ * this for the functions field_create_field() and field_create_instance().
+ *
+ * @see _election_candidate_add_fields()
+ *
+ * @return array
+ */
+function _election_candidate_fields_info() {
+  $fields = array(); // empty for now, left in for convenience
+  return $fields;
+}
