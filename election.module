@@ -1014,241 +1014,6 @@ function election_page_title($election) {
 }
 
 /**
- * Implements hook_token_info().
- * See http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_token_info/7.
- */
-function election_token_info() {
-  $info = array();
-  $info['types'] = array(
-    'election' => array(
-      'name' => t('Elections'),
-      'description' => t('Tokens related to elections.'),
-      'needs-data' => 'election',
-    ),
-    'election_candidate' => array(
-      'name' => t('Candidates'),
-      'description' => t('Tokens related to election candidates.'),
-      'needs-data' => 'election_candidate',
-    ),
-  );
-  $info['tokens'] = array(
-    'election' => array(
-      'id' => array(
-        'name' => t('Election ID'),
-        'description' => t('The unique ID of the election.'),
-      ),
-      'type' => array(
-        'name' => t('Election type'),
-        'description' => t('The machine-readable name of the election type.'),
-      ),
-      'type_name' => array(
-        'name' => t('Election type name'),
-        'description' => t('The human-readable name of the election type.'),
-      ),
-      'title' => array(
-        'name' => t('Title'),
-        'description' => t('The title of the election.'),
-      ),
-      'created' => array(
-        'name' => t('Date created'),
-        'description' => t('The date the election was created.'),
-        'type' => 'date',
-      ),
-    ),
-    'election_candidate' => array(
-      'id' => array(
-        'name' => t('Election candidate ID'),
-        'description' => t('The unique ID of the candidate.'),
-      ),
-      'mail' => array(
-        'name' => t('Email address'),
-        'description' => t('The email address of the candidate.'),
-      ),
-    ),
-  );
-  return $info;
-}
-
-/**
- * Implements hook_tokens().
- */
-function election_tokens($type, array $tokens, array $data = array(), array $options = array()) {
-  $sanitize = !empty($options['sanitize']);
-  $replacements = array();
-  if ($type == 'election' && !empty($data['election'])) {
-    $election = $data['election'];
-    foreach ($tokens as $name => $original) {
-      switch ($name) {
-        case 'id':
-          $replacements[$original] = $election->election_id;
-          break;
-        case 'type':
-          $replacements[$original] = $sanitize ? check_plain($election->type) : $election->type;
-          break;
-        case 'type_name':
-          $type = _election_type_get_info($election->type);
-          $type_name = $type['name'];
-          $replacements[$original] = $sanitize ? check_plain($type_name) : $type_name;
-          break;
-        case 'title':
-          $replacements[$original] = $sanitize ? check_plain($election->title) : $election->title;
-          break;
-        case 'created':
-          $replacements[$original] = format_date($election->created, 'medium');
-          break;
-      }
-    }
-  }
-  else if ($type == 'election_candidate' && !empty($data['election_candidate'])) {
-    $candidate = $data['election_candidate'];
-    foreach ($tokens as $name => $original) {
-      switch ($name) {
-        case 'id':
-          $replacements[$original] = $candidate->candidate_id;
-          break;
-        case 'mail':
-          $replacements[$original] = $sanitize ? check_plain($candidate->mail) : $candidate->mail;
-          break;
-      }
-    }
-  }
-  return $replacements;
-}
-
-/**
- * Implements hook_pathauto(). See the Pathauto module.
- *
- * @param string $op
- * @return stdClass
- */
-function election_pathauto($op) {
-  switch ($op) {
-    case 'settings':
-      $settings = array();
-      $settings['module'] = 'election';
-      $settings['token_type'] = 'election';
-      $settings['groupheader'] = t('Election paths');
-      $settings['patterndescr'] = t('Default path pattern (applies to all election types with blank patterns below)');
-      $settings['patterndefault'] = 'election/[election:title]';
-      $settings['batch_update_callback'] = 'election_pathauto_bulk_update_batch_process';
-      $settings['batch_file'] = drupal_get_path('module', 'election') . '/election.module';
-      foreach (election_types() as $type_mn => $type) {
-        $settings['patternitems'][$type_mn] = t('Pattern for all %type paths', array('%type' => $type['name']));
-      }
-      return (object) $settings;
-    default:
-      break;
-  }
-}
-
-/**
- * Allow bulk updating of paths. See the Pathauto module.
- *
- * @see election_pathauto()
- * @param array &$context
- * @return void
- */
-function election_pathauto_bulk_update_batch_process(&$context) {
-  if (!isset($context['sandbox']['current'])) {
-    $context['sandbox']['count'] = 0;
-    $context['sandbox']['current'] = 0;
-  }
-  $query = db_select('election', 'e');
-  $query->leftJoin('url_alias', 'ua', "CONCAT('election/', e.election_id) = ua.source");
-  $query->addField('e', 'election_id');
-  $query->isNull('ua.source');
-  $query->condition('e.election_id', $context['sandbox']['current'], '>');
-  $query->orderBy('e.election_id');
-  $query->addTag('pathauto_bulk_update');
-  $query->addMetaData('entity', 'election');
-  // Get the total amount of items to process.
-  if (!isset($context['sandbox']['total'])) {
-    $context['sandbox']['total'] = $query->countQuery()->execute()->fetchField();
-    // If there are no elections to update, then stop immediately.
-    if (!$context['sandbox']['total']) {
-      $context['finished'] = 1;
-      return;
-    }
-  }
-  $query->range(0, 25);
-  $ids = $query->execute()->fetchCol();
-  pathauto_election_update_alias_multiple($ids, 'bulkupdate');
-  $context['sandbox']['count'] += count($ids);
-  $context['sandbox']['current'] = max($ids);
-  $context['message'] = t('Updated alias for election @id.', array('@id' => end($ids)));
-  if ($context['sandbox']['count'] != $context['sandbox']['total']) {
-    $context['finished'] = $context['sandbox']['count'] / $context['sandbox']['total'];
-  }
-}
-
-/**
- * Update the URL aliases for an individual election.
- *
- * @param $election
- *   A election object.
- * @param $op
- *   Operation being performed on the election ('insert', 'update' or 'bulkupdate').
- * @param $options
- *   An optional array of additional options.
- */
-function pathauto_election_update_alias(stdClass $election, $op, array $options = array()) {
-  // Skip processing if the user has disabled pathauto for the election.
-  if (isset($election->path['pathauto']) && empty($election->path['pathauto'])) {
-    return;
-  }
-  $options += array(
-    'language' => isset($election->language) ? $election->language : LANGUAGE_NONE,
-  );
-  // Skip processing if the election has no pattern.
-  if (!pathauto_pattern_load_by_entity('election', $election->type, $options['language'])) {
-    return;
-  }
-  module_load_include('inc', 'pathauto');
-  pathauto_create_alias(
-    'election',
-    $op,
-    election_uri_path($election),
-    array('election' => $election),
-    $election->type,
-    $options['language']
-  );
-}
-
-/**
- * Update the URL aliases for multiple elections.
- *
- * @param $election_ids
- *   An array of election IDs.
- * @param $op
- *   Operation being performed on the elections ('insert', 'update' or
- *   'bulkupdate').
- * @param $options
- *   An optional array of additional options.
- */
-function pathauto_election_update_alias_multiple(array $election_ids, $op, array $options = array()) {
-  $options += array('message' => FALSE);
-  $elections = election_load_multiple($election_ids);
-  foreach ($elections as $election) {
-    pathauto_election_update_alias($election, $op, $options);
-  }
-  if (!empty($options['message'])) {
-    drupal_set_message(format_plural(count($election_ids), 'Updated URL alias for 1 election.', 'Updated URL aliases for @count elections.'));
-  }
-}
-
-/**
- * Implements hook_path_alias_types(). See Pathauto module.
- *
- * Used primarily by the bulk delete form.
- */
-function election_path_alias_types() {
-  $objects = array(
-    'election/' => t('Elections')
-  );
-  return $objects;
-}
-
-/**
  * Implements hook_theme().
  */
 function election_theme() {
@@ -1260,14 +1025,6 @@ function election_theme() {
     'election_post' => array(
       'render element' => 'elements',
       'template' => 'election-post',
-    ),
-    'election_candidate' => array(
-      'render element' => 'elements',
-      'template' => 'election-candidate',
-    ),
-    'election_candidate_details' => array(
-      'render element' => 'elements',
-      'template' => 'election-candidate-details',
     ),
   );
 }
@@ -1489,188 +1246,6 @@ function template_preprocess_election_post(&$variables) {
 }
 
 /**
- * Process variables for election-candidate.tpl.php
- *
- * The $variables array contains the following arguments:
- * - $candidate
- * - $election
- * - $view_mode
- * - $page
- *
- * @see election-candidate.tpl.php
- */
-function template_preprocess_election_candidate(&$variables) {
-  $variables['view_mode'] = $variables['elements']['#view_mode'];
-
-  // $teaser boolean
-  $variables['teaser'] = $variables['view_mode'] == 'teaser';
-  // $details boolean
-  $variables['details'] = $variables['view_mode'] == 'details';
-  // $page boolean
-  $variables['page'] = ($variables['view_mode'] == 'full' || $variables['view_mode'] == 'details');
-
-  $variables['election'] = $variables['elements']['#election'];
-  $variables['candidate'] = $variables['elements']['#candidate'];
-  $variables['post'] = $variables['elements']['#post'];
-
-  $election = $variables['election'];
-  $candidate = $variables['candidate'];
-  $post = $variables['post'];
-  $election_type = _election_type_get_info($election->type);
-
-  if (empty($post)) {
-    // Handle gracefully when the candidate's post is deleted prematurely.
-    $post = entity_get_controller('election_post')->create(array(
-      'type' => $election_type['post key'],
-    ));
-  }
-
-  $uri = entity_uri('election_candidate', $candidate, $election);
-  $variables['url'] = url($uri['path'], $uri['options']);
-
-  $election_uri = entity_uri('election', $election);
-  $variables['election_url'] = url($election_uri['path'], $election_uri['options']);
-  $variables['election_title'] = check_plain($election->title);
-  $variables['election_link'] = l($election->title, $election_uri['path'], $election_uri['options']);
-  $variables['election_type'] = check_plain($election_type['name']);
-
-  $post_uri = entity_uri('election_post', $post);
-  $variables['post_url'] = url($post_uri['path'], $post_uri['options']);
-  $variables['post_title'] = check_plain($post->title);
-  $variables['post_link'] = l($post->title, $post_uri['path'], $post_uri['options']);
-  $variables['post_name'] = check_plain($election_type['post name']);
-
-  $variables['full_name'] = t('@first_name @last_name', array('@first_name' => $candidate->first_name, '@last_name' => $candidate->last_name));
-
-  $variables += array('content' => array());
-  foreach (element_children($variables['elements']) as $key) {
-    $variables['content'][$key] = $variables['elements'][$key];
-  }
-
-  // Make the field variables available with the appropriate language.
-  field_attach_preprocess('election_candidate', $candidate, $variables['content'], $variables);
-
-  $variables['classes_array'][] = drupal_html_class('election-' . $election->type . '-candidate');
-
-  $variables['theme_hook_suggestions'][] = 'election_candidate__' . $candidate->candidate_id;
-  $variables['theme_hook_suggestions'][] = 'election__' . $election->type . '__candidate';
-  $variables['theme_hook_suggestions'][] = 'election__' . $election->election_id . '__candidate';
-
-}
-
-/**
- * Process variables for election-candidate-details.tpl.php
- *
- * The $variables array contains the following arguments:
- * - $candidate
- * - $election
- * - $page
- *
- * @see election-candidate.tpl.php
- */
-function template_preprocess_election_candidate_details(&$variables) {
-
-  $variables['election'] = $variables['elements']['#election'];
-  $variables['candidate'] = $variables['elements']['#candidate'];
-  $variables['post'] = $variables['elements']['#post'];
-
-  $election = $variables['election'];
-  $candidate = $variables['candidate'];
-  $post = $variables['post'];
-  $election_type = _election_type_get_info($election->type);
-
-  if (empty($post)) {
-    // Handle gracefully when the candidate's post is deleted prematurely.
-    $post = entity_get_controller('election_post')->create(array(
-      'type' => $election_type['post key'],
-    ));
-  }
-
-  $uri = entity_uri('election_candidate', $candidate, $election);
-  $variables['url'] = url($uri['path'], $uri['options']);
-
-  $election_uri = entity_uri('election', $election);
-  $variables['election_url'] = url($election_uri['path'], $election_uri['options']);
-  $variables['election_link'] = l($election->title, $election_uri['path'], $election_uri['options']);
-
-  $post_uri = entity_uri('election_post', $post);
-  $variables['post_url'] = url($post_uri['path'], $post_uri['options']);
-  $variables['post_link'] = l($post->title, $post_uri['path'], $post_uri['options']);
-
-  $variables['full_name'] = t('@first_name @last_name', array('@first_name' => $candidate->first_name, '@last_name' => $candidate->last_name));
-
-  $variables['content']['election'] = array(
-    '#theme' => 'container',
-    '#attributes' => array(
-      'class' => array('pseudo-field', 'candidate-election'),
-    ),
-    '#markup' => '<span class="label">' . t('Election:') . '</span>'
-               . ' <span class="item">' . $variables['election_link'] . '</span>',
-  );
-
-  $variables['content']['post'] = array(
-    '#theme' => 'container',
-    '#attributes' => array(
-      'class' => array('pseudo-field', 'candidate-post'),
-    ),
-    '#markup' => '<span class="label">' . drupal_ucfirst($election_type['post name'] . ':') . '</span>'
-               . ' <span class="item">' . $variables['post_link'] . '</span>',
-  );
-
-  $variables['content']['full-name'] = array(
-    '#theme' => 'container',
-    '#attributes' => array(
-      'class' => array('pseudo-field', 'candidate-full-name'),
-    ),
-    '#markup' => '<span class="label">' . t('Name:') . '</span>'
-               . ' <span class="item">' . $variables['full_name'] . '</span>',
-  );
-
-  $variables['username'] = theme('username', array('#account' => $candidate->uid? user_load($candidate->uid) : NULL));
-  $variables['phone'] = check_plain($candidate->phone);
-  $variables['mail'] = l($candidate->mail, 'mailto:' . $candidate->mail, array('absolute' => TRUE));
-
-  $variables['content']['mail'] = array(
-    '#theme' => 'container',
-    '#attributes' => array(
-      'class' => array('pseudo-field', 'candidate-email-address')
-    ),
-    '#markup' => '<span class="label">' . t('Email address:') . '</span>'
-               . ' <span class="item">' . $variables['mail'] . '</span>',
-  );
-
-  $variables['content']['phone'] = array(
-    '#theme' => 'container',
-    '#attributes' => array(
-      'class' => array('pseudo-field', 'candidate-phone'),
-    ),
-    '#markup' => '<span class="label">' . t('Phone number:') . '</span>'
-               . ' <span class="item">' . $variables['phone'] . '</span>',
-  );
-
-  $variables['content']['candidate-username'] = array(
-    '#theme' => 'container',
-    '#attributes' => array(
-      'class' => array('pseudo-field', 'candidate-username'),
-    ),
-    '#markup' => '<span class="label">' . t('Username:') . '</span>'
-               . ' <span class="item">' . $variables['username'] . '</span>',
-  );
-
-  $variables += array('content' => array());
-  foreach (element_children($variables['elements']) as $key) {
-    $variables['content'][$key] = $variables['elements'][$key];
-  }
-
-  $variables['classes_array'][] = drupal_html_class('election-' . $election->type . '-candidate', 'election-candidate-details');
-
-  $variables['theme_hook_suggestions'][] = 'election_candidate_details__' . $candidate->candidate_id;
-  $variables['theme_hook_suggestions'][] = 'election__' . $election->type . '__candidate_details';
-  $variables['theme_hook_suggestions'][] = 'election__' . $election->election_id . '__candidate_details';
-
-}
-
-/**
  * Internal function that determines whether voting/nominating in an election is 'open',
  * based on the status, opening time and closing time.
  *
@@ -1761,33 +1336,6 @@ function _election_post_format_status(stdClass $election, stdClass $post, $statu
   $closed_status = t('<span class="election-post-status-closed">Closed</span>');
   $status_formatted = $is_open? $open_status : $closed_status;
   return t('!status_formatted (overridden)', array('!status_formatted' => $status_formatted));
-}
-
-/**
- * Internal function to format the status field of an election candidate for display.
- *
- * @todo make this themeable
- *
- * @param stdClass $candidate
- *
- * @return string
- */
-function _election_candidate_format_status(stdClass $candidate) {
-  switch ($candidate->cstatus) {
-    case ELECTION_CANDIDATE_APPROVED:
-      return t('Approved');
-      break;
-    case ELECTION_CANDIDATE_REJECTED:
-      return t('Nomination rejected');
-      break;
-    case ELECTION_CANDIDATE_WITHDRAWN:
-      return t('Withdrawn');
-      break;
-    case ELECTION_CANDIDATE_PENDING:
-    default:
-      return t('Pending approval');
-      break;
-  }
 }
 
 /**
@@ -1932,4 +1480,59 @@ function election_menu_position_rule_plugins() {
       'file' => 'includes/election.menu-position.inc',
     ),
   );
+}
+
+/**
+ * Update the URL aliases for an individual election.
+ *
+ * @param $election
+ *   A election object.
+ * @param $op
+ *   Operation being performed on the election ('insert', 'update' or 'bulkupdate').
+ * @param $options
+ *   An optional array of additional options.
+ */
+function pathauto_election_update_alias(stdClass $election, $op, array $options = array()) {
+  // Skip processing if the user has disabled pathauto for the election.
+  if (isset($election->path['pathauto']) && empty($election->path['pathauto'])) {
+    return;
+  }
+  $options += array(
+    'language' => isset($election->language) ? $election->language : LANGUAGE_NONE,
+  );
+  // Skip processing if the election has no pattern.
+  if (!pathauto_pattern_load_by_entity('election', $election->type, $options['language'])) {
+    return;
+  }
+  module_load_include('inc', 'pathauto');
+  pathauto_create_alias(
+    'election',
+    $op,
+    election_uri_path($election),
+    array('election' => $election),
+    $election->type,
+    $options['language']
+  );
+}
+
+/**
+ * Update the URL aliases for multiple elections.
+ *
+ * @param $election_ids
+ *   An array of election IDs.
+ * @param $op
+ *   Operation being performed on the elections ('insert', 'update' or
+ *   'bulkupdate').
+ * @param $options
+ *   An optional array of additional options.
+ */
+function pathauto_election_update_alias_multiple(array $election_ids, $op, array $options = array()) {
+  $options += array('message' => FALSE);
+  $elections = election_load_multiple($election_ids);
+  foreach ($elections as $election) {
+    pathauto_election_update_alias($election, $op, $options);
+  }
+  if (!empty($options['message'])) {
+    drupal_set_message(format_plural(count($election_ids), 'Updated URL alias for 1 election.', 'Updated URL aliases for @count elections.'));
+  }
 }
