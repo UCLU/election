@@ -179,8 +179,7 @@ function election_schema() {
       ),
       'use_ron' => array(
         'description' => 'For a position: whether or not RON (Re-Open Nominations)'
-                       . ' is to be provided as a candidate. This is ignored if'
-                       . ' {election_post}.vacancy_count > 1.',
+                       . ' is to be provided as a candidate.',
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,

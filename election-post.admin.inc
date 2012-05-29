@@ -236,19 +236,22 @@ function election_post_position_form($form, &$form_state, $election, $post) {
   $form['use_ron'] = array(
     '#type' => 'select',
     '#title' => t('RON (Re-Open Nominations)'),
-    '#description' => t('RON can only be included for single-vacancy positions.'),
     '#default_value' => isset($post->use_ron)? $post->use_ron : 1,
     '#options' => array(
       1 => t('Include RON as a candidate'),
       0 => t('Do not include RON'),
     ),
-    '#states' => array(
+    '#weight' => -10,
+  );
+
+  if (!variable_get('election_allow_multi_vacancy_ron', TRUE)) { // @todo settings form
+    $form['use_ron']['#states'] = array(
       'visible' => array(
         ':input[name=vacancy_count]' => array('value' => '1'),
       ),
-    ),
-    '#weight' => -10,
-  );
+    );
+    $form['use_ron']['#description'] = t('RON can only be included for single-vacancy positions.');
+  }
 
   $form['nominations'] = array(
     '#type' => 'fieldset',
@@ -302,9 +305,10 @@ function election_post_form_delete_submit($form, &$form_state) {
  */
 function election_post_form_validate($form, &$form_state) {
 
-  // Run posts form checks here.
+  if ($form_state['values']['use_ron'] == 1 && $form_state['values']['vacancy_count'] > 1 && !variable_get('election_allow_multi_vacancy_ron', TRUE)) {
+    form_set_error('use_ron', t('RON can only be included for single-vacancy positions.'));
+  }
 
-  // Check other Fields.
   field_attach_form_validate('election_post', $form_state['post'], $form, $form_state);
 
 }
