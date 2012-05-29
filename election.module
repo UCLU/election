@@ -806,11 +806,6 @@ function election_field_extra_fields() {
         'label' => t('Voting schedule'),
         'weight' => 2,
       ),
-      'anonymous' => array(
-        'label' => t('Voter anonymity'),
-        'description' => t('The anonymity settings for this referendum.'),
-        'weight' => 3,
-      ),
     ),
   );
   $extra['election']['stv'] = array(
@@ -835,11 +830,6 @@ function election_field_extra_fields() {
       'vschedule' => array(
         'label' => t('Voting schedule'),
         'weight' => 4,
-      ),
-      'anonymous' => array(
-        'label' => t('Voter anonymity'),
-        'description' => t('The anonymity settings for this election.'),
-        'weight' => 5,
       ),
     ),
   );

@@ -34,13 +34,6 @@ function election_schema() {
         'length' => 255,
         'not null' => FALSE,
       ),
-      'anonymous' => array(
-        'description' => 'Whether or not votes in this election are anonymous.',
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
       'vstatus' => array(
         'description' => sprintf(
           'The voting status: open %d, closed %d, or scheduled %d.',
@@ -319,7 +312,7 @@ function election_schema() {
         'not null' => TRUE,
       ),
       'vote_id' => array(
-        'description' => 'For tracked (non-anonymous) voting. Relates to {election_vote}.vote_id.',
+        'description' => 'Relates to {election_vote}.vote_id.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => FALSE,

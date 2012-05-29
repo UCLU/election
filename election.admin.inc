@@ -51,7 +51,6 @@ function election_list_form($form, $form_state) {
   $header = array(
     'title' => array('data' => t('Title'), 'field' => 'e.title'),
     'type' => array('data' => t('Type'), 'field' => 'e.type'),
-    'anonymity' => array('data' => t('Anonymity'), 'field' => 'e.anonymous'),
     'nstatus' => array('data' => t('Nominations status'), 'field' => 'e.nstatus'),
     'vstatus' => array('data' => t('Voting status'), 'field' => 'e.vstatus'),
     // 'vopen' => array('data' => t('Voting opens'), 'field' => 'e.vopen_time'),
@@ -83,7 +82,6 @@ function election_list_form($form, $form_state) {
     $options[$election->election_id] = array(
       'title' => l($election->title, election_uri_path($election)),
       'type' => drupal_ucfirst($type['name']),
-      'anonymity' => $election->anonymous? t('Anonymous') : t('Tracked'),
       'nstatus' => _election_format_status($election, 'n'),
       'vstatus' => _election_format_status($election, 'v'),
       'changed' => format_date($election->changed, 'short'),
@@ -308,20 +306,6 @@ function election_form($form, &$form_state, $election) {
     '#date_format' => $date_format,
     '#date_increment' => 5,
     '#date_year_range' => '-2:+5',
-  );
-
-  $form['anonymous'] = array(
-    '#title' => t('Voter anonymity'),
-    '#type' => 'select',
-    '#default_value' => isset($election->anonymous)? $election->anonymous : 0,
-    '#options' => array(
-      // These integer keys are meaningful: they are Boolean for "is anonymous".
-      0 => 'Tracked: voters can be identified if necessary.',
-      1 => 'Anonymous: voters can never be identified.',
-    ),
-    '#required' => TRUE,
-    //'#description' => 'If this is set to Tracked, it is technically possible (although not easy) to link votes with voters. This may be useful for testing purposes. If this is set to Anonymous during voting, it is impossible to make this link. Tracking won\'t work retrospectively.',
-    '#weight' => 80,
   );
 
   $form['buttons'] = array(

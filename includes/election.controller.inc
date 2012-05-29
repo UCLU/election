@@ -24,7 +24,6 @@ class ElectionController extends ElectionDefaultController {
       'nstatus' => ELECTION_STATUS_CLOSED,
       'nopen_time' => NULL,
       'nclose_time' => NULL,
-      'anonymous' => 0,
     );
     // Overwrite default values with supplied values.
     $values = array_merge($default_values, $values);
