@@ -259,13 +259,6 @@ function election_views_data() {
     ),
   );
 
-
-  // ----------------------------------------------------------------
-  // election table -- fields hidden from Views
-  // anonymous
-  $data['election']['anonymous'] = array();
-
-
   // ----------------------------------------------------------------
   // election posts table -- basic table information.
 

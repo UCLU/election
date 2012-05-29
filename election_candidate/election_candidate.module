@@ -295,27 +295,27 @@ function election_candidate_field_extra_fields() {
       'post' => array(
         'label' => t('Post'),
         'description' => t('The post for this nomination.'),
-        'weight' => -1,
+        'weight' => 0,
       ),
       'first_name' => array(
         'label' => t('First name'),
         'description' => t('The candidate\'s first name(s).'),
-        'weight' => 0,
+        'weight' => 1,
       ),
       'last_name' => array(
         'label' => t('Last name'),
         'description' => t('The candidate\'s last name(s).'),
-        'weight' => 1,
+        'weight' => 2,
       ),
       'mail' => array(
         'label' => t('Email address'),
         'description' => t('The candidate\'s email address.'),
-        'weight' => 2,
+        'weight' => 3,
       ),
       'phone' => array(
         'label' => t('Phone number'),
         'description' => t('The candidate\'s phone number.'),
-        'weight' => 3,
+        'weight' => 4,
       ),
     ),
     'display' => array(
@@ -402,7 +402,7 @@ function election_candidate_delete($candidate_id) {
  *   FALSE if the account is anonymous, or a SelectQuery object.
  */
 function election_candidate_get_user_nominations(stdClass $election, $account = NULL) {
-  if ($account === NULL) {
+  if (!$account) {
     global $user;
     $account = $user;
   }
@@ -744,9 +744,7 @@ function _election_candidate_format_status(stdClass $candidate) {
 function election_candidate_entity_update($entity, $type) {
   switch ($type) {
     case 'election_candidate':
-      if (function_exists('pathauto_election_candidate_update_alias')) {
-        pathauto_election_candidate_update_alias($entity, 'update');
-      }
+      pathauto_election_candidate_update_alias($entity, 'update');
     break;
   }
 }
@@ -770,9 +768,7 @@ function election_candidate_entity_delete($entity, $type) {
 function election_candidate_entity_insert($entity, $type) {
   switch ($type) {
     case 'election_candidate':
-      if (function_exists('pathauto_election_candidate_update_alias')) {
-        pathauto_election_candidate_update_alias($entity, 'insert');
-      }
+      pathauto_election_candidate_update_alias($entity, 'insert');
     break;
   }
 }
@@ -796,18 +792,26 @@ function pathauto_election_candidate_update_alias(stdClass $candidate, $op, arra
   $options += array(
     'language' => isset($candidate->language) ? $candidate->language : LANGUAGE_NONE,
   );
+  // Skip processing if Pathauto isn't enabled.
+  if (!module_exists('pathauto')) {
+    return;
+  }
   // Skip processing if the candidate has no pattern.
-  if (!pathauto_pattern_load_by_entity('election_candidate', $candidate->type, $options['language'])) {
+  if (!pathauto_pattern_load_by_entity('election_candidate', $candidate->election_id, $options['language'])) {
     return;
   }
   $election = election_load($candidate->election_id);
+  if (!$election) {
+    watchdog('election_candidate', 'Could not update candidate alias: election ID @id could not be loaded', array('@id' => $candidate->election_id), WATCHDOG_WARNING);
+    return;
+  }
   module_load_include('inc', 'pathauto');
   pathauto_create_alias(
     'election_candidate',
     $op,
     election_candidate_uri_path($candidate),
     array('election_candidate' => $candidate, 'election' => $election),
-    $candidate->type,
+    $candidate->election_id,
     $options['language']
   );
 }

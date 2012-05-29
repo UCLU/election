@@ -21,11 +21,10 @@ function election_candidate_pathauto($op) {
       $settings['patterndefault'] = 'election/[election_candidate:election:title]/candidate/[election_candidate:first_name]-[election_candidate:last_name]';
       $settings['batch_update_callback'] = 'election_candidate_pathauto_bulk_update_batch_process';
       $settings['batch_file'] = drupal_get_path('module', 'election_candidate') . '/election_candidate.pathauto.inc';
-/*
-      foreach (election_candidate_types() as $type_mn => $type) {
-        $settings['patternitems'][$type_mn] = t('Pattern for all %type paths', array('%type' => $type['name']));
+      $elections = db_query('SELECT election_id, title FROM election WHERE type != \'referendum\'')->fetchAllAssoc('election_id');
+      foreach ($elections as $election_id => $election) {
+        $settings['patternitems'][$election_id] = t('Pattern for candidates in the election %election', array('%election' => $election->title));
       }
-*/
       return (object) $settings;
     default:
       break;

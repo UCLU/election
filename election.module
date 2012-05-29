@@ -887,9 +887,7 @@ function election_save($election) {
 function election_entity_update($entity, $type) {
   switch ($type) {
     case 'election':
-      if (function_exists('pathauto_election_update_alias')) {
-        pathauto_election_update_alias($entity, 'update');
-      }
+      pathauto_election_update_alias($entity, 'update');
     break;
   }
 }
@@ -913,9 +911,7 @@ function election_entity_delete($entity, $type) {
 function election_entity_insert($entity, $type) {
   switch ($type) {
     case 'election':
-      if (function_exists('pathauto_election_update_alias')) {
-        pathauto_election_update_alias($entity, 'insert');
-      }
+      pathauto_election_update_alias($entity, 'insert');
     break;
     case 'election_post':
       $transaction = db_transaction();
@@ -1497,11 +1493,17 @@ function pathauto_election_update_alias(stdClass $election, $op, array $options 
   if (isset($election->path['pathauto']) && empty($election->path['pathauto'])) {
     return;
   }
+  // Skip processing if Pathauto isn't enabled.
+  if (!module_exists('pathauto')) {
+    drupal_set_message('Didn\'t create election alias as Pathauto apparently doesn\'t exist', 'warning');
+    return;
+  }
   $options += array(
     'language' => isset($election->language) ? $election->language : LANGUAGE_NONE,
   );
   // Skip processing if the election has no pattern.
   if (!pathauto_pattern_load_by_entity('election', $election->type, $options['language'])) {
+    drupal_set_message('Didn\'t create election alias as it has no pattern', 'warning');
     return;
   }
   module_load_include('inc', 'pathauto');

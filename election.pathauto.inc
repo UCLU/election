@@ -17,10 +17,10 @@ function election_pathauto($op) {
       $settings['module'] = 'election';
       $settings['token_type'] = 'election';
       $settings['groupheader'] = t('Election paths');
-      $settings['patterndescr'] = t('Default path pattern (applies to all election types with blank patterns below)');
+      $settings['patterndescr'] = t('Default pattern (applies to all election types with blank patterns below)');
       $settings['patterndefault'] = 'election/[election:title]';
       $settings['batch_update_callback'] = 'election_pathauto_bulk_update_batch_process';
-      $settings['batch_file'] = drupal_get_path('module', 'election') . '/election.module';
+      $settings['batch_file'] = drupal_get_path('module', 'election') . '/election.pathauto.inc';
       foreach (election_types() as $type_mn => $type) {
         $settings['patternitems'][$type_mn] = t('Pattern for all %type paths', array('%type' => $type['name']));
       }
