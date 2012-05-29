@@ -61,7 +61,6 @@ function election_candidate_views_data() {
   );
 
   // candidate status (cstatus)
-  // @todo make this not just a boolean filter
   $data['election_candidate']['cstatus'] = array(
     'title' => t('Status'),
     'help' => t('The status of the candidate.'),
@@ -70,9 +69,8 @@ function election_candidate_views_data() {
       'click sortable' => FALSE,
     ),
     'filter' => array(
-      'label' => t('Candidate is approved'),
+      'label' => t('Candidate status'),
       'handler' => 'views_handler_filter_election_candidate_cstatus',
-      'type' => 'yes-no',
     ),
     'sort' => array(
       'handler' => 'views_handler_sort',

@@ -3,24 +3,27 @@
  * @file
  * Filter by candidate status (=approved)
  */
-class views_handler_filter_election_candidate_cstatus extends views_handler_filter_boolean_operator {
+class views_handler_filter_election_candidate_cstatus extends views_handler_filter_in_operator {
+
+  function get_value_options() {
+    $this->value_options = array(
+      ELECTION_CANDIDATE_APPROVED => t('Approved'),
+      ELECTION_CANDIDATE_PENDING => t('Pending'),
+      ELECTION_CANDIDATE_WITHDRAWN => t('Withdrawn'),
+      ELECTION_CANDIDATE_REJECTED => t('Rejected'),
+    );
+    return $this->value_options;
+  }
 
   function query() {
     $table = $this->ensure_my_table();
-    $vars = array(
-      ':approvedstatus' => ELECTION_CANDIDATE_APPROVED,
-    );
     if (empty($this->value)) {
-      $expression = "$table.cstatus <> :approvedstatus";
+      return;
     }
-    else {
-      $expression = "$table.cstatus = :approvedstatus";
+    $group = $this->query->set_where_group('OR');
+    foreach ($this->value as $value) {
+      $this->query->add_where_expression($group, "$table.cstatus = :value", array(':value' => $value));
     }
-    $this->query->add_where_expression(
-      $this->options['group'],
-      $expression,
-      $vars
-    );
   }
 
 }
