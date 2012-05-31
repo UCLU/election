@@ -127,7 +127,7 @@ $handler->display->display_options['sorts']['title']['field'] = 'title';
 
 /* Display: Page */
 $handler = $view->new_display('page', 'Page', 'page');
-$handler->display->display_options['path'] = 'election';
+$handler->display->display_options['path'] = 'elections';
 $handler->display->display_options['menu']['type'] = 'normal';
 $handler->display->display_options['menu']['title'] = 'Elections and Referendums';
 

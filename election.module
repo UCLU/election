@@ -315,16 +315,6 @@ function election_menu() {
     }
   }
 
-  $items['elections'] = array(
-    'title' => 'Elections',
-    'page callback' => 'views_page', // @todo make this views_embed_view or a wrapper
-    'page arguments' => array('elections', 'default'),
-    'access callback' => 'election_access',
-    'access arguments' => array('view'),
-    'file path' => drupal_get_path('module', 'views'),
-    'file' => 'views.module',
-  );
-
   $items['election/%election'] = array(
     'title callback' => 'election_page_title',
     'title arguments' => array(1),
