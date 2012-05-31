@@ -1,5 +1,5 @@
 name = Election
-description = "Provides online voting functionality, supporting referendums and STV elections."
+description = "Provides online voting functionality."
 package = Election
 core = 7.x
 php = 5.3

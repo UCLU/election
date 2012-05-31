@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- *   Install functions for the Election Conditional Voting module.
+ *   Install functions for the Election Electorate module.
  */
 
 /**
  * Implements hook_schema().
  */
-function election_conditional_voting_schema() {
+function election_electorate_schema() {
 
   $schema = array();
 
@@ -111,9 +111,9 @@ function election_conditional_voting_schema() {
 /**
  * Implements hook_install().
  */
-function election_conditional_voting_install() {
+function election_electorate_install() {
 
-  _election_conditional_voting_install_code_electorates();
+  _election_electorate_install_code_electorates();
 
   menu_rebuild();
 
@@ -122,6 +122,6 @@ function election_conditional_voting_install() {
 /**
  * Implements hook_uninstall().
  */
-function election_conditional_voting_uninstall() {
+function election_electorate_uninstall() {
 
 }

@@ -1,4 +1,0 @@
-name = Endorser field type
-description = "Provides a field type for candidate proposers/seconders."
-package = Election
-core = 7.x

@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Election Conditional Voting: primary module file.
+ * Election Electorate: primary module file.
  *
  * @todo hook into voting permission.
  */
@@ -13,7 +13,7 @@
  *
  * @return array
  */
-function election_conditional_voting_electorates($post = NULL) {
+function election_electorate_electorates($post = NULL) {
   $query = db_select('election_electorate', 'ee');
   $query->fields('ee');
   if (is_object($post)) {
@@ -25,7 +25,7 @@ function election_conditional_voting_electorates($post = NULL) {
 
   $electorates = array();
 
-  $code_electorates = _election_conditional_voting_get_code_electorates();
+  $code_electorates = _election_electorate_get_code_electorates();
 
   while ($electorate = $result->fetchAssoc()) {
     $key = $electorate['machine_name'];
@@ -58,7 +58,7 @@ function election_conditional_voting_electorates($post = NULL) {
  *
  * @return array
  */
-function _election_conditional_voting_get_code_electorates() {
+function _election_electorate_get_code_electorates() {
   $electorates = &drupal_static(__FUNCTION__);
   if (empty($electorates)) {
     $electorates = array();
@@ -70,14 +70,14 @@ function _election_conditional_voting_get_code_electorates() {
 /**
  * Implements hook_modules_enabled().
  */
-function election_conditional_voting_modules_enabled($modules = array()) {
+function election_electorate_modules_enabled($modules = array()) {
   /*
     If any of the enabled modules contains an implementation of
-    hook_electorate_info, run _election_conditional_voting_install_code_electorates().
+    hook_electorate_info, run _election_electorate_install_code_electorates().
   */
   foreach ($modules as $module) {
     if (function_exists($module . '_electorate_info')) {
-      _election_conditional_voting_install_code_electorates();
+      _election_electorate_install_code_electorates();
       break;
     }
   }
@@ -86,14 +86,14 @@ function election_conditional_voting_modules_enabled($modules = array()) {
 /**
  * Implements hook_modules_disabled().
  */
-function election_conditional_voting_modules_disabled($modules = array()) {
+function election_electorate_modules_disabled($modules = array()) {
   /*
     If any of the disabled modules contains an implementation of
-    hook_electorate_info, run _election_conditional_voting_uninstall_code_electorates().
+    hook_electorate_info, run _election_electorate_uninstall_code_electorates().
   */
   foreach ($modules as $module) {
     if (function_exists($module . '_electorate_info')) {
-      _election_conditional_voting_uninstall_code_electorates();
+      _election_electorate_uninstall_code_electorates();
       break;
     }
   }
@@ -105,8 +105,8 @@ function election_conditional_voting_modules_disabled($modules = array()) {
  *
  * @return void
  */
-function _election_conditional_voting_uninstall_code_electorates() {
-  $code_electorates = _election_conditional_voting_get_code_electorates();
+function _election_electorate_uninstall_code_electorates() {
+  $code_electorates = _election_electorate_get_code_electorates();
   $transaction = db_transaction();
   try {
     $db_electorates = db_query('SELECT electorate_id, machine_name FROM {election_electorate} WHERE locked = 1');
@@ -155,8 +155,8 @@ function _election_conditional_voting_uninstall_code_electorates() {
  *
  * @return void
  */
-function _election_conditional_voting_install_code_electorates() {
-  foreach (_election_conditional_voting_get_code_electorates() as $electorate_mn => $electorate) {
+function _election_electorate_install_code_electorates() {
+  foreach (_election_electorate_get_code_electorates() as $electorate_mn => $electorate) {
     $record = array(
       'machine_name' => $electorate_mn,
       'name' => empty($electorate['name'])? $electorate_mn : $electorate['name'],
@@ -175,7 +175,7 @@ function _election_conditional_voting_install_code_electorates() {
 /**
  * Implements hook_form_FORM_ID_alter().
  */
-function election_conditional_voting_form_election_post_form_alter(&$form, &$form_state) {
+function election_electorate_form_election_post_form_alter(&$form, &$form_state) {
 
   $post = $form_state['post'];
   $election = $form_state['election'];
@@ -212,7 +212,7 @@ function election_conditional_voting_form_election_post_form_alter(&$form, &$for
     'description' => t('Description'),
   );
   $electorate_options = array();
-  foreach (election_conditional_voting_electorates() as $electorate_mn => $electorate) {
+  foreach (election_electorate_electorates() as $electorate_mn => $electorate) {
     if (!is_array($electorate['conditions']) || !count($electorate['conditions'])) {
       $conditions = '<span class="error">'
                   . t('No valid conditions found for the electorate %machine_name.',
@@ -246,7 +246,7 @@ function election_conditional_voting_form_election_post_form_alter(&$form, &$for
     '#empty' => t('No electorates available.'),
   );
 
-  $form['buttons']['submit']['#submit'][] = 'election_conditional_voting_election_post_form_submit';
+  $form['buttons']['submit']['#submit'][] = 'election_electorate_election_post_form_submit';
 
 }
 
@@ -255,7 +255,7 @@ function election_conditional_voting_form_election_post_form_alter(&$form, &$for
  *
  * @see election_post_form()
  */
-function election_conditional_voting_election_post_form_submit($form, &$form_state) {
+function election_electorate_election_post_form_submit($form, &$form_state) {
 
   $post = $form_state['post'];
 

@@ -1,0 +1,6 @@
+name = Election Electorate
+description = "Allows elections to restrict voting by conditions, i.e. creating different electorates."
+package = Election
+core = 7.x
+dependencies[] = election
+dependencies[] = election_post
