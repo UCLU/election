@@ -58,7 +58,7 @@ function election_post_form($form, &$form_state, $election, $post) {
     '#type' => 'fieldset',
     '#title' => t('Voting settings'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+    '#collapsed' => (!isset($post->vstatus_inheritance) || $post->vstatus_inheritance == ELECTION_POST_STATUS_INHERIT),
     '#weight' => 98,
   );
   $form['voting']['vstatus_inheritance'] = array(
@@ -189,7 +189,7 @@ function election_post_position_form($form, &$form_state, $election, $post) {
     '#type' => 'fieldset',
     '#title' => t('Nominations settings'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+    '#collapsed' => (!isset($post->nstatus_inheritance) || $post->nstatus_inheritance == ELECTION_POST_STATUS_INHERIT),
     '#weight' => 97,
   );
 

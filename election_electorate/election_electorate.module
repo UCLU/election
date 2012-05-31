@@ -191,7 +191,7 @@ function election_electorate_form_election_post_form_alter(&$form, &$form_state)
     '#type' => 'fieldset',
     '#title' => t('Conditional voting'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+    '#collapsed' => (empty($post->electorates)),
     '#weight' => 99,
   );
   $form['conditions']['help'] = array(
