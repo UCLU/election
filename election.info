@@ -6,6 +6,7 @@ php = 5.3
 version = 2.x-dev
 dependencies[] = entity
 dependencies[] = views
+dependencies[] = election_candidate
 files[] = includes/election-default.controller.inc
 files[] = includes/election.controller.inc
 files[] = includes/election-post.controller.inc

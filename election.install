@@ -367,10 +367,6 @@ function election_schema() {
         'table' => 'election_post',
         'columns' => array('post_id' => 'post_id'),
       ),
-      'candidate' => array(
-        'table' => 'election_candidate',
-        'columns' => array('candidate_id' => 'candidate_id'),
-      ),
       'vote' => array(
         'table' => 'election_vote',
         'columns' => array('vote_id' => 'vote_id'),
@@ -453,114 +449,6 @@ function election_schema() {
     ),
   );
 
-  $schema['election_candidate'] = array(
-    'description' => 'The candidates table for the election module.',
-    'fields' => array(
-      'candidate_id' => array(
-        'description' => 'Primary key: identifier for a candidate.',
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'post_id' => array(
-        'description' => 'The post for which the candidate is standing. Relates to {election_post}.post_id.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => FALSE,
-      ),
-      'election_id' => array(
-        'description' => 'The election in which the candidate is standing. Relates to {election}.election_id.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => FALSE,
-      ),
-      'cstatus' => array( // 'status' as field name causes Entity API confusion
-        'description' => sprintf(
-          'The candidate\'s status: pending %d, approved %d, withdrawn %d, or rejected %d.',
-          ELECTION_CANDIDATE_PENDING,
-          ELECTION_CANDIDATE_APPROVED,
-          ELECTION_CANDIDATE_WITHDRAWN,
-          ELECTION_CANDIDATE_REJECTED
-        ),
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => ELECTION_CANDIDATE_PENDING,
-      ),
-      'uid' => array(
-        'description' => 'The {users}.uid of the candidate.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => FALSE,
-      ),
-      'username' => array(
-        'description' => 'The {users}.name of the candidate.',
-        'type' => 'varchar',
-        'length' => 60,
-        'not null' => FALSE,
-      ),
-      'first_name' => array(
-        'description' => 'The candidate\'s first name.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => FALSE,
-      ),
-      'last_name' => array(
-        'description' => 'The candidate\'s last name.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => FALSE,
-      ),
-      'mail' => array(
-        'description' => 'The candidate\'s email address.',
-        'type' => 'varchar',
-        'length' => 254,
-        'not null' => TRUE,
-      ),
-      'phone' => array(
-        'description' => 'The phone number of the candidate.',
-        'type' => 'varchar',
-        'length' => 100,
-        'not null' => FALSE,
-      ),
-      'summary' => array(
-        'description' => 'The candidate\'s manifesto summary paragraph.',
-        'type' => 'text',
-        'not null' => FALSE,
-      ),
-      'created' => array(
-        'description' => 'The Unix timestamp for when the candidate was created/nominated.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'changed' => array(
-        'description' => 'The Unix timestamp for when the candidate was most recently changed.',
-        'type' => 'int',
-        'not null' => FALSE,
-      ),
-    ),
-    'primary key' => array('candidate_id'),
-    'indexes' => array(
-      'post_id' => array('post_id'),
-      'uid' => array('uid'),
-      'name' => array('first_name', 'last_name'),
-      'mail' => array('mail'),
-      'created' => array('created'),
-      'cstatus' => array('cstatus'),
-    ),
-    'foreign keys' => array(
-      'post' => array(
-        'table' => 'election_post',
-        'columns' => array('post_id' => 'post_id'),
-      ),
-      'user' => array(
-        'table' => 'users',
-        'columns' => array('uid' => 'uid'),
-      ),
-    ),
-  );
-
   $schema['election_endorser'] = array(
     'description' => 'The endorsers (proposers/seconders) table for the election module.',
     'fields' => array(
@@ -624,12 +512,6 @@ function election_schema() {
       'type' => array('type'),
       'email' => array('email'),
     ),
-    'foreign keys' => array(
-      'candidate' => array(
-        'table' => 'election_candidate',
-        'columns' => array('candidate_id' => 'candidate_id'),
-      ),
-    ),
   );
 
   return $schema;
@@ -641,7 +523,6 @@ function election_schema() {
  */
 function election_install() {
 
-  _election_add_foreign_keys();
   _election_install_code_electorates();
   _election_add_fields();
 
@@ -649,28 +530,11 @@ function election_install() {
 
 /**
  * Implements hook_uninstall().
- *
- * Delete tables in an order that satisfies foreign key integrity constraints.
  */
 function election_uninstall() {
 
   _election_remove_fields();
 
-  db_query('DROP TABLE IF EXISTS {election_endorser}, {election_ballot}, {election_vote}, {election_candidate}, {election_post_electorate}, {election_electorate}, {election_post}, {election}');
-}
-
-/**
- * Check whether or not all the database tables for this module exist.
- *
- * @return bool
- */
-function _election_db_tables_exist() {
-  foreach (array_keys(election_schema()) as $table) {
-    if (!db_table_exists($table)) {
-      return FALSE;
-    }
-  }
-  return TRUE;
 }
 
 /**
@@ -728,79 +592,3 @@ function _election_fields_info() {
   $fields = array(); // empty for now, left in for convenience
   return $fields;
 }
-
-/**
- * Set up foreign key constraints for a MySQL/InnoDB database.
- *
- * @see election_install()
- *
- * @return void
- */
-function _election_add_foreign_keys() {
-
-  if (db_driver() != 'mysql') {
-    watchdog(
-      'election',
-      'Cannot set up foreign key constraints: the database driver would need to be MySQL.'
-    );
-    return;
-  }
-
-  if (!_election_db_tables_exist()) {
-    watchdog(
-      'election',
-      'Cannot set up foreign key constraints: the database tables do not (all) exist.'
-    );
-    return;
-  }
-
-  try {
-
-    // Foreign keys for {election_post}.
-    db_query('ALTER TABLE {election_post} ADD FOREIGN KEY (`election_id`) REFERENCES {election} (`election_id`) ON UPDATE CASCADE ON DELETE CASCADE');
-
-    // Foreign keys for {election_post_electorate}.
-    db_query('ALTER TABLE {election_post_electorate} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE ON DELETE CASCADE');
-    db_query('ALTER TABLE {election_post_electorate} ADD FOREIGN KEY (`electorate_id`) REFERENCES {election_electorate} (`electorate_id`) ON UPDATE CASCADE ON DELETE CASCADE');
-
-    // Foreign keys for {election_ballot}.
-    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE ON DELETE RESTRICT');
-    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`vote_id`) REFERENCES {election_vote} (`vote_id`) ON UPDATE CASCADE ON DELETE CASCADE');
-    db_query('ALTER TABLE {election_ballot} ADD FOREIGN KEY (`candidate_id`) REFERENCES {election_candidate} (`candidate_id`) ON UPDATE CASCADE');
-
-    // Foreign keys for {election_candidate}.
-    db_query('ALTER TABLE {election_candidate} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE ON DELETE SET NULL');
-    db_query('ALTER TABLE {election_candidate} ADD FOREIGN KEY (`uid`) REFERENCES {users} (`uid`) ON UPDATE CASCADE ON DELETE SET NULL');
-
-    // Foreign keys for {election_endorser}.
-    db_query('ALTER TABLE {election_endorser} ADD FOREIGN KEY (`candidate_id`) REFERENCES {election_candidate} (`candidate_id`) ON UPDATE CASCADE ON DELETE CASCADE');
-
-    // Foreign keys for {election_vote}.
-    db_query('ALTER TABLE {election_vote} ADD FOREIGN KEY (`post_id`) REFERENCES {election_post} (`post_id`) ON UPDATE CASCADE ON DELETE SET NULL');
-    db_query('ALTER TABLE {election_vote} ADD FOREIGN KEY (`uid`) REFERENCES {users} (`uid`) ON UPDATE CASCADE ON DELETE SET NULL');
-
-  } catch (Exception $e) {
-
-    watchdog(
-      'election',
-      'Cannot set up foreign key constraints: database error.',
-      $e->getError()
-    );
-
-  }
-
-}
-
-/**
- * Alter candidate status to reflect new constants.
- */
-function election_update_7001() {
-  $schema = election_schema();
-  db_drop_index('election_candidate', 'cstatus');
-  db_change_field('election_candidate', 'cstatus', 'cstatus', $schema['election_candidate']['fields']['cstatus'], array('indexes' => array('cstatus' => array('cstatus'))));
-  db_query(
-    'UPDATE {election_candidate} SET cstatus = ? WHERE cstatus = ?',
-    array(ELECTION_CANDIDATE_REJECTED, -1)
-  );
-}
-

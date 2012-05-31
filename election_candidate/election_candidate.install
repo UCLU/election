@@ -7,6 +7,142 @@
 require_once 'election_candidate.constants.inc';
 
 /**
+ * Implements hook_schema().
+ */
+function election_candidate_schema() {
+
+  $schema = array();
+
+  $schema['election_candidate'] = array(
+    'description' => 'The candidates table for the election module.',
+    'fields' => array(
+      'candidate_id' => array(
+        'description' => 'Primary key: identifier for a candidate.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'post_id' => array(
+        'description' => 'The post for which the candidate is standing. Relates to {election_post}.post_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'election_id' => array(
+        'description' => 'The election in which the candidate is standing. Relates to {election}.election_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'cstatus' => array( // 'status' as field name causes Entity API confusion
+        'description' => sprintf(
+          'The candidate\'s status: pending %d, approved %d, withdrawn %d, or rejected %d.',
+          ELECTION_CANDIDATE_PENDING,
+          ELECTION_CANDIDATE_APPROVED,
+          ELECTION_CANDIDATE_WITHDRAWN,
+          ELECTION_CANDIDATE_REJECTED
+        ),
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => ELECTION_CANDIDATE_PENDING,
+      ),
+      'uid' => array(
+        'description' => 'The {users}.uid of the candidate.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'username' => array(
+        'description' => 'The {users}.name of the candidate.',
+        'type' => 'varchar',
+        'length' => 60,
+        'not null' => FALSE,
+      ),
+      'first_name' => array(
+        'description' => 'The candidate\'s first name.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'last_name' => array(
+        'description' => 'The candidate\'s last name.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'mail' => array(
+        'description' => 'The candidate\'s email address.',
+        'type' => 'varchar',
+        'length' => 254,
+        'not null' => TRUE,
+      ),
+      'phone' => array(
+        'description' => 'The phone number of the candidate.',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => FALSE,
+      ),
+      'summary' => array(
+        'description' => 'The candidate\'s manifesto summary paragraph.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp for when the candidate was created/nominated.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp for when the candidate was most recently changed.',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('candidate_id'),
+    'indexes' => array(
+      'post_id' => array('post_id'),
+      'uid' => array('uid'),
+      'name' => array('first_name', 'last_name'),
+      'mail' => array('mail'),
+      'created' => array('created'),
+      'cstatus' => array('cstatus'),
+    ),
+    'foreign keys' => array(
+      'post' => array(
+        'table' => 'election_post',
+        'columns' => array('post_id' => 'post_id'),
+      ),
+      'user' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid'),
+      ),
+    ),
+  );
+
+  return $schema;
+
+}
+
+/**
+ * Implements hook_schema_alter().
+ */
+function election_candidate_schema_alter() {
+
+  $schema['election_ballot']['foreign keys']['candidate'] = array(
+    'table' => 'election_candidate',
+    'columns' => array('candidate_id' => 'candidate_id'),
+  );
+
+  $schema['election_endorser']['foreign keys']['candidate'] = array(
+    'table' => 'election_candidate',
+    'columns' => array('candidate_id' => 'candidate_id'),
+  );
+
+}
+
+/**
  * Implements hook_install().
  */
 function election_candidate_install() {
