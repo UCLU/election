@@ -718,7 +718,7 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
     '<front>'
   );
   $links[] = l(
-    t('Elections  '),
+    t('Elections'),
     'elections'
   );
   if (!is_object($election)) {

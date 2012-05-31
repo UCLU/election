@@ -134,15 +134,15 @@ function election_candidate_totals_page(stdClass $election) {
 
   $result = db_query('SELECT COUNT(DISTINCT candidate_id) AS num_candidates, COUNT(DISTINCT IF (cstatus=0, candidate_id, NULL)) AS num_pending, COUNT(DISTINCT IF (cstatus=1, candidate_id, NULL)) AS num_approved, COUNT(DISTINCT IF (cstatus=-1, candidate_id, NULL)) AS num_withdrawn, COUNT(DISTINCT IF (cstatus=-2, candidate_id, NULL)) AS num_rejected FROM {election_candidate} WHERE election_id = :election_id', array(
   ':election_id' => $election->election_id));
-  $totalAll = $result->fetch();
+  $total_all = $result->fetch();
 
   $output = array(
     'total' => array(
-      '#markup' => '<p>' . t('Total number of candidates: !totalAll', array('!totalAll' => $totalAll->num_candidates)) . '</p>',
+      '#markup' => '<p>' . t('Total number of candidates: !totalAll', array('!totalAll' => $total_all->num_candidates)) . '</p>',
     ),
   );
 
-  if ($totalAll->num_candidates > 0) {
+  if ($total_all->num_candidates > 0) {
     $result = db_query(
       'SELECT ep.title, COUNT(DISTINCT ec.candidate_id) AS num_candidates, COUNT(DISTINCT IF (ec.cstatus=0, ec.candidate_id, NULL)) AS num_pending, COUNT(DISTINCT IF (ec.cstatus=1, ec.candidate_id, NULL)) AS num_approved, COUNT(DISTINCT IF (ec.cstatus=-1, ec.candidate_id, NULL)) AS num_withdrawn, COUNT(DISTINCT IF (ec.cstatus=-2, ec.candidate_id, NULL)) AS num_rejected FROM {election_post} ep LEFT JOIN {election_candidate} ec USING (post_id) WHERE ep.election_id = :election_id GROUP BY ep.post_id ORDER BY ep.title',
       array(
@@ -152,7 +152,7 @@ function election_candidate_totals_page(stdClass $election) {
     $totals = $result->fetchAll();
     $header = array(t('Position'), t('Pending'), t('Approved'), t('Rejected'), t('Withdrawn'));
     $rows = array();
-    $rows[] = array(t('TOTAL'), $totalAll->num_pending, $totalAll->num_approved, $totalAll->num_withdrawn, $totalAll->num_rejected);
+    $rows[] = array(t('TOTAL'), $total_all->num_pending, $total_all->num_approved, $total_all->num_withdrawn, $total_all->num_rejected);
     foreach ($totals as $total) {
       $rows[] = array(check_plain($total->title), $total->num_pending, $total->num_approved, $total->num_withdrawn, $total->num_rejected);
     }
@@ -287,7 +287,7 @@ function election_candidate_download_form_submit($form, &$form_state) {
 
   $election = $form_state['#election'];
 
-  $fileName = 'candidates_election' . $election->election_id . '_' . date('Y-m-d_His', REQUEST_TIME) . '.csv';
+  $file_name = 'candidates_election' . $election->election_id . '_' . date('Y-m-d_His', REQUEST_TIME) . '.csv';
 
   $include_properties = $form_state['values']['include_properties'];
   foreach ($include_properties as $key => $value) {
@@ -316,7 +316,7 @@ function election_candidate_download_form_submit($form, &$form_state) {
   drupal_add_http_header('Cache-Control', 'no-store, max-age=0, must-revalidate');
   drupal_add_http_header('Pragma', FALSE);
   drupal_add_http_header('Content-Description', 'File Transfer');
-  drupal_add_http_header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+  drupal_add_http_header('Content-Disposition', 'attachment; filename="' . $file_name . '"');
 
   $property_headers = array();
   foreach ($properties as $property) {
@@ -395,7 +395,7 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
         if (isset($value['und'][0]['safe_value'])) {
           return $value['und'][0]['safe_value'];
         }
-        else if (isset($value['und'][0]['value'])) {
+        elseif (isset($value['und'][0]['value'])) {
           return check_plain($value['und'][0]['value']);
         }
       }
