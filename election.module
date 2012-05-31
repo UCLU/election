@@ -243,19 +243,6 @@ function election_access($op, $election = NULL, $account = NULL) {
     case 'vote':
       return (bool) user_access('vote in elections', $account);
       break;
-    case 'nomination':  // @todo does this go in election_candidate?
-      if (empty($election) || $election->type == 'referendum') {
-        return FALSE;
-      }
-      return (bool) user_access('submit nominations', $account);
-      break;
-    case 'edit candidates': // @todo does this go in election_candidate? for 2.x-dev
-      if (empty($election) || $election->type == 'referendum') {
-        // candidates are n/a
-        return FALSE;
-      }
-      return (bool) election_candidate_access('edit', NULL, $account); // @todo this can't be right for 2x-dev
-      break;
     case 'delete':
       return (bool) user_access('delete any election', $account);
       break;
@@ -875,7 +862,6 @@ function pathauto_election_update_alias(stdClass $election, $op, array $options 
   }
   // Skip processing if Pathauto isn't enabled.
   if (!module_exists('pathauto')) {
-    drupal_set_message('Didn\'t create election alias as Pathauto apparently doesn\'t exist', 'warning');
     return;
   }
   $options += array(
@@ -883,7 +869,6 @@ function pathauto_election_update_alias(stdClass $election, $op, array $options 
   );
   // Skip processing if the election has no pattern.
   if (!pathauto_pattern_load_by_entity('election', $election->type, $options['language'])) {
-    drupal_set_message('Didn\'t create election alias as it has no pattern', 'warning');
     return;
   }
   module_load_include('inc', 'pathauto');
