@@ -117,8 +117,11 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
       }
       break;
     case 'create':
-      // Creating must happen through the nomination form, not via entity_access.
+      // Make sure we're explicitly "nominating" not creating by some other means.
       return FALSE;
+      break;
+    case 'nominate':
+      return user_access('submit nominations', $account);
       break;
   }
   // @todo clean up this function.
@@ -140,6 +143,14 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
       return FALSE;
       break;
   }
+}
+
+/**
+ * Helper function to allow access callbacks to work per election, rather than per
+ * candidate.
+ */
+function election_candidate_access_per_election($op, stdClass $election, $account = NULL) {
+  return (entity_access('view', 'election', $election, $account) && entity_access($op, 'election_candidate', NULL, $account));
 }
 
 /**
@@ -168,8 +179,8 @@ function election_candidate_menu() {
     'title' => 'Nomination form',
     'page callback' => 'election_page_nomination_form',
     'page arguments' => array(1),
-    'access callback' => 'election_access',
-    'access arguments' => array('nomination', 1),
+    'access callback' => 'election_candidate_access_per_election',
+    'access arguments' => array('nominate', 1),
     'file' => 'election-candidate.pages.inc',
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -180,8 +191,8 @@ function election_candidate_menu() {
     'title' => 'Candidates',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_candidate_list_form', 1),
-    'access callback' => 'election_access',
-    'access arguments' => array('edit candidates', 1),
+    'access callback' => 'election_candidate_access_per_election',
+    'access arguments' => array('edit', 1),
     'file' => 'election-candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 4,
@@ -198,8 +209,8 @@ function election_candidate_menu() {
     'title' => 'View totals',
     'page callback' => 'election_candidate_totals_page',
     'page arguments' => array(1),
-    'access callback' => 'election_access',
-    'access arguments' => array('edit candidates', 1),
+    'access callback' => 'election_candidate_access_per_election',
+    'access arguments' => array('edit', 1),
     'file' => 'election-candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
@@ -210,8 +221,8 @@ function election_candidate_menu() {
     'title' => 'Download data',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_candidate_download_form', 1),
-    'access callback' => 'election_access',
-    'access arguments' => array('edit candidates', 1),
+    'access callback' => 'election_candidate_access_per_election',
+    'access arguments' => array('edit', 1),
     'file' => 'election-candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 2,
