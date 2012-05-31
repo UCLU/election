@@ -136,9 +136,4 @@ function election_post_schema_alter(&$schema) {
     'columns' => array('post_id' => 'post_id'),
   );
 
-  $schema['election_post_electorate']['foreign keys']['post'] = array(
-    'table' => 'election_post',
-    'columns' => array('post_id' => 'post_id'),
-  );
-
 }

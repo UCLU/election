@@ -1,0 +1,6 @@
+name = Election Conditional Voting
+description = "Allows election positions to have conditional voting rules (creating electorates)."
+package = Election
+core = 7.x
+dependencies[] = election
+dependencies[] = election_post

@@ -73,72 +73,6 @@ function election_post_form($form, &$form_state, $election, $post) {
     ),
   );
 
-  $post->electorates = array();
-  if (!$post->is_new) {
-    $result = db_query('SELECT electorate_id FROM {election_post_electorate} WHERE post_id = :pid', array(':pid' => $post->post_id));
-    while ($row = $result->fetchAssoc()) {
-      $post->electorates[$row['electorate_id']] = 1;
-    }
-  }
-  $form['conditions'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Conditional voting'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#weight' => 99,
-  );
-  $form['conditions']['help'] = array(
-    'title' => array(
-      '#prefix' => '<div class="form-item"><label for="edit-electorates">',
-      '#markup' => t('Assign electorates'),
-      '#suffix' => '</label>',
-    ),
-    'help' => array(
-      '#prefix' => '<p class="voting-conditions-help">',
-      '#markup' => t('A user may cast a vote for this @post_type_name if he/she is a member of ANY of the electorates assigned here.', array('@post_type_name' => _election_get_posts_name($election->type))),
-      '#suffix' => '</p></div>',
-    ),
-  );
-  $electorate_headers = array(
-    'name' => t('Name'),
-    'conditions' => t('Conditions'),
-    'description' => t('Description'),
-  );
-  $electorate_options = array();
-  foreach (election_electorates() as $electorate_mn => $electorate) {
-    if (!is_array($electorate['conditions']) || !count($electorate['conditions'])) {
-      $conditions = '<span class="error">'
-                  . t('No valid conditions found for the electorate %machine_name.',
-                      array('%machine_name' => $electorate_mn))
-                  . '</span>';
-    }
-    else {
-      $items = $electorate['conditions'];
-      foreach ($items as $key => $item) {
-        $items[$key] = t('@key: %item', array(
-          '@key' => is_string($key)? drupal_ucfirst($key) : 'Function',
-          '%item' => $item . '()',
-        ));
-      }
-      $conditions = theme('item_list', array('#items' => $items));
-    }
-    $electorate_options[$electorate['electorate_id']] = array(
-      'name' => $electorate['name'],
-      'conditions' => $conditions,
-      'description' => $electorate['description'],
-    );
-  }
-  $form['conditions']['electorates'] = array(
-    '#type' => 'tableselect',
-    '#attributes' => array('class', 'select-electorates'),
-    '#default_value' => isset($post->electorates)? (array) $post->electorates : array(),
-    '#header' => $electorate_headers,
-    '#options' => $electorate_options,
-    '#multiple' => TRUE,
-    '#js_select' => FALSE,
-    '#empty' => t('No electorates available.'),
-  );
-
   $form['buttons'] = array(
     '#type' => 'actions',
     '#weight' => 100,
@@ -333,27 +267,13 @@ function election_post_form_submit($form, &$form_state) {
   }
 
   foreach ($post as $property => $value) {
-    switch ($property) {
-      case 'electorates':
-        // continue
-        break;
-      default:
-        if (isset($form_state['values'][$property])) {
-          $post->$property = $form_state['values'][$property];
-        }
+    if (isset($form_state['values'][$property])) {
+      $post->$property = $form_state['values'][$property];
     }
   }
 
   if (empty($form_state['values']['exclusive'])) {
     $post->exclusive = 0;
-  }
-
-  $post->electorates = array();
-  $electorates = (array) $form_state['values']['electorates'];
-  foreach ($electorates as $electorate_id => $value) {
-    if (!empty($value)) {
-      $post->electorates[] = $electorate_id;
-    }
   }
 
   field_attach_submit('election_post', $post, $form, $form_state);

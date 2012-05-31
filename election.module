@@ -167,174 +167,6 @@ function election_load($election_id = NULL) {
 }
 
 /**
- * Return information about all electorates.
- *
- * @todo document this
- *
- * @return array
- */
-function election_electorates($post = NULL) {
-  $query = db_select('election_electorate', 'ee');
-  $query->fields('ee');
-  if (is_object($post)) {
-    $query->leftJoin('election_post_electorate', 'epe', 'ee.post_id=epe.post_id');
-    $query->condition('epe.post_id', $post->post_id);
-  }
-  $query->orderBy('ee.name');
-  $result = $query->execute();
-
-  $electorates = array();
-
-  $code_electorates = _election_get_code_electorates();
-
-  while ($electorate = $result->fetchAssoc()) {
-    $key = $electorate['machine_name'];
-    if ($electorate['locked']) {
-      if (isset($code_electorates[$key])) {
-        $electorate['conditions'] = (array) @$code_electorates[$key]['conditions'];
-      }
-    }
-    else {
-      // @todo this is envisioned to allow conditions to be configured dynamically.
-      // @todo look into ctools exportables.
-      $electorate['conditions'] = (array) unserialize($electorate['conditions']);
-    }
-    $key = $electorate['machine_name'];
-    $electorates[$key] = $electorate;
-  }
-
-  return $electorates;
-}
-
-/**
- * Return information about code electorates in a structured array, keyed by each
- * electorate's machine name. Each element is also a structured array defining at
- * least 'name' and 'access callback'. The key 'access callback' refers to a
- * function that takes one argument (the Drupal $user object) and returns
- * whether or not the user is part of the electorate (as a Boolean value).
- *
- * This function uses hook_electorate_info() to allow other modules to
- * define electorates.
- *
- * @return array
- */
-function _election_get_code_electorates() {
-  $electorates = &drupal_static(__FUNCTION__);
-  if (empty($electorates)) {
-    $electorates = array();
-    $electorates += module_invoke_all('electorate_info');
-  }
-  return $electorates;
-}
-
-/**
- * Implements hook_modules_enabled().
- */
-function election_modules_enabled($modules = array()) {
-  /*
-    If any of the enabled modules contains an implementation of
-    hook_electorate_info, run _election_install_code_electorates().
-  */
-  foreach ($modules as $module) {
-    if (function_exists($module . '_electorate_info')) {
-      _election_install_code_electorates();
-      break;
-    }
-  }
-}
-
-/**
- * Implements hook_modules_disabled().
- */
-function election_modules_disabled($modules = array()) {
-  /*
-    If any of the disabled modules contains an implementation of
-    hook_electorate_info, run _election_uninstall_code_electorates().
-  */
-  foreach ($modules as $module) {
-    if (function_exists($module . '_electorate_info')) {
-      _election_uninstall_code_electorates();
-      break;
-    }
-  }
-}
-
-/*
- * Delete electorates from the DB only if they are not assigned to any posts AND
- * they do not (or no longer) exist in code.
- *
- * @return void
- */
-function _election_uninstall_code_electorates() {
-  $code_electorates = _election_get_code_electorates();
-  $transaction = db_transaction();
-  try {
-    $db_electorates = db_query('SELECT electorate_id, machine_name FROM {election_electorate} WHERE locked = 1');
-    while ($db_electorate = $db_electorates->fetchAssoc()) {
-      // Don't delete electorates that (still) exist in code.
-      if (isset($code_electorates[$db_electorate['machine_name']])) {
-        continue;
-      }
-      // Don't delete assigned electorates.
-      // @todo with a bit of thought this could be run as a JOIN on the $db_electorates query above.
-      $assigned = db_query_range(
-        'SELECT 1 FROM {election_post_electorate} WHERE electorate_id = :eid',
-        0, 1,
-        array(':eid' => $db_electorate['electorate_id'])
-      );
-      if ($assigned->rowCount()) {
-        continue;
-      }
-      db_delete('election_electorate')
-        ->condition('electorate_id', $db_electorate['electorate_id'])
-        ->execute();
-      watchdog(
-        'election',
-        'Deleted the electorate %machine_name from the database as it is no longer in use.',
-        array('%machine_name' => $db_electorate['machine_name'])
-      );
-    }
-  }
-  catch (Exception $e) {
-    $transaction->rollback();
-    watchdog_exception(
-      'election',
-      $e,
-      'Failed to remove from the database those electorates that no longer exist in code.',
-      WATCHDOG_ERROR
-    );
-    return FALSE;
-  }
-}
-
-/**
- * Find electorates in code and write them (identified by 'machine name') to the
- * {election_electorate} table. This uses a Merge Query, see:
- * http://drupal.org/node/310085
- * and:
- * http://api.drupal.org/api/drupal/includes--database--query.inc/class/MergeQuery/7
- *
- * @return void
- */
-function _election_install_code_electorates() {
-  foreach (_election_get_code_electorates() as $electorate_mn => $electorate) {
-    $record = array(
-      'machine_name' => $electorate_mn,
-      'name' => empty($electorate['name'])? $electorate_mn : $electorate['name'],
-      'description' => @$electorate['description'],
-      'locked' => 1,
-      'changed' => REQUEST_TIME,
-    );
-    db_merge('election_electorate')
-      ->key(array('machine_name' => $electorate_mn))
-      ->updateFields($record)
-      ->insertFields($record + array('created' => REQUEST_TIME))
-      ->execute();
-  }
-}
-
-
-/**
  * Load multiple elections.
  *
  * @param mixed $election_id
@@ -360,7 +192,7 @@ function election_permission() {
     ),
     'vote in elections' => array(
       'title' => t('Vote in elections'),
-      'description' => t('Users must have this permission in order to vote. They must also belong to the relevant electorate(s).'),
+      'description' => t('Users must have this permission in order to vote.'),
     ),
     'create elections' => array(
       'title' => t('Create elections'),
@@ -689,31 +521,8 @@ function election_entity_delete($entity, $type) {
  * Implements hook_entity_insert().
  */
 function election_entity_insert($entity, $type) {
-  switch ($type) {
-    case 'election':
-      pathauto_election_update_alias($entity, 'insert');
-    break;
-    case 'election_post': // @todo factor this into election_electorate submodule
-      $transaction = db_transaction();
-      try {
-        db_delete('election_post_electorate')
-          ->condition('post_id', $entity->post_id)
-          ->execute();
-        foreach ($entity->electorates as $electorate_id) {
-          db_insert('election_post_electorate')->fields(array(
-            'post_id' => $entity->post_id,
-            'electorate_id' => $electorate_id,
-          ))->execute();
-        }
-        _election_uninstall_code_electorates();
-      }
-      catch (Exception $e) {
-        $transaction->rollback();
-        watchdog_exception('election', $e, NULL, WATCHDOG_ERROR);
-        return FALSE;
-      }
-      return TRUE;
-    break;
+  if ($type == 'election') {
+    pathauto_election_update_alias($entity, 'insert');
   }
 }
 

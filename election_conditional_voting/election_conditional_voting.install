@@ -1,0 +1,125 @@
+<?php
+/**
+ * @file
+ *   Install functions for the Election Conditional Voting module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function election_conditional_voting_schema() {
+
+  $schema = array();
+
+  $schema['election_post_electorate'] = array(
+    'description' => 'Table mapping electorates to posts, for the election module.',
+    'fields' => array(
+      'post_id' => array(
+        'description' => 'Relates to {election_post}.post_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'electorate_id' => array(
+        'description' => 'Relates to {election_electorate}.electorate_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+    ),
+    'unique keys' => array(
+      'posts_electorates' => array('post_id', 'electorate_id'),
+    ),
+    'foreign keys' => array(
+      'electorate' => array(
+        'table' => 'election_electorate',
+        'columns' => array('electorate_id' => 'electorate_id'),
+      ),
+      'post' => array(
+        'table' => 'election_post',
+        'columns' => array('post_id' => 'post_id'),
+      ),
+    ),
+  );
+
+  $schema['election_electorate'] = array(
+    'description' => 'The electorates table for the election module. An electorate is a group of eligible voters.',
+    'fields' => array(
+      'electorate_id' => array(
+        'description' => 'Primary key: identifier for an electorate.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'machine_name' => array(
+        'description' => 'The unique machine name of the electorate.',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'The name of the electorate - a human-readable identifier.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'description' => array(
+        'description' => 'A human-readable description of the electorate.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'conditions' => array(
+        'description' => 'A serialized array of conditions, all of which users must pass to be part of the electorate.',
+        'type' => 'blob',
+        'size' => 'big',
+        'serialize' => TRUE,
+        'not null' => FALSE,
+      ),
+      'locked' => array(
+        'description' => 'Whether or not the electorate is locked (i.e. created in code, not editable).',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp for when the electorate was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp for when the electorate was most recently changed.',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('electorate_id'),
+    'unique keys' => array(
+      'machine_name' => array('machine_name'),
+    ),
+    'indexes' => array(
+      'created' => array('created'),
+      'name' => array('name'),
+    ),
+  );
+
+  return $schema;
+
+}
+
+/**
+ * Implements hook_install().
+ */
+function election_conditional_voting_install() {
+
+  _election_conditional_voting_install_code_electorates();
+
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function election_conditional_voting_uninstall() {
+
+}
