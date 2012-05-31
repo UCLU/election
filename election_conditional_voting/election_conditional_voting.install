@@ -115,6 +115,8 @@ function election_conditional_voting_install() {
 
   _election_conditional_voting_install_code_electorates();
 
+  menu_rebuild();
+
 }
 
 /**

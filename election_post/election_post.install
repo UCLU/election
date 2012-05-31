@@ -137,3 +137,10 @@ function election_post_schema_alter(&$schema) {
   );
 
 }
+
+/**
+ * Implements hook_install().
+ */
+function election_post_install() {
+  menu_rebuild();
+}

@@ -149,6 +149,8 @@ function election_candidate_install() {
 
   _election_candidate_add_fields();
 
+  menu_rebuild();
+
 }
 
 /**

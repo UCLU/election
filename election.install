@@ -252,6 +252,8 @@ function election_install() {
 
   _election_add_fields();
 
+  menu_rebuild();
+
 }
 
 /**
