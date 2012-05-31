@@ -128,7 +128,7 @@ function election_candidate_schema() {
 /**
  * Implements hook_schema_alter().
  */
-function election_candidate_schema_alter() {
+function election_candidate_schema_alter(&$schema) {
 
   $schema['election_ballot']['foreign keys']['candidate'] = array(
     'table' => 'election_candidate',

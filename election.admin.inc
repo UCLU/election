@@ -501,5 +501,7 @@ function election_form_delete_confirm_submit($form, &$form_state) {
     }
 
   }
-  $form_state['redirect'] = 'admin/election/list';
+  if (empty($_GET['destination'])) {
+    $form_state['redirect'] = 'admin/election/list';
+  }
 }

@@ -1,0 +1,144 @@
+<?php
+/**
+ * @file
+ *   Install functions for the Election Post module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function election_post_schema() {
+
+  $schema = array();
+
+  $schema['election_post'] = array(
+    'description' => 'The posts table for the election module. Post types: electoral position, referendum motion.',
+    'fields' => array(
+      'post_id' => array(
+        'description' => 'Primary key: identifier for a post.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'election_id' => array(
+        'description' => 'The {election}.election_id for this post.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'type' => array(
+        'description' => 'The type of the election post (machine name).',
+        'type' => 'varchar',
+        'length' => 100,
+      ),
+      'title' => array(
+        'description' => 'The title of the post.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'allow_abstention' => array(
+        'description' => 'For a motion: whether or not to allow voters to abstain.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'vstatus_inheritance' => array(
+        'description' => sprintf(
+          'The post\'s voting status: inherited (%d) or closed (%d).',
+          ELECTION_POST_STATUS_INHERIT,
+          ELECTION_POST_STATUS_CLOSED
+        ),
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => ELECTION_POST_STATUS_INHERIT,
+      ),
+      'nstatus_inheritance' => array(
+        'description' => sprintf(
+          'For a position: whether its nominations status is inherited (%d) or closed (%d).',
+          ELECTION_POST_STATUS_INHERIT,
+          ELECTION_POST_STATUS_CLOSED
+        ),
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => ELECTION_POST_STATUS_INHERIT,
+      ),
+      'exclusive' => array(
+        'description' => 'For a position: whether or not the candidate can nominate for additional positions.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'vacancy_count' => array(
+        'description' => 'For a position: the number of vacancies.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'use_ron' => array(
+        'description' => 'For a position: whether or not RON (Re-Open Nominations)'
+                       . ' is to be provided as a candidate.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp for when the post was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp for when the post was most recently changed.',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('post_id'),
+    'indexes' => array(
+      'use_ron' => array('use_ron'),
+      'exclusive' => array('exclusive'),
+      'created' => array('created'),
+      'title' => array('title'),
+      'vstatus_inheritance' => array('vstatus_inheritance'),
+      'nstatus_inheritance' => array('nstatus_inheritance'),
+      'election_id' => array('election_id'),
+      'type' => array('type'),
+    ),
+    'foreign keys' => array(
+      'post_election' => array(
+        'table' => 'election',
+        'columns' => array('election_id' => 'election_id'),
+      ),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_schema_alter().
+ */
+function election_post_schema_alter(&$schema) {
+
+  $schema['election_ballot']['foreign keys']['post'] = array(
+    'table' => 'election_post',
+    'columns' => array('post_id' => 'post_id'),
+  );
+
+  $schema['election_vote']['foreign keys']['post'] = array(
+    'table' => 'election_post',
+    'columns' => array('post_id' => 'post_id'),
+  );
+
+  $schema['election_post_electorate']['foreign keys']['post'] = array(
+    'table' => 'election_post',
+    'columns' => array('post_id' => 'post_id'),
+  );
+
+}

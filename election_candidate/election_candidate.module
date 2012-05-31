@@ -121,6 +121,7 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
       return FALSE;
       break;
   }
+  // @todo clean up this function.
   if ($candidate === NULL || empty($candidate->uid) || $candidate->uid !== $account->uid) {
     // This is not the account's nomination, and global checks have failed.
     return FALSE;
@@ -497,6 +498,23 @@ function election_candidate_uri_path($candidate) {
  */
 function election_candidate_label(stdClass $entity, $entity_type) {
   return $entity->first_name . ' ' . $entity->last_name;
+}
+
+/**
+ * Load an individual election candidate.
+ *
+ * @param mixed $candidate_id
+ *   A single election candidate ID.
+ *
+ * @return stdClass
+ *   A stdClass election_candidate object.
+ */
+function election_candidate_load($candidate_id = NULL) {
+  $result = entity_load('election_candidate', (array) $candidate_id);
+  if (!is_array($result) || !count($result)) {
+    return FALSE;
+  }
+  return reset($result);
 }
 
 /**

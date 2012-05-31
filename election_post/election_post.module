@@ -1,0 +1,477 @@
+<?php
+/**
+ * @file
+ * Election Post: primary module file.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function election_post_menu() {
+
+  $items = array();
+
+  foreach (election_types() as $type_mn => $type) {
+    if (!empty($type['post key'])) {
+      $post_key = $type['post key'];
+      $post_name = _election_get_posts_name($type_mn);
+      $post_name_plural = _election_get_posts_name($type_mn, TRUE);
+      $items['admin/election/' . $type_mn . '/' . $post_key] = array(
+        'title' => drupal_ucfirst($post_name) . ' settings',
+        'title callback' => 'check_plain',
+        'page callback' => 'system_admin_menu_block_page',
+        'access arguments' => array('administer elections'),
+        'file' => 'system.admin.inc',
+        'file path' => drupal_get_path('module', 'system'),
+        'description' => 'Manage fields and display settings for ' . $post_name_plural . '.',
+      );
+    }
+  }
+
+  $items['election/%election/posts'] = array(
+    'title callback' => 'election_post_listpage_title',
+    'title arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_post_list_form', 1),
+    'file' => 'election-post.admin.inc',
+    'access callback' => 'election_access',
+    'access arguments' => array('update', 2),
+    'weight' => 3,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+
+  $items['election/%election/posts/add'] = array(
+    'title' => 'Add new',
+    'page callback' => 'election_post_page_add',
+    'page arguments' => array(1),
+    'access callback' => 'election_access',
+    'access arguments' => array('update', 1),
+    'file' => 'election-post.admin.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+
+  $items['election/%election/posts/%election_post'] = array(
+    'title callback' => 'election_post_page_title',
+    'title arguments' => array(1, 3),
+    'page callback' => 'election_post_page_view',
+    'page arguments' => array(1, 3),
+    'access callback' => 'election_access',
+    'access arguments' => array('view', 1),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['election/%election/posts/%election_post/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+
+  $items['election/%election/posts/%election_post/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'election_post_page_edit',
+    'page arguments' => array(1, 3),
+    'file' => 'election-post.admin.inc',
+    'access callback' => 'election_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'weight' => 1,
+  );
+
+  $items['election/%election/posts/%election_post/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_post_form_delete_confirm', 1, 3),
+    'access callback' => 'election_access',
+    'access arguments' => array('update', 1),
+    'file' => 'election-post.admin.inc',
+    'weight' => 2,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE,
+  );
+
+  return $items;
+
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function election_post_menu_alter(&$items) {
+  foreach (election_types() as $type_mn => $type) {
+    $path = 'admin/election/' . $type_mn;
+    if (!empty($type['post key'])) {
+      $post_key = $type['post key'];
+      $post_name_plural = _election_get_posts_name($type_mn, TRUE);
+      $items[$path . '/' . $post_key]['type'] = MENU_NORMAL_ITEM;
+      $items[$path . '/' . $post_key . '/fields']['type'] = MENU_NORMAL_ITEM;
+      $items[$path . '/' . $post_key . '/fields']['description'] = t(
+        'Manage fields for %type @posts_name_plural.',
+        array(
+          '%type' => $type['name'],
+          '@posts_name_plural' => $post_name_plural,
+        )
+      );
+      $items[$path . '/' . $post_key . '/display']['type'] = MENU_NORMAL_ITEM;
+      $items[$path . '/' . $post_key . '/display/full']['type'] = MENU_NORMAL_ITEM;
+      $items[$path . '/' . $post_key . '/display/teaser']['type'] = MENU_NORMAL_ITEM;
+      $items[$path . '/' . $post_key . '/display']['description'] = t(
+        'Manage display for %type @posts_name_plural.',
+        array(
+          '%type' => $type['name'],
+          '@posts_name_plural' => $post_name_plural,
+        )
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function election_post_entity_info() {
+
+  $entities = array();
+
+  $entities['election_post'] = array(
+    'label' => t('Election post'),
+    'access callback' => 'election_post_access',
+    'uri callback' => 'election_post_uri',
+    'controller class' => 'ElectionPostController',
+    'base table' => 'election_post',
+    'entity keys' => array(
+      'id' => 'post_id',
+      'label' => 'title',
+      'bundle' => 'type',
+    ),
+    'bundle keys' => array(
+      'bundle' => 'type',
+    ),
+    'bundles' => array(),
+    'static cache' => TRUE,
+    'fieldable' => TRUE,
+    'module' => 'election_post',
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full content'),
+        'custom settings' => TRUE,
+      ),
+      'teaser' => array(
+        'label' => t('Teaser'),
+        'custom settings' => TRUE,
+      ),
+    ),
+    'redirect' => FALSE, // for the Redirect module
+  );
+
+  foreach (election_types() as $type_mn => $type) {
+    if (!empty($type['post key'])) {
+      $post_key = $type['post key'];
+      $post_name = _election_get_posts_name($type_mn);
+      $entities['election_post']['bundles'][$post_key] = array(
+        'label' => drupal_ucfirst($post_name),
+        'admin' => array(
+          'path' => 'admin/election/' . $type_mn . '/' . $post_key,
+          'real path' => 'admin/election/' . $type_mn . '/' . $post_key,
+          'bundle argument' => 3,
+          'access arguments' => array('administer elections'),
+        ),
+      );
+    }
+  }
+
+  return $entities;
+}
+
+/**
+ * URI callback for a single election post.
+ *
+ * @return array
+ */
+function election_post_uri($post) {
+  $path = 'election-posts/' . $post->post_id;
+  if (!empty($post->election_id)) {
+    $election = election_load($post->election_id);
+    $path = election_uri_path($election) . '/posts/' . $post->post_id;
+  }
+  return array(
+    'path' => $path,
+  );
+}
+
+/**
+ * Return the path part of the election post URI callback as a string.
+ *
+ * @return string.
+ */
+function election_post_uri_path($post) {
+  $uri = entity_uri('election_post', $post);
+  return $uri['path'];
+}
+
+/**
+ * Load an individual election post.
+ *
+ * @param mixed $post_id
+ *   A single election post ID.
+ *
+ * @return stdClass
+ *   A stdClass post object.
+ */
+function election_post_load($post_id = NULL) {
+  $result = entity_load('election_post', (array) $post_id);
+  if (!is_array($result) || !count($result)) {
+    return FALSE;
+  }
+  return reset($result);
+}
+
+/**
+ * Load multiple posts.
+ *
+ * @param mixed $post_ids
+ *   An array of post IDs.
+ *
+ * @return stdClass
+ *   A stdClass election_post object.
+ */
+function election_post_load_multiple(array $post_ids = array()) {
+  return entity_load('election_post', $post_ids);
+}
+
+
+/**
+ * Wrapper function to allow deleting multiple election posts.
+ *
+ * @param array $post_ids
+ *   Array of post IDs.
+ * @return bool
+ */
+function election_post_delete_multiple(array $post_ids) {
+  return entity_get_controller('election_post')->delete($post_ids);
+}
+
+/**
+ * Wrapper function to allow deleting an individual election post.
+ *
+ * @see election_post_delete_multiple()
+ *
+ * @param mixed $post_id
+ *   Single post ID.
+ * @return bool
+ */
+function election_post_delete($post_id) {
+  return election_post_delete_multiple(array($post_id));
+}
+
+/**
+ * Wrapper function to allow saving an election post.
+ *
+ * @param stdClass $post
+ *   Election post object.
+ * @return bool
+ */
+function election_post_save($post) {
+  return entity_get_controller('election_post')->save($post);
+}
+
+/**
+ * Title callback for election/%election/posts (output should not
+ * be escaped here as it is done later).
+ *
+ * @param stdClass $election
+ *
+ * @return string
+ */
+function election_post_listpage_title($election) {
+  return drupal_ucfirst(_election_get_posts_name($election->type, TRUE));
+}
+
+/**
+ * Title callback for election/%election/posts/%election_post (output should not
+ * be escaped here as it is done later).
+ *
+ * @param stdClass $election
+ * @param stdClass $post
+ *
+ * @return string
+ */
+function election_post_page_title($election, $post) {
+  return $post->title;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function election_post_theme() {
+  return array(
+    'election_post' => array(
+      'render element' => 'elements',
+      'template' => 'election-post',
+    ),
+  );
+}
+
+/**
+ * Generate an array for rendering the given election post.
+ *
+ * @param $election
+ *   An election object.
+ * @param $view_mode
+ *   View mode, e.g. 'full', 'teaser'...
+ *
+ * @return
+ *   An array as expected by drupal_render().
+ */
+function election_post_view($election, $post, $view_mode = 'full') {
+
+  // Remove previously built content, if it exists.
+  $post->content = array();
+
+  if ($view_mode == 'teaser') {
+    $post->content['title'] = array(
+      '#markup' => filter_xss($post->title),
+      '#weight' => -5,
+    );
+  }
+  else {
+    drupal_set_title($post->title);
+  }
+
+  // Build fields content.
+  // In case of a multiple view, node_view_multiple() already ran the
+  // 'prepare_view' step. An internal flag prevents the operation from running
+  // twice.
+  field_attach_prepare_view('election_post', array($post->post_id => $post), $view_mode);
+  entity_prepare_view('election_post', array($post->post_id => $post));
+  $post->content += field_attach_view('election_post', $post, $view_mode);
+
+  $build = $post->content;
+  // We don't need duplicate rendering info in post->content.
+  unset($post->content);
+
+  $build += array(
+    '#theme' => 'election_post',
+    '#election' => $election,
+    '#post' => $post,
+    '#view_mode' => $view_mode,
+  );
+
+  // Add contextual links for this post, except when the post is already being
+  // displayed on its own page. Modules may alter this behavior (for example,
+  // to restrict contextual links to certain view modes) by implementing
+  // hook_post_view_alter().
+  if (!empty($post->post_id) && $view_mode != 'full') {
+    $build['#contextual_links']['election_post'] = array('election_post', array($post->post_id));
+  }
+
+  // Allow modules to modify the structured post.
+  $type = 'election_post'; // $type is passed by reference to drupal_alter() so it must be a variable.
+  drupal_alter(array('post_view', 'entity_view'), $build, $type);
+
+  return $build;
+
+}
+
+/**
+ * Process variables for election-post.tpl.php
+ *
+ * The $variables array contains the following arguments:
+ * - $election
+ * - $view_mode
+ * - $page
+ *
+ * @see election-post.tpl.php
+ */
+function template_preprocess_election_post(&$variables) {
+
+  $variables['view_mode'] = $variables['elements']['#view_mode'];
+
+  // Provide a distinct $teaser boolean.
+  $variables['teaser'] = $variables['view_mode'] == 'teaser';
+
+  $variables['election'] = $variables['elements']['#election'];
+  $election = $variables['election'];
+
+  $variables['post'] = $variables['elements']['#post'];
+  $post = $variables['post'];
+
+  $uri = entity_uri('election_post', $post);
+  $variables['election_post_url'] = url($uri['path'], $uri['options']);
+  $variables['title'] = check_plain($post->title);
+  $variables['page'] = $variables['view_mode'] == 'full';
+  $variables['exclusivity'] = $post->exclusive? t('This is an exclusive position.') : t('This is not an exclusive position.');
+  $variables['exclusivity_help'] = t('Candidates may only stand for one exclusive position per election.');
+
+  // Flatten the election object's member fields.
+  $variables = array_merge((array) $post, $variables);
+
+  // Helpful $content variable for templates.
+  $variables += array('content' => array());
+  foreach (element_children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+
+  // Make the field variables available with the appropriate language.
+  field_attach_preprocess('election', $election, $variables['content'], $variables);
+
+  // Gather classes.
+  $variables['classes_array'][] = drupal_html_class('election-post-' . $election->type);
+
+  // Clean up name so there are no underscores.
+  $variables['theme_hook_suggestions'][] = 'election_post__' . $election->type;
+  $variables['theme_hook_suggestions'][] = 'election_post__' . $election->election_id;
+
+}
+
+/**
+ * Internal function to format the status field of an election post for display.
+ * Election posts can either inherit the election's status, or they can be
+ * closed. This applies to both voting and nominations.
+ *
+ * @todo make this themeable
+ *
+ * @param stdClass $election
+ * @param stdClass $post
+ * @param string $type
+ *   The type of status ('v' for voting, 'n' for nominations).
+ *
+ * @return string
+ */
+function _election_post_format_status(stdClass $election, stdClass $post, $status_prefix = 'v') {
+  $status = $post->{$status_prefix . 'status'};
+  if ($status == ELECTION_POST_STATUS_INHERIT) {
+    return t('!status (inherited)', array('!status' => _election_format_status($election, $status_prefix)));
+  }
+  $is_open = FALSE; // only two options for now are inherited or closed.
+  $open_status = t('<span class="election-post-status-open">Open</span>');
+  $closed_status = t('<span class="election-post-status-closed">Closed</span>');
+  $status_formatted = $is_open? $open_status : $closed_status;
+  return t('!status_formatted (overridden)', array('!status_formatted' => $status_formatted));
+}
+
+/**
+ * Menu callback for an election post, path: election/%election/posts/%election_post.
+ *
+ * @param stdClass $election
+ * @param stdClass $post
+ * @param string $view_mode
+ *
+ * @return array
+ *   Render array.
+ */
+function election_post_page_view($election, $post, $view_mode = 'full') {
+
+  if ($view_mode == 'full') {
+    drupal_set_breadcrumb(
+      _election_build_breadcrumb(
+        $election,
+        l(drupal_ucfirst(_election_get_posts_name($election->type, TRUE)), election_uri_path($election) . '/posts')
+      )
+    );
+  }
+
+  return election_post_view($election, $post, $view_mode);
+
+}
