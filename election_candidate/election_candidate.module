@@ -791,6 +791,21 @@ function election_candidate_entity_insert($entity, $type) {
   }
 }
 
+/*
+ * Implements hook_file_download_access().
+ *
+ * Allow private files to be downloaded when they are attached to a candidate
+ * entity via a file field.
+ *
+ * @param string $field
+ * @param string $entity_type
+ * @param stdClass $entity
+ */
+function election_candidate_file_download_access($field, $entity_type, $entity) {
+  if ($entity_type == 'election_candidate') {
+    return election_candidate_access('view', $entity);
+  }
+}
 
 /**
  * Update the URL aliases for an individual election candidate.

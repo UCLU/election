@@ -823,20 +823,11 @@ function _election_get_posts_name($type_mn, $plural = FALSE) {
  *
  * @param string $field
  * @param string $entity_type
- * @param string $entity
+ * @param stdClass $entity
  */
 function election_file_download_access($field, $entity_type, $entity) {
   if ($entity_type == 'election') {
     return election_access('view', $entity);
-  }
-  // @todo move into election_post
-  if ($entity_type == 'election_post' && !empty($entity->election_id)) {
-    $election = election_load($entity->election_id);
-    return election_access('view', $election);
-  }
-  // @todo move into election_candidate
-  if ($entity_type == 'election_candidate') {
-    return election_candidate_access('view', $entity);
   }
 }
 

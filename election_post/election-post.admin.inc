@@ -36,8 +36,6 @@ function election_post_form($form, &$form_state, $election, $post) {
   drupal_set_breadcrumb($breadcrumb);
 
   $form['#id'] = 'election-post-form';
-  $form['#post'] = $post;
-
   $form_state['post'] = $post;
   $form_state['election'] = $election;
 
@@ -221,7 +219,7 @@ function election_post_form_delete_submit($form, &$form_state) {
     $destination = drupal_get_destination();
     unset($_GET['destination']);
   }
-  $post = $form['#post'];
+  $post = $form_state['post'];
   $election = $form_state['election'];
   $form_state['redirect'] = array(
     election_post_uri_path($post, $election) . '/delete',

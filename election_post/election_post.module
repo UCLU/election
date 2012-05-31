@@ -475,3 +475,20 @@ function election_post_page_view($election, $post, $view_mode = 'full') {
   return election_post_view($election, $post, $view_mode);
 
 }
+
+/*
+ * Implements hook_file_download_access().
+ *
+ * Allow private files to be downloaded when they are attached to a post entity
+ * via a file field.
+ *
+ * @param string $field
+ * @param string $entity_type
+ * @param stdClass $entity
+ */
+function election_post_file_download_access($field, $entity_type, $entity) {
+  if ($entity_type == 'election_post' && !empty($entity->election_id)) {
+    $election = election_load($entity->election_id);
+    return election_access('view', $election);
+  }
+}
