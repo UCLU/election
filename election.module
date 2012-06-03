@@ -487,6 +487,7 @@ function election_entity_update($entity, $type) {
 function election_entity_delete($entity, $type) {
   switch ($type) {
     case 'election':
+      // Delete Pathauto path aliases when an election is deleted.
       if (function_exists('pathauto_entity_path_delete_all')) {
         pathauto_entity_path_delete_all('election', $entity);
       }

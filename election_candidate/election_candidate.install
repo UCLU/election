@@ -174,7 +174,7 @@ function _election_candidate_add_fields() {
     }
     if (field_info_field($field_name) === NULL) {
       field_create_field($field);
-      watchdog('election', 'Created field @field_name', array('@field_name' => $field_name));
+      watchdog('election_candidate', 'Created field @field_name', array('@field_name' => $field_name));
     }
     foreach ($instances as $instance) {
       if (!isset($instance['field_name'])) {

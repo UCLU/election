@@ -6,6 +6,7 @@ php = 5.3
 version = 2.x-dev
 dependencies[] = entity
 dependencies[] = views
+dependencies[] = date_popup
 files[] = includes/election-default.controller.inc
 files[] = includes/election.controller.inc
 files[] = views/handlers/views_handler_field_election.inc

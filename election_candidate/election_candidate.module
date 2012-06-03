@@ -783,10 +783,23 @@ function election_candidate_entity_update($entity, $type) {
  */
 function election_candidate_entity_delete($entity, $type) {
   switch ($type) {
+    // Delete Pathauto path aliases when a candidate is deleted.
     case 'election_candidate':
       if (function_exists('pathauto_entity_path_delete_all')) {
         pathauto_entity_path_delete_all('election_candidate', $entity);
       }
+    break;
+    // Clear the post_id property of associated candidates when a post is deleted.
+    case 'election_post':
+      $update = db_update('election_candidate')
+        ->fields(array('post_id' => NULL))
+        ->condition('post_id', $entity->post_id)
+        ->execute();
+    break;
+    // Delete associated candidates when an election is deleted.
+    case 'election':
+      $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE election_id = :eid', array(':eid' => $entity->election_id))->fetchCol();
+      election_candidate_delete_multiple($candidate_ids);
     break;
   }
 }

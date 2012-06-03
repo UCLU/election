@@ -59,8 +59,7 @@ function election_candidate_list_form($form, $form_state, $election) {
   foreach ($candidates as $id => $candidate) {
 
     $post_title = $default_post_title;
-    if (!empty($candidate->post_id)) {
-      $post = election_post_load($candidate->post_id);
+    if (!empty($candidate->post_id) && ($post = election_post_load($candidate->post_id))) {
       $post_title = check_plain($post->title);
     }
 

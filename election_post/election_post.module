@@ -266,6 +266,19 @@ function election_post_delete($post_id) {
 }
 
 /**
+ * Implements hook_entity_delete().
+ */
+function election_post_entity_delete($entity, $type) {
+  switch ($type) {
+    // Delete associated posts when an election is deleted.
+    case 'election':
+      $post_ids = db_query('SELECT post_id FROM {election_post} WHERE election_id = :eid', array(':eid' => $entity->election_id))->fetchCol();
+      election_post_delete_multiple($post_ids);
+    break;
+  }
+}
+
+/**
  * Wrapper function to allow saving an election post.
  *
  * @param stdClass $post

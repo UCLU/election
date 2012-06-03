@@ -128,7 +128,7 @@ function _election_electorate_uninstall_code_electorates() {
         ->condition('electorate_id', $db_electorate['electorate_id'])
         ->execute();
       watchdog(
-        'election',
+        'election_electorate',
         'Deleted the electorate %machine_name from the database as it is no longer in use.',
         array('%machine_name' => $db_electorate['machine_name'])
       );
@@ -137,7 +137,7 @@ function _election_electorate_uninstall_code_electorates() {
   catch (Exception $e) {
     $transaction->rollback();
     watchdog_exception(
-      'election',
+      'election_electorate',
       $e,
       'Failed to remove from the database those electorates that no longer exist in code.',
       WATCHDOG_ERROR
@@ -279,7 +279,21 @@ function election_electorate_election_post_form_submit($form, &$form_state) {
   }
   catch (Exception $e) {
     $transaction->rollback();
-    watchdog_exception('election', $e, NULL, WATCHDOG_ERROR);
+    watchdog_exception('election_electorate', $e, NULL, WATCHDOG_ERROR);
   }
 
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function election_electorate_entity_delete($entity, $type) {
+  switch ($type) {
+    // Delete associated election_post_electorate entries when a post is deleted.
+    case 'election_post':
+      db_delete('election_post_electorate')
+        ->condition('post_id', $entity->post_id)
+        ->execute();
+    break;
+  }
 }

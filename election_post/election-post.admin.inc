@@ -343,15 +343,15 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
 
     $election = election_load($form_state['values']['election_id']);
 
-    //$post = election_post_load($form_state['values']['post_id']);
+    $post = election_post_load($form_state['values']['post_id']);
 
     // Delete the post.
-    $delete = election_post_delete($form_state['values']['post_id']);
+    $delete = election_post_delete($post->post_id);
 
     $post_name = _election_get_posts_name($election->type);
 
     if ($delete) {
-      watchdog('election', 'Deleted @post_name %title', array('@post_name' => $post_name, '%title' => $post->title));
+      watchdog('election_post', 'Deleted @post_name %title', array('@post_name' => $post_name, '%title' => $post->title));
     }
 
     if ($delete) {

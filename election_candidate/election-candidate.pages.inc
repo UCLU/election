@@ -692,7 +692,7 @@ function election_candidate_edit_form_delete_confirm_submit($form, &$form_state)
     // Delete the candidate
     $delete = election_candidate_delete($form_state['values']['candidate_id']);
     if ($delete) {
-      watchdog('election', 'Deleted candidate "%first_name %last_name".', $info);
+      watchdog('election_candidate', 'Deleted candidate "%first_name %last_name".', $info);
     }
 
     if ($delete) {
