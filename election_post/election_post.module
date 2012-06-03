@@ -262,6 +262,32 @@ function election_post_delete($post_id) {
 }
 
 /**
+ * Implements hook_entity_insert().
+ */
+function election_post_entity_insert($entity, $type) {
+  switch ($type) {
+    case 'election_post':
+      if (module_exists('pathauto')) {
+        pathauto_election_post_insert_alias($entity, 'insert');
+      }
+    break;
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function election_post_entity_update($entity, $type) {
+  switch ($type) {
+    case 'election_post':
+      if (module_exists('pathauto')) {
+        pathauto_election_post_update_alias($entity, 'update');
+      }
+    break;
+  }
+}
+
+/**
  * Implements hook_entity_delete().
  */
 function election_post_entity_delete($entity, $type) {
