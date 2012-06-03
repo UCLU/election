@@ -230,53 +230,53 @@ function election_candidate_menu() {
   );
 
 
-  $items['election/%election/candidate/%election_candidate'] = array(
+  $items['election-candidate/%election_candidate'] = array(
     'title callback' => 'election_candidate_page_title',
-    'title arguments' => array(1, 3),
+    'title arguments' => array(1),
     'page callback' => 'election_candidate_page_view',
-    'page arguments' => array(1, 3),
+    'page arguments' => array(1),
     'file' => 'election-candidate.pages.inc',
     'access callback' => 'election_candidate_access',
-    'access arguments' => array('view', 3),
+    'access arguments' => array('view', 1),
     'type' => MENU_CALLBACK,
   );
 
-  $items['election/%election/candidate/%election_candidate/view'] = array(
+  $items['election-candidate/%election_candidate/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
 
-  $items['election/%election/candidate/%election_candidate/details'] = array(
+  $items['election-candidate/%election_candidate/details'] = array(
     'title' => 'Details',
     'page callback' => 'election_candidate_details_page_view',
-    'page arguments' => array(1, 3),
+    'page arguments' => array(1),
     'file' => 'election-candidate.pages.inc',
     'access callback' => 'election_candidate_access',
-    'access arguments' => array('view details', 3),
+    'access arguments' => array('view details', 1),
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'weight' => 1,
   );
 
-  $items['election/%election/candidate/%election_candidate/edit'] = array(
+  $items['election-candidate/%election_candidate/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_candidate_edit_form', 1, 3),
+    'page arguments' => array('election_candidate_edit_form', 1),
     'file' => 'election-candidate.pages.inc',
     'access callback' => 'election_candidate_access',
-    'access arguments' => array('update', 3),
+    'access arguments' => array('update', 1),
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'weight' => 2,
   );
 
-  $items['election/%election/candidate/%election_candidate/delete'] = array(
+  $items['election-candidate/%election_candidate/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_candidate_edit_form_delete_confirm', 1, 3),
+    'page arguments' => array('election_candidate_edit_form_delete_confirm', 1),
     'access callback' => 'election_candidate_access',
-    'access arguments' => array('delete', 3),
+    'access arguments' => array('delete', 1),
     'file' => 'election-candidate.pages.inc',
     'weight' => 3,
     'type' => MENU_LOCAL_TASK,
@@ -361,7 +361,7 @@ function election_candidate_field_extra_fields() {
  *
  * @return string
  */
-function election_candidate_page_title($election, $candidate) {
+function election_candidate_page_title($candidate) {
   return $candidate->first_name . ' ' . $candidate->last_name;
 }
 
@@ -480,10 +480,6 @@ function election_candidate_get_available_posts(stdClass $election, $nominations
  */
 function election_candidate_uri($candidate) {
   $path = 'election-candidate/' . $candidate->candidate_id;
-  if (!empty($candidate->election_id)) {
-    $election = election_load($candidate->election_id);
-    $path = election_uri_path($election) . '/candidate/' . $candidate->candidate_id;
-  }
   return array(
     'path' => $path,
   );
@@ -783,11 +779,10 @@ function election_candidate_entity_update($entity, $type) {
  */
 function election_candidate_entity_delete($entity, $type) {
   switch ($type) {
-    // Delete Pathauto path aliases when a candidate is deleted.
-    case 'election_candidate':
-      if (function_exists('pathauto_entity_path_delete_all')) {
-        pathauto_entity_path_delete_all('election_candidate', $entity);
-      }
+    // Delete associated candidates when an election is deleted.
+    case 'election':
+      $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE election_id = :eid', array(':eid' => $entity->election_id))->fetchCol();
+      election_candidate_delete_multiple($candidate_ids);
     break;
     // Clear the post_id property of associated candidates when a post is deleted.
     case 'election_post':
@@ -796,10 +791,11 @@ function election_candidate_entity_delete($entity, $type) {
         ->condition('post_id', $entity->post_id)
         ->execute();
     break;
-    // Delete associated candidates when an election is deleted.
-    case 'election':
-      $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE election_id = :eid', array(':eid' => $entity->election_id))->fetchCol();
-      election_candidate_delete_multiple($candidate_ids);
+    // Delete Pathauto path aliases when a candidate is deleted.
+    case 'election_candidate':
+      if (function_exists('pathauto_entity_path_delete_all')) {
+        pathauto_entity_path_delete_all('election_candidate', $entity);
+      }
     break;
   }
 }

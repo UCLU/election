@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * Views integration for the Election module.
+ * Views integration for the Election Post module.
  */
 
 /**
  * Implements hook_views_data().
  */
-function election_views_data() {
+function election_post_views_data() {
 
   $data = array();
 
@@ -57,13 +57,13 @@ function election_views_data() {
 
   // title
   $data['election_post']['title'] = array(
-    'title' => t('Title'), // The item it appears as on the UI,
+    'title' => t('Title'), // The item as it appears as on the UI,
     'help' => t('The title of the election post.'), // The help that appears on the UI,
      // Information for displaying a title as a field
     'field' => array(
       'handler' => 'views_handler_field_election_post',
       'click sortable' => TRUE,
-      'link_to_election default' => TRUE,
+      'link_to_post default' => TRUE,
     ),
     'sort' => array(
       'handler' => 'views_handler_sort',

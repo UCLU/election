@@ -51,26 +51,26 @@ function election_post_menu() {
     'type' => MENU_LOCAL_ACTION,
   );
 
-  $items['election/%election/posts/%election_post'] = array(
+  $items['election-post/%election_post'] = array(
     'title callback' => 'election_post_page_title',
-    'title arguments' => array(1, 3),
+    'title arguments' => array(1),
     'page callback' => 'election_post_page_view',
-    'page arguments' => array(1, 3),
+    'page arguments' => array(1),
     'access callback' => 'election_access',
     'access arguments' => array('view', 1),
     'type' => MENU_CALLBACK,
   );
 
-  $items['election/%election/posts/%election_post/view'] = array(
+  $items['election-post/%election_post/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
 
-  $items['election/%election/posts/%election_post/edit'] = array(
+  $items['election-post/%election_post/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'election_post_page_edit',
-    'page arguments' => array(1, 3),
+    'page arguments' => array(1),
     'file' => 'election-post.admin.inc',
     'access callback' => 'election_access',
     'access arguments' => array('update', 1),
@@ -79,10 +79,10 @@ function election_post_menu() {
     'weight' => 1,
   );
 
-  $items['election/%election/posts/%election_post/delete'] = array(
+  $items['election-post/%election_post/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_post_form_delete_confirm', 1, 3),
+    'page arguments' => array('election_post_form_delete_confirm', 1),
     'access callback' => 'election_access',
     'access arguments' => array('update', 1),
     'file' => 'election-post.admin.inc',
@@ -190,11 +190,7 @@ function election_post_entity_info() {
  * @return array
  */
 function election_post_uri($post) {
-  $path = 'election-posts/' . $post->post_id;
-  if (!empty($post->election_id)) {
-    $election = election_load($post->election_id);
-    $path = election_uri_path($election) . '/posts/' . $post->post_id;
-  }
+  $path = 'election-post/' . $post->post_id;
   return array(
     'path' => $path,
   );
@@ -302,7 +298,7 @@ function election_post_listpage_title($election) {
 }
 
 /**
- * Title callback for election/%election/posts/%election_post (output should not
+ * Title callback for election-post/%election_post (output should not
  * be escaped here as it is done later).
  *
  * @param stdClass $election
@@ -310,7 +306,7 @@ function election_post_listpage_title($election) {
  *
  * @return string
  */
-function election_post_page_title($election, $post) {
+function election_post_page_title($post) {
   return $post->title;
 }
 
@@ -331,6 +327,8 @@ function election_post_theme() {
  *
  * @param $election
  *   An election object.
+ * @param $post
+ *   An election post object.
  * @param $view_mode
  *   View mode, e.g. 'full', 'teaser'...
  *
@@ -465,7 +463,7 @@ function _election_post_format_status(stdClass $election, stdClass $post, $statu
 }
 
 /**
- * Menu callback for an election post, path: election/%election/posts/%election_post.
+ * Menu callback for an election post, path: election-post/%election_post.
  *
  * @param stdClass $election
  * @param stdClass $post
@@ -474,7 +472,9 @@ function _election_post_format_status(stdClass $election, stdClass $post, $statu
  * @return array
  *   Render array.
  */
-function election_post_page_view($election, $post, $view_mode = 'full') {
+function election_post_page_view($post, $view_mode = 'full') {
+
+  $election = election_load($post->election_id);
 
   if ($view_mode == 'full') {
     drupal_set_breadcrumb(
@@ -505,3 +505,13 @@ function election_post_file_download_access($field, $entity_type, $entity) {
     return election_access('view', $election);
   }
 }
+
+/**
+ * Implements hook_views_api().
+ */
+function election_post_views_api() {
+  return array(
+    'api' => 3,
+  );
+}
+

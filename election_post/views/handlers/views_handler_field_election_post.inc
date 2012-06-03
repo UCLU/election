@@ -46,19 +46,20 @@ class views_handler_field_election_post extends views_handler_field {
    * Data should be made XSS safe prior to calling this function.
    */
   function render_link($data, $values) {
+    if (empty($this->options['link_to_post'])) {
+      return $data;
+    }
     $post = (object) array(
       'election_id' => $this->get_value($values, 'election_id'),
       'post_id' => $this->get_value($values, 'post_id'),
       'type' => $this->get_value($values, 'type'),
     );
-    if (!empty($this->options['link_to_post'])) {
-      if ($data !== NULL && $data !== '') {
-        $this->options['alter']['make_link'] = TRUE;
-        $this->options['alter']['path'] = election_post_uri_path($post);
-      }
-      else {
-        $this->options['alter']['make_link'] = FALSE;
-      }
+    if ($data !== NULL && $data !== '') {
+      $this->options['alter']['make_link'] = TRUE;
+      $this->options['alter']['path'] = election_post_uri_path($post);
+    }
+    else {
+      $this->options['alter']['make_link'] = FALSE;
     }
     return $data;
   }

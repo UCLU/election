@@ -6,12 +6,13 @@
  */
 
 /**
- * Page callback for election/%election/candidate/%election_candidate
+ * Page callback for election-candidate/%election_candidate
  *
- * @param stdClass $election
  * @param stdClass $candidate
  */
-function election_candidate_page_view(stdClass $election, stdClass $candidate, $view_mode = 'full') {
+function election_candidate_page_view(stdClass $candidate, $view_mode = 'full') {
+
+  $election = election_load($candidate->election_id);
 
   drupal_set_title(
     t(
@@ -28,23 +29,18 @@ function election_candidate_page_view(stdClass $election, stdClass $candidate, $
     _election_build_breadcrumb($election, '_CANDIDATES_')
   );
 
-  $uri = entity_uri('election_candidate', $candidate, $election);
-  // Set the candidate path as the canonical URL to prevent duplicate content.
-  drupal_add_html_head_link(array('rel' => 'canonical', 'href' => url($uri['path'], $uri['options'])), TRUE);
-  // Set the non-aliased path as a default shortlink.
-  drupal_add_html_head_link(array('rel' => 'shortlink', 'href' => url($uri['path'], array_merge($uri['options'], array('alias' => TRUE)))), TRUE);
-
   return election_candidate_view($candidate, $election, $view_mode);
 
 }
 
 /**
- * Page callback for election/%election/candidate/%election_candidate/details
+ * Page callback for election-candidate/%election_candidate/details
  *
- * @param stdClass $election
  * @param stdClass $candidate
  */
-function election_candidate_details_page_view(stdClass $election, stdClass $candidate) {
+function election_candidate_details_page_view(stdClass $candidate) {
+
+  $election = election_load($candidate->election_id);
 
   drupal_set_title(
     t(
