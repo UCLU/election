@@ -475,7 +475,9 @@ function election_save($election) {
 function election_entity_update($entity, $type) {
   switch ($type) {
     case 'election':
-      pathauto_election_update_alias($entity, 'update');
+      if (module_exists('pathauto')) {
+        pathauto_election_update_alias($entity, 'update');
+      }
     break;
   }
 }
@@ -499,7 +501,9 @@ function election_entity_delete($entity, $type) {
  */
 function election_entity_insert($entity, $type) {
   if ($type == 'election') {
-    pathauto_election_update_alias($entity, 'insert');
+    if (module_exists('pathauto')) {
+      pathauto_election_update_alias($entity, 'insert');
+    }
   }
 }
 
@@ -846,19 +850,8 @@ function election_menu_position_rule_plugins() {
  *   An optional array of additional options.
  */
 function pathauto_election_update_alias(stdClass $election, $op, array $options = array()) {
-  // Skip processing if the user has disabled pathauto for the election.
-  if (isset($election->path['pathauto']) && empty($election->path['pathauto'])) {
-    return;
-  }
-  // Skip processing if Pathauto isn't enabled.
-  if (!module_exists('pathauto')) {
-    return;
-  }
-  $options += array(
-    'language' => isset($election->language) ? $election->language : LANGUAGE_NONE,
-  );
   // Skip processing if the election has no pattern.
-  if (!pathauto_pattern_load_by_entity('election', $election->type, $options['language'])) {
+  if (!pathauto_pattern_load_by_entity('election', $election->type)) {
     return;
   }
   module_load_include('inc', 'pathauto');
@@ -867,8 +860,7 @@ function pathauto_election_update_alias(stdClass $election, $op, array $options 
     $op,
     election_uri_path($election),
     array('election' => $election),
-    $election->type,
-    $options['language']
+    $election->type
   );
 }
 

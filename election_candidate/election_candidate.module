@@ -769,7 +769,9 @@ function _election_candidate_format_status(stdClass $candidate) {
 function election_candidate_entity_update($entity, $type) {
   switch ($type) {
     case 'election_candidate':
-      pathauto_election_candidate_update_alias($entity, 'update');
+      if (module_exists('pathauto')) {
+        pathauto_election_candidate_update_alias($entity, 'update');
+      }
     break;
   }
 }
@@ -806,7 +808,9 @@ function election_candidate_entity_delete($entity, $type) {
 function election_candidate_entity_insert($entity, $type) {
   switch ($type) {
     case 'election_candidate':
-      pathauto_election_candidate_update_alias($entity, 'insert');
+      if (module_exists('pathauto')) {
+        pathauto_election_candidate_update_alias($entity, 'insert');
+      }
     break;
   }
 }
@@ -838,19 +842,8 @@ function election_candidate_file_download_access($field, $entity_type, $entity) 
  *   An optional array of additional options.
  */
 function pathauto_election_candidate_update_alias(stdClass $candidate, $op, array $options = array()) {
-  // Skip processing if the user has disabled pathauto for the candidate.
-  if (isset($candidate->path['pathauto']) && empty($candidate->path['pathauto'])) {
-    return;
-  }
-  $options += array(
-    'language' => isset($candidate->language) ? $candidate->language : LANGUAGE_NONE,
-  );
-  // Skip processing if Pathauto isn't enabled.
-  if (!module_exists('pathauto')) {
-    return;
-  }
   // Skip processing if the candidate has no pattern.
-  if (!pathauto_pattern_load_by_entity('election_candidate', $candidate->election_id, $options['language'])) {
+  if (!pathauto_pattern_load_by_entity('election_candidate', 'election_candidate')) {
     return;
   }
   $election = election_load($candidate->election_id);
@@ -864,8 +857,7 @@ function pathauto_election_candidate_update_alias(stdClass $candidate, $op, arra
     $op,
     election_candidate_uri_path($candidate),
     array('election_candidate' => $candidate, 'election' => $election),
-    $candidate->election_id,
-    $options['language']
+    'election_candidate'
   );
 }
 

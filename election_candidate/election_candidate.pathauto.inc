@@ -40,7 +40,7 @@ function election_candidate_pathauto_bulk_update_batch_process(&$context) {
     $context['sandbox']['current'] = 0;
   }
   $query = db_select('election_candidate', 'ec');
-  $query->leftJoin('url_alias', 'ua', "CONCAT('election/', ec.election_id, '/candidate/', ec.candidate_id) = ua.source");
+  $query->leftJoin('url_alias', 'ua', "CONCAT('election-candidate/', ec.candidate_id) = ua.source");
   $query->addField('ec', 'candidate_id');
   $query->isNull('ua.source');
   $query->condition('ec.candidate_id', $context['sandbox']['current'], '>');
@@ -75,7 +75,7 @@ function election_candidate_pathauto_bulk_update_batch_process(&$context) {
  */
 function election_candidate_path_alias_types() {
   $objects = array(
-    'election/%/candidate/' => t('Election candidates')
+    'election-candidate/' => t('Election candidates')
   );
   return $objects;
 }

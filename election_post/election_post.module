@@ -271,6 +271,12 @@ function election_post_entity_delete($entity, $type) {
       $post_ids = db_query('SELECT post_id FROM {election_post} WHERE election_id = :eid', array(':eid' => $entity->election_id))->fetchCol();
       election_post_delete_multiple($post_ids);
     break;
+    // Delete Pathauto path aliases when a post is deleted.
+    case 'election_post':
+      if (function_exists('pathauto_entity_path_delete_all')) {
+        pathauto_entity_path_delete_all('election_post', $entity);
+      }
+    break;
   }
 }
 
@@ -513,5 +519,57 @@ function election_post_views_api() {
   return array(
     'api' => 3,
   );
+}
+
+/**
+ * Update the URL aliases for an individual election post.
+ *
+ * @param $post
+ *   An election post object.
+ * @param $op
+ *   Operation being performed on the post ('insert', 'update' or 'bulkupdate').
+ * @param $options
+ *   An optional array of additional options.
+ */
+function pathauto_election_post_update_alias(stdClass $post, $op, array $options = array()) {
+  // Skip processing if the post has no pattern.
+  if (!pathauto_pattern_load_by_entity('election_post', $post->type)) {
+    return;
+  }
+  $election = election_load($post->election_id);
+  if (!$election) {
+    watchdog('election_post', 'Could not update post alias: election ID @id could not be loaded', array('@id' => $post->election_id), WATCHDOG_WARNING);
+    return;
+  }
+  module_load_include('inc', 'pathauto');
+  pathauto_create_alias(
+    'election_post',
+    $op,
+    election_post_uri_path($post),
+    array('election_post' => $post, 'election' => $election),
+    $post->type
+  );
+}
+
+/**
+ * Update the URL aliases for multiple election posts.
+ *
+ * @param $post_ids
+ *   An array of election post IDs.
+ * @param $op
+ *   Operation being performed on the posts ('insert', 'update' or
+ *   'bulkupdate').
+ * @param $options
+ *   An optional array of additional options.
+ */
+function pathauto_election_post_update_alias_multiple(array $post_ids, $op, array $options = array()) {
+  $options += array('message' => FALSE);
+  $posts = election_post_load_multiple($post_ids);
+  foreach ($posts as $post) {
+    pathauto_election_post_update_alias($post, $op, $options);
+  }
+  if (!empty($options['message'])) {
+    drupal_set_message(format_plural(count($post_ids), 'Updated URL alias for 1 post.', 'Updated URL aliases for @count posts.'));
+  }
 }
 
