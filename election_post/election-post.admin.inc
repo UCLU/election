@@ -222,7 +222,7 @@ function election_post_form_delete_submit($form, &$form_state) {
   $post = $form_state['post'];
   $election = $form_state['election'];
   $form_state['redirect'] = array(
-    election_post_uri_path($post, $election) . '/delete',
+    election_post_uri_path($post) . '/delete',
     array('query' => $destination),
   );
 }
@@ -298,7 +298,9 @@ function election_post_form_submit($form, &$form_state) {
  * @return array
  *   Render array.
  */
-function election_post_form_delete_confirm($form, &$form_state, $election, $post) {
+function election_post_form_delete_confirm($form, &$form_state, $post) {
+
+  $election = election_load($post->election_id);
 
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, '_POSTS_', l($post->title, election_post_uri_path($post)))
@@ -324,7 +326,7 @@ function election_post_form_delete_confirm($form, &$form_state, $election, $post
         '%post_title' => $post->title,
       )
     ),
-    election_post_uri_path($post, $election),
+    election_post_uri_path($post),
     t('This action cannot be undone.'),
     t('Delete'),
     t('Cancel')
