@@ -1,18 +1,18 @@
 <?php
 /**
  * @file
- *   Install functions for the Election Electorate module.
+ *   Install functions for the Election Condition module.
  */
 
 /**
  * Implements hook_schema().
  */
-function election_electorate_schema() {
+function election_condition_schema() {
 
   $schema = array();
 
-  $schema['election_post_electorate'] = array(
-    'description' => 'Table mapping electorates to posts, for the election module.',
+  $schema['election_post_condition'] = array(
+    'description' => 'Table mapping conditions to posts, for the election module.',
     'fields' => array(
       'post_id' => array(
         'description' => 'Relates to {election_post}.post_id.',
@@ -20,20 +20,20 @@ function election_electorate_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'electorate_id' => array(
-        'description' => 'Relates to {election_electorate}.electorate_id.',
+      'condition_id' => array(
+        'description' => 'Relates to {election_condition}.condition_id.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
     ),
     'unique keys' => array(
-      'posts_electorates' => array('post_id', 'electorate_id'),
+      'posts_conditions' => array('post_id', 'condition_id'),
     ),
     'foreign keys' => array(
-      'electorate' => array(
-        'table' => 'election_electorate',
-        'columns' => array('electorate_id' => 'electorate_id'),
+      'condition' => array(
+        'table' => 'election_condition',
+        'columns' => array('condition_id' => 'condition_id'),
       ),
       'post' => array(
         'table' => 'election_post',
@@ -42,59 +42,59 @@ function election_electorate_schema() {
     ),
   );
 
-  $schema['election_electorate'] = array(
-    'description' => 'The electorates table for the election module. An electorate is a group of eligible voters.',
+  $schema['election_condition'] = array(
+    'description' => 'The conditions table for the election module. Conditions limit voter eligibility.',
     'fields' => array(
-      'electorate_id' => array(
-        'description' => 'Primary key: identifier for an electorate.',
+      'condition_id' => array(
+        'description' => 'Primary key: identifier for an condition.',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'machine_name' => array(
-        'description' => 'The unique machine name of the electorate.',
+        'description' => 'The unique machine name of the condition.',
         'type' => 'varchar',
         'length' => 100,
         'not null' => TRUE,
       ),
       'name' => array(
-        'description' => 'The name of the electorate - a human-readable identifier.',
+        'description' => 'The name of the condition - a human-readable identifier.',
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,
       ),
       'description' => array(
-        'description' => 'A human-readable description of the electorate.',
+        'description' => 'A human-readable description of the condition.',
         'type' => 'text',
         'not null' => FALSE,
       ),
       'conditions' => array(
-        'description' => 'A serialized array of conditions, all of which users must pass to be part of the electorate.',
+        'description' => 'A serialized array of conditions, all of which users must pass to vote.',
         'type' => 'blob',
         'size' => 'big',
         'serialize' => TRUE,
         'not null' => FALSE,
       ),
       'locked' => array(
-        'description' => 'Whether or not the electorate is locked (i.e. created in code, not editable).',
+        'description' => 'Whether or not the condition is locked (i.e. created in code, not editable).',
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
         'default' => 0,
       ),
       'created' => array(
-        'description' => 'The Unix timestamp for when the electorate was created.',
+        'description' => 'The Unix timestamp for when the condition was created.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
       ),
       'changed' => array(
-        'description' => 'The Unix timestamp for when the electorate was most recently changed.',
+        'description' => 'The Unix timestamp for when the condition was most recently changed.',
         'type' => 'int',
         'not null' => FALSE,
       ),
     ),
-    'primary key' => array('electorate_id'),
+    'primary key' => array('condition_id'),
     'unique keys' => array(
       'machine_name' => array('machine_name'),
     ),
@@ -111,17 +111,10 @@ function election_electorate_schema() {
 /**
  * Implements hook_install().
  */
-function election_electorate_install() {
+function election_condition_install() {
 
-  _election_electorate_install_code_electorates();
+  _election_condition_install_code_conditions();
 
   menu_rebuild();
-
-}
-
-/**
- * Implements hook_uninstall().
- */
-function election_electorate_uninstall() {
 
 }

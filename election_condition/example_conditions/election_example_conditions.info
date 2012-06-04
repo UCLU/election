@@ -1,0 +1,4 @@
+name = Example conditions
+description = "Define some example conditions."
+package = Election
+core = 7.x

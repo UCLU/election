@@ -1,4 +1,0 @@
-name = Example electorates
-description = "Define some example electorates."
-package = Election
-core = 7.x

@@ -1,0 +1,6 @@
+name = Election Condition
+description = "Allows elections to restrict voting by conditions."
+package = Election
+core = 7.x
+dependencies[] = election
+dependencies[] = election_post
