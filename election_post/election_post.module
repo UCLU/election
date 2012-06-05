@@ -193,6 +193,7 @@ function election_post_uri($post) {
   $path = 'election-post/' . $post->post_id;
   return array(
     'path' => $path,
+    'options' => array(),
   );
 }
 
@@ -202,7 +203,7 @@ function election_post_uri($post) {
  * @return string.
  */
 function election_post_uri_path($post) {
-  $uri = entity_uri('election_post', $post);
+  $uri = election_post_uri($post);
   return $uri['path'];
 }
 

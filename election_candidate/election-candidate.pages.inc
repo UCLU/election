@@ -435,7 +435,9 @@ function election_candidate_view($candidate, $election, $view_mode = 'full') {
  * @return array
  *   Render array.
  */
-function election_candidate_edit_form($form, $form_state, stdClass $election, stdClass $candidate) {
+function election_candidate_edit_form($form, $form_state, stdClass $candidate) {
+
+  $election = election_load($candidate->election_id);
 
  // @todo this should not be necessary
   drupal_set_title(t('Edit candidate: %first-name %last-name', array('%first-name' => $candidate->first_name, '%last-name' => $candidate->last_name)), PASS_THROUGH);

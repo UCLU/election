@@ -77,6 +77,16 @@ function election_candidate_views_data() {
     ),
   );
 
+  // candidate full name (fullname)
+  $data['election_candidate']['fullname'] = array(
+    'title' => t('Full name'),
+    'help' => t('The full name of the candidate ($Firstname $Lastname).'),
+    'field' => array(
+      'handler' => 'views_handler_field_election_candidate_fullname',
+      'click sortable' => FALSE,
+    ),
+  );
+
   return $data;
 
 }

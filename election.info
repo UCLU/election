@@ -20,3 +20,4 @@ files[] = views/handlers/views_handler_field_election_nstatus.inc
 files[] = views/handlers/views_handler_filter_election_nstatus.inc
 files[] = views/handlers/views_handler_field_election_candidate_cstatus.inc
 files[] = views/handlers/views_handler_filter_election_candidate_cstatus.inc
+files[] = views/handlers/views_handler_argument_election_electionid.inc

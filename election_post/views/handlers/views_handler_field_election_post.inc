@@ -14,9 +14,7 @@ class views_handler_field_election_post extends views_handler_field {
   function init(&$view, &$options) {
     parent::init($view, $options);
     if (!empty($this->options['link_to_post'])) {
-      $this->additional_fields['election_id'] = array('table' => 'election_post', 'field' => 'election_id');
       $this->additional_fields['post_id'] = array('table' => 'election_post', 'field' => 'post_id');
-      $this->additional_fields['type'] = array('table' => 'election_post', 'field' => 'type');
     }
   }
 
@@ -49,14 +47,11 @@ class views_handler_field_election_post extends views_handler_field {
     if (empty($this->options['link_to_post'])) {
       return $data;
     }
-    $post = (object) array(
-      'election_id' => $this->get_value($values, 'election_id'),
-      'post_id' => $this->get_value($values, 'post_id'),
-      'type' => $this->get_value($values, 'type'),
-    );
     if ($data !== NULL && $data !== '') {
       $this->options['alter']['make_link'] = TRUE;
-      $this->options['alter']['path'] = election_post_uri_path($post);
+      $this->options['alter']['path'] = election_post_uri_path((object) array(
+        'post_id' => $this->get_value($values, 'post_id'),
+      )); // election_post_uri_path() doesn't need a complete $post object.
     }
     else {
       $this->options['alter']['make_link'] = FALSE;

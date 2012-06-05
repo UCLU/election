@@ -130,6 +130,7 @@ function election_uri($election) {
   $path = 'election/' . $election->election_id;
   return array(
     'path' => $path,
+    'options' => array(),
   );
 }
 
@@ -144,7 +145,7 @@ function election_uri($election) {
  * @return string
  */
 function election_uri_path($election) {
-  $uri = entity_uri('election', $election);
+  $uri = election_uri($election);
   return $uri['path'];
 }
 
@@ -608,7 +609,7 @@ function template_preprocess_election(&$variables) {
   $variables['election'] = $variables['elements']['#election'];
   $election = $variables['election'];
 
-  $uri = entity_uri('election', $election);
+  $uri = election_uri($election);
   $variables['election_url'] = url($uri['path'], $uri['options']);
   $variables['title']     = check_plain($election->title);
   $variables['page']      = $variables['view_mode'] == 'full';

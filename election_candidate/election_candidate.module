@@ -482,6 +482,7 @@ function election_candidate_uri($candidate) {
   $path = 'election-candidate/' . $candidate->candidate_id;
   return array(
     'path' => $path,
+    'options' => array(),
   );
 }
 
@@ -491,7 +492,7 @@ function election_candidate_uri($candidate) {
  * @return string.
  */
 function election_candidate_uri_path($candidate) {
-  $uri = entity_uri('election_candidate', $candidate);
+  $uri = election_candidate_uri($candidate);
   return $uri['path'];
 }
 
@@ -591,7 +592,7 @@ function template_preprocess_election_candidate(&$variables) {
     ));
   }
 
-  $uri = entity_uri('election_candidate', $candidate, $election);
+  $uri = election_candidate_uri($candidate);
   $variables['url'] = url($uri['path'], $uri['options']);
 
   $election_uri = entity_uri('election', $election);
@@ -652,7 +653,7 @@ function template_preprocess_election_candidate_details(&$variables) {
     ));
   }
 
-  $uri = entity_uri('election_candidate', $candidate, $election);
+  $uri = election_candidate_uri($candidate);
   $variables['url'] = url($uri['path'], $uri['options']);
 
   $election_uri = entity_uri('election', $election);

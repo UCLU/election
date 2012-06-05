@@ -20,13 +20,13 @@ function election_post_views_data() {
 
   // Advertise this table as a possible base table
   $data['election_post']['table']['base'] = array(
-    'field' => 'candidate_id',
+    'field' => 'post_id',
     'title' => t('Election post'),
     'entity type' => 'election_post',
     'weight' => -9,
 //    'access query tag' => 'election_access', // @todo work out how to adapt this
     'defaults' => array(
-      'field' => 'post_id',
+      'field' => 'title',
     ),
   );
 

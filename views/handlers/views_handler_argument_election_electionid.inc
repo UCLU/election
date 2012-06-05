@@ -10,7 +10,11 @@
 class views_handler_argument_election_electionid extends views_handler_argument_numeric {
 
   /**
-   * Override the behavior of title_query(). Get the title of the election.
+   * Overrides views_handler_title_query().
+   *
+   * Get the title of the election.
+   *
+   * @return array
    */
   function title_query() {
     $titles = array();
