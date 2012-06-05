@@ -68,8 +68,8 @@ function election_condition_schema() {
         'type' => 'text',
         'not null' => FALSE,
       ),
-      'conditions' => array(
-        'description' => 'A serialized array of conditions, all of which users must pass to vote.',
+      'callbacks' => array(
+        'description' => 'A serialized array of names of callback functions, which all validate an $account object for voting.',
         'type' => 'blob',
         'size' => 'big',
         'serialize' => TRUE,

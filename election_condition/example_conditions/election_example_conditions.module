@@ -11,12 +11,12 @@ function election_example_conditions_condition_info() {
   $conditions = array();
   $conditions['gmail'] = array(
     'name' => t('Have a Gmail account'),
-    'conditions' => array('election_example_conditions_access_gmail'),
+    'callbacks' => array('election_example_conditions_access_gmail'),
     'description' => t('The user\'s registered email address must end with "gmail.com" or "googlemail.com".'),
   );
   $conditions['hotmail'] = array(
     'name' => t('Have a Hotmail account'),
-    'conditions' => array('election_example_conditions_access_hotmail'),
+    'callbacks' => array('election_example_conditions_access_hotmail'),
     'description' => t('The user\'s registered email address must end with "hotmail.com" or "hotmail.co.uk".'),
   );
   return $conditions;
@@ -28,12 +28,12 @@ function election_example_conditions_condition_info() {
  *
  * @see election_conditions_condition_info()
  *
- * @param stdClass $user
+ * @param stdClass $account
  *
  * @return bool
  */
-function election_example_conditions_access_gmail(stdClass $user) {
-  return (bool) preg_match('/g(oogle)?mail\.com\s*\b/i', $user->mail);
+function election_example_conditions_access_gmail(stdClass $account) {
+  return (bool) preg_match('/g(oogle)?mail\.com\s*\b/i', $account->mail);
 }
 
 /**
@@ -42,10 +42,10 @@ function election_example_conditions_access_gmail(stdClass $user) {
  *
  * @see election_conditions_condition_info()
  *
- * @param stdClass $user
+ * @param stdClass $account
  *
  * @return bool
  */
-function election_example_conditions_access_hotmail(stdClass $user) {
-  return (bool) preg_match('/hotmail\.com\s*\b/i', $user->mail);
+function election_example_conditions_access_hotmail(stdClass $account) {
+  return (bool) preg_match('/hotmail\.com\s*\b/i', $account->mail);
 }

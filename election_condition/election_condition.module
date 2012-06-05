@@ -31,13 +31,13 @@ function election_condition_conditions($post = NULL) {
     $key = $condition['machine_name'];
     if ($condition['locked']) {
       if (isset($code_conditions[$key])) {
-        $condition['conditions'] = (array) @$code_conditions[$key]['conditions'];
+        $condition['callbacks'] = (array) @$code_conditions[$key]['callbacks'];
       }
     }
     else {
       // @todo this is envisioned to allow conditions to be configured dynamically.
       // @todo look into ctools exportables.
-      $condition['conditions'] = (array) unserialize($condition['conditions']);
+      $condition['callbacks'] = (array) unserialize($condition['callbacks']);
     }
     $key = $condition['machine_name'];
     $conditions[$key] = $condition;
@@ -49,9 +49,9 @@ function election_condition_conditions($post = NULL) {
 /**
  * Return information about code conditions in a structured array, keyed by each
  * condition's machine name. Each element is also a structured array defining at
- * least 'name' and 'access callback'. The key 'access callback' refers to a
- * function that takes one argument (the Drupal $user object) and returns
- * whether or not the user is part of the condition (as a Boolean value).
+ * least 'name' and 'callbacks'. The element keyed by 'callbacks' is an array of
+ * function names, for functions that each take one argument (the Drupal $user
+ * object) and return TRUE or FALSE.
  *
  * This function uses hook_condition_info() to allow other modules to
  * define conditions.
@@ -194,44 +194,39 @@ function election_condition_form_election_post_form_alter(&$form, &$form_state) 
     '#collapsed' => (empty($post->conditions)),
     '#weight' => 99,
   );
-  $form['conditions']['help'] = array(
+  $form['conditions']['title'] = array(
     'title' => array(
       '#prefix' => '<div class="form-item"><label for="edit-conditions">',
       '#markup' => t('Assign conditions'),
       '#suffix' => '</label>',
     ),
-    'help' => array(
-      '#prefix' => '<p class="voting-conditions-help">',
-      '#markup' => t('A user may cast a vote for this @post_type_name if he/she is a member of ANY of the conditions assigned here.', array('@post_type_name' => _election_get_posts_name($election->type))),
-      '#suffix' => '</p></div>',
-    ),
   );
   $condition_headers = array(
     'name' => t('Name'),
-    'conditions' => t('Conditions'),
+    'callbacks' => t('Callbacks'),
     'description' => t('Description'),
   );
   $condition_options = array();
   foreach (election_condition_conditions() as $condition_mn => $condition) {
-    if (!is_array($condition['conditions']) || !count($condition['conditions'])) {
-      $conditions = '<span class="error">'
-                  . t('No valid conditions found for the condition %machine_name.',
+    if (empty($condition['callbacks'])) {
+      $callbacks = '<span class="error">'
+                  . t('No valid callbacks found for the condition %machine_name.',
                       array('%machine_name' => $condition_mn))
                   . '</span>';
     }
     else {
-      $items = $condition['conditions'];
+      $items = $condition['callbacks'];
       foreach ($items as $key => $item) {
         $items[$key] = t('@key: %item', array(
           '@key' => is_string($key)? drupal_ucfirst($key) : 'Function',
           '%item' => $item . '()',
         ));
       }
-      $conditions = theme('item_list', array('#items' => $items));
+      $callbacks = theme('item_list', array('items' => $items));
     }
     $condition_options[$condition['condition_id']] = array(
       'name' => $condition['name'],
-      'conditions' => $conditions,
+      'callbacks' => $callbacks,
       'description' => $condition['description'],
     );
   }
