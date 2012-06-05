@@ -15,7 +15,7 @@
  * @return array
  *   Render array.
  */
-function election_candidate_list_form($form, $form_state, $election) {
+function election_candidate_admin_form($form, $form_state, $election) {
 
  // @todo this should not be necessary
   drupal_set_title(t('Candidates'), PASS_THROUGH);

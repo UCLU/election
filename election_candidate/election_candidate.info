@@ -5,3 +5,5 @@ core = 7.x
 dependencies[] = election
 dependencies[] = election_post
 files[] = election-candidate.controller.inc
+files[] = views/handlers/views_handler_field_election_candidate_cstatus.inc
+files[] = views/handlers/views_handler_filter_election_candidate_cstatus.inc

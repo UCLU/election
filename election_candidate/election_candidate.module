@@ -184,25 +184,19 @@ function election_candidate_menu() {
     'file' => 'election-candidate.pages.inc',
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-    'weight' => 2,
+    'weight' => 4,
   );
 
-  $items['election/%election/candidates'] = array(
-    'title' => 'Candidates',
+  $items['election/%election/candidates/administer'] = array(
+    'title' => 'Administer candidates',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_candidate_list_form', 1),
+    'page arguments' => array('election_candidate_admin_form', 1),
     'access callback' => 'election_candidate_access_per_election',
     'access arguments' => array('edit', 1),
     'file' => 'election-candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 4,
+    'weight' => 1,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-  );
-
-  $items['election/%election/candidates/list'] = array(
-    'title' => 'List candidates',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => 0,
   );
 
   $items['election/%election/candidates/totals'] = array(
@@ -213,7 +207,7 @@ function election_candidate_menu() {
     'access arguments' => array('edit', 1),
     'file' => 'election-candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 1,
+    'weight' => 2,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
@@ -225,7 +219,7 @@ function election_candidate_menu() {
     'access arguments' => array('edit', 1),
     'file' => 'election-candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 2,
+    'weight' => 3,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
@@ -882,4 +876,28 @@ function pathauto_election_candidate_update_alias_multiple(array $candidate_ids,
   if (!empty($options['message'])) {
     drupal_set_message(format_plural(count($candidate_ids), 'Updated URL alias for 1 candidate.', 'Updated URL aliases for @count candidates.'));
   }
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function election_candidate_views_api() {
+  return array(
+    'api' => 3,
+  );
+}
+
+/*
+ * Implements hook_views_default_views().
+ */
+function election_candidate_views_default_views() {
+  $views_dir = drupal_get_path('module', 'election_candidate') . '/views';
+  $views_files = scandir($views_dir);
+  $views = array();
+  foreach ($views_files as $filename) {
+    if (substr($filename, -4) == '.inc') {
+      include_once $views_dir . '/' . $filename;
+    }
+  }
+  return $views;
 }

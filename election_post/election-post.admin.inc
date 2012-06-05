@@ -385,11 +385,11 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
  * @return array
  *   Render array.
  */
-function election_post_list_form($form, $form_state, $election) {
+function election_post_admin_form($form, $form_state, $election) {
 
   // @todo this should not be necessary
-  $posts_name = _election_get_posts_name($election->type, TRUE);
-  drupal_set_title(drupal_ucfirst($posts_name));
+  $title = election_post_adminpage_title($election);
+  drupal_set_title($title, PASS_THROUGH);
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election)
   );
@@ -457,7 +457,7 @@ function election_post_list_form($form, $form_state, $election) {
     '#theme' => 'table',
     '#header' => $header,
     '#rows' => $rows,
-    '#empty' => t('No @type available.', array('@type' => $posts_name)),
+    '#empty' => t('No @posts_name available.', array('@type' => _election_get_posts_name($election->type, TRUE))),
   );
 
   $form['pager'] = array('#markup' => theme('pager'));
