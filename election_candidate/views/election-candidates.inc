@@ -39,6 +39,15 @@ $handler->display->display_options['style_options']['grouping'] = array(
   ),
 );
 $handler->display->display_options['row_plugin'] = 'fields';
+/* Footer: Global: Text area */
+$handler->display->display_options['footer']['area']['id'] = 'area';
+$handler->display->display_options['footer']['area']['table'] = 'views';
+$handler->display->display_options['footer']['area']['field'] = 'area';
+$handler->display->display_options['footer']['area']['label'] = 'Note about random ordering';
+$handler->display->display_options['footer']['area']['empty'] = FALSE;
+$handler->display->display_options['footer']['area']['content'] = '<p class="election-candidate-random-order-note">If more than one candidate is standing for a position, they are listed in a random order.</p>';
+$handler->display->display_options['footer']['area']['format'] = 'full_html';
+$handler->display->display_options['footer']['area']['tokenize'] = 0;
 /* No results behavior: Global: Text area */
 $handler->display->display_options['empty']['area']['id'] = 'area';
 $handler->display->display_options['empty']['area']['table'] = 'views';
@@ -52,7 +61,7 @@ $handler->display->display_options['empty']['area']['tokenize'] = 0;
 $handler->display->display_options['fields']['title']['id'] = 'title';
 $handler->display->display_options['fields']['title']['table'] = 'election_post';
 $handler->display->display_options['fields']['title']['field'] = 'title';
-$handler->display->display_options['fields']['title']['label'] = 'Position';
+$handler->display->display_options['fields']['title']['label'] = '';
 $handler->display->display_options['fields']['title']['exclude'] = TRUE;
 $handler->display->display_options['fields']['title']['alter']['alter_text'] = 0;
 $handler->display->display_options['fields']['title']['alter']['make_link'] = 0;
@@ -67,9 +76,9 @@ $handler->display->display_options['fields']['title']['alter']['more_link'] = 0;
 $handler->display->display_options['fields']['title']['alter']['strip_tags'] = 0;
 $handler->display->display_options['fields']['title']['alter']['trim'] = 0;
 $handler->display->display_options['fields']['title']['alter']['html'] = 0;
-$handler->display->display_options['fields']['title']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['title']['element_label_colon'] = FALSE;
 $handler->display->display_options['fields']['title']['element_default_classes'] = 1;
-$handler->display->display_options['fields']['title']['hide_empty'] = 0;
+$handler->display->display_options['fields']['title']['hide_empty'] = 1;
 $handler->display->display_options['fields']['title']['empty_zero'] = 0;
 $handler->display->display_options['fields']['title']['hide_alter_empty'] = 1;
 $handler->display->display_options['fields']['title']['link_to_post'] = 1;
