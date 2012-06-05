@@ -37,6 +37,13 @@ function election_post_schema() {
         'length' => 255,
         'not null' => FALSE,
       ),
+      'rids' => array(
+        'description' => 'A serialized array of roles that may vote for this post.',
+        'type' => 'blob',
+        'size' => 'normal',
+        'serialize' => TRUE,
+        'not null' => FALSE,
+      ),
       'allow_abstention' => array(
         'description' => 'For a motion: whether or not to allow voters to abstain.',
         'type' => 'int',

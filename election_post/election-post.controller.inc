@@ -14,8 +14,9 @@ class ElectionPostController extends ElectionDefaultController {
     $default_values = array(
       'post_id' => '',
       'election_id' => '',
-      'title' => '',
       'type' => '',
+      'title' => '',
+      'rids' => array(),
       'vstatus_inheritance' => ELECTION_POST_STATUS_INHERIT,
       'nstatus_inheritance' => ELECTION_POST_STATUS_INHERIT,
       'require_manifesto' => 1,

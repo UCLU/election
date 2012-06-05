@@ -9,13 +9,18 @@
  *
  * @param array $form
  * @param array &$form_state
- * @param stdClass $election
  * @param stdClass $post
+ * @param stdClass $election
+ *   Optional: the election the post belongs to.
  *
  * @return array
  *   Render array.
  */
-function election_post_form($form, &$form_state, $election, $post) {
+function election_post_form($form, &$form_state, stdClass $post, $election = NULL) {
+
+  if (empty($election)) {
+    $election = election_load($post->election_id);
+  }
 
   $post->is_new = empty($post->post_id);
 
@@ -51,12 +56,31 @@ function election_post_form($form, &$form_state, $election, $post) {
   $post_key = $type['post key'];
   $post_form_function = 'election_post_' . $post_key . '_form';
   if (function_exists($post_form_function)) {
-    $form = $post_form_function($form, $form_state, $election, $post);
+    $form = $post_form_function($form, $form_state, $post, $election);
+  }
+
+  $form['role_access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Role eligibility'),
+    '#collapsible' => FALSE,
+    '#weight' => 10,
+  );
+  $roles_that_can_vote_global = user_roles(FALSE, 'vote in elections');
+  $form['role_access']['rids'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Roles eligible to vote'),
+    '#options' => $roles_that_can_vote_global,
+    '#description' => t('Select the roles eligible to vote in this election. There may be other restrictions. Only roles with the permission \'!election_perm\' are listed here.', array('!election_perm' => l('vote in elections', 'admin/people/permissions', array('fragment' => 'module-election', 'attributes' => array('target' => '_blank'))))),
+    '#default_value' => (array) $post->rids,
+  );
+
+  if ($post->is_new) {
+    $form['role_access']['rids']['#default_value'] = array_keys($roles_that_can_vote_global);
   }
 
   $form['voting'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Voting settings'),
+    '#title' => t('Voting'),
     '#collapsible' => TRUE,
     '#collapsed' => (!isset($post->vstatus_inheritance) || $post->vstatus_inheritance == ELECTION_POST_STATUS_INHERIT),
     '#weight' => 98,
@@ -109,7 +133,7 @@ function election_post_form($form, &$form_state, $election, $post) {
  *
  * @return array
  */
-function election_post_motion_form($form, &$form_state, $election, $post) {
+function election_post_motion_form($form, &$form_state, $post, $election = NULL) {
 
   $form['allow_abstention'] = array(
     '#type' => 'select',
@@ -140,12 +164,16 @@ function election_post_motion_form($form, &$form_state, $election, $post) {
  *
  * @param array $form
  * @param array &$form_state
- * @param stdClass $election
  * @param stdClass $post
+ * @param stdClass $election
  *
  * @return array
  */
-function election_post_position_form($form, &$form_state, $election, $post) {
+function election_post_position_form($form, &$form_state, $post, $election = NULL) {
+
+  if (empty($election)) {
+    $election = election_load($post->election_id);
+  }
 
   $form['exclusive'] = array(
     '#type' => 'checkbox',
@@ -187,7 +215,7 @@ function election_post_position_form($form, &$form_state, $election, $post) {
 
   $form['nominations'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Nominations settings'),
+    '#title' => t('Nominations'),
     '#collapsible' => TRUE,
     '#collapsed' => (!isset($post->nstatus_inheritance) || $post->nstatus_inheritance == ELECTION_POST_STATUS_INHERIT),
     '#weight' => 97,
@@ -486,7 +514,7 @@ function election_post_page_edit($post) {
     _election_build_breadcrumb($election, '_POSTS_', l($post->title, election_post_uri_path($post)))
   );
 
-  return drupal_get_form('election_post_form', $election, $post);
+  return drupal_get_form('election_post_form', $post, $election);
 }
 
 /**
@@ -526,6 +554,6 @@ function election_post_page_add($election) {
     PASS_THROUGH
   );
 
-  return drupal_get_form('election_post_form', $election, $post);
+  return drupal_get_form('election_post_form', $post, $election);
 
 }
