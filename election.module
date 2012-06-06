@@ -232,6 +232,9 @@ function election_access($op, $election = NULL, $account = NULL) {
       return user_access('edit any election', $account);
       break;
     case 'vote':
+      if ($election && !_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
+        return FALSE;
+      }
       return user_access('vote in elections', $account);
       break;
     case 'delete':
