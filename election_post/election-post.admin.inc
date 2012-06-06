@@ -506,7 +506,7 @@ function election_post_manage_form($form, $form_state, $election) {
  */
 function election_post_page_edit($post) {
   $title = election_post_page_title($post);
-  drupal_set_title(t('Edit: %title', array('%title' => $title)), PASS_THROUGH);
+  drupal_set_title(t('Edit: %title', array('%title' => truncate_utf8($title, 20, TRUE, TRUE))), PASS_THROUGH);
 
   $election = election_load($post->election_id);
 
@@ -544,7 +544,6 @@ function election_post_page_add($election) {
   $post = entity_get_controller('election_post')->create($values);
 
   $post_name = 'post';
-  $type = _election_type_get_info($election->type);
   if (!empty($type['post name'])) {
     $post_name = $type['post name'];
   }

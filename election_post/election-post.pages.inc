@@ -13,13 +13,13 @@ function election_post_list_page(stdClass $election) {
 
   switch($election->type) {
     case 'referendum':
-      $view = views_embed_view('referendum_motions', 'page', $election->election_id);
+      $view = views_embed_view('election_posts', 'page_referendum', $election->election_id);
       break;
     case 'stv':
-      $view = views_embed_view('election_positions', 'page', $election->election_id);
+      $view = views_embed_view('election_posts', 'page_stv', $election->election_id);
       break;
     default:
-      $view = views_embed_view('election_' . $posts_name, 'page', $election->election_id);
+      $view = views_embed_view('election_posts', 'default', $election->election_id);
       break;
   }
 
@@ -85,7 +85,7 @@ function election_post_vote_form($form, &$form_state, $post) {
   $form_state['post'] = $post;
 
   $title = election_post_page_title($post);
-  drupal_set_title(t('Vote'), PASS_THROUGH);
+  drupal_set_title(t('Vote: %title_trim', array('%title_trim' => truncate_utf8($post->title, 20, TRUE, TRUE))), PASS_THROUGH);
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, '_POSTS_', l($post->title, election_post_uri_path($post)))
   );
