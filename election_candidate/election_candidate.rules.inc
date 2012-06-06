@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * Rules integration file for the Election module.
+ * Rules integration file for the Election Candidate module.
  */
 
 /**
  * Implements hook_rules_event_info().
  */
-function election_rules_event_info() {
+function election_candidate_rules_event_info() {
   $events = array();
   $events['election_candidate_nomination_submitted'] = array(
     'label' => t('Candidate nomination submitted'),
