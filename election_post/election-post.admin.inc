@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Administration page callbacks for election posts in the Election module.
+ * Administration page callbacks for the Election Post module.
  */
 
 /**
@@ -265,7 +265,9 @@ function election_post_form_delete_submit($form, &$form_state) {
  */
 function election_post_form_validate($form, &$form_state) {
 
-  if ($form_state['values']['use_ron'] == 1 && $form_state['values']['vacancy_count'] > 1 && !variable_get('election_allow_multi_vacancy_ron', TRUE)) {
+  $post = $form_state['post'];
+
+  if ($post->type != 'motion' && $form_state['values']['use_ron'] == 1 && $form_state['values']['vacancy_count'] > 1 && !variable_get('election_allow_multi_vacancy_ron', TRUE)) {
     form_set_error('use_ron', t('RON can only be included for single-vacancy positions.'));
   }
 
@@ -282,9 +284,7 @@ function election_post_form_validate($form, &$form_state) {
  */
 function election_post_form_submit($form, &$form_state) {
 
-  $post = &$form_state['post'];
-
-  // election object won't be changed, no need to pass by reference
+  $post = $form_state['post'];
   $election = $form_state['election'];
 
   if (empty($post->uid)) {
@@ -404,7 +404,7 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
 
 /**
  * Form builder function for the administrative list of election posts, path:
- * election/%election/posts.
+ * election/%election/posts/manage.
  *
  * @param array $form
  * @param array $form_state
@@ -413,10 +413,10 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
  * @return array
  *   Render array.
  */
-function election_post_admin_form($form, $form_state, $election) {
+function election_post_manage_form($form, $form_state, $election) {
 
   // @todo this should not be necessary
-  $title = election_post_adminpage_title($election);
+  $title = election_post_manage_page_title($election);
   drupal_set_title($title, PASS_THROUGH);
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election)
@@ -485,7 +485,7 @@ function election_post_admin_form($form, $form_state, $election) {
     '#theme' => 'table',
     '#header' => $header,
     '#rows' => $rows,
-    '#empty' => t('No @posts_name available.', array('@type' => _election_get_posts_name($election->type, TRUE))),
+    '#empty' => t('No @posts_name available.', array('@posts_name' => _election_get_posts_name($election->type, TRUE))),
   );
 
   $form['pager'] = array('#markup' => theme('pager'));

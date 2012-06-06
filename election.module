@@ -728,7 +728,6 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
     $election_uri_path
   );
   foreach ($args as $key => $arg) {
-    $link = $arg;
     switch ($arg) {
       case '_POSTS_':
         $posts_name = _election_get_posts_name($election->type, TRUE);
@@ -736,6 +735,9 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
         break;
       case '_CANDIDATES_':
         $link = l(t('Candidates'), $election_uri_path . '/candidates');
+        break;
+      default:
+        $link = $arg;
         break;
     }
     $links[] = $link;

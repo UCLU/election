@@ -26,7 +26,7 @@ function election_candidate_views_data() {
     'weight' => -8,
 //    'access query tag' => 'election_access', // @todo work out how to adapt this
     'defaults' => array(
-      'field' => 'candidate_id',
+      'field' => 'fullname',
     ),
   );
 
@@ -79,11 +79,19 @@ function election_candidate_views_data() {
 
   // candidate full name (fullname)
   $data['election_candidate']['fullname'] = array(
-    'title' => t('Full name'),
+    'title' => t('Name'),
     'help' => t('The full name of the candidate ($Firstname $Lastname).'),
     'field' => array(
       'handler' => 'views_handler_field_election_candidate_fullname',
-      'click sortable' => FALSE,
+    ),
+  );
+
+  // candidate links
+  $data['election_candidate']['view_link'] = array(
+    'field' => array(
+      'title' => t('Profile link'),
+      'help' => t('Provide a simple link to the candidate\'s profile page.'),
+      'handler' => 'views_handler_field_election_candidate_link',
     ),
   );
 

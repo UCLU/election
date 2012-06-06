@@ -3,7 +3,6 @@
  * @file
  * View listing the candidates standing in an election.
  */
-
 $view = new view;
 $view->name = 'election_candidates';
 $view->description = 'A list of candidates per election (intended for the public / all viewers of the election).';
@@ -39,6 +38,8 @@ $handler->display->display_options['style_options']['grouping'] = array(
   ),
 );
 $handler->display->display_options['row_plugin'] = 'fields';
+$handler->display->display_options['row_options']['hide_empty'] = 0;
+$handler->display->display_options['row_options']['default_field_elements'] = 0;
 /* Footer: Global: Text area */
 $handler->display->display_options['footer']['area']['id'] = 'area';
 $handler->display->display_options['footer']['area']['table'] = 'views';
@@ -76,35 +77,64 @@ $handler->display->display_options['fields']['title']['alter']['more_link'] = 0;
 $handler->display->display_options['fields']['title']['alter']['strip_tags'] = 0;
 $handler->display->display_options['fields']['title']['alter']['trim'] = 0;
 $handler->display->display_options['fields']['title']['alter']['html'] = 0;
+$handler->display->display_options['fields']['title']['element_type'] = 'div';
+$handler->display->display_options['fields']['title']['element_class'] = 'election-post-title';
 $handler->display->display_options['fields']['title']['element_label_colon'] = FALSE;
-$handler->display->display_options['fields']['title']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['title']['element_default_classes'] = 0;
 $handler->display->display_options['fields']['title']['hide_empty'] = 1;
 $handler->display->display_options['fields']['title']['empty_zero'] = 0;
 $handler->display->display_options['fields']['title']['hide_alter_empty'] = 1;
 $handler->display->display_options['fields']['title']['link_to_post'] = 1;
-/* Field: Election candidate: Candidate ID */
-$handler->display->display_options['fields']['candidate_id']['id'] = 'candidate_id';
-$handler->display->display_options['fields']['candidate_id']['table'] = 'election_candidate';
-$handler->display->display_options['fields']['candidate_id']['field'] = 'candidate_id';
-$handler->display->display_options['fields']['candidate_id']['alter']['alter_text'] = 0;
-$handler->display->display_options['fields']['candidate_id']['alter']['make_link'] = 0;
-$handler->display->display_options['fields']['candidate_id']['alter']['absolute'] = 0;
-$handler->display->display_options['fields']['candidate_id']['alter']['external'] = 0;
-$handler->display->display_options['fields']['candidate_id']['alter']['replace_spaces'] = 0;
-$handler->display->display_options['fields']['candidate_id']['alter']['trim_whitespace'] = 0;
-$handler->display->display_options['fields']['candidate_id']['alter']['nl2br'] = 0;
-$handler->display->display_options['fields']['candidate_id']['alter']['word_boundary'] = 1;
-$handler->display->display_options['fields']['candidate_id']['alter']['ellipsis'] = 1;
-$handler->display->display_options['fields']['candidate_id']['alter']['more_link'] = 0;
-$handler->display->display_options['fields']['candidate_id']['alter']['strip_tags'] = 0;
-$handler->display->display_options['fields']['candidate_id']['alter']['trim'] = 0;
-$handler->display->display_options['fields']['candidate_id']['alter']['html'] = 0;
-$handler->display->display_options['fields']['candidate_id']['element_label_colon'] = 1;
-$handler->display->display_options['fields']['candidate_id']['element_default_classes'] = 1;
-$handler->display->display_options['fields']['candidate_id']['hide_empty'] = 0;
-$handler->display->display_options['fields']['candidate_id']['empty_zero'] = 0;
-$handler->display->display_options['fields']['candidate_id']['hide_alter_empty'] = 1;
-$handler->display->display_options['fields']['candidate_id']['format_plural'] = 0;
+/* Field: Election candidate: Name */
+$handler->display->display_options['fields']['fullname']['id'] = 'fullname';
+$handler->display->display_options['fields']['fullname']['table'] = 'election_candidate';
+$handler->display->display_options['fields']['fullname']['field'] = 'fullname';
+$handler->display->display_options['fields']['fullname']['label'] = '';
+$handler->display->display_options['fields']['fullname']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['fullname']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['fullname']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['fullname']['alter']['external'] = 0;
+$handler->display->display_options['fields']['fullname']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['fullname']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['fullname']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['fullname']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['fullname']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['fullname']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['fullname']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['fullname']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['fullname']['alter']['html'] = 0;
+$handler->display->display_options['fields']['fullname']['element_type'] = 'span';
+$handler->display->display_options['fields']['fullname']['element_class'] = 'election-candidate-name';
+$handler->display->display_options['fields']['fullname']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['fullname']['element_default_classes'] = 0;
+$handler->display->display_options['fields']['fullname']['hide_empty'] = 0;
+$handler->display->display_options['fields']['fullname']['empty_zero'] = 0;
+$handler->display->display_options['fields']['fullname']['hide_alter_empty'] = 1;
+/* Field: Election candidate: Profile link */
+$handler->display->display_options['fields']['view_link']['id'] = 'view_link';
+$handler->display->display_options['fields']['view_link']['table'] = 'election_candidate';
+$handler->display->display_options['fields']['view_link']['field'] = 'view_link';
+$handler->display->display_options['fields']['view_link']['label'] = '';
+$handler->display->display_options['fields']['view_link']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['view_link']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['view_link']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['view_link']['alter']['external'] = 0;
+$handler->display->display_options['fields']['view_link']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['view_link']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['view_link']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['view_link']['alter']['word_boundary'] = 0;
+$handler->display->display_options['fields']['view_link']['alter']['ellipsis'] = 0;
+$handler->display->display_options['fields']['view_link']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['view_link']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['view_link']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['view_link']['alter']['html'] = 0;
+$handler->display->display_options['fields']['view_link']['element_type'] = 'span';
+$handler->display->display_options['fields']['view_link']['element_class'] = 'election-candidate-link';
+$handler->display->display_options['fields']['view_link']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['view_link']['element_default_classes'] = 0;
+$handler->display->display_options['fields']['view_link']['hide_empty'] = 0;
+$handler->display->display_options['fields']['view_link']['empty_zero'] = 0;
+$handler->display->display_options['fields']['view_link']['hide_alter_empty'] = 0;
 /* Sort criterion: Election post: Title */
 $handler->display->display_options['sorts']['title']['id'] = 'title';
 $handler->display->display_options['sorts']['title']['table'] = 'election_post';
@@ -138,8 +168,7 @@ $handler->display->display_options['filters']['cstatus']['value'] = array(
 
 /* Display: Page */
 $handler = $view->new_display('page', 'Page', 'page');
-$handler->display->display_options['path'] = 'election/%/candidates/list';
-$handler->display->display_options['menu']['type'] = 'default tab';
+$handler->display->display_options['path'] = 'election/%/candidates-view';
 $handler->display->display_options['menu']['title'] = 'List candidates';
 $handler->display->display_options['menu']['description'] = 'A list of the candidates standing in this election.';
 $handler->display->display_options['menu']['weight'] = '0';

@@ -77,6 +77,44 @@ function election_post_views_data() {
     ),
   );
 
+  // post links
+  $data['election_post']['view_link'] = array(
+    'field' => array(
+      'title' => t('Link'),
+      'help' => t('Provide a simple link to the post.'),
+      'handler' => 'views_handler_field_election_post_link',
+    ),
+  );
+
+  // vacancy_count
+  $data['election_post']['vacancy_count'] = array(
+    'title' => t('No. vacancies'),
+    'help' => t('The number of vacancies of the post.'),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
+  // eligibility
+  $data['election_post']['eligibility'] = array(
+    'title' => t('Eligibility'),
+    'help' => t('Whether the current user is eligible to vote.'),
+    'field' => array(
+      'handler' => 'views_handler_field_election_post_eligibility',
+      'click sortable' => FALSE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_election_post_eligibility',
+    ),
+  );
+
   return $data;
 
 }

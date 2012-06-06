@@ -6,6 +6,22 @@
  */
 
 /**
+ * Page callback for election/%election/candidates/list
+ */
+function election_candidate_list_page(stdClass $election) {
+
+  $view = views_embed_view('election_candidates', 'page', $election->election_id);
+
+  drupal_set_title(t('Candidates'), PASS_THROUGH);
+  drupal_set_breadcrumb(_election_build_breadcrumb($election));
+
+  return array(
+    '#markup' => $view,
+  );
+
+}
+
+/**
  * Page callback for election-candidate/%election_candidate
  *
  * @param stdClass $candidate
@@ -642,12 +658,14 @@ function election_candidate_edit_form_delete_submit($form, &$form_state) {
  *
  * @param array $form
  * @param array &$form_state
- * @param stdClass $election
+ * @param stdClass $candidate
  *
  * @return array
  *   Render array.
  */
-function election_candidate_edit_form_delete_confirm($form, &$form_state, $election, $candidate) {
+function election_candidate_edit_form_delete_confirm($form, &$form_state, $candidate) {
+
+  $election = election_load($candidate->election_id);
 
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, '_CANDIDATES_')

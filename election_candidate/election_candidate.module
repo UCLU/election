@@ -104,7 +104,7 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
       if (user_access('edit any election', $account)) {
         return TRUE;
       }
-      if ($candidate && $candidate->cstatus == ELECTION_CANDIDATE_APPROVED && user_access('view any election', $account)) {
+      if (user_access('view any election', $account) && (empty($candidate) || $candidate->cstatus == ELECTION_CANDIDATE_APPROVED)) {
         return TRUE;
       }
       break;
@@ -162,7 +162,6 @@ function election_candidate_menu() {
   $items['admin/election/candidate'] = array(
     'title' => 'Candidate settings',
     'description' => 'Manage fields and display settings for election candidates (not applicable to referendums).',
-    'title callback' => 'check_plain',
     'page callback' => 'system_admin_menu_block_page',
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
@@ -187,10 +186,28 @@ function election_candidate_menu() {
     'weight' => 4,
   );
 
-  $items['election/%election/candidates/administer'] = array(
-    'title' => 'Administer candidates',
+  $items['election/%election/candidates'] = array(
+    'title' => 'Candidates',
+    'page callback' => 'election_candidate_list_page',
+    'page arguments' => array(1),
+    'access callback' => 'election_candidate_access_per_election',
+    'access arguments' => array('view', 1),
+    'file' => 'election-candidate.pages.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+
+  $items['election/%election/candidates/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+
+  $items['election/%election/candidates/manage'] = array(
+    'title' => 'Manage candidates',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_candidate_admin_form', 1),
+    'page arguments' => array('election_candidate_manage_form', 1),
     'access callback' => 'election_candidate_access_per_election',
     'access arguments' => array('edit', 1),
     'file' => 'election-candidate.admin.inc',

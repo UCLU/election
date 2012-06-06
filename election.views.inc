@@ -126,6 +126,9 @@ function election_views_data() {
       'handler' => 'views_handler_field_election_type',
       'click sortable' => TRUE,
     ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
     'argument' => array(
       'handler' => 'views_handler_argument_election_type',
     ),
