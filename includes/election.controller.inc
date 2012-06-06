@@ -18,6 +18,7 @@ class ElectionController extends ElectionDefaultController {
       'election_id' => '',
       'type' => 0,
       'title' => '',
+      'uid' => NULL,
       'vstatus' => ELECTION_STATUS_CLOSED,
       'vopen_time' => NULL,
       'vclose_time' => NULL,

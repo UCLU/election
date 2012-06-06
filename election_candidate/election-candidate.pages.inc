@@ -126,7 +126,6 @@ function election_candidate_display_previous_nominations(stdClass $election, arr
  */
 function election_page_nomination_form(stdClass $election) {
 
-  // @todo this should not be necessary
   drupal_set_title(t('Nomination form'), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
 
@@ -459,7 +458,6 @@ function election_candidate_edit_form($form, $form_state, stdClass $candidate) {
 
   $election = election_load($candidate->election_id);
 
- // @todo this should not be necessary
   drupal_set_title(t('Edit candidate: %first-name %last-name', array('%first-name' => $candidate->first_name, '%last-name' => $candidate->last_name)), PASS_THROUGH);
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, '_CANDIDATES_')

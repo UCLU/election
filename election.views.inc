@@ -100,7 +100,6 @@ function election_views_data() {
   );
 
   // nominations status
-  // @todo make the filter always true if it's a referendum.
   $data['election']['nstatus'] = array(
     'title' => t('Nominations status'),
     'help' => t('Whether nominations are open for this election (not relevant for referendums).'),

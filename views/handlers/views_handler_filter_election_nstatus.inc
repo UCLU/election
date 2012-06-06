@@ -14,10 +14,10 @@ class views_handler_filter_election_nstatus extends views_handler_filter_boolean
       ':rtime' => REQUEST_TIME,
     );
     if (empty($this->value)) {
-      $expression = "$table.nstatus = :closedstatus OR ($table.nstatus = :scheduledstatus AND ($table.nopen_time >= :rtime OR $table.nclose_time <= :rtime))";
+      $expression = "$table.nstatus = :closedstatus OR ($table.nstatus = :scheduledstatus AND ($table.nopen_time >= :rtime OR $table.nclose_time <= :rtime)) OR $table.type = 'referendum'";
     }
     else {
-      $expression = "$table.nstatus = :openstatus OR ($table.nstatus = :scheduledstatus AND $table.nopen_time < :rtime AND $table.nclose_time > :rtime)";
+      $expression = "$table.nstatus = :openstatus OR ($table.nstatus = :scheduledstatus AND $table.nopen_time < :rtime AND $table.nclose_time > :rtime) OR $table.type = 'referendum'";
     }
     $this->query->add_where_expression(
       $this->options['group'],

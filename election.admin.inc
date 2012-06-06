@@ -407,7 +407,9 @@ function election_form_validate($form, &$form_state) {
  * @return void
  */
 function election_form_submit($form, &$form_state) {
+
   global $user;
+
   $election = &$form_state['election'];
 
   if (empty($election->uid)) {

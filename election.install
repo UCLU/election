@@ -34,6 +34,12 @@ function election_schema() {
         'length' => 255,
         'not null' => FALSE,
       ),
+      'uid' => array(
+        'description' => 'The {users}.uid of the election\'s owner/creator.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
       'vstatus' => array(
         'description' => sprintf(
           'The voting status: open %d, closed %d, or scheduled %d.',
@@ -93,6 +99,7 @@ function election_schema() {
     'primary key' => array('election_id'),
     'indexes' => array(
       'type' => array('type'),
+      'uid' => array('uid'),
       'vstatus' => array('vstatus'),
       'nstatus' => array('nstatus'),
       'vperiod' => array('vopen_time', 'vclose_time'),
@@ -315,4 +322,17 @@ function _election_remove_fields() {
 function _election_fields_info() {
   $fields = array(); // empty for now, left in for convenience
   return $fields;
+}
+
+/**
+ * Add {election}.uid column and index.
+ */
+function election_update_7001() {
+  db_add_field('election', 'uid', array(
+    'description' => 'The {users}.uid of the election\'s owner/creator.',
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+  ));
+  db_add_index('election', 'uid', array('uid'));
 }

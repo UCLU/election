@@ -2,9 +2,6 @@
 /**
  * @file
  * Menu callbacks for pages in the Election module.
- *
- * @todo
- * Theming and Views
  */
 
 /**

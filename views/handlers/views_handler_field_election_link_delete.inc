@@ -7,14 +7,12 @@ class views_handler_field_election_link_delete extends views_handler_field_elect
   function construct() {
     parent::construct();
     $this->additional_fields['type'] = 'type';
-    $this->additional_fields['uid'] = 'uid';
   }
 
   function render_link($data, $values) {
     // ensure user has access to delete this election.
     $election = new stdClass();
     $election->election_id = $this->get_value($values, 'election_id');
-    $election->uid = $this->get_value($values, 'uid');
     $election->type = $this->get_value($values, 'type');
     if (!entity_access('delete', 'election', $election)) {
       return;
@@ -24,7 +22,7 @@ class views_handler_field_election_link_delete extends views_handler_field_elect
     $this->options['alter']['path'] = election_uri_path($election) . '/delete';
     $this->options['alter']['query'] = drupal_get_destination();
 
-    $text = !empty($this->options['text']) ? $this->options['text'] : t('delete');
+    $text = !empty($this->options['text']) ? $this->options['text'] : t('Delete');
     return $text;
   }
 }

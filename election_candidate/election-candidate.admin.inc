@@ -17,7 +17,6 @@
  */
 function election_candidate_manage_form($form, $form_state, $election) {
 
- // @todo this should not be necessary
   drupal_set_title(t('Candidates'), PASS_THROUGH);
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election)
@@ -178,7 +177,6 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
   drupal_set_title(t('Download candidate data'), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
 
-  // @todo allow new candidate bundles.
   $candidate_field_instances = field_info_instances('election_candidate', 'election_candidate');
 
   $post_name = _election_get_posts_name($election->type);

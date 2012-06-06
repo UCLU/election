@@ -20,8 +20,9 @@ class views_handler_field_election_post_link_vote extends views_handler_field_el
     $this->options['alter']['path'] = election_post_uri_path($post) . '/vote';
     $this->options['alter']['query'] = drupal_get_destination();
 
-    $text = !empty($this->options['text']) ? $this->options['text'] : t('vote');
+    $text = !empty($this->options['text']) ? $this->options['text'] : t('Vote');
     return $text;
+
   }
 
 }

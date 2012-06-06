@@ -188,10 +188,19 @@ function election_permission() {
     'create elections' => array(
       'title' => t('Create elections'),
     ),
-    'delete any elections' => array(
+    'delete own elections' => array(
+      'title' => t('Delete own elections'),
+      'description' => t('This permission is dangerous: deleting an election automatically deletes ALL associated data, for example votes.'),
+      'restrict access' => TRUE,
+    ),
+    'delete any election' => array(
       'title' => t('Delete any election'),
       'description' => t('This permission is dangerous: deleting an election automatically deletes ALL associated data, for example votes.'),
       'restrict access' => TRUE,
+    ),
+    'edit own elections' => array(
+      'title' => t('Edit own elections'),
+      'description' => t('This permission allows the user not only to edit elections, but also to administer the posts and candidates for those elections.'),
     ),
     'edit any election' => array(
       'title' => t('Edit any election'),
@@ -220,8 +229,12 @@ function election_permission() {
  *   Whether access is allowed or not.
  */
 function election_access($op, $election = NULL, $account = NULL) {
+  $own = ($election && $election->uid && $election->uid == $account->uid);
   switch ($op) {
     case 'view':
+      if ($own) {
+        return TRUE;
+      }
       return user_access('view any election', $account);
       break;
     case 'create':
@@ -229,6 +242,9 @@ function election_access($op, $election = NULL, $account = NULL) {
       break;
     case 'update':
     case 'edit':
+      if ($own) {
+        return user_access('edit own elections', $account);
+      }
       return user_access('edit any election', $account);
       break;
     case 'vote':
@@ -238,6 +254,9 @@ function election_access($op, $election = NULL, $account = NULL) {
       return user_access('vote in elections', $account);
       break;
     case 'delete':
+      if ($own) {
+        return user_access('delete own elections', $account);
+      }
       return user_access('delete any election', $account);
       break;
   }

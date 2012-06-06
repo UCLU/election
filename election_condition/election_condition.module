@@ -2,8 +2,6 @@
 /**
  * @file
  * Election Condition: primary module file.
- *
- * @todo hook into voting permission.
  */
 
 /**

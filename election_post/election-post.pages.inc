@@ -2,6 +2,8 @@
 /**
  * @file
  * Page callbacks for the Election Post module.
+ *
+ * @todo split most of this into an election_vote submodule
  */
 
 /**
@@ -164,7 +166,7 @@ function election_post_motion_vote_form($form, &$form_state, $post, $election) {
 function election_post_position_vote_form($form, &$form_state, $post, $election) {
 
   // Load candidates
-  // @todo reconcile this without mutual dependency between election_candidate and election_post.
+  // @todo reconcile this without mutual dependency between election_candidate and election_post, probably via another submodule.
   $candidates = election_candidate_load_by_post($post);
 
   $num_candidates = count($candidates);
@@ -190,9 +192,11 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
 
   $form['candidate_table_help_post'] = array(
     '#type' => 'container',
+    '#attributes' => array(
+    ),
   );
   $form['candidate_table_help_post']['nums'] = array(
-    '#markup' => '<p>' . t(
+    '#markup' => t(
       'The following !candidates standing for the @post_name <a href="@post_url">%post_title</a> (!vacancies).',
       array(
         '!candidates' => format_plural($num_candidates, 'candidate is', '@count candidates are'),
@@ -201,11 +205,11 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
         '@post_url' => url(election_post_uri_path($post)),
         '!vacancies' => format_plural($post->vacancy_count, '1 vacancy', '@count vacancies'),
       )
-    ) . '</p>',
+    ),
   );
   if ($post->use_ron) {
     $form['candidate_table_help_post']['ron'] = array(
-      '#markup' => '<p>' . t('RON (Re-Open Nominations) is also an option for this @post_name.', array('@post_name' => $post_name)) . '</p>',
+      '#markup' => ' ' . t('RON (Re-Open Nominations) is also an option for this @post_name.', array('@post_name' => $post_name)),
     );
   }
 
