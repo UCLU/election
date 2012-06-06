@@ -98,3 +98,23 @@ function election_candidate_views_data() {
   return $data;
 
 }
+
+
+/**
+ * Implements hook_views_plugins().
+ */
+function election_candidate_views_plugins() {
+  return array(
+    'module' => 'election_candidate',
+    'row' => array(
+      'election_candidate' => array(
+        'title' => t('Candidate'),
+        'help' => t('Display the candidate with the standard view.'),
+        'handler' => 'views_plugin_row_election_candidate_view',
+        'base' => array('election_candidate'),
+        'uses options' => TRUE,
+        'type' => 'normal',
+      ),
+    ),
+  );
+}

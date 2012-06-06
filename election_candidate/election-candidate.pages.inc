@@ -388,7 +388,11 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
  * @return
  *   An array as expected by drupal_render().
  */
-function election_candidate_view($candidate, $election, $view_mode = 'full') {
+function election_candidate_view($candidate, $election = NULL, $view_mode = 'full') {
+
+  if (empty($election)) {
+    $election = election_load($candidate->election_id);
+  }
 
   // Remove previously built content, if it exists.
   $candidate->content = array();

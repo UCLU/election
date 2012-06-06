@@ -31,7 +31,7 @@ function election_condition_conditions($post = NULL) {
     $key = $condition['machine_name'];
     if ($condition['locked']) {
       if (isset($code_conditions[$key])) {
-        $condition['callbacks'] = (array) @$code_conditions[$key]['callbacks'];
+        $condition['callbacks'] = (array) $code_conditions[$key]['callbacks'];
       }
     }
     else {
@@ -173,6 +173,20 @@ function _election_condition_install_code_conditions() {
 }
 
 /**
+ * Add condition information to a post.
+ */
+function election_condition_get_conditions($post) {
+  if (!isset($post->conditions) && !empty($post->post_id)) {
+    $post->conditions = array();
+    $conditions = db_query('SELECT ec.* FROM {election_condition} ec LEFT JOIN {election_post_condition} epc USING (condition_id) WHERE epc.post_id = :pid', array(':pid' => $post->post_id));
+    foreach ($conditions as $condition) {
+      $post->conditions[$condition->condition_id] = $condition;
+    }
+  }
+  return $post->conditions;
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function election_condition_form_election_post_form_alter(&$form, &$form_state) {
@@ -180,13 +194,8 @@ function election_condition_form_election_post_form_alter(&$form, &$form_state) 
   $post = $form_state['post'];
   $election = $form_state['election'];
 
-  $post->conditions = array();
-  if (!$post->is_new) {
-    $result = db_query('SELECT condition_id FROM {election_post_condition} WHERE post_id = :pid', array(':pid' => $post->post_id));
-    while ($row = $result->fetchAssoc()) {
-      $post->conditions[$row['condition_id']] = 1;
-    }
-  }
+  $conditions = election_condition_get_conditions($post);
+
   $form['conditions'] = array(
     '#type' => 'fieldset',
     '#title' => t('Conditional voting'),
@@ -233,7 +242,7 @@ function election_condition_form_election_post_form_alter(&$form, &$form_state) 
   $form['conditions']['conditions'] = array(
     '#type' => 'tableselect',
     '#attributes' => array('class', 'select-conditions'),
-    '#default_value' => isset($post->conditions)? (array) $post->conditions : array(),
+    '#default_value' => array_fill_keys(array_keys($conditions), 1),
     '#header' => $condition_headers,
     '#options' => $condition_options,
     '#multiple' => TRUE,
@@ -291,4 +300,44 @@ function election_condition_entity_delete($entity, $type) {
         ->execute();
     break;
   }
+}
+
+/**
+ * Implements hook_election_post_access().
+ *
+ * @return
+ *   FALSE on permission denied, void/NULL otherwise.
+ */
+function election_condition_election_post_access($op, $post = NULL, $account = NULL) {
+
+  if (empty($account)) {
+    global $user;
+    $account = $user;
+  }
+
+  if ($op != 'vote') {
+    // This module only deals with voting eligibility.
+    return;
+  }
+
+  $code_conditions = _election_condition_get_code_conditions();
+
+  // Get the conditions associated with this post.
+  $conditions = election_condition_get_conditions($post);
+  if (!count($conditions)) {
+    return;
+  }
+
+  // If any condition fails, return FALSE.
+  foreach ($conditions as $condition) {
+    if (isset($code_conditions[$condition->machine_name])) {
+      $condition->callbacks = $code_conditions[$condition->machine_name]['callbacks'];
+    }
+    foreach ($condition->callbacks as $callback) {
+      if (!function_exists($callback) || !$callback($account)) {
+        return FALSE;
+      }
+    }
+  }
+
 }

@@ -85,6 +85,13 @@ function election_post_views_data() {
       'handler' => 'views_handler_field_election_post_link',
     ),
   );
+  $data['election_post']['vote_link'] = array(
+    'field' => array(
+      'title' => t('Vote link'),
+      'help' => t('Provide a link to cast a vote for this post.'),
+      'handler' => 'views_handler_field_election_post_link_vote',
+    ),
+  );
 
   // vacancy_count
   $data['election_post']['vacancy_count'] = array(

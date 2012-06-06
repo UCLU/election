@@ -6,3 +6,4 @@ dependencies[] = election
 files[] = election-post.controller.inc
 files[] = views/handlers/views_handler_field_election_post.inc
 files[] = views/handlers/views_handler_field_election_post_link.inc
+files[] = views/handlers/views_handler_field_election_post_link_vote.inc

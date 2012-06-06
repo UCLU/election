@@ -222,20 +222,20 @@ function election_permission() {
 function election_access($op, $election = NULL, $account = NULL) {
   switch ($op) {
     case 'view':
-      return (bool) user_access('view any election', $account);
+      return user_access('view any election', $account);
       break;
     case 'create':
-      return (bool) user_access('create elections', $account);
+      return user_access('create elections', $account);
       break;
     case 'update':
     case 'edit':
-      return (bool) user_access('edit any election', $account);
+      return user_access('edit any election', $account);
       break;
     case 'vote':
-      return (bool) user_access('vote in elections', $account);
+      return user_access('vote in elections', $account);
       break;
     case 'delete':
-      return (bool) user_access('delete any election', $account);
+      return user_access('delete any election', $account);
       break;
   }
   return FALSE;
