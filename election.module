@@ -229,7 +229,7 @@ function election_permission() {
  *   Whether access is allowed or not.
  */
 function election_access($op, $election = NULL, $account = NULL) {
-  $own = ($election && $election->uid && $election->uid == $account->uid);
+  $own = ($election && $account && $election->uid == $account->uid);
   switch ($op) {
     case 'view':
       if ($own) {
