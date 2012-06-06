@@ -11,6 +11,9 @@ class views_handler_field_election_link_nominate extends views_handler_field_ele
   function construct() {
     parent::construct();
     $this->additional_fields['type'] = 'type';
+    $this->additional_fields['nstatus'] = 'nstatus';
+    $this->additional_fields['nopen_time'] = 'nopen_time';
+    $this->additional_fields['nclose_time'] = 'nclose_time';
   }
 
   function render_link($data, $values) {
@@ -30,6 +33,14 @@ class views_handler_field_election_link_nominate extends views_handler_field_ele
 
     // ensure user has access to view this election.
     if (!election_candidate_access_per_election('nominate', $election)) {
+      return;
+    }
+
+    // ensure nominations are open for the election.
+    $nstatus = $this->get_value($values, 'nstatus');
+    $nopen_time = $this->get_value($values, 'nopen_time');
+    $nclose_time = $this->get_value($values, 'nclose_time');
+    if (!_election_is_open($nstatus, $nopen_time, $nclose_time)) {
       return;
     }
 
