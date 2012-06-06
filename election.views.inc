@@ -257,6 +257,30 @@ function election_views_data() {
     ),
   );
 
+  $data['election']['posts_link'] = array(
+    'field' => array(
+      'title' => t('Posts link'),
+      'help' => t('A link to the list of posts/positions/motions for the election.'),
+      'handler' => 'views_handler_field_election_link_posts',
+    ),
+  );
+
+  $data['election']['candidates_link'] = array(
+    'field' => array(
+      'title' => t('Candidates link'),
+      'help' => t('A link to the candidates page, where relevant.'),
+      'handler' => 'views_handler_field_election_link_candidates',
+    ),
+  );
+
+  $data['election']['nominate_link'] = array(
+    'field' => array(
+      'title' => t('Nomination form link'),
+      'help' => t('A link to the nomination form, where relevant.'),
+      'handler' => 'views_handler_field_election_link_nominate',
+    ),
+  );
+
   return $data;
 
 }

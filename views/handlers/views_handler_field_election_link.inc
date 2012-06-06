@@ -39,7 +39,7 @@ class views_handler_field_election_link extends views_handler_field {
   function render_link($data, $values) {
     $this->options['alter']['make_link'] = TRUE;
     $this->options['alter']['path'] = "election/$data";
-    $text = !empty($this->options['text']) ? $this->options['text'] : t('view');
+    $text = !empty($this->options['text']) ? $this->options['text'] : t('View');
     return $text;
   }
 }
