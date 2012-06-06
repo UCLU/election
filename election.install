@@ -226,6 +226,7 @@ function election_schema() {
       'uid' => array('uid'),
       'agent' => array('agent'),
       'vote_time' => array('vote_time'),
+      'ip' => array('ip'),
     ),
     'foreign keys' => array(
       'user' => array(
