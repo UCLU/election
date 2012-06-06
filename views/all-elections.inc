@@ -32,6 +32,10 @@ $handler->display->display_options['style_options']['columns'] = array(
   'title' => 'title',
   'type' => 'type',
   'vstatus' => 'vstatus',
+  'nstatus' => 'nstatus',
+  'view_election' => 'view_election',
+  'delete_election' => 'view_election',
+  'edit_election' => 'view_election',
 );
 $handler->display->display_options['style_options']['default'] = 'title';
 $handler->display->display_options['style_options']['info'] = array(
@@ -40,21 +44,44 @@ $handler->display->display_options['style_options']['info'] = array(
     'default_sort_order' => 'asc',
     'align' => '',
     'separator' => '',
+    'empty_column' => 0,
   ),
   'type' => array(
     'sortable' => 1,
     'default_sort_order' => 'asc',
     'align' => '',
     'separator' => '',
+    'empty_column' => 0,
   ),
   'vstatus' => array(
     'align' => '',
     'separator' => '',
+    'empty_column' => 0,
+  ),
+  'nstatus' => array(
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'view_election' => array(
+    'align' => '',
+    'separator' => ' · ',
+    'empty_column' => 0,
+  ),
+  'delete_election' => array(
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'edit_election' => array(
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
   ),
 );
 $handler->display->display_options['style_options']['override'] = 1;
 $handler->display->display_options['style_options']['sticky'] = 0;
-$handler->display->display_options['style_options']['empty_table'] = 0;
+$handler->display->display_options['style_options']['empty_table'] = 1;
 /* No results behavior: Global: Text area */
 $handler->display->display_options['empty']['area']['id'] = 'area';
 $handler->display->display_options['empty']['area']['table'] = 'views';
@@ -132,6 +159,76 @@ $handler->display->display_options['fields']['nstatus']['element_default_classes
 $handler->display->display_options['fields']['nstatus']['hide_empty'] = 0;
 $handler->display->display_options['fields']['nstatus']['empty_zero'] = 0;
 $handler->display->display_options['fields']['nstatus']['hide_alter_empty'] = 0;
+/* Field: Election: Link */
+$handler->display->display_options['fields']['view_election']['id'] = 'view_election';
+$handler->display->display_options['fields']['view_election']['table'] = 'election';
+$handler->display->display_options['fields']['view_election']['field'] = 'view_election';
+$handler->display->display_options['fields']['view_election']['label'] = 'Actions';
+$handler->display->display_options['fields']['view_election']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['view_election']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['view_election']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['view_election']['alter']['external'] = 0;
+$handler->display->display_options['fields']['view_election']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['view_election']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['view_election']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['view_election']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['view_election']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['view_election']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['view_election']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['view_election']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['view_election']['alter']['html'] = 0;
+$handler->display->display_options['fields']['view_election']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['view_election']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['view_election']['hide_empty'] = 0;
+$handler->display->display_options['fields']['view_election']['empty_zero'] = 0;
+$handler->display->display_options['fields']['view_election']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['view_election']['text'] = 'View details';
+/* Field: Election: Edit link */
+$handler->display->display_options['fields']['edit_election']['id'] = 'edit_election';
+$handler->display->display_options['fields']['edit_election']['table'] = 'election';
+$handler->display->display_options['fields']['edit_election']['field'] = 'edit_election';
+$handler->display->display_options['fields']['edit_election']['label'] = '';
+$handler->display->display_options['fields']['edit_election']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['edit_election']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['edit_election']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['edit_election']['alter']['external'] = 0;
+$handler->display->display_options['fields']['edit_election']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['edit_election']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['edit_election']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['edit_election']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['edit_election']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['edit_election']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['edit_election']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['edit_election']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['edit_election']['alter']['html'] = 0;
+$handler->display->display_options['fields']['edit_election']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['edit_election']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['edit_election']['hide_empty'] = 0;
+$handler->display->display_options['fields']['edit_election']['empty_zero'] = 0;
+$handler->display->display_options['fields']['edit_election']['hide_alter_empty'] = 1;
+/* Field: Election: Delete link */
+$handler->display->display_options['fields']['delete_election']['id'] = 'delete_election';
+$handler->display->display_options['fields']['delete_election']['table'] = 'election';
+$handler->display->display_options['fields']['delete_election']['field'] = 'delete_election';
+$handler->display->display_options['fields']['delete_election']['label'] = '';
+$handler->display->display_options['fields']['delete_election']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['delete_election']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['delete_election']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['delete_election']['alter']['external'] = 0;
+$handler->display->display_options['fields']['delete_election']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['delete_election']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['delete_election']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['delete_election']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['delete_election']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['delete_election']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['delete_election']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['delete_election']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['delete_election']['alter']['html'] = 0;
+$handler->display->display_options['fields']['delete_election']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['delete_election']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['delete_election']['hide_empty'] = 0;
+$handler->display->display_options['fields']['delete_election']['empty_zero'] = 0;
+$handler->display->display_options['fields']['delete_election']['hide_alter_empty'] = 1;
 /* Sort criterion: Election: Title */
 $handler->display->display_options['sorts']['title']['id'] = 'title';
 $handler->display->display_options['sorts']['title']['table'] = 'election';
