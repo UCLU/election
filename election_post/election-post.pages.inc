@@ -90,22 +90,6 @@ function election_post_vote_form($form, &$form_state, $post) {
     _election_build_breadcrumb($election, '_POSTS_', l($post->title, election_post_uri_path($post)))
   );
 
-  if ($previously_voted = election_vote_check_user_previously_voted($post)) {
-    drupal_set_message(t('You have already submitted a vote for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
-    return array();
-  }
-
-  $type = _election_type_get_info($election->type);
-  $post_key = $type['post key'];
-  $post_vote_form_function = 'election_post_' . $post_key . '_vote_form';
-  if (function_exists($post_vote_form_function)) {
-    $form = $post_vote_form_function($form, $form_state, $post, $election);
-  }
-
-  if (empty($form)) {
-    return array();
-  }
-
   $form['buttons'] = array(
     '#type' => 'actions',
     '#weight' => 100,
@@ -123,6 +107,52 @@ function election_post_vote_form($form, &$form_state, $post) {
   );
 
   $form['#validate'][] = 'election_post_vote_form_validate';
+
+  $type = _election_type_get_info($election->type);
+  $post_key = $type['post key'];
+  $post_vote_form_function = 'election_post_' . $post_key . '_vote_form';
+  if (function_exists($post_vote_form_function)) {
+    $form = $post_vote_form_function($form, $form_state, $post, $election);
+  }
+
+  if ($previously_voted = election_vote_check_user_previously_voted($post)) {
+    unset($form['buttons']);
+    drupal_set_message(t('You have already submitted a vote for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))));
+  }
+
+  return $form;
+
+}
+
+
+/**
+ * Form modifying function for election-post/%election_post/vote
+ */
+function election_post_motion_vote_form($form, &$form_state, $post, $election) {
+
+  $answer_options = array(
+    ELECTION_ANSWER_YES => t('Yes'),
+    ELECTION_ANSWER_NO => t('No'),
+  );
+
+  if (!empty($post->allow_abstention)) {
+    $answer_options[ELECTION_ANSWER_ABSTAIN] = t('Abstain');
+  }
+
+  $form['motion_preview'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Motion'),
+  );
+
+  $form['motion_preview']['motion'] = election_post_view($election, $post, 'teaser');
+
+  $form['answer'] = array(
+    '#type' => 'select',
+    '#title' => t('Answer'),
+    '#description' => t('Please select your answer to the motion.'),
+    '#options' => $answer_options,
+    '#required' => TRUE,
+  );
 
   return $form;
 
@@ -142,7 +172,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
 
   if ($num_candidates == 0) {
     drupal_set_message(t('There are no candidates standing for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
-    return FALSE;
+    $form['buttons']['#disabled'] = TRUE;
   }
 
   $pref_limit = $num_candidates;
@@ -219,13 +249,14 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   );
 
   $form['#attached']['js'][] = drupal_get_path('module', 'election_post') . '/vote.js';
+  $form['#validate'][] = 'election_post_position_vote_form_validate';
 
   return $form;
 
 }
 
 /**
- * Validate the voting form.
+ * Validate the voting form (general).
  *
  * @param array $form
  * @param array &$form_state
@@ -233,6 +264,22 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
  * @return void
  */
 function election_post_vote_form_validate($form, &$form_state) {
+
+  if (election_vote_check_user_previously_voted($post)) {
+    $form_state['rebuild'] = TRUE;
+  }
+
+}
+
+/**
+ * Validate the voting form (positions only).
+ *
+ * @param array $form
+ * @param array &$form_state
+ *
+ * @return void
+ */
+function election_post_position_vote_form_validate($form, &$form_state) {
 
   $post = $form_state['post'];
   $num_candidates = $form_state['num_candidates'];
@@ -294,7 +341,7 @@ function election_post_vote_form_submit($form, &$form_state) {
 
   if ($success) {
     $post_name = _election_get_posts_name($election);
-    drupal_set_message(t('Thank you for submitting a ballot concerning the @post_name %post_title.', array('@post_name' => $post_name, '%post_title' => $post->title)));
+    drupal_set_message(t('Thank you for submitting a vote concerning the @post_name %post_title.', array('@post_name' => $post_name, '%post_title' => $post->title)));
     $form_state['redirect'] = url(election_post_uri_path($post));
   }
   else {
@@ -345,6 +392,43 @@ function election_post_position_save_votes($form, &$form_state, $post, $election
   return TRUE;
 
 }
+
+/**
+ * Save answer to a motion.
+ */
+function election_post_motion_save_votes($form, &$form_state, $post, $election) {
+
+  global $user;
+
+  $vote = array(
+    'post_id' => $post->post_id,
+    'uid' => $user->uid,
+    'ip' => ip_address(),
+    'agent' => $_SERVER['HTTP_USER_AGENT'],
+    'sid_hash' => _election_vote_session_hash(),
+  );
+
+  $insert_id = db_insert('election_vote')
+    ->fields($vote)
+    ->execute();
+  if (empty($insert_id)) {
+    throw new Exception('election_vote record could not be saved');
+  }
+
+  $ballot_entry = array(
+    'vote_id' => $insert_id,
+    'post_id' => $post->post_id,
+    'answer' => $form_state['values']['answer'],
+  );
+
+  db_insert('election_ballot')
+    ->fields($ballot_entry)
+    ->execute();
+
+  return TRUE;
+
+}
+
 
 /**
  * Cancel the vote form.

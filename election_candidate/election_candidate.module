@@ -150,6 +150,10 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
  * candidate.
  */
 function election_candidate_access_per_election($op, stdClass $election, $account = NULL) {
+  if ($election->type == 'referendum') {
+    // Referendums don't have candidates.
+    return FALSE;
+  }
   return (entity_access('view', 'election', $election, $account) && entity_access($op, 'election_candidate', NULL, $account));
 }
 

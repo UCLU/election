@@ -194,7 +194,6 @@ function election_post_entity_info() {
         'custom settings' => TRUE,
       ),
     ),
-    'redirect' => FALSE, // for the Redirect module
   );
 
   foreach (election_types() as $type_mn => $type) {
@@ -209,6 +208,7 @@ function election_post_entity_info() {
           'bundle argument' => 3,
           'access arguments' => array('administer elections'),
         ),
+        'metatags' => FALSE, // for the Metatags module
       );
     }
   }
