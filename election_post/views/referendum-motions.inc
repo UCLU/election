@@ -6,7 +6,7 @@
 
 $view = new view;
 $view->name = 'referendum_motions';
-$view->description = 'A list of positions per election (intended for the public / all viewers of the election).';
+$view->description = 'A list of motions per referendum (intended for the public / all viewers of the referendum).';
 $view->tag = 'default';
 $view->base_table = 'election_post';
 $view->human_name = 'Referendum motions';
@@ -16,7 +16,7 @@ $view->disabled = FALSE; /* Edit this to true to make a default view disabled in
 
 /* Display: Master */
 $handler = $view->new_display('default', 'Master', 'default');
-$handler->display->display_options['title'] = 'Positions';
+$handler->display->display_options['title'] = 'Motions';
 $handler->display->display_options['access']['type'] = 'perm';
 $handler->display->display_options['access']['perm'] = 'view any election';
 $handler->display->display_options['cache']['type'] = 'none';
@@ -122,7 +122,7 @@ $handler->display->display_options['filters']['type']['expose']['multiple'] = FA
 /* Display: Page */
 $handler = $view->new_display('page', 'Page', 'page');
 $handler->display->display_options['path'] = 'election/%/motions-view';
-$handler->display->display_options['menu']['title'] = 'List positions';
-$handler->display->display_options['menu']['description'] = 'A list of the positions candidates can stand for in this election.';
+$handler->display->display_options['menu']['title'] = 'List motions';
+$handler->display->display_options['menu']['description'] = 'A list of the motions in this referendum.';
 
 $views[$view->name] = $view;
