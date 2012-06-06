@@ -918,3 +918,12 @@ function election_candidate_views_default_views() {
   }
   return $views;
 }
+
+/**
+ * Load candidates who are standing for the given post.
+ */
+function election_candidate_load_by_post($post) {
+  $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE post_id = :pid AND cstatus = :approved ORDER BY RAND()', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED))->fetchCol();
+  $candidates = election_candidate_load_multiple($candidate_ids);
+  return $candidates;
+}

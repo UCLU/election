@@ -193,16 +193,10 @@ function election_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
-      'ipv4' => array(
-        'description' => 'The IPv4 address of the voter. If null, there should be an IPv6 address.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => FALSE,
-      ),
-      'ipv6' => array(
-        'description' => 'The IPv6 address of the voter. If null, there should be an IPv4 address.',
-        'type' => 'int',
-        'unsigned' => TRUE,
+      'ip' => array(
+        'description' => 'The IP address of the voter (v4 or v6).',
+        'type' => 'varchar',
+        'length' => 255,
         'not null' => FALSE,
       ),
       'agent' => array(

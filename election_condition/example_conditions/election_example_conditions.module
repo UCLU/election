@@ -33,6 +33,9 @@ function election_example_conditions_condition_info() {
  * @return bool
  */
 function election_example_conditions_access_gmail(stdClass $account) {
+  if ($account->uid == 0) {
+    return FALSE;
+  }
   return (bool) preg_match('/g(oogle)?mail\.com\s*\b/i', $account->mail);
 }
 
@@ -47,5 +50,8 @@ function election_example_conditions_access_gmail(stdClass $account) {
  * @return bool
  */
 function election_example_conditions_access_hotmail(stdClass $account) {
+  if ($account->uid == 0) {
+    return FALSE;
+  }
   return (bool) preg_match('/hotmail\.com\s*\b/i', $account->mail);
 }

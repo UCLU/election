@@ -176,11 +176,13 @@ function _election_condition_install_code_conditions() {
  * Add condition information to a post.
  */
 function election_condition_get_conditions($post) {
-  if (!isset($post->conditions) && !empty($post->post_id)) {
+  if (!isset($post->conditions)) {
     $post->conditions = array();
-    $conditions = db_query('SELECT ec.* FROM {election_condition} ec LEFT JOIN {election_post_condition} epc USING (condition_id) WHERE epc.post_id = :pid', array(':pid' => $post->post_id));
-    foreach ($conditions as $condition) {
-      $post->conditions[$condition->condition_id] = $condition;
+    if (!empty($post->post_id)) {
+      $conditions = db_query('SELECT ec.* FROM {election_condition} ec LEFT JOIN {election_post_condition} epc USING (condition_id) WHERE epc.post_id = :pid', array(':pid' => $post->post_id));
+      foreach ($conditions as $condition) {
+        $post->conditions[$condition->condition_id] = $condition;
+      }
     }
   }
   return $post->conditions;

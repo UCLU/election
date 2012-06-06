@@ -110,6 +110,18 @@ function election_post_menu() {
     'context' => MENU_CONTEXT_INLINE,
   );
 
+  $items['election-post/%election_post/vote'] = array(
+    'title' => 'Vote',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_post_vote_form', 1),
+    'file' => 'election-post.pages.inc',
+    'access callback' => 'election_post_access',
+    'access arguments' => array('vote', 1),
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'weight' => 3,
+  );
+
   return $items;
 
 }
@@ -701,4 +713,3 @@ function pathauto_election_post_update_alias_multiple(array $post_ids, $op, arra
     drupal_set_message(format_plural(count($post_ids), 'Updated URL alias for 1 post.', 'Updated URL aliases for @count posts.'));
   }
 }
-
