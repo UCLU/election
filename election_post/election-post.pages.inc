@@ -171,8 +171,9 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   $form_state['num_candidates'] = $num_candidates;
 
   if ($num_candidates == 0) {
-    drupal_set_message(t('There are no candidates standing for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
+    drupal_set_message(t('There are no approved candidates standing for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
     unset($form['buttons']);
+    return $form;
   }
 
   $pref_limit = $num_candidates;
@@ -264,6 +265,8 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
  * @return void
  */
 function election_post_vote_form_validate($form, &$form_state) {
+
+  $post = $form_state['post'];
 
   if (election_vote_check_user_previously_voted($post)) {
     $form_state['rebuild'] = TRUE;
