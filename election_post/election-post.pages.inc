@@ -172,7 +172,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
 
   if ($num_candidates == 0) {
     drupal_set_message(t('There are no candidates standing for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
-    $form['buttons']['#disabled'] = TRUE;
+    unset($form['buttons']);
   }
 
   $pref_limit = $num_candidates;
