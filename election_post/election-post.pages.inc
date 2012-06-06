@@ -35,43 +35,6 @@ function election_post_list_page(stdClass $election) {
 }
 
 /**
- * Get a hash of the session ID.
- *
- * @return string
- */
-function _election_vote_session_hash() {
-  $sid = session_id();
-  return md5($sid . 'TIMj1g4C6xyMi8L');
-}
-
-/**
- * Find out whether the logged in user has previously voted for the $post.
- *
- * @param stdClass $post
- *
- * @return bool
- */
-function election_vote_check_user_previously_voted($post) {
-  global $user;
-
-  if ($user->uid == 0) {
-    // This is an anonymous user. Try checking on session hash.
-    $result = db_query_range('SELECT vote_id FROM {election_vote} WHERE (sid_hash = :sh OR (ip = :ip AND agent = :agent)) AND post_id = :pid', 0, 1, array(
-      ':sh' => _election_vote_session_hash(),
-      ':ip' => ip_address(),
-      ':agent' => $_SERVER['HTTP_USER_AGENT'],
-      ':pid' => $post->post_id,
-    ))->fetchCol();
-    return (!empty($result));
-  }
-
-  // This is an authenticated user: it's safe to check based on the $user->uid.
-  $result = db_query_range('SELECT * FROM {election_vote} WHERE uid = :uid AND post_id = :pid', 0, 1, array(':uid' => $user->uid, ':pid' => $post->post_id))->fetchCol();
-  return (!empty($result));
-
-}
-
-/**
  * Form builder function for election-post/%election_post/vote
  *
  * @param array $form
@@ -445,19 +408,3 @@ function election_post_vote_form_cancel_submit($form, &$form_state) {
   $form_state['redirect'] = url(election_post_uri_path($post));
 }
 
-
-/**
- * Find the ordinal of a number.
- *
- * @return string
- */
-function _election_vote_get_ordinal($num) {
-  $ends = array('th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th');
-  if ($num % 100 >= 11 && $num % 100 <= 13) {
-    $ord = $num. 'th';
-  }
-  else {
-    $ord = $num. $ends[$num % 10];
-  }
-  return $ord;
-}

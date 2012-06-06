@@ -24,7 +24,7 @@ function election_post_views_data() {
     'title' => t('Election post'),
     'entity type' => 'election_post',
     'weight' => -9,
-//    'access query tag' => 'election_access', // @todo work out how to adapt this
+    'access query tag' => 'election_post_access',
     'defaults' => array(
       'field' => 'title',
     ),
@@ -44,6 +44,13 @@ function election_post_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_numeric',
       'click sortable' => TRUE,
+    ),
+    // Information for accepting a post_id as an argument
+    'argument' => array(
+      'handler' => 'views_handler_argument_election_post_postid',
+      'name field' => 'title', // the field to display in the summary.
+      'numeric' => TRUE,
+      'validate type' => 'post_id',
     ),
     // Information for accepting a post_id as a filter
     'filter' => array(
@@ -71,9 +78,6 @@ function election_post_views_data() {
     // Information for accepting a title as a filter
     'filter' => array(
       'handler' => 'views_handler_filter_string',
-    ),
-    'argument' => array(
-      'handler' => 'views_handler_argument_string',
     ),
   );
 
@@ -116,9 +120,6 @@ function election_post_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_election_post_eligibility',
       'click sortable' => FALSE,
-    ),
-    'filter' => array(
-      'handler' => 'views_handler_filter_election_post_eligibility',
     ),
   );
 

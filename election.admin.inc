@@ -377,8 +377,12 @@ function election_form_validate($form, &$form_state) {
     if (is_array($nclose_time)) {
       $nclose_time = $nclose_time['date'] . ' ' . ($nclose_time['time']? '00:00' : $nclose_time['time']);
     }
+    // Check that nominations and voting are not open at the same time.
+    if ($nstatus == ELECTION_STATUS_OPEN && $vstatus == ELECTION_STATUS_OPEN) {
+      form_set_error('vstatus', t('Voting should not be open at the same time as nominations.'));
+    }
     // Check that the opening and closing times are set if nominations are scheduled.
-    if ($nstatus == ELECTION_STATUS_SCHEDULED
+    elseif ($nstatus == ELECTION_STATUS_SCHEDULED
         && (empty($nopen_time) || empty($nclose_time))) {
       form_set_error('nschedule', t('You must set the opening and closing times when the nominations status is Scheduled.'));
     }

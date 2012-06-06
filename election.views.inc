@@ -24,7 +24,7 @@ function election_views_data() {
     'title' => t('Election'),
     'entity type' => 'election',
     'weight' => -10,
-//    'access query tag' => 'election_access', // @todo work out how to adapt this
+    'access query tag' => 'election_access',
     'defaults' => array(
       'field' => 'title',
     ),

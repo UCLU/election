@@ -713,3 +713,56 @@ function pathauto_election_post_update_alias_multiple(array $post_ids, $op, arra
     drupal_set_message(format_plural(count($post_ids), 'Updated URL alias for 1 post.', 'Updated URL aliases for @count posts.'));
   }
 }
+
+/**
+ * Find out whether the logged in user has previously voted for the $post.
+ *
+ * @param stdClass $post
+ *
+ * @return bool
+ */
+function election_vote_check_user_previously_voted($post) {
+  global $user;
+
+  if ($user->uid == 0) {
+    // This is an anonymous user. Try checking on session hash.
+    $result = db_query_range('SELECT vote_id FROM {election_vote} WHERE (sid_hash = :sh OR (ip = :ip AND agent = :agent)) AND post_id = :pid', 0, 1, array(
+      ':sh' => _election_vote_session_hash(),
+      ':ip' => ip_address(),
+      ':agent' => $_SERVER['HTTP_USER_AGENT'],
+      ':pid' => $post->post_id,
+    ))->fetchCol();
+    return (!empty($result));
+  }
+
+  // This is an authenticated user: it's safe to check based on the $user->uid.
+  $result = db_query_range('SELECT * FROM {election_vote} WHERE uid = :uid AND post_id = :pid', 0, 1, array(':uid' => $user->uid, ':pid' => $post->post_id))->fetchCol();
+  return (!empty($result));
+
+}
+
+/**
+ * Get a hash of the session ID.
+ *
+ * @return string
+ */
+function _election_vote_session_hash() {
+  $sid = session_id();
+  return md5($sid . 'TIMj1g4C6xyMi8L');
+}
+
+/**
+ * Find the ordinal of a number.
+ *
+ * @return string
+ */
+function _election_vote_get_ordinal($num) {
+  $ends = array('th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th');
+  if ($num % 100 >= 11 && $num % 100 <= 13) {
+    $ord = $num. 'th';
+  }
+  else {
+    $ord = $num. $ends[$num % 10];
+  }
+  return $ord;
+}
