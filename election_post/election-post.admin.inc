@@ -312,6 +312,10 @@ function election_post_form_submit($form, &$form_state) {
     t('The @post_name "@title" was saved.', array('@post_name' => _election_get_posts_name($election->type), '@title' => $post->title))
   );
 
+  if (empty($_GET['destination'])) {
+    $form_state['redirect'] = election_uri_path($election) . '/posts';
+  }
+
 }
 
 /**
@@ -342,8 +346,6 @@ function election_post_form_delete_confirm($form, &$form_state, $post) {
     '#type' => 'value',
     '#value' => $post->post_id,
   );
-
-  $type = _election_type_get_info($election->type);
 
   return confirm_form(
     $form,
@@ -398,7 +400,9 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
 
   }
 
-  $form_state['redirect'] = election_uri_path($election) . '/posts';
+  if (empty($_GET['destination'])) {
+    $form_state['redirect'] = election_uri_path($election) . '/posts';
+  }
 
 }
 
@@ -417,7 +421,7 @@ function election_post_manage_form($form, $form_state, $election) {
 
   // @todo this should not be necessary
   $title = election_post_manage_page_title($election);
-  drupal_set_title($title, PASS_THROUGH);
+//  drupal_set_title($title, PASS_THROUGH);
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election)
   );

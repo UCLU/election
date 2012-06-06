@@ -25,7 +25,7 @@ function election_post_list_page(stdClass $election) {
       break;
   }
 
-  drupal_set_title(drupal_ucfirst($posts_name), PASS_THROUGH);
+//  drupal_set_title(drupal_ucfirst($posts_name), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
 
   return array(
@@ -87,7 +87,7 @@ function election_post_vote_form($form, &$form_state, $post) {
   $form_state['post'] = $post;
 
   $title = election_post_page_title($post);
-  drupal_set_title(t('Vote: %title_trim', array('%title_trim' => truncate_utf8($post->title, 20, TRUE, TRUE))), PASS_THROUGH);
+//  drupal_set_title(t('Vote: %title_trim', array('%title_trim' => truncate_utf8($post->title, 20, TRUE, TRUE))), PASS_THROUGH);
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, '_POSTS_', l($post->title, election_post_uri_path($post)))
   );

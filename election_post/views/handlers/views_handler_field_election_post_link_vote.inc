@@ -5,10 +5,6 @@
  */
 class views_handler_field_election_post_link_vote extends views_handler_field_election_post_link {
 
-  function construct() {
-    parent::construct();
-  }
-
   function render_link($data, $values) {
     // ensure user has access to vote for this post
     $post = election_post_load($this->get_value($values, 'post_id'));

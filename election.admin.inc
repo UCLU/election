@@ -430,11 +430,11 @@ function election_form_submit($form, &$form_state) {
   // Notify the user that the election was saved.
   $type = _election_type_get_info($election->type);
   drupal_set_message(
-    t('The @type "@title" was saved.', array('@type' => $type['name'], '@title' => $election->title))
+    t('The @type %title was saved.', array('@type' => $type['name'], '%title' => $election->title))
   );
 
   if (empty($_GET['destination'])) {
-    $form_state['redirect'] = 'admin/election/list';
+    $form_state['redirect'] = election_uri_path($election);
   }
 
 }

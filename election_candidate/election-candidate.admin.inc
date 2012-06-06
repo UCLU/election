@@ -17,7 +17,7 @@
  */
 function election_candidate_manage_form($form, $form_state, $election) {
 
-  drupal_set_title(t('Candidates'), PASS_THROUGH);
+  //drupal_set_title(t('Candidates'), PASS_THROUGH);
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election)
   );
@@ -128,7 +128,7 @@ function election_candidate_manage_form($form, $form_state, $election) {
  */
 function election_candidate_totals_page(stdClass $election) {
 
-  drupal_set_title(t('Candidate totals'), PASS_THROUGH);
+//  drupal_set_title(t('Candidate totals'), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
 
   $result = db_query('SELECT COUNT(DISTINCT candidate_id) AS num_candidates, COUNT(DISTINCT IF (cstatus=0, candidate_id, NULL)) AS num_pending, COUNT(DISTINCT IF (cstatus=1, candidate_id, NULL)) AS num_approved, COUNT(DISTINCT IF (cstatus=-1, candidate_id, NULL)) AS num_withdrawn, COUNT(DISTINCT IF (cstatus=-2, candidate_id, NULL)) AS num_rejected FROM {election_candidate} WHERE election_id = :election_id', array(
@@ -174,7 +174,7 @@ function election_candidate_totals_page(stdClass $election) {
  */
 function election_candidate_download_form($form, &$form_state, stdClass $election) {
 
-  drupal_set_title(t('Download candidate data'), PASS_THROUGH);
+//  drupal_set_title(t('Download candidate data'), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
 
   $candidate_field_instances = field_info_instances('election_candidate', 'election_candidate');
