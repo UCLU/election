@@ -101,9 +101,11 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
   }
   switch ($op) {
     case 'view':
+      // Users with the 'edit any election' permission may view all candidates.
       if (user_access('edit any election', $account)) {
         return TRUE;
       }
+      // Users with the 'view any election' permission may view approved candidates.
       if (user_access('view any election', $account) && (empty($candidate) || $candidate->cstatus == ELECTION_CANDIDATE_APPROVED)) {
         return TRUE;
       }
@@ -111,7 +113,7 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
     case 'edit':
     case 'update':
     case 'delete':
-    case 'view details':
+    case 'view details': // 'Details' include personal contact information.
       if (user_access('edit any election', $account)) {
         return TRUE;
       }
@@ -124,25 +126,21 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
       return user_access('submit nominations', $account);
       break;
   }
-  // @todo clean up this function.
-  if ($candidate === NULL || empty($candidate->uid) || $candidate->uid !== $account->uid) {
-    // This is not the account's nomination, and global checks have failed.
-    return FALSE;
+  if (!empty($candidate) && !empty($candidate->uid) && $candidate->uid == $account->uid) {
+    switch ($op) {
+      case 'view':
+      case 'view details':
+        // Users are always allowed to see their own nominations.
+        return TRUE;
+        break;
+      case 'edit':
+      case 'update':
+        // Users with the 'edit own nominations' permission may edit their own nominations.
+        return (bool) user_access('edit own nominations', $account);
+        break;
+    }
   }
-  // This is the $acccount's nomination.
-  switch ($op) {
-    case 'view':
-    case 'view details':
-      return TRUE;
-      break;
-    case 'edit':
-    case 'update':
-      return (bool) user_access('edit own nominations', $account);
-      break;
-    default:
-      return FALSE;
-      break;
-  }
+  return FALSE;
 }
 
 /**
