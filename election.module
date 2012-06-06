@@ -242,8 +242,8 @@ function election_access($op, $election = NULL, $account = NULL) {
       break;
     case 'update':
     case 'edit':
-      if ($own) {
-        return user_access('edit own elections', $account);
+      if ($own && user_access('edit own elections', $account)) {
+        return TRUE;
       }
       return user_access('edit any election', $account);
       break;
@@ -254,8 +254,8 @@ function election_access($op, $election = NULL, $account = NULL) {
       return user_access('vote in elections', $account);
       break;
     case 'delete':
-      if ($own) {
-        return user_access('delete own elections', $account);
+      if ($own && user_access('delete own elections', $account)) {
+        return TRUE;
       }
       return user_access('delete any election', $account);
       break;
