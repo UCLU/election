@@ -32,15 +32,15 @@ class views_handler_field_election_post_eligibility extends views_handler_field 
     }
     // The post now needs to be loaded in full for further checks.
     $post = election_post_load($this->get_value($values, 'post_id'));
-    if (!_election_post_has_approved_candidates($post)) {
-      return t('There are currently no approved candidates standing for this @post_name.', array('@post_name' => $post_name));
+    if ($election_type != 'referendum' && !_election_post_has_approved_candidates($post)) {
+      return t('Not enough candidates are standing for this @post_name yet.', array('@post_name' => $post_name));
     }
     elseif (!user_is_logged_in()) {
       return t('<a href="@login_uri">Log in</a> to vote.', array('@login' => url('user/login', array('query' => array('destination' => $_GET['q'])))));
     }
     elseif (election_post_access('vote', $post)) {
       if (election_vote_check_user_previously_voted($post)) {
-        return t('You have already voted for this @post_name.', array('@post_name' => $post_name));
+        return t('You have already voted for (or abstained from) this @post_name.', array('@post_name' => $post_name));
       }
       return t('<a href="@vote_link">You can vote</a> for this @post_name.', array('@post_name' => $post_name, '@vote_link' => url(election_post_uri_path($post) . '/vote')));
     }
