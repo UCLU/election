@@ -104,7 +104,7 @@ function election_list_form($form, $form_state) {
     if ($election->type != 'referendum' && entity_access('update', 'election', $election)) {
       $operations['candidates_edit'] = l(
         t('edit candidates'),
-        $election_uri_path . '/candidates'
+        $election_uri_path . '/candidates/manage'
       );
     }
 

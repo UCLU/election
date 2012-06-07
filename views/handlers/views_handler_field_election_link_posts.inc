@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Field handler to present a link to an election's posts. This depends on
+ * Field handler to present a link to manage an election's posts. This depends on
  * the election_post module.
  */
 class views_handler_field_election_link_posts extends views_handler_field_election_link {
@@ -22,8 +22,8 @@ class views_handler_field_election_link_posts extends views_handler_field_electi
       return;
     }
 
-    // ensure user has access to view this election.
-    if (!entity_access('view', 'election', $election)) {
+    // ensure user has access to edit this election.
+    if (!entity_access('edit', 'election', $election)) {
       return;
     }
 
@@ -32,7 +32,7 @@ class views_handler_field_election_link_posts extends views_handler_field_electi
     $this->options['alter']['make_link'] = TRUE;
     $this->options['alter']['path'] = "election/{$election->election_id}/posts";
 
-    $text = !empty($this->options['text']) ? $this->options['text'] : t('View @posts_name', array('@posts_name' => $posts_name));
+    $text = !empty($this->options['text']) ? $this->options['text'] : t('Manage @posts_name', array('@posts_name' => $posts_name));
     return $text;
   }
 }

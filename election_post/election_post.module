@@ -466,6 +466,11 @@ function election_post_theme() {
       'render element' => 'elements',
       'template' => 'election-post',
     ),
+    'election_vote_confirm' => array(
+      'variables' => array(
+        'form_state' => NULL,
+      ),
+    ),
   );
 }
 
@@ -792,20 +797,39 @@ function _election_vote_get_ordinal($num) {
 function election_post_preprocess_election(&$vars) {
   $election = $vars['election'];
   $posts_name = _election_get_posts_name($election->type, TRUE);
+  switch ($election->type) {
+    case 'stv':
+      $display = 'block_stv';
+      break;
+    case 'referendum':
+      $display = 'block_referendum';
+      break;
+    default:
+      $display = 'default';
+      break;
+  }
   $vars['content']['posts'] = array(
     '#markup' => '<div class="election-post-candidates"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'
-    . views_embed_view('election_posts', 'default', $election->election_id)
+    . views_embed_view('election_posts', $display, $election->election_id)
     . '</div>',
   );
 }
 
 /**
  * Check whether a post has approved candidates (e.g. to see whether voting is possible).
+ *
+ * @param stdClass $post
+ *
+ * @return bool
+ *   TRUE if:
+ *     (A) the number of approved candidates > 1
+ *     or (B) there is 1 approved candidate, and RON;
+ *   FALSE otherwise.
  */
 function _election_post_has_approved_candidates($post) {
   if (!module_exists('election_candidate')) { // @todo sort this dependency
     return;
   }
   $num_candidates = db_query('SELECT COUNT(candidate_id) FROM {election_candidate} WHERE post_id = :pid AND cstatus = :approved', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED))->fetchField(0);
-  return ($num_candidates > 0);
+  return ($num_candidates > 1 || ($num_candidates == 1 && $post->use_ron));
 }

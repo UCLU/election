@@ -11,15 +11,14 @@ class views_handler_field_election_link_nomination extends views_handler_field_e
   }
 
   function render_link($data, $values) {
-    // ensure user has access to edit this election.
     $election = new stdClass();
-    $election->election_id = $this->get_value($values, 'election_id');
+    $election->election_id = $data;
     $election->uid = $this->get_value($values, 'uid');
     $election->type = $this->get_value($values, 'type');
     if ($election->type == 'referendum') {
       return;
     }
-    if (!entity_access('view', 'election', $election)) {
+    if (!election_access('view', $election)) {
       return;
     }
 
