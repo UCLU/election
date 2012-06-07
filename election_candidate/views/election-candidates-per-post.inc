@@ -26,6 +26,15 @@ $handler->display->display_options['exposed_form']['type'] = 'basic';
 $handler->display->display_options['pager']['type'] = 'full';
 $handler->display->display_options['style_plugin'] = 'default';
 $handler->display->display_options['row_plugin'] = 'fields';
+/* No results behavior: Global: Text area */
+$handler->display->display_options['empty']['area']['id'] = 'area';
+$handler->display->display_options['empty']['area']['table'] = 'views';
+$handler->display->display_options['empty']['area']['field'] = 'area';
+$handler->display->display_options['empty']['area']['label'] = 'There are currently no approved candidates for this position';
+$handler->display->display_options['empty']['area']['empty'] = FALSE;
+$handler->display->display_options['empty']['area']['content'] = 'There are currently no approved candidates for this position.';
+$handler->display->display_options['empty']['area']['format'] = 'filtered_html';
+$handler->display->display_options['empty']['area']['tokenize'] = 0;
 /* Field: Election candidate: Name */
 $handler->display->display_options['fields']['fullname']['id'] = 'fullname';
 $handler->display->display_options['fields']['fullname']['table'] = 'election_candidate';
