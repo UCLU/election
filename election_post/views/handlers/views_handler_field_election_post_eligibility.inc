@@ -39,7 +39,7 @@ class views_handler_field_election_post_eligibility extends views_handler_field 
       if (election_vote_check_user_previously_voted($post)) {
         return t('You have already voted for this @post_name.', array('@post_name' => $post_name));
       }
-      return t('You can <a href="@vote_link">vote</a> for this @post_name.', array('@post_name' => $post_name, '@vote_link' => url(election_post_uri_path($post) . '/vote')));
+      return t('<a href="@vote_link">You can vote</a> for this @post_name.', array('@post_name' => $post_name, '@vote_link' => url(election_post_uri_path($post) . '/vote')));
     }
     return t('You are not eligible to vote for this @post_name.', array('@post_name' => $post_name));
   }

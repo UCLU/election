@@ -23,7 +23,7 @@ function election_entity_info() {
     'entity keys' => array(
       'id' => 'election_id',
       'label' => 'title',
-      'bundle' => 'type',prep
+      'bundle' => 'type',
     ),
     'bundle keys' => array(
       'bundle' => 'type',

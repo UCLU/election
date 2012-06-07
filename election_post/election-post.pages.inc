@@ -81,7 +81,7 @@ function election_post_vote_form($form, &$form_state, $post) {
   }
 
   if ($previously_voted = election_vote_check_user_previously_voted($post)) {
-    drupal_set_message(t('You have already submitted a vote for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))));
+    drupal_set_message(t('You have already submitted a vote for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'status', FALSE);
     $form['ballot_paper']['#disabled'] = TRUE;
     $form['buttons']['#disabled'] = TRUE;
   }
@@ -265,7 +265,11 @@ function election_post_position_vote_form_validate($form, &$form_state) {
   $candidate_rankings = array();
   $had = array();
   foreach ($form_state['values'] as $key => $value) {
-    if ($value != 'NONE' && substr($key, 0, 10) == 'candidate_') {
+    if (substr($key, 0, 10) == 'candidate_') {
+      if ($value == 'NONE') {
+        // Don't do anything for 'No preference'.
+        continue;
+      }
       $candidate_id = substr($key, 10);
       $candidate_rankings[$candidate_id] = $value;
       if (in_array($value, $had)) {
