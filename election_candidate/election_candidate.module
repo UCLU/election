@@ -937,11 +937,14 @@ function election_candidate_preprocess_election_post(&$vars) {
   $post = $vars['elements']['#post'];
   $election = $vars['elements']['#election'];
   if ($election->type != 'referendum') {
-    $vars['content']['candidates'] = array(
-      '#markup' => '<div class="election-post-candidates"><h2>' . t('Candidates') . '</h2>'
-        . views_embed_view('candidates_post', 'candidates_post_block', $post->post_id)
-        . '</div>',
-      '#weight' => 100,
-    );
+    $candidates = views_embed_view('candidates_post', 'candidates_post_block', $post->post_id);
+    if (!empty($candidates)) {
+      $vars['content']['candidates'] = array(
+        '#markup' => '<div class="election-post-candidates"><h2>' . t('Candidates') . '</h2>'
+          . $candidates
+          . '</div>',
+        '#weight' => 100,
+      );
+    }
   }
 }
