@@ -30,14 +30,18 @@ class views_handler_field_election_post_eligibility extends views_handler_field 
     elseif (!_election_is_open($vstatus, $vopen_time, $vclose_time)) {
       return t('Voting is currently closed.');
     }
-    $post_id = $this->get_value($values, 'post_id');
-    $post = election_post_load($post_id);
-    if (election_post_access('vote', $post)) {
+    // The post now needs to be loaded in full for further checks.
+    $post = election_post_load($this->get_value($values, 'post_id'));
+    if (!_election_post_has_approved_candidates($post)) {
+      return t('There are currently no approved candidates standing for this @post_name.', array('@post_name' => $post_name));
+    }
+    elseif (election_post_access('vote', $post)) {
       if (election_vote_check_user_previously_voted($post)) {
         return t('You have already voted for this @post_name.', array('@post_name' => $post_name));
       }
       return t('You can <a href="@vote_link">vote</a> for this @post_name.', array('@post_name' => $post_name, '@vote_link' => url(election_post_uri_path($post) . '/vote')));
     }
+    return t('You are not eligible to vote for this @post_name.', array('@post_name' => $post_name));
   }
 
 }

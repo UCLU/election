@@ -619,8 +619,7 @@ function election_post_page_view($post, $view_mode = 'full') {
   if ($view_mode == 'full') {
     drupal_set_breadcrumb(
       _election_build_breadcrumb(
-        $election,
-        l(drupal_ucfirst(_election_get_posts_name($election->type, TRUE)), election_uri_path($election) . '/posts')
+        $election
       )
     );
   }
@@ -744,8 +743,13 @@ function election_vote_check_user_previously_voted($post) {
   }
 
   // This is an authenticated user: it's safe to check based on the $user->uid.
-  $result = db_query_range('SELECT * FROM {election_vote} WHERE uid = :uid AND post_id = :pid', 0, 1, array(':uid' => $user->uid, ':pid' => $post->post_id))->fetchCol();
-  return (!empty($result));
+  $vote_count = db_query('SELECT COUNT(vote_id) FROM {election_vote} WHERE uid = :uid AND post_id = :pid', array(':uid' => $user->uid, ':pid' => $post->post_id))->fetchField(0);
+
+  if ($vote_count > 1) {
+    watchdog('election', 'User @uid has cast more than one vote for post @pid!', array('@uid' => $user->uid, '@pid' => $post->post_id), WATCHDOG_WARNING);
+  }
+
+  return ($vote_count > 0);
 
 }
 
@@ -786,4 +790,15 @@ function election_post_preprocess_election(&$vars) {
     . views_embed_view('election_posts', 'default', $election->election_id)
     . '</div>',
   );
+}
+
+/**
+ * Check whether a post has approved candidates (e.g. to see whether voting is possible).
+ */
+function _election_post_has_approved_candidates($post) {
+  if (!module_exists('election_candidate')) { // @todo sort this dependency
+    return;
+  }
+  $num_candidates = db_query('SELECT COUNT(candidate_id) FROM {election_candidate} WHERE post_id = :pid AND cstatus = :approved', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED))->fetchField(0);
+  return ($num_candidates > 0);
 }

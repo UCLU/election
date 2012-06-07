@@ -23,7 +23,7 @@ function election_entity_info() {
     'entity keys' => array(
       'id' => 'election_id',
       'label' => 'title',
-      'bundle' => 'type',
+      'bundle' => 'type',prep
     ),
     'bundle keys' => array(
       'bundle' => 'type',
@@ -571,10 +571,6 @@ function election_view($election, $view_mode = 'full') {
     drupal_set_title($election->title);
   }
 
-  // Build fields content.
-  // In case of a multiple view, node_view_multiple() already ran the
-  // 'prepare_view' step. An internal flag prevents the operation from running
-  // twice.
   field_attach_prepare_view('election', array($election->election_id => $election), $view_mode);
   entity_prepare_view('election', array($election->election_id => $election));
   $election->content += field_attach_view('election', $election, $view_mode);
@@ -608,14 +604,14 @@ function election_view($election, $view_mode = 'full') {
 /**
  * Process variables for election.tpl.php
  *
- * The $variables array contains the following arguments:
- * - $election
- * - $view_mode
- * - $page
+ * The $variables['elements'] array contains the following arguments:
+ * - #election
+ * - #view_mode
  *
  * @see election.tpl.php
  */
 function template_preprocess_election(&$variables) {
+
   $variables['view_mode'] = $variables['elements']['#view_mode'];
   // Provide a distinct $teaser boolean.
   $variables['teaser'] = $variables['view_mode'] == 'teaser';
@@ -641,6 +637,15 @@ function template_preprocess_election(&$variables) {
 
   // Make the field variables available with the appropriate language.
   field_attach_preprocess('election', $election, $variables['content'], $variables);
+
+  $variables['content'][] = array(
+    'nstatus' => array(
+      '#markup' => '<p>Nominations: ' . _election_format_status($election, 'n') . '</p>',
+    ),
+    'vstatus' => array(
+      '#markup' => '<p>Voting: ' . _election_format_status($election, 'v') . '</p>',
+    ),
+  );
 
   $variables['classes_array'][] = drupal_html_class('election-type-' . $election->type);
 
@@ -751,7 +756,7 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
   );
   foreach ($args as $key => $arg) {
     switch ($arg) {
-      case '_POSTS_':
+      case '_MANAGE_POSTS_':
         $posts_name = _election_get_posts_name($election->type, TRUE);
         $link = l(drupal_ucfirst($posts_name), $election_uri_path . '/posts');
         break;

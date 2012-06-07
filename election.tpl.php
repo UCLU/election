@@ -10,10 +10,8 @@
     <h2<?php print $title_attributes; ?>><a href="<?php print $election_url; ?>"><?php print $title; ?></a></h2>
   <?php endif; ?>
 
-  <?php if ($content): ?>
-    <div class="content"<?php print $content_attributes; ?>>
-      <?php print render($content); ?>
-    </div>
-  <?php endif; ?>
+  <div class="content"<?php print $content_attributes; ?>>
+    <?php print render($content); ?>
+  </div>
 
 </div>

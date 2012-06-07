@@ -27,13 +27,13 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
   if ($post->is_new) {
     $breadcrumb = _election_build_breadcrumb(
       $election,
-      '_POSTS_'
+      '_MANAGE_POSTS_'
     );
   }
   else {
     $breadcrumb = _election_build_breadcrumb(
       $election,
-      '_POSTS_',
+      '_MANAGE_POSTS_',
       l($post->title, election_post_uri_path($post))
     );
   }
@@ -335,7 +335,7 @@ function election_post_form_delete_confirm($form, &$form_state, $post) {
   $election = election_load($post->election_id);
 
   drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_POSTS_', l($post->title, election_post_uri_path($post)))
+    _election_build_breadcrumb($election, '_MANAGE_POSTS_', l($post->title, election_post_uri_path($post)))
   );
 
   $form['election_id'] = array(
@@ -515,7 +515,7 @@ function election_post_page_edit($post) {
   $election = election_load($post->election_id);
 
   drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_POSTS_', l($post->title, election_post_uri_path($post)))
+    _election_build_breadcrumb($election, '_MANAGE_POSTS_', l($post->title, election_post_uri_path($post)))
   );
 
   return drupal_get_form('election_post_form', $post, $election);
@@ -533,7 +533,7 @@ function election_post_page_edit($post) {
 function election_post_page_add($election) {
 
   drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_POSTS_')
+    _election_build_breadcrumb($election, '_MANAGE_POSTS_')
   );
 
   if (!is_object($election)) {

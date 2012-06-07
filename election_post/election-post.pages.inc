@@ -52,7 +52,7 @@ function election_post_vote_form($form, &$form_state, $post) {
   $title = election_post_page_title($post);
   drupal_set_title(t('Vote: %title_trim', array('%title_trim' => truncate_utf8($post->title, 20, TRUE, TRUE))), PASS_THROUGH);
   drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_POSTS_', l($post->title, election_post_uri_path($post)))
+    _election_build_breadcrumb($election, l($post->title, election_post_uri_path($post)))
   );
 
   $form['buttons'] = array(
@@ -141,12 +141,16 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
     return $form;
   }
 
+  // Define the 'do not rank' option.
+  $rank_options = array(
+    'NONE' => t('No preference'),
+  );
+
+  // Find all the other possible preference levels (number of (candidates + ron)).
   $pref_limit = $num_candidates;
   if ($post->use_ron) {
     $pref_limit++;
   }
-
-  $rank_options = array();
   for ($i = 0; $i < $pref_limit; $i++) {
     $rank_options[$i + 1] = _election_vote_get_ordinal($i + 1);
   }
@@ -179,7 +183,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   $form['candidate_table_help'] = array(
     '#type' => 'item',
     '#title' => t('Your ballot paper'),
-    '#description' => t('Select a preference level (1st = most preferred), until you have no further preferences. Candidates cannot be ranked equally.'),
+    '#description' => t('Candidates are listed in a random order.'),
   );
 
   $form['candidate_table_start'] = array(
@@ -193,10 +197,10 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
         . l($candidate->first_name . ' ' . $candidate->last_name, election_candidate_uri_path($candidate))
         . '</td><td>',
       '#suffix' => '</td></tr>',
-      '#title' => t('Preference'),
+      '#title' => t('Your rank for %candidate', array('%candidate' => $candidate->first_name . ' ' . $candidate->last_name)),
       '#title_display' => 'invisible',
       '#options' => $rank_options,
-      '#empty_value' => 'NONE',
+      '#required' => TRUE,
     );
   }
 
@@ -205,10 +209,10 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
       '#type' => 'select',
       '#prefix' => '<tr><td>' . t('RON (Re-Open Nominations)') . '</td><td>',
       '#suffix' => '</td></tr>',
-      '#title' => t('Preference'),
+      '#title' => t('Your rank for %candidate', array('%candidate' => t('RON (Re-Open Nominations)'))),
       '#title_display' => 'invisible',
       '#options' => $rank_options,
-      '#empty_value' => 'NONE',
+      '#required' => TRUE,
     );
   }
 
@@ -274,12 +278,8 @@ function election_post_position_vote_form_validate($form, &$form_state) {
   }
 
   // Get the actual rankings.
-  arsort($candidate_rankings);
-  $weight = 1;
-  foreach ($candidate_rankings as &$ranking) {
-    $ranking = $weight;
-    $weight++;
-  }
+  asort($candidate_rankings);
+
   $form_state['candidate_rankings'] = $candidate_rankings;
 
 }
