@@ -44,6 +44,14 @@ function election_post_list_page(stdClass $election) {
  */
 function election_post_vote_form($form, &$form_state, $post) {
 
+  if (isset($form_state['submit_require_confirm'])) {
+    return election_post_vote_form_submit_confirm($form, $form_state);
+  }
+
+  if (isset($form_state['abstain_require_confirm'])) {
+    return election_post_vote_form_abstain_confirm($form, $form_state);
+  }
+
   $election = election_load($post->election_id);
 
   $form_state['election'] = $election;
@@ -62,12 +70,12 @@ function election_post_vote_form($form, &$form_state, $post) {
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit vote'),
-    '#submit' => array('election_post_vote_form_submit_confirm'),
+    '#submit' => array('election_post_vote_form_submit'),
   );
   $form['buttons']['abstain'] = array(
     '#type' => 'submit',
     '#value' => t('Abstain'),
-    '#submit' => array('election_post_vote_form_abstain_confirm'),
+    '#submit' => array('election_post_vote_form_abstain_submit'),
     '#limit_validation_errors' => array(),
   );
   $form['buttons']['cancel'] = array(
@@ -248,6 +256,7 @@ function election_post_vote_form_validate($form, &$form_state) {
 
   $post = $form_state['post'];
 
+  // Last minute check to see whether a vote has already been entered.
   if (election_vote_check_user_previously_voted($post)) {
     $form_state['rebuild'] = TRUE;
   }
@@ -302,7 +311,19 @@ function election_post_position_vote_form_validate($form, &$form_state) {
  */
 function election_post_vote_form_submit_confirm($form, &$form_state) {
 
-  $form_state['rebuild'] = TRUE;
+  $form['submit_confirmed'] = array(
+    '#type' => 'hidden',
+    '#value' => TRUE,
+  );
+
+  return confirm_form(
+    $form,
+    t('Are you sure you want to submit this vote?'),
+    $_GET['q'],
+    t('This action cannot be undone.'),
+    t('Confirm'),
+    t('Cancel')
+  );
 
 }
 
@@ -311,14 +332,18 @@ function election_post_vote_form_submit_confirm($form, &$form_state) {
  */
 function election_post_vote_form_abstain_confirm($form, &$form_state) {
 
+  $form['abstain_confirmed'] = array(
+    '#type' => 'hidden',
+    '#value' => TRUE,
+  );
+
   return confirm_form(
     $form,
     t('Are you sure you want to abstain?'),
-    NULL,
+    $_GET['q'],
     t('This action cannot be undone.'),
     t('Confirm'),
-    t('Cancel'),
-    'abstain'
+    t('Cancel')
   );
 
 }
@@ -327,7 +352,13 @@ function election_post_vote_form_abstain_confirm($form, &$form_state) {
 /**
  * Submit callback for the 'Abstain' button on the vote form.
  */
-function election_post_vote_form_abstain($form, &$form_state) {
+function election_post_vote_form_abstain_submit($form, &$form_state) {
+
+  if (empty($form_state['values']['abstain_confirmed'])) {
+    $form_state['abstain_require_confirm'] = TRUE;
+    $form_state['rebuild'] = TRUE;
+    return;
+  }
 
   dpm('Abstain will happen now');
   $form_state['rebuild'] = TRUE;
@@ -338,6 +369,12 @@ function election_post_vote_form_abstain($form, &$form_state) {
  * Confirmed vote callback: the submit callback on the form election_post_vote_form_confirm.
  */
 function election_post_vote_form_submit($form, &$form_state) {
+
+  if (empty($form_state['values']['submit_confirmed'])) {
+    $form_state['submit_require_confirm'] = TRUE;
+    $form_state['rebuild'] = TRUE;
+    return;
+  }
 
   $post = $form_state['post'];
   $election = $form_state['election'];
