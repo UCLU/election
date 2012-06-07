@@ -54,6 +54,12 @@ function election_post_vote_form($form, &$form_state, $post) {
 
   $election = election_load($post->election_id);
 
+  if ($previously_voted = election_vote_check_user_previously_voted($post)) {
+    drupal_set_message(t('You have already voted for (or abstained from) this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'status', FALSE);
+    $form['#disabled'] = TRUE;
+    drupal_goto(election_post_uri_path($post));
+  }
+
   $form_state['election'] = $election;
   $form_state['post'] = $post;
 
@@ -62,11 +68,6 @@ function election_post_vote_form($form, &$form_state, $post) {
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, l($post->title, election_post_uri_path($post)))
   );
-
-  if ($previously_voted = election_vote_check_user_previously_voted($post)) {
-    drupal_set_message(t('The form has been disabled, because you have already voted for (or abstained from) this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
-    $form['#disabled'] = TRUE;
-  }
 
   $form['buttons'] = array(
     '#type' => 'actions',
@@ -144,9 +145,8 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
 
   if ($num_candidates == 0) {
     drupal_set_message(t('There are no approved candidates standing for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
-    unset($form['buttons']);
-    $form['ballot_paper']['#disabled'] = TRUE;
-    return $form;
+    $form['#disabled'] = TRUE;
+    drupal_goto(election_post_uri_path($post));
   }
 
   // For each candidate the user should be able to select a 'No preference' option instead of a rank.
