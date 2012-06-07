@@ -62,13 +62,18 @@ function election_post_vote_form($form, &$form_state, $post) {
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit vote'),
-    '#submit' => array('election_post_vote_form_submit'),
+    '#submit' => array('election_post_vote_form_submit_confirm'),
+  );
+  $form['buttons']['abstain'] = array(
+    '#type' => 'submit',
+    '#value' => t('Abstain'),
+    '#submit' => array('election_post_vote_form_abstain_confirm'),
+    '#limit_validation_errors' => array(),
   );
   $form['buttons']['cancel'] = array(
-    '#type' => 'submit',
-    '#value' => t('Cancel'),
-    '#submit' => array('election_post_vote_form_cancel_submit'),
-    '#limit_validation_errors' => array(),
+    '#type' => 'link',
+    '#title' => t('Cancel'),
+    '#href' => election_post_uri_path($post),
   );
 
   $form['#validate'][] = 'election_post_vote_form_validate';
@@ -293,7 +298,44 @@ function election_post_position_vote_form_validate($form, &$form_state) {
 }
 
 /**
- * Submit callback for the vote form.
+ * Submit callback for the 'Submit vote' button on the vote form.
+ */
+function election_post_vote_form_submit_confirm($form, &$form_state) {
+
+  $form_state['rebuild'] = TRUE;
+
+}
+
+/**
+ * Confirm the 'Abstain' button on the vote form.
+ */
+function election_post_vote_form_abstain_confirm($form, &$form_state) {
+
+  return confirm_form(
+    $form,
+    t('Are you sure you want to abstain?'),
+    NULL,
+    t('This action cannot be undone.'),
+    t('Confirm'),
+    t('Cancel'),
+    'abstain'
+  );
+
+}
+
+
+/**
+ * Submit callback for the 'Abstain' button on the vote form.
+ */
+function election_post_vote_form_abstain($form, &$form_state) {
+
+  dpm('Abstain will happen now');
+  $form_state['rebuild'] = TRUE;
+
+}
+
+/**
+ * Confirmed vote callback: the submit callback on the form election_post_vote_form_confirm.
  */
 function election_post_vote_form_submit($form, &$form_state) {
 
@@ -407,11 +449,10 @@ function election_post_motion_save_votes($form, &$form_state, $post, $election) 
 
 }
 
-
 /**
  * Cancel the vote form.
  */
-function election_post_vote_form_cancel_submit($form, &$form_state) {
+function election_post_vote_form_cancel($form, &$form_state) {
   $post = $form_state['post'];
   $form_state['redirect'] = url(election_post_uri_path($post));
 }

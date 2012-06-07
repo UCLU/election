@@ -130,12 +130,18 @@ function election_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'abstain' => array(
+        'description' => 'Whether or not the voter abstained.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
       'answer' => array(
         'description' => sprintf(
-          'For referendums: the answer (no %d, yes %d, or abstain %d).',
+          'For referendums: the answer (no %d or yes %d).',
           ELECTION_ANSWER_NO,
-          ELECTION_ANSWER_YES,
-          ELECTION_ANSWER_ABSTAIN
+          ELECTION_ANSWER_YES
         ),
         'type' => 'int',
         'size' => 'tiny',
@@ -149,17 +155,17 @@ function election_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'rank' => array(
+        'description' => 'For ranked elections: the rank of the candidate in the ballot.',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
       'ron' => array(
-        'description' => 'For STV elections: whether or not the candidate being ranked is RON (Re-Open Nominations).',
+        'description' => 'For ranked elections: whether or not the candidate being ranked is RON (Re-Open Nominations).',
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
         'default' => 0,
-      ),
-      'rank' => array(
-        'description' => 'For STV elections: the rank of the candidate in the ballot.',
-        'type' => 'int',
-        'not null' => FALSE,
       ),
     ),
     'primary key' => array('ballot_id'),
@@ -335,4 +341,18 @@ function election_update_7001() {
     'not null' => FALSE,
   ));
   db_add_index('election', 'uid', array('uid'));
+}
+
+/**
+ * Add {election_ballot}.abstain column and index.
+ */
+function election_update_7002() {
+  db_add_field('election_ballot', 'abstain', array(
+    'description' => 'Whether or not the voter abstained.',
+    'type' => 'int',
+    'size' => 'tiny',
+    'not null' => TRUE,
+    'default' => 0,
+  ));
+  db_add_index('election_ballot', 'abstain', array('abstain'));
 }

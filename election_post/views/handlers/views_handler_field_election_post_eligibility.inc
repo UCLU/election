@@ -35,6 +35,9 @@ class views_handler_field_election_post_eligibility extends views_handler_field 
     if (!_election_post_has_approved_candidates($post)) {
       return t('There are currently no approved candidates standing for this @post_name.', array('@post_name' => $post_name));
     }
+    elseif (!user_is_logged_in()) {
+      return t('<a href="@login_uri">Log in</a> to vote.', array('@login' => url('user/login', array('query' => array('destination' => $_GET['q'])))));
+    }
     elseif (election_post_access('vote', $post)) {
       if (election_vote_check_user_previously_voted($post)) {
         return t('You have already voted for this @post_name.', array('@post_name' => $post_name));
