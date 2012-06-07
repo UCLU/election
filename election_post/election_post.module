@@ -262,15 +262,22 @@ function election_post_access($op, $post = NULL, $account = NULL) {
       return election_access('edit', $election, $account);
       break;
     case 'vote':
+      // Check voting access for the whole election.
       if (!election_access('vote', $election, $account)) {
         return FALSE;
       }
       if (empty($post)) {
         return FALSE;
       }
-      $role_int = array_intersect(array_keys($account->roles), (array) $post->rids);
-      $role_access = (bool) count($role_int);
-      if (!$role_access) {
+      // Check whether the post is individually set to 'closed'.
+      switch ($post->vstatus_inheritance) {
+        case ELECTION_POST_STATUS_CLOSED:
+          return FALSE;
+          break;
+      }
+      // Check role access.
+      $accounts_roles_with_access = array_intersect(array_keys($account->roles), (array) $post->rids);
+      if (!count($accounts_roles_with_access)) {
         return FALSE;
       }
       return TRUE;

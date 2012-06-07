@@ -229,10 +229,12 @@ function election_permission() {
  *   Whether access is allowed or not.
  */
 function election_access($op, $election = NULL, $account = NULL) {
-  $own = ($election && $account && $election->uid == $account->uid);
+  // If checking a specific election, find out whether it belongs to the $account.
+  $election_belongs_to_account = ($election && $account && $election->uid == $account->uid);
   switch ($op) {
     case 'view':
-      if ($own) {
+      // If it's the $account's own election, always permit viewing.
+      if ($election_belongs_to_account) {
         return TRUE;
       }
       return user_access('view any election', $account);
@@ -242,19 +244,20 @@ function election_access($op, $election = NULL, $account = NULL) {
       break;
     case 'update':
     case 'edit':
-      if ($own && user_access('edit own elections', $account)) {
+      if ($election_belongs_to_account && user_access('edit own elections', $account)) {
         return TRUE;
       }
       return user_access('edit any election', $account);
       break;
     case 'vote':
+      // If checking a specific election, check whether voting is open.
       if ($election && !_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
         return FALSE;
       }
       return user_access('vote in elections', $account);
       break;
     case 'delete':
-      if ($own && user_access('delete own elections', $account)) {
+      if ($election_belongs_to_account && user_access('delete own elections', $account)) {
         return TRUE;
       }
       return user_access('delete any election', $account);
