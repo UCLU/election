@@ -81,8 +81,9 @@ function election_post_vote_form($form, &$form_state, $post) {
   }
 
   if ($previously_voted = election_vote_check_user_previously_voted($post)) {
-    unset($form['buttons']);
     drupal_set_message(t('You have already submitted a vote for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))));
+    $form['ballot_paper']['#disabled'] = TRUE;
+    $form['buttons']['#disabled'] = TRUE;
   }
 
   return $form;
@@ -129,7 +130,7 @@ function election_post_motion_vote_form($form, &$form_state, $post, $election) {
 function election_post_position_vote_form($form, &$form_state, $post, $election) {
 
   // Load candidates
-  // @todo reconcile this without mutual dependency between election_candidate and election_post, probably via another submodule.
+  // @todo reconcile all this without mutual dependency between election_candidate and election_post, probably via another submodule.
   $candidates = election_candidate_load_by_post($post);
 
   $num_candidates = count($candidates);
@@ -138,13 +139,12 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   if ($num_candidates == 0) {
     drupal_set_message(t('There are no approved candidates standing for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
     unset($form['buttons']);
+    $form['ballot_paper']['#disabled'] = TRUE;
     return $form;
   }
 
-  // Define the 'do not rank' option.
-  $rank_options = array(
-    'NONE' => t('No preference'),
-  );
+  // For each candidate the user should be able to select a 'No preference' option instead of a rank.
+  $rank_options = array();
 
   // Find all the other possible preference levels (number of (candidates + ron)).
   $pref_limit = $num_candidates;
@@ -155,18 +155,17 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
     $rank_options[$i + 1] = _election_vote_get_ordinal($i + 1);
   }
 
+  $rank_options['NONE'] = t('No preference');
+
   $post_name = _election_get_posts_name($election->type);
 
-  $form['candidate_table_help_post'] = array(
-    '#type' => 'container',
-    '#attributes' => array(
-    ),
-  );
-  $form['candidate_table_help_post']['nums'] = array(
+  $form['post_help'] = array('#type' => 'container');
+
+  $form['post_help']['nums'] = array(
     '#markup' => t(
-      'The following !candidates standing for the @post_name <a href="@post_url">%post_title</a> (!vacancies).',
+      'The following !candidates_are standing for the @post_name <a href="@post_url">%post_title</a> (!vacancies).',
       array(
-        '!candidates' => format_plural($num_candidates, 'candidate is', '@count candidates are'),
+        '!candidates_are' => format_plural($num_candidates, 'candidate is', '@count candidates are'),
         '@post_name' => $post_name,
         '%post_title' => $post->title,
         '@post_url' => url(election_post_uri_path($post)),
@@ -174,24 +173,29 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
       )
     ),
   );
+
   if ($post->use_ron) {
-    $form['candidate_table_help_post']['ron'] = array(
+    $form['post_help']['ron'] = array(
       '#markup' => ' ' . t('RON (Re-Open Nominations) is also an option for this @post_name.', array('@post_name' => $post_name)),
     );
   }
 
-  $form['candidate_table_help'] = array(
-    '#type' => 'item',
+  $form['ballot_paper'] = array(
+    '#type' => 'fieldset',
     '#title' => t('Your ballot paper'),
-    '#description' => t('Candidates are listed in a random order.'),
   );
 
-  $form['candidate_table_start'] = array(
+  $form['ballot_paper']['help'] = array(
+    '#type' => 'item',
+    '#markup' => t('Please rank the candidates according to your preference.'),
+  );
+
+  $form['ballot_paper']['start'] = array(
     '#markup' => '<table class="election-ballot-table"><tr><th>' . t('Name') . '</th><th>' . t('Preference') . '</th></tr>',
   );
 
   foreach ($candidates as $candidate) {
-    $form['candidate_' . $candidate->candidate_id] = array(
+    $form['ballot_paper']['candidate_' . $candidate->candidate_id] = array(
       '#type' => 'select',
       '#prefix' => '<tr><td>'
         . theme('election_candidate_ballot_item', array('candidate' => $candidate))
@@ -205,7 +209,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   }
 
   if ($post->use_ron) {
-    $form['candidate_RON'] = array(
+    $form['ballot_paper']['candidate_RON'] = array(
       '#type' => 'select',
       '#prefix' => '<tr><td>' . t('RON (Re-Open Nominations)') . '</td><td>',
       '#suffix' => '</td></tr>',
@@ -216,7 +220,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
     );
   }
 
-  $form['candidate_table_end'] = array(
+  $form['ballot_paper']['end'] = array(
     '#markup' => '</table>',
   );
 
@@ -311,8 +315,8 @@ function election_post_vote_form_submit($form, &$form_state) {
 
   if ($success) {
     $post_name = _election_get_posts_name($election->type);
-    drupal_set_message(t('Thank you for submitting a vote concerning the @post_name %post_title.', array('@post_name' => $post_name, '%post_title' => $post->title)));
-    $form_state['redirect'] = url(election_post_uri_path($post));
+    drupal_set_message(t('Thank you for submitting a vote for the @post_name !post_link.', array('@post_name' => $post_name, '!post_link' => l($post->title, election_post_uri_path($post)))));
+    $form_state['redirect'] = url(election_uri_path($election));
   }
   else {
     $form_state['rebuild'] = TRUE;
