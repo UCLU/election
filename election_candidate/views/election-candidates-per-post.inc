@@ -5,7 +5,7 @@
  */
 
 $view = new view;
-$view->name = 'candidates';
+$view->name = 'candidates_post';
 $view->description = 'A list of candidates standing for a particular election position.';
 $view->tag = 'default';
 $view->base_table = 'election_candidate';
@@ -95,7 +95,7 @@ $handler->display->display_options['filters']['cstatus']['value'] = array(
 );
 
 /* Display: Block */
-$handler = $view->new_display('block', 'Block', 'block_1');
+$handler = $view->new_display('block', 'Block', 'candidates_post_block');
 $handler->display->display_options['block_description'] = 'Election candidates (per position)';
 
 $views[$view->name] = $view;

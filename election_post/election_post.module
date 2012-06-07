@@ -28,6 +28,7 @@ function election_post_menu() {
     }
   }
 
+/*
   $items['election/%election/posts'] = array(
     'title callback' => 'election_post_list_page_title',
     'title arguments' => array(1),
@@ -46,8 +47,9 @@ function election_post_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
+  */
 
-  $items['election/%election/posts/manage'] = array(
+  $items['election/%election/posts'] = array(
     'title callback' => 'election_post_manage_page_title',
     'title arguments' => array(1),
     'page callback' => 'drupal_get_form',
@@ -55,9 +57,15 @@ function election_post_menu() {
     'file' => 'election-post.admin.inc',
     'access callback' => 'election_access',
     'access arguments' => array('update', 1),
-    'weight' => 1,
+    'weight' => 3,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+
+  $items['election/%election/posts/manage'] = array(
+    'title' => 'Manage',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
   );
 
   $items['election/%election/posts/manage/add'] = array(
@@ -765,4 +773,17 @@ function _election_vote_get_ordinal($num) {
     $ord = $num. $ends[$num % 10];
   }
   return $ord;
+}
+
+/**
+ * Implements template_preprocess_election().
+ */
+function election_post_preprocess_election(&$vars) {
+  $election = $vars['election'];
+  $posts_name = _election_get_posts_name($election->type, TRUE);
+  $vars['content']['posts'] = array(
+    '#markup' => '<div class="election-post-candidates"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'
+    . views_embed_view('election_posts', 'default', $election->election_id)
+    . '</div>',
+  );
 }

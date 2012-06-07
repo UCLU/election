@@ -11,10 +11,6 @@
     <h2<?php print $title_attributes; ?>><a href="<?php print $election_post_url; ?>"><?php print render($content['title']); ?></a></h2>
   <?php endif; ?>
 
-  <div class="content"<?php print $content_attributes; ?>>
-    <?php print render($content); ?>
-  </div>
-
   <?php if ($view_mode == 'full' && $post->type != 'motion') { ?>
 
     <p><strong>Number of vacancies: </strong><?php print $vacancy_count; ?></p>
@@ -29,5 +25,9 @@
     </p>
 
   <?php } ?>
+
+  <div class="content"<?php print $content_attributes; ?>>
+    <?php print render($content); ?>
+  </div>
 
 </div>

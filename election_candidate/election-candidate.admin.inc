@@ -17,7 +17,7 @@
  */
 function election_candidate_manage_form($form, $form_state, $election) {
 
-  //drupal_set_title(t('Candidates'), PASS_THROUGH);
+  drupal_set_title(t('Candidates'), PASS_THROUGH);
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election)
   );

@@ -12,7 +12,7 @@ function election_candidate_list_page(stdClass $election) {
 
   $view = views_embed_view('election_candidates', 'page', $election->election_id);
 
-  //drupal_set_title(t('Candidates'), PASS_THROUGH);
+  drupal_set_title(t('Candidates'), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
 
   return array(
@@ -126,7 +126,7 @@ function election_candidate_display_previous_nominations(stdClass $election, arr
  */
 function election_page_nomination_form(stdClass $election) {
 
-  //drupal_set_title(t('Nomination form'), PASS_THROUGH);
+  drupal_set_title(t('Nomination form'), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
 
   if ($election->type == 'referendum') {

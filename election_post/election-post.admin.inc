@@ -421,7 +421,7 @@ function election_post_manage_form($form, $form_state, $election) {
 
   // @todo this should not be necessary
   $title = election_post_manage_page_title($election);
-//  drupal_set_title($title, PASS_THROUGH);
+  drupal_set_title($title, PASS_THROUGH);
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election)
   );

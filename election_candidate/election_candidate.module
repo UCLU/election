@@ -196,7 +196,7 @@ function election_candidate_menu() {
     'access arguments' => array('view', 1),
     'file' => 'election-candidate.pages.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 3,
+    'weight' => 2,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
@@ -928,4 +928,16 @@ function election_candidate_load_by_post($post) {
   $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE post_id = :pid AND cstatus = :approved ORDER BY RAND()', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED))->fetchCol();
   $candidates = election_candidate_load_multiple($candidate_ids);
   return $candidates;
+}
+
+/**
+ * Implements template_preprocess_election_post().
+ */
+function election_candidate_preprocess_election_post(&$vars) {
+  $post = $vars['elements']['#post'];
+  $vars['content']['candidates'] = array(
+    '#markup' => '<div class="election-post-candidates"><h2>' . t('Candidates') . '</h2>'
+      . views_embed_view('candidates_post', 'candidates_post_block', $post->post_id)
+      . '</div>',
+  );
 }

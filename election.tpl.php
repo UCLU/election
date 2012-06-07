@@ -16,11 +16,4 @@
     </div>
   <?php endif; ?>
 
-  <dl>
-    <dt>Voting status</dt>
-    <dd><?php print $vstatus; ?></dd>
-    <dt>Nominations status</dt>
-    <dd><?php print $nstatus; ?></dd>
-  </dl>
-
 </div>
