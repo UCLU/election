@@ -194,7 +194,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
     $form['candidate_' . $candidate->candidate_id] = array(
       '#type' => 'select',
       '#prefix' => '<tr><td>'
-        . l($candidate->first_name . ' ' . $candidate->last_name, election_candidate_uri_path($candidate))
+        . theme('election_candidate_ballot_item', array('candidate' => $candidate))
         . '</td><td>',
       '#suffix' => '</td></tr>',
       '#title' => t('Your rank for %candidate', array('%candidate' => $candidate->first_name . ' ' . $candidate->last_name)),

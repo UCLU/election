@@ -564,6 +564,11 @@ function election_candidate_theme() {
       'render element' => 'elements',
       'template' => 'election-candidate-details',
     ),
+    'election_candidate_ballot_item' => array(
+      'variables' => array(
+        'candidate' => NULL,
+      ),
+    ),
   );
 }
 
@@ -748,6 +753,17 @@ function template_preprocess_election_candidate_details(&$variables) {
   $variables['theme_hook_suggestions'][] = 'election__' . $election->type . '__candidate_details';
   $variables['theme_hook_suggestions'][] = 'election__' . $election->election_id . '__candidate_details';
 
+}
+
+/**
+ * Theme function for displaying a candidate as an item on a ballot form.
+ *
+ * @param stdClass $candidate
+ * @return string
+ */
+function theme_election_candidate_ballot_item($variables) {
+  $candidate = $variables['candidate'];
+  return '<span class="election-candidate-ballot-item">' . l($candidate->first_name . ' ' . $candidate->last_name, election_candidate_uri_path($candidate)) . '</span>';
 }
 
 /**
