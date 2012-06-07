@@ -6,14 +6,21 @@
 
   $(document).ready(function() {
 
-    var inputs = $('#election-post-vote-form').find(':input[name^="candidate"]');
+    var inputs = $('#election-post-vote-form').find(':input[name^="candidate"]'),
+      disableOtherOptions = function(select_element, others) {
+        var val = select_element.val();
+        if (val.length && val != 'NONE') {
+          others.find('option[value="' + val + '"]').not(':selected').attr('disabled', 'disabled');
+        }
+      };
 
-    inputs.bind('click change', function() {
-      var elem = $(this), others = inputs.not(elem), val = elem.val();
-      others.find('option[disabled]').removeAttr('disabled');
-      if (val.length && val != 'NONE') {
-        others.find('option[value="' + val + '"]').not(':selected').attr('disabled', 'disabled');
-      }
+    inputs.each(function() {
+      var e = $(this), others = inputs.not(e);
+      disableOtherOptions(e, others);
+      e.change(function() {
+        others.find('option[disabled]').removeAttr('disabled');
+        disableOtherOptions(e, others);
+      });
     });
 
   });
