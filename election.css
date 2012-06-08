@@ -4,9 +4,6 @@
  */
 
 /* Ballot paper */
-.election-candidate-ballot-paper {
-  font-size: 1.1em;
-}
 .election-candidate-ballot-row td {
   padding: 10px;
 }
