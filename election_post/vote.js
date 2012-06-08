@@ -7,19 +7,22 @@
   $(document).ready(function() {
 
     var inputs = $('#election-post-vote-form').find(':input[name^="candidate"]'),
-      disableOtherOptions = function(select_element, others) {
-        var val = select_element.val();
-        if (val.length && val != 'NONE') {
+      disableOptions = function(e, others) {
+        var val = e.val(), prev = e.data('previous_value');
+        if (typeof prev != undefined) {
+          others.find('option[value="' + prev + '"][disabled]').removeAttr('disabled');
+        }
+        if (val != '' && val != 'NONE') {
           others.find('option[value="' + val + '"]').not(':selected').attr('disabled', 'disabled');
         }
+        e.data('previous_value', val);
       };
 
     inputs.each(function() {
       var e = $(this), others = inputs.not(e);
-      disableOtherOptions(e, others);
+      disableOptions(e, others);
       e.change(function() {
-        others.find('option[disabled]').removeAttr('disabled');
-        disableOtherOptions(e, others);
+        disableOptions(e, others);
       });
     });
 
