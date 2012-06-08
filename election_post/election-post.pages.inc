@@ -318,10 +318,13 @@ function election_post_vote_form_vote_confirm($form, &$form_state) {
 
   $post = $form_state['post'];
 
+  // confirm_form() ignores its third argument ($path) if $_GET['destination'] is set.
+  unset($_GET['destination']);
+
   return confirm_form(
     $form,
     t('Are you sure you want to cast this vote?'),
-    $_GET['q'],
+    current_path(),
     theme('election_vote_confirm', array('form_state' => $form_state)),
     t('Confirm'),
     t('Cancel')
@@ -390,9 +393,10 @@ function election_post_vote_form_abstain_confirm($form, &$form_state) {
     '#value' => TRUE,
   );
 
-  $form['#submit'] = array('election_post_vote_form_abstain');
+  // confirm_form() ignores its third argument ($path) if $_GET['destination'] is set.
+  unset($_GET['destination']);
 
-  return confirm_form($form, t('Are you sure you want to abstain?'), $_GET['q']);
+  return confirm_form($form, t('Are you sure you want to abstain?'), current_path());
 
 }
 
