@@ -196,7 +196,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   foreach ($candidates as $candidate) {
     $form['ballot_paper']['candidate_' . $candidate->candidate_id] = array(
       '#type' => 'select',
-      '#prefix' => '<tr><td>'
+      '#prefix' => '<tr class="election-candidate-ballot-row"><td>'
         . theme('election_candidate_ballot_item', array('candidate' => $candidate))
         . '</td><td>',
       '#suffix' => '</td></tr>',
@@ -204,18 +204,20 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
       '#title_display' => 'invisible',
       '#options' => $rank_options,
       '#required' => TRUE,
+      '#attributes' => array('class' => array('election-candidate-preference-select')),
     );
   }
 
   if ($post->use_ron) {
     $form['ballot_paper']['candidate_RON'] = array(
       '#type' => 'select',
-      '#prefix' => '<tr><td>' . t('RON (Re-Open Nominations)') . '</td><td>',
+      '#prefix' => '<tr class="election-candidate-ballot-row ballot-item-ron"><td>' . t('RON (Re-Open Nominations)') . '</td><td>',
       '#suffix' => '</td></tr>',
       '#title' => t('Your rank for %candidate', array('%candidate' => t('RON (Re-Open Nominations)'))),
       '#title_display' => 'invisible',
       '#options' => $rank_options,
       '#required' => TRUE,
+      '#attributes' => array('class' => array('election-candidate-preference-select')),
     );
   }
 
