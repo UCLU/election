@@ -270,7 +270,7 @@ function election_post_position_vote_form_validate($form, &$form_state) {
       $candidate_id = substr($key, 10);
       $candidate_rankings[$candidate_id] = $value;
       if (isset($had[$value])) {
-        form_set_error('ballot_paper', t('You have used the preference level %value more than once. Candidates cannot be ranked equally.', array('%value' => $value)));
+        form_set_error('', t('You have used the preference level %value more than once. Candidates cannot be ranked equally.', array('%value' => $value)));
         $form['rebuild'] = TRUE;
         break;
       }
