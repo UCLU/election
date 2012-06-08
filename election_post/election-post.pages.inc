@@ -13,7 +13,7 @@ function election_post_list_page(stdClass $election) {
 
   $posts_name = _election_get_posts_name($election->type, TRUE);
 
-  switch($election->type) {
+  switch ($election->type) {
     case 'referendum':
       $view = views_embed_view('election_posts', 'block_referendum', $election->election_id);
       break;
