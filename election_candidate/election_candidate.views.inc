@@ -83,6 +83,7 @@ function election_candidate_views_data() {
     'help' => t('The full name of the candidate ($Firstname $Lastname).'),
     'field' => array(
       'handler' => 'views_handler_field_election_candidate_fullname',
+      'link_to_candidate default' => TRUE,
     ),
   );
 
