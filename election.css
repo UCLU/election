@@ -4,8 +4,10 @@
  */
 
 /* Ballot paper */
-.election-candidate-ballot-row td {
+.election-candidate-ballot-paper {
   font-size: 1.1em;
+}
+.election-candidate-ballot-row td {
   padding: 10px;
 }
 .election-candidate-ballot-row .form-item {

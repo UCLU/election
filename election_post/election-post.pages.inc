@@ -182,6 +182,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   $form['ballot_paper'] = array(
     '#type' => 'fieldset',
     '#title' => t('Your ballot paper'),
+    '#attributes' => array('class' => array('election-candidate-ballot-paper')),
   );
 
   $form['ballot_paper']['help'] = array(
