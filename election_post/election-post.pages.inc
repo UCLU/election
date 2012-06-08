@@ -226,6 +226,12 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   $form['#attached']['js'][] = drupal_get_path('module', 'election_post') . '/vote.js';
   $form['#validate'][] = 'election_post_position_vote_form_validate';
 
+  $form['buttons']['reset'] = array(
+    '#type' => 'link',
+    '#title' => 'Reset form',
+    '#href' => $_GET['q'],
+  );
+
   return $form;
 
 }
