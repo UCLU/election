@@ -12,6 +12,51 @@ class views_handler_field_election_candidate_fullname extends views_handler_fiel
     $this->additional_fields['last_name'] = 'last_name';
   }
 
+  function init(&$view, &$options) {
+    parent::init($view, $options);
+    if (!empty($this->options['link_to_candidate'])) {
+      $this->additional_fields['candidate_id'] = array('table' => 'election_candidate', 'field' => 'candidate_id');
+    }
+  }
+
+  function option_definition() {
+    $options = parent::option_definition();
+    $options['link_to_candidate'] = array('default' => isset($this->definition['link_to_candidate default']) ? $this->definition['link_to_candidate default'] : FALSE);
+    return $options;
+  }
+
+  /**
+   * Provide 'link to candidate' option
+   */
+  function options_form(&$form, &$form_state) {
+    $form['link_to_candidate'] = array(
+      '#title' => t('Link this field to the candidate\'s profile.'),
+      '#description' => t("Enable to override this field's links."),
+      '#type' => 'checkbox',
+      '#default_value' => !empty($this->options['link_to_candidate']),
+    );
+
+    parent::options_form($form, $form_state);
+  }
+
+  /**
+   * Render whatever the data is as a link to the candidate.
+   *
+   * Data should be made XSS safe prior to calling this function.
+   */
+  function render_link($data, $values) {
+    if (!empty($this->options['link_to_candidate'])) {
+      if ($data !== NULL && $data !== '') {
+        $this->options['alter']['make_link'] = TRUE;
+        $this->options['alter']['path'] = "election-candidate/" . $this->get_value($values, 'candidate_id');
+      }
+      else {
+        $this->options['alter']['make_link'] = FALSE;
+      }
+    }
+    return $data;
+  }
+
   function query() {
     $this->ensure_my_table();
     $this->add_additional_fields();
@@ -20,7 +65,8 @@ class views_handler_field_election_candidate_fullname extends views_handler_fiel
   function render($values) {
     $first_name = $this->get_value($values, 'first_name');
     $last_name = $this->get_value($values, 'last_name');
-    return check_plain($first_name . ' ' . $last_name);
+    $data = check_plain($first_name . ' ' . $last_name);
+    return $this->render_link($data, $values);
   }
 
 }
