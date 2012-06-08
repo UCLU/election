@@ -1,0 +1,13 @@
+/**
+ * @file
+ * CSS for the Election module.
+ */
+.election-candidate-row {
+  margin: 1em;
+}
+.election-candidate-name {
+  font-size: 1.1em;
+}
+.election-candidate-link {
+  margin-left: 10px;
+}
