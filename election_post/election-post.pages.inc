@@ -64,7 +64,7 @@ function election_post_vote_form($form, &$form_state, $post) {
   $form_state['post'] = $post;
 
   $title = election_post_page_title($post);
-  drupal_set_title(t('Vote: %title_trim', array('%title_trim' => truncate_utf8($post->title, 20, TRUE, TRUE))), PASS_THROUGH);
+  drupal_set_title(t('Vote: %title_trim', array('%title_trim' => truncate_utf8($post->title, 50, TRUE, TRUE))), PASS_THROUGH);
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, l($post->title, election_post_uri_path($post)))
   );
