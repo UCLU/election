@@ -833,3 +833,23 @@ function _election_post_has_approved_candidates($post) {
   $num_candidates = db_query('SELECT COUNT(candidate_id) FROM {election_candidate} WHERE post_id = :pid AND cstatus = :approved', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED))->fetchField(0);
   return ($num_candidates > 1 || ($num_candidates == 1 && $post->use_ron));
 }
+
+/**
+ * Implements hook_html_head_alter().
+ */
+function election_post_html_head_alter(&$head_elements) {
+  // Set robots=noindex,nofollow on voting forms.
+  if (preg_match('/election\-post\/[0-9]+\/vote/', current_path())) {
+    foreach ($head_elements as $key => $element) {
+      if (isset($element['#atributes']['name']) && $element['#attributes']['name'] == 'robots' && $element['#attributes']['content'] != 'noindex,nofollow') {
+        unset($head_elements[$key]);
+        break;
+      }
+    }
+    $head_elements['robots'] = array(
+      '#type' => 'html_tag',
+      '#tag' => 'meta',
+      '#attributes' => array('name' => 'robots', 'content' => 'noindex,nofollow'),
+    );
+  }
+}
