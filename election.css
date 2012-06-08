@@ -2,6 +2,17 @@
  * @file
  * CSS for the Election module.
  */
+
+/* Ballot paper */
+.election-candidate-ballot-row td {
+  padding: 10px;
+}
+.election-candidate-ballot-row .form-item {
+  margin: 0;
+  padding: 0;
+}
+
+/* Candidate views */
 .election-candidate-row {
   margin: 1em;
 }

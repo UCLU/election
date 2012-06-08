@@ -13,7 +13,7 @@ function election_post_list_page(stdClass $election) {
 
   $posts_name = _election_get_posts_name($election->type, TRUE);
 
-  switch($election->type) {
+  switch ($election->type) {
     case 'referendum':
       $view = views_embed_view('election_posts', 'block_referendum', $election->election_id);
       break;
@@ -182,6 +182,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   $form['ballot_paper'] = array(
     '#type' => 'fieldset',
     '#title' => t('Your ballot paper'),
+    '#attributes' => array('class' => array('election-candidate-ballot-paper')),
   );
 
   $form['ballot_paper']['help'] = array(
@@ -196,7 +197,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   foreach ($candidates as $candidate) {
     $form['ballot_paper']['candidate_' . $candidate->candidate_id] = array(
       '#type' => 'select',
-      '#prefix' => '<tr><td>'
+      '#prefix' => '<tr class="election-candidate-ballot-row"><td>'
         . theme('election_candidate_ballot_item', array('candidate' => $candidate))
         . '</td><td>',
       '#suffix' => '</td></tr>',
@@ -204,18 +205,20 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
       '#title_display' => 'invisible',
       '#options' => $rank_options,
       '#required' => TRUE,
+      '#attributes' => array('class' => array('election-candidate-preference-select')),
     );
   }
 
   if ($post->use_ron) {
     $form['ballot_paper']['candidate_RON'] = array(
       '#type' => 'select',
-      '#prefix' => '<tr><td>' . t('RON (Re-Open Nominations)') . '</td><td>',
+      '#prefix' => '<tr class="election-candidate-ballot-row ballot-item-ron"><td>' . t('RON (Re-Open Nominations)') . '</td><td>',
       '#suffix' => '</td></tr>',
       '#title' => t('Your rank for %candidate', array('%candidate' => t('RON (Re-Open Nominations)'))),
       '#title_display' => 'invisible',
       '#options' => $rank_options,
       '#required' => TRUE,
+      '#attributes' => array('class' => array('election-candidate-preference-select')),
     );
   }
 
@@ -318,10 +321,13 @@ function election_post_vote_form_vote_confirm($form, &$form_state) {
 
   $post = $form_state['post'];
 
+  // confirm_form() ignores its third argument ($path) if $_GET['destination'] is set.
+  unset($_GET['destination']);
+
   return confirm_form(
     $form,
     t('Are you sure you want to cast this vote?'),
-    $_GET['q'],
+    current_path(),
     theme('election_vote_confirm', array('form_state' => $form_state)),
     t('Confirm'),
     t('Cancel')
@@ -390,9 +396,10 @@ function election_post_vote_form_abstain_confirm($form, &$form_state) {
     '#value' => TRUE,
   );
 
-  $form['#submit'] = array('election_post_vote_form_abstain');
+  // confirm_form() ignores its third argument ($path) if $_GET['destination'] is set.
+  unset($_GET['destination']);
 
-  return confirm_form($form, t('Are you sure you want to abstain?'), $_GET['q']);
+  return confirm_form($form, t('Are you sure you want to abstain?'), current_path());
 
 }
 

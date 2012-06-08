@@ -201,7 +201,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
     $form['previous_nominations']['display'] = $previous_nominations_display;
   }
 
-  $bypass = user_access('bypass nomination access control');
+  $bypass = user_access('bypass nomination schedule');
   $post_options = array();
   foreach ($available_posts as $post) {
     if ($bypass || $post->nstatus_inheritance == ELECTION_POST_STATUS_INHERIT) {
@@ -253,8 +253,14 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
   // Add custom fields from the Field system.
   field_attach_form('election_candidate', $candidate, $form, $form_state);
 
-  $form['#validate'][] = 'election_candidate_form_validate';
-  $form['#validate'][] = 'election_candidate_nomination_form_validate';
+  if (election_access('edit', $election)) {
+    $form['auto_approve'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Automatically approve this candidate.'),
+      '#default_value' => TRUE,
+      '#weight' => 99,
+    );
+  }
 
   $form['buttons'] = array(
     '#type' => 'actions',
@@ -265,6 +271,9 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
     '#value' => t('Submit nomination'),
     '#submit' => array('election_candidate_nomination_form_submit'),
   );
+
+  $form['#validate'][] = 'election_candidate_form_validate';
+  $form['#validate'][] = 'election_candidate_nomination_form_validate';
 
   return $form;
 }
@@ -341,7 +350,9 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
   $candidate->phone = $values['phone'];
   $candidate->cstatus = ELECTION_CANDIDATE_PENDING;
 
-  // @todo set up manifesto, summary, photo fields
+  if (!empty($form_state['values']['auto_approve'])) {
+    $candidate->cstatus = ELECTION_CANDIDATE_APPROVED;
+  }
 
   field_attach_submit('election_candidate', $candidate, $form, $form_state);
 
