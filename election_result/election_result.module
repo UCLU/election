@@ -1,0 +1,111 @@
+<?php
+/**
+ * @file
+ * Main file for the Election Result module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function election_result_menu() {
+  $items = array();
+  $items['election-post/%election_post/result/blt'] = array(
+    'title' => 'Download BLT file of results',
+    'page callback' => '_election_result_download_blt',
+    'page arguments' => array(1),
+    'access callback' => 'election_post_access',
+    'access arguments' => array('edit', 1),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Download a ballot file.
+ *
+ * @param stdClass $post
+ */
+function _election_result_download_blt($post) {
+
+  set_time_limit(0);
+  $post = election_post_load($post->post_id);
+
+  $election = election_load($post->election_id);
+
+  if ($election->type != 'stv') {
+    drupal_set_message(t('Results are only available for STV elections.'), 'warning');
+    return;
+  }
+
+  $filename = 'ElectionResults_'. $election->election_id . '_' . $post->post_id . '_' . date('YmdHis') . '.blt';
+
+  header('Content-Type:text/plain;charset=UTF-8');
+  header('Content-Disposition:attachment;filename=' . $filename);
+  header('Cache-Control:max-age=300; must-revalidate');
+
+  // @todo what to do about withdrawn candidates
+  $candidates = election_candidate_load_by_post($post);
+
+  $totalCandidates = count($candidates) + ($post->use_ron);
+  $totalSeats = $post->vacancy_count;
+
+  echo '// ' . t('Ballot file generated on @date for the Drupal site @site.', array('@date' => format_date(REQUEST_TIME, 'short'), '@site' => variable_get('site_name'))) . "\n";
+
+  echo "$totalCandidates $totalSeats\n";
+
+  $candidate_map = array();
+  $i = 1;
+  $candidate_lines = '';
+  foreach ($candidates as $candidate) {
+    $candidate_map[$candidate->candidate_id] = $i++;
+    $name = addcslashes($candidate->first_name . ' ' . $candidate->last_name, '"');
+    $candidate_lines .= "\"$name\"\n";
+  }
+  if ($post->use_ron) {
+    $candidate_map['ron'] = $i;
+    $candidate_lines .= '"' . t('RON (Re-Open Nominations)') . '"' . "\n";
+  }
+
+  $votes = db_query(
+    'SELECT vote_id, candidate_id, ron, rank FROM {election_ballot} WHERE post_id = :pid ORDER BY vote_id, rank',
+    array(':pid' => $post->post_id)
+  );
+  $prev = FALSE;
+  $vote_lines = '';
+  foreach ($votes as $rank => $vote) {
+    if (!$prev) {
+      $vote_lines .= '1 ';
+    }
+    elseif ($vote->vote_id === $prev->vote_id) {
+      $vote_lines .= " ";
+    }
+    else {
+      $vote_lines .= " 0\n[{$vote->vote_id}] ";
+    }
+    $candidate_key = $vote->candidate_id;
+    if ($post->use_ron && !empty($vote->ron)) {
+      $candidate_key = 'ron';
+    }
+    if (isset($candidate_map[$candidate_key])) {
+      $vote_lines .= $candidate_map[$candidate_key];
+    }
+    else {
+      $vote_lines .= '?';
+    }
+    $prev = $vote;
+  }
+
+  if (!empty($vote_lines)) {
+    echo $vote_lines . " 0\n";
+  }
+
+  echo "0\n";
+
+  echo $candidate_lines;
+
+  echo '"' . addcslashes($post->title, '"') . '"' . "\n";
+  echo '"' . addcslashes($election->title, '"') . '"' . "\n";
+
+  drupal_exit();
+
+}
