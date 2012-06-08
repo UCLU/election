@@ -75,12 +75,12 @@ function election_post_vote_form($form, &$form_state, $post) {
   );
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Vote'),
+    '#value' => t('Vote…'),
     '#submit' => array('election_post_vote_form_vote'),
   );
   $form['buttons']['abstain'] = array(
     '#type' => 'submit',
-    '#value' => t('Abstain'),
+    '#value' => t('Abstain…'),
     '#submit' => array('election_post_vote_form_abstain'),
     '#limit_validation_errors' => array(),
   );
