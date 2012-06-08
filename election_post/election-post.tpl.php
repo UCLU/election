@@ -15,15 +15,6 @@
 
     <p><strong>Number of vacancies: </strong><?php print $vacancy_count; ?></p>
 
-    <?php if ($post->use_ron) { ?>
-      <p>RON is included as a candidate for this position.</p>
-    <?php } ?>
-
-    <p>
-      <strong>Exclusivity: </strong><?php print $exclusivity; ?>
-      <br /><span class="tips"><?php print $exclusivity_help; ?></span>
-    </p>
-
   <?php } ?>
 
   <div class="content"<?php print $content_attributes; ?>>
