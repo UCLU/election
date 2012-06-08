@@ -187,8 +187,6 @@ $handler->display->display_options['arguments']['election_id']['not'] = 0;
 $handler = $view->new_display('block', 'STV election positions', 'block_stv');
 $handler->display->display_options['defaults']['title'] = FALSE;
 $handler->display->display_options['title'] = 'Positions';
-$handler->display->display_options['defaults']['use_ajax'] = FALSE;
-$handler->display->display_options['use_ajax'] = TRUE;
 $handler->display->display_options['defaults']['style_plugin'] = FALSE;
 $handler->display->display_options['style_plugin'] = 'table';
 $handler->display->display_options['style_options']['columns'] = array(
@@ -377,8 +375,6 @@ $handler->display->display_options['filters']['type']['value'] = 'stv';
 $handler = $view->new_display('block', 'Referendum motions', 'block_referendum');
 $handler->display->display_options['defaults']['title'] = FALSE;
 $handler->display->display_options['title'] = 'Motions';
-$handler->display->display_options['defaults']['use_ajax'] = FALSE;
-$handler->display->display_options['use_ajax'] = TRUE;
 $handler->display->display_options['defaults']['empty'] = FALSE;
 /* No results behavior: Global: Text area */
 $handler->display->display_options['empty']['area']['id'] = 'area';
