@@ -43,27 +43,38 @@ function _election_result_download_blt($post) {
   header('Content-Disposition:attachment;filename=' . $filename);
   header('Cache-Control:max-age=300; must-revalidate');
 
-  // @todo what to do about withdrawn candidates
-  $candidates = election_candidate_load_by_post($post);
+  $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE post_id = :pid AND cstatus IN(:approved, :withdrawn) ORDER BY RAND()', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED, ':withdrawn' => ELECTION_CANDIDATE_WITHDRAWN))->fetchCol();
+  $candidates = election_candidate_load_multiple($candidate_ids);
+
+  $candidate_map = array();
+  $i = 1;
+  $candidate_lines = '';
+  $withdrawn = array();
+  foreach ($candidates as $candidate) {
+    $candidate_map[$candidate->candidate_id] = $i;
+    if ($candidate->cstatus == ELECTION_CANDIDATE_WITHDRAWN) {
+      $withdrawn[] = $i;
+    }
+    $name = addcslashes($candidate->first_name . ' ' . $candidate->last_name, '"');
+    $candidate_lines .= "\"$name\"\n";
+    $i++;
+  }
+  if ($post->use_ron) {
+    $candidate_map['ron'] = $i;
+    $candidate_lines .= '"' . t('RON (Re-Open Nominations)') . '"' . "\n";
+  }
 
   $totalCandidates = count($candidates) + ($post->use_ron);
   $totalSeats = $post->vacancy_count;
+
+  // --- START BALLOT FILE ---
 
   echo '// ' . t('Ballot file generated on @date for the Drupal site @site.', array('@date' => format_date(REQUEST_TIME, 'short'), '@site' => variable_get('site_name'))) . "\n";
 
   echo "$totalCandidates $totalSeats\n";
 
-  $candidate_map = array();
-  $i = 1;
-  $candidate_lines = '';
-  foreach ($candidates as $candidate) {
-    $candidate_map[$candidate->candidate_id] = $i++;
-    $name = addcslashes($candidate->first_name . ' ' . $candidate->last_name, '"');
-    $candidate_lines .= "\"$name\"\n";
-  }
-  if ($post->use_ron) {
-    $candidate_map['ron'] = $i;
-    $candidate_lines .= '"' . t('RON (Re-Open Nominations)') . '"' . "\n";
+  if (!empty($withdrawn)) {
+    echo '-' . implode(' -', $withdrawn) . "\n";
   }
 
   $votes = db_query(
@@ -71,6 +82,8 @@ function _election_result_download_blt($post) {
     array(':pid' => $post->post_id)
   );
   $prev = FALSE;
+
+  // @todo work out how to do this without buffering all the vote lines (performance) & perhaps batch mode
   $vote_lines = '';
   foreach ($votes as $rank => $vote) {
     if (!$prev) {
