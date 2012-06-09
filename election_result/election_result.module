@@ -95,31 +95,44 @@ function _election_result_download_blt($post) {
     $candidate_lines .= '"' . t('RON (Re-Open Nominations)') . '"' . " # Candidate keyed by $i\n";
   }
 
-  $total_candidates = count($candidates) + ($post->use_ron);
-  $total_vacancies = $post->vacancy_count;
+  $total_candidates = (int) count($candidates) + ($post->use_ron);
+  $total_vacancies = (int) $post->vacancy_count;
 
   // --- START BALLOT FILE ---
 
-  echo '# ' . t('Ballot file generated on !date for the Drupal site "!site".', array('!date' => format_date(REQUEST_TIME, 'short'), '!site' => variable_get('site_name'))) . "\n";
+  echo "################################################\n";
 
-  echo t(
-    "!totalCandidates !totalVacancies # !candidates standing for !vacancies\n",
+  echo '# ' . t('Ballot file generated on !date', array('!date' => format_date(REQUEST_TIME, 'custom', 'Y-m-d H:i:s'))) . " #\n";
+
+  echo "################################################\n";
+
+  echo '# ' . t('!candidates standing for !vacancies:',
     array(
-      '!totalCandidates' => (int) $total_candidates,
-      '!totalVacancies' => (int) $total_vacancies,
       '!candidates' => format_plural($total_candidates, 'One candidate is', '@count candidates are'),
       '!vacancies' => format_plural($total_vacancies, 'one vacancy', '@count vacancies'),
     )
-  );
+  ) . "\n";
+
+  echo "$total_candidates $total_vacancies\n";
 
   if (!empty($withdrawn)) {
-    echo '-' . implode(' -', $withdrawn) . " # These are the withdrawn candidate(s).\n";
+    echo '# ' . format_plural(
+      count($withdrawn),
+      "One candidate has withdrawn:",
+      "@count candidates have withdrawn:"
+    ) . "\n";
+    echo '-' . implode(' -', $withdrawn);
   }
 
   $result = db_query(
     'SELECT vote_id, GROUP_CONCAT(IF(ron = 1, \'ron\', IF(abstain = 1, NULL, candidate_id)) ORDER BY RANK SEPARATOR \' \') AS ballot FROM {election_ballot} WHERE post_id = :pid GROUP BY vote_id',
     array(':pid' => $post->post_id)
   );
+
+  echo "# Votes are below, each line is in the format:\n";
+  echo "#   [VOTE_ID] MULTIPLIER PREFERENCE PREFERENCE PREFERENCE 0\n";
+  echo "# Preferences are represented by an integer 'key' for each candidate (see the end of this file).\n";
+  echo "# They can be omitted, in the case of abstention or incomplete rankings.\n";
 
   // @todo performance work & batch mode
   foreach ($result as $row) {
