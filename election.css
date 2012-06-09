@@ -4,15 +4,27 @@
  */
 
 /* Ballot paper */
-.election-candidate-ballot-row td {
+#election-vote-form #edit-clear-form {
+  float: right;
+}
+.election-ballot-row td {
   padding: 10px;
 }
-.election-candidate-ballot-row .form-item {
+.election-ballot-item {
+  font-size: 1.1em;
+}
+.election-ballot-row .form-item {
   margin: 0;
   padding: 0;
 }
 
 /* Candidate views */
+.view-election-candidates h3 {
+  margin-top: 1.75em;
+}
+.election-candidate-row {
+  margin: 1em;
+}
 .election-candidate-row {
   margin: 1em;
 }

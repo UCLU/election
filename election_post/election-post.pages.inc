@@ -149,6 +149,8 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
     drupal_goto(election_post_uri_path($post));
   }
 
+  $form['#id'] = 'election-vote-form';
+
   // For each candidate the user should be able to select a 'No preference' option instead of a rank.
   $rank_options = array();
 
@@ -182,7 +184,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   $form['ballot_paper'] = array(
     '#type' => 'fieldset',
     '#title' => t('Your ballot paper'),
-    '#attributes' => array('class' => array('election-candidate-ballot-paper')),
+    '#attributes' => array('class' => array('election-ballot-paper')),
   );
 
   $form['ballot_paper']['help'] = array(
@@ -197,7 +199,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   foreach ($candidates as $candidate) {
     $form['ballot_paper']['candidate_' . $candidate->candidate_id] = array(
       '#type' => 'select',
-      '#prefix' => '<tr class="election-candidate-ballot-row"><td>'
+      '#prefix' => '<tr class="election-ballot-row"><td>'
         . theme('election_candidate_ballot_item', array('candidate' => $candidate))
         . '</td><td>',
       '#suffix' => '</td></tr>',
@@ -212,7 +214,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   if ($post->use_ron) {
     $form['ballot_paper']['candidate_RON'] = array(
       '#type' => 'select',
-      '#prefix' => '<tr class="election-candidate-ballot-row ballot-item-ron"><td>' . t('RON (Re-Open Nominations)') . '</td><td>',
+      '#prefix' => '<tr class="election-ballot-row ballot-item-ron"><td>' . t('RON (Re-Open Nominations)') . '</td><td>',
       '#suffix' => '</td></tr>',
       '#title' => t('Your rank for %candidate', array('%candidate' => t('RON (Re-Open Nominations)'))),
       '#title_display' => 'invisible',
@@ -229,9 +231,9 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   $form['#attached']['js'][] = drupal_get_path('module', 'election_post') . '/vote.js';
   $form['#validate'][] = 'election_post_position_vote_form_validate';
 
-  $form['buttons']['reset'] = array(
+  $form['buttons']['clear_form'] = array(
     '#type' => 'link',
-    '#title' => 'Reset form',
+    '#title' => 'Clear form',
     '#href' => $_GET['q'],
   );
 

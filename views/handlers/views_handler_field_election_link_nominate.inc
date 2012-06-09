@@ -10,10 +10,10 @@ class views_handler_field_election_link_nominate extends views_handler_field_ele
 
   function construct() {
     parent::construct();
-    $this->additional_fields['type'] = 'type';
-    $this->additional_fields['nstatus'] = 'nstatus';
-    $this->additional_fields['nopen_time'] = 'nopen_time';
-    $this->additional_fields['nclose_time'] = 'nclose_time';
+    $this->additional_fields['type'] = array('table' => 'election', 'field' => 'type');
+    $this->additional_fields['nstatus'] = array('table' => 'election', 'field' => 'nstatus');
+    $this->additional_fields['nopen_time'] = array('table' => 'election', 'field' => 'nopen_time');
+    $this->additional_fields['nclose_time'] = array('table' => 'election', 'field' => 'nclose_time');
   }
 
   function render_link($data, $values) {

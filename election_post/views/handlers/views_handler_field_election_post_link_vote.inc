@@ -10,10 +10,11 @@ class views_handler_field_election_post_link_vote extends views_handler_field_el
     $this->additional_fields['use_ron'] = 'use_ron';
   }
 
-  function render_link($data, $values) {
+  function render($values) {
+    $post_id = $this->get_value($values, 'post_id');
 
     $small_post = new stdClass();
-    $small_post->post_id = $this->get_value($values, 'post_id');
+    $small_post->post_id = $post_id;
     $small_post->use_ron = $this->get_value($values, 'use_ron');
 
     // ensure there are actually some candidates to vote for
@@ -27,10 +28,15 @@ class views_handler_field_election_post_link_vote extends views_handler_field_el
     }
 
     // ensure user has access to vote for this post
-    $post = election_post_load($small_post->post_id);
-    if (!entity_access('vote', 'election_post', $post)) {
+    $post = election_post_load($post_id);
+    if (!election_post_access('vote', $post)) {
       return;
     }
+
+    return $this->render_link($post, $values);
+  }
+
+  function render_link($post, $values) {
 
     $this->options['alter']['make_link'] = TRUE;
     $this->options['alter']['path'] = election_post_uri_path($post) . '/vote';
