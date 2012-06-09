@@ -6,6 +6,8 @@
 
 /**
  * Implements hook_menu().
+ *
+ * @return array
  */
 function election_result_menu() {
   $items = array();
@@ -22,11 +24,17 @@ function election_result_menu() {
 
 /**
  * Implements hook_form_FORM_ID_alter().
+ *
+ * Alter the form at election/%election/posts.
+ *
+ * @param array $form
+ * @return void
  */
 function election_result_form_election_post_manage_form_alter(&$form) {
   $election = $form['#election'];
-  $posts = $form['#posts'];
+  // For STV elections, add a 'download results' link.
   if ($election->type == 'stv') {
+    $posts = $form['#posts'];
     foreach ($form['election_posts']['#rows'] as $post_id => &$row) {
       $post = $posts[$post_id];
       if (election_post_access('edit', $post)) {
@@ -43,10 +51,14 @@ function election_result_form_election_post_manage_form_alter(&$form) {
  * Download a ballot file.
  *
  * @param stdClass $post
+ * @return void
  */
 function _election_result_download_blt($post) {
 
   set_time_limit(0);
+
+  $start_time = microtime(true);
+
   $post = election_post_load($post->post_id);
 
   $election = election_load($post->election_id);
@@ -75,25 +87,33 @@ function _election_result_download_blt($post) {
       $withdrawn[] = $i;
     }
     $name = addcslashes($candidate->first_name . ' ' . $candidate->last_name, '"');
-    $candidate_lines .= "\"$name\"\n";
+    $candidate_lines .= "\"$name\" # Candidate keyed by $i\n";
     $i++;
   }
   if ($post->use_ron) {
     $candidate_map['ron'] = $i;
-    $candidate_lines .= '"' . t('RON (Re-Open Nominations)') . '"' . "\n";
+    $candidate_lines .= '"' . t('RON (Re-Open Nominations)') . '"' . " # candidate keyed by $i\n";
   }
 
-  $totalCandidates = count($candidates) + ($post->use_ron);
-  $totalSeats = $post->vacancy_count;
+  $total_candidates = count($candidates) + ($post->use_ron);
+  $total_vacancies = $post->vacancy_count;
 
   // --- START BALLOT FILE ---
 
-  echo '// ' . t('Ballot file generated on @date for the Drupal site @site.', array('@date' => format_date(REQUEST_TIME, 'short'), '@site' => variable_get('site_name'))) . "\n";
+  echo '# ' . t('Ballot file generated on !date for the Drupal site "!site".', array('!date' => format_date(REQUEST_TIME, 'short'), '!site' => variable_get('site_name'))) . "\n";
 
-  echo "$totalCandidates $totalSeats\n";
+  echo t(
+    "!totalCandidates !totalVacancies # !candidates standing for !vacancies\n",
+    array(
+      '!totalCandidates' => (int) $total_candidates,
+      '!totalVacancies' => (int) $total_vacancies,
+      '!candidates' => format_plural($total_candidates, 'One candidate is', '@count candidates are'),
+      '!vacancies' => format_plural($total_vacancies, 'one vacancy', '@count vacancies'),
+    )
+  );
 
   if (!empty($withdrawn)) {
-    echo '-' . implode(' -', $withdrawn) . "\n";
+    echo '-' . implode(' -', $withdrawn) . " # These are the withdrawn candidate(s).\n";
   }
 
   $votes = db_query(
@@ -131,12 +151,15 @@ function _election_result_download_blt($post) {
     echo $vote_lines . " 0\n";
   }
 
-  echo "0\n";
+  echo "0 # This marks the end of votes.\n";
 
   echo $candidate_lines;
 
-  echo '"' . addcslashes($post->title, '"') . '"' . "\n";
-  echo '"' . addcslashes($election->title, '"') . '"' . "\n";
+  echo '"' . addcslashes($post->title, '"') . '"' . " # Position title\n";
+  echo '"' . addcslashes($election->title, '"') . '"' . " # Election title\n";
+
+  $time = microtime(true) - $start_time;
+  echo '# Time to generate file: ' . number_format($time * 1000, 2) . 'ms';
 
   drupal_exit();
 
