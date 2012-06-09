@@ -259,6 +259,9 @@ function election_post_access($op, $post = NULL, $account = NULL) {
     case 'update':
     case 'edit':
     case 'delete':
+      if ($post && isset($post->vstatus_inheritance) && _election_post_is_open($post, $election, 'v')) {
+        return user_access('bypass running election lock');
+      }
       return election_access('edit', $election, $account);
       break;
     case 'vote':
@@ -612,6 +615,29 @@ function _election_post_format_status(stdClass $election, stdClass $post, $statu
   $closed_status = t('<span class="election-post-status-closed">Closed</span>');
   $status_formatted = $is_open? $open_status : $closed_status;
   return t('!status_formatted (overridden)', array('!status_formatted' => $status_formatted));
+}
+
+/**
+ * Find out if a post is open.
+ *
+ * @param stdClass $post
+ * @param stdClass $election
+ * @param string $status_prefix
+ *   The type of status ('v' for voting, 'n' for nominations).
+ * @return bool
+ */
+function _election_post_is_open(stdClass $post, $election = NULL, $status_prefix = 'v') {
+  $status_inheritance = $post->{$status_prefix . 'status_inheritance'};
+  if ($status_inheritance == ELECTION_POST_STATUS_CLOSED) {
+    return FALSE;
+  }
+  if (empty($election)) {
+    $election = election_load($post->election_id);
+  }
+  $status = $election->{$status_prefix . 'status'};
+  $open_time = $election->{$status_prefix . 'open_time'};
+  $close_time = $election->{$status_prefix . 'close_time'};
+  return _election_is_open($status, $open_time, $close_time);
 }
 
 /**
