@@ -6,23 +6,23 @@
 
   $(document).ready(function () {
 
-    var inputs = $('#election-vote-form').find(':input[name^="candidate"]'),
-      disableOptions = function (e, others) {
-        var val = e.val(), prev = e.data('previous_value');
+    var select_elems = $('.election-candidate-preference-select'),
+      disableOptions = function (triggering_elem, others) {
+        var val = triggering_elem.val(), prev = triggering_elem.data('previous_value');
         if (typeof prev !== undefined) {
           others.find('option[value="' + prev + '"][disabled]').removeAttr('disabled');
         }
         if (val !== '' && val !== 'NONE') {
           others.find('option[value="' + val + '"]').not(':selected').attr('disabled', 'disabled');
         }
-        e.data('previous_value', val);
+        triggering_elem.data('previous_value', val);
       };
 
-    inputs.each(function () {
-      var e = $(this), others = inputs.not(e);
-      disableOptions(e, others);
-      e.change(function () {
-        disableOptions(e, others);
+    select_elems.each(function () {
+      var this_elem = $(this), others = select_elems.not(this_elem);
+      disableOptions(this_elem, others);
+      this_elem.change(function () {
+        disableOptions(this_elem, others);
       });
     });
 

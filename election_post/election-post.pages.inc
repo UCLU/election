@@ -228,7 +228,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
     '#markup' => '</table>',
   );
 
-  $form['#attached']['js'][] = drupal_get_path('module', 'election_post') . '/vote.js';
+  $form['#attached']['js'][] = drupal_get_path('module', 'election_post') . '/vote.min.js';
   $form['#validate'][] = 'election_post_position_vote_form_validate';
 
   $form['buttons']['clear_form'] = array(
