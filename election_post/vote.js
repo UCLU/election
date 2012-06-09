@@ -6,7 +6,7 @@
 
   $(document).ready(function () {
 
-    var inputs = $('#election-post-vote-form').find(':input[name^="candidate"]'),
+    var inputs = $('#election-vote-form').find(':input[name^="candidate"]'),
       disableOptions = function (e, others) {
         var val = e.val(), prev = e.data('previous_value');
         if (typeof prev !== undefined) {
