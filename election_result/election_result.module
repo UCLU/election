@@ -92,7 +92,7 @@ function _election_result_download_blt($post) {
   }
   if ($post->use_ron) {
     $candidate_map['ron'] = $i;
-    $candidate_lines .= '"' . t('RON (Re-Open Nominations)') . '"' . " # candidate keyed by $i\n";
+    $candidate_lines .= '"' . t('RON (Re-Open Nominations)') . '"' . " # Candidate keyed by $i\n";
   }
 
   $total_candidates = count($candidates) + ($post->use_ron);
@@ -116,39 +116,23 @@ function _election_result_download_blt($post) {
     echo '-' . implode(' -', $withdrawn) . " # These are the withdrawn candidate(s).\n";
   }
 
-  $votes = db_query(
-    'SELECT vote_id, candidate_id, ron, rank FROM {election_ballot} WHERE post_id = :pid ORDER BY vote_id, rank',
+  $result = db_query(
+    'SELECT vote_id, GROUP_CONCAT(IF(ron = 1, \'ron\', IF(abstain = 1, NULL, candidate_id)) ORDER BY RANK SEPARATOR \' \') AS ballot FROM {election_ballot} WHERE post_id = :pid GROUP BY vote_id',
     array(':pid' => $post->post_id)
   );
-  $prev = FALSE;
 
-  // @todo work out how to do this without buffering all the vote lines (performance) & perhaps batch mode
-  $vote_lines = '';
-  foreach ($votes as $rank => $vote) {
-    if (!$prev) {
-      $vote_lines .= '1 ';
+  // @todo performance work & batch mode
+  foreach ($result as $row) {
+    $ballot = ' ' . $row->ballot . ' ';
+    foreach ($candidate_map as $id => $key) {
+      $ballot = str_replace(' ' . $id . ' ', ' ' . $key . ' ', $ballot);
     }
-    elseif ($vote->vote_id === $prev->vote_id) {
-      $vote_lines .= " ";
+    echo '[' . $row->vote_id . '] 1';
+    $ballot = rtrim($ballot, ' ');
+    if ($ballot != ' ') {
+      echo $ballot;
     }
-    else {
-      $vote_lines .= " 0\n[{$vote->vote_id}] ";
-    }
-    $candidate_key = $vote->candidate_id;
-    if ($post->use_ron && !empty($vote->ron)) {
-      $candidate_key = 'ron';
-    }
-    if (isset($candidate_map[$candidate_key])) {
-      $vote_lines .= $candidate_map[$candidate_key];
-    }
-    else {
-      $vote_lines .= '?';
-    }
-    $prev = $vote;
-  }
-
-  if (!empty($vote_lines)) {
-    echo $vote_lines . " 0\n";
+    echo " 0\n";
   }
 
   echo "0 # This marks the end of votes.\n";
