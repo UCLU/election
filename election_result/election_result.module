@@ -21,6 +21,25 @@ function election_result_menu() {
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function election_result_form_election_post_manage_form_alter(&$form) {
+  $election = $form['#election'];
+  $posts = $form['#posts'];
+  if ($election->type == 'stv') {
+    foreach ($form['election_posts']['#rows'] as $post_id => &$row) {
+      $post = $posts[$post_id];
+      if (election_post_access('edit', $post)) {
+        $row['operations']['data']['#items']['results'] = l(
+          t('download results'),
+          election_post_uri_path($post) . '/result/blt'
+        );
+      }
+    }
+  }
+}
+
+/**
  * Download a ballot file.
  *
  * @param stdClass $post
@@ -41,9 +60,9 @@ function _election_result_download_blt($post) {
 
   header('Content-Type:text/plain;charset=UTF-8');
   header('Content-Disposition:attachment;filename=' . $filename);
-  header('Cache-Control:max-age=300; must-revalidate');
+  header('Cache-Control:max-age=0; must-revalidate');
 
-  $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE post_id = :pid AND cstatus IN(:approved, :withdrawn) ORDER BY RAND()', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED, ':withdrawn' => ELECTION_CANDIDATE_WITHDRAWN))->fetchCol();
+  $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE post_id = :pid AND cstatus IN(:approved, :withdrawn)', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED, ':withdrawn' => ELECTION_CANDIDATE_WITHDRAWN))->fetchCol();
   $candidates = election_candidate_load_multiple($candidate_ids);
 
   $candidate_map = array();
