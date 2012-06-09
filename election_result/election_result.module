@@ -121,7 +121,7 @@ function _election_result_download_blt($post) {
       "One candidate has withdrawn:",
       "@count candidates have withdrawn:"
     ) . "\n";
-    echo '-' . implode(' -', $withdrawn);
+    echo '-' . implode(' -', $withdrawn) . "\n";
   }
 
   $result = db_query(
