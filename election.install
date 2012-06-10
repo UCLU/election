@@ -175,6 +175,7 @@ function election_schema() {
       'rank' => array('rank'),
       'ron' => array('ron'),
       'answer' => array('answer'),
+      'abstain' => array('abstain'),
     ),
     'foreign keys' => array(
       'vote' => array(

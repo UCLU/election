@@ -430,6 +430,8 @@ function election_post_manage_form($form, $form_state, $election) {
     _election_build_breadcrumb($election)
   );
 
+  $form['#election'] = $election;
+
   // Build the sortable table header.
   $header = array(
     'title' => array('data' => t('Title'), 'field' => 'ep.title', 'sort' => 'asc'),
@@ -450,6 +452,7 @@ function election_post_manage_form($form, $form_state, $election) {
   $post_ids = $query->execute()->fetchCol();
 
   $posts = election_post_load_multiple($post_ids);
+  $form['#posts'] = $posts;
 
   $destination = drupal_get_destination();
 

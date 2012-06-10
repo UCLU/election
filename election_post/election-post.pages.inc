@@ -321,8 +321,6 @@ function election_post_vote_form_vote_confirm($form, &$form_state) {
 
   $form['#submit'] = array('election_post_vote_form_vote');
 
-  $post = $form_state['post'];
-
   // confirm_form() ignores its third argument ($path) if $_GET['destination'] is set.
   unset($_GET['destination']);
 
@@ -397,6 +395,8 @@ function election_post_vote_form_abstain_confirm($form, &$form_state) {
     '#type' => 'hidden',
     '#value' => TRUE,
   );
+
+  $form['#submit'] = array('election_post_vote_form_abstain');
 
   // confirm_form() ignores its third argument ($path) if $_GET['destination'] is set.
   unset($_GET['destination']);
