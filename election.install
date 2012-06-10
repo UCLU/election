@@ -170,6 +170,7 @@ function election_schema() {
     ),
     'primary key' => array('ballot_id'),
     'indexes' => array(
+      'vote_id' => array('vote_id'),
       'post_id' => array('post_id'),
       'candidate_id' => array('candidate_id'),
       'rank' => array('rank'),
@@ -242,6 +243,7 @@ function election_schema() {
       'agent' => array('agent'),
       'vote_time' => array('vote_time'),
       'ip' => array('ip'),
+      'sid_hash' => array('sid_hash'),
     ),
     'foreign keys' => array(
       'user' => array(
@@ -356,4 +358,13 @@ function election_update_7002() {
     'default' => 0,
   ));
   db_add_index('election_ballot', 'abstain', array('abstain'));
+}
+
+/**
+ * Add indexes to {election_ballot} and {election_vote} tables.
+ */
+function election_update_7003() {
+  db_add_index('election_ballot', 'answer', array('answer'));
+  db_add_index('election_ballot', 'vote_id', array('vote_id'));
+  db_add_index('election_vote', 'sid_hash', array('sid_hash'));
 }
