@@ -23,6 +23,30 @@ function election_result_menu() {
 }
 
 /**
+ * Implements hook_entity_load().
+ */
+function election_result_entity_load($entities, $type) {
+  $vote_counts = &drupal_static(__FUNCTION__);
+  // Add vote_count to posts which have votes.
+  if ($type == 'election_post') {
+    if (!is_array($vote_counts)) {
+      $vote_counts = db_query(
+        'SELECT post_id, COUNT(DISTINCT vote_id) AS vote_count FROM {election_vote} WHERE post_id IN(:pids) GROUP BY post_id',
+        array(':pids' => array_keys($entities))
+      )->fetchAllAssoc('post_id');
+    }
+    foreach ($entities as $post_id => $post) {
+      if (isset($vote_counts[$post_id])) {
+        $post->vote_count = $vote_counts[$post_id]->vote_count;
+      }
+      else {
+        $post->vote_count = 0;
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  *
  * Alter the form at election/%election/posts.
@@ -37,9 +61,9 @@ function election_result_form_election_post_manage_form_alter(&$form) {
     $posts = $form['#posts'];
     foreach ($form['election_posts']['#rows'] as $post_id => &$row) {
       $post = $posts[$post_id];
-      if (election_post_access('edit', $post)) {
+      if (!empty($post->vote_count) && election_post_access('edit', $post)) {
         $row['operations']['data']['#items']['results'] = l(
-          t('download results'),
+          t('results file (@count votes)', array('@count' => number_format($post->vote_count))),
           election_post_uri_path($post) . '/result/blt'
         );
       }
@@ -140,7 +164,8 @@ function _election_result_download_blt($post) {
     foreach ($candidate_map as $id => $key) {
       $ballot = str_replace(' ' . $id . ' ', ' ' . $key . ' ', $ballot);
     }
-    echo '[' . $row->vote_id . '] 1';
+    // @todo add option to exclude vote IDs
+    echo '(' . $row->vote_id . ') 1';
     $ballot = rtrim($ballot, ' ');
     if ($ballot != ' ') {
       echo $ballot;
