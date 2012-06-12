@@ -63,7 +63,7 @@ function election_result_form_election_post_manage_form_alter(&$form) {
       $post = $posts[$post_id];
       if (!empty($post->vote_count) && election_post_access('edit', $post)) {
         $row['operations']['data']['#items']['results'] = l(
-          t('results file (@count votes)', array('@count' => number_format($post->vote_count))),
+          t('results file (@count)', array('@count' => format_plural($post->vote_count, '1 vote', '@count votes'))),
           election_post_uri_path($post) . '/result/blt'
         );
       }
