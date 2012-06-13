@@ -685,6 +685,7 @@ function _election_is_open($status, $open_time, $close_time) {
  * field of an election for display.
  *
  * @todo make this themeable
+ * @todo use this to replace code in class views_handler_field_election_post_eligibility
  *
  * @param stdClass $election
  * @param string $status_prefix
