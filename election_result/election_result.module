@@ -1,0 +1,188 @@
+<?php
+/**
+ * @file
+ * Main file for the Election Result module.
+ */
+
+/**
+ * Implements hook_menu().
+ *
+ * @return array
+ */
+function election_result_menu() {
+  $items = array();
+  $items['election-post/%election_post/result/blt'] = array(
+    'title' => 'Download BLT file of results',
+    'page callback' => '_election_result_download_blt',
+    'page arguments' => array(1),
+    'access callback' => 'election_post_access',
+    'access arguments' => array('edit', 1),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_entity_load().
+ */
+function election_result_entity_load($entities, $type) {
+  $vote_counts = &drupal_static(__FUNCTION__);
+  // Add vote_count to posts which have votes.
+  if ($type == 'election_post') {
+    if (!is_array($vote_counts)) {
+      $vote_counts = db_query(
+        'SELECT post_id, COUNT(DISTINCT vote_id) AS vote_count FROM {election_vote} WHERE post_id IN(:pids) GROUP BY post_id',
+        array(':pids' => array_keys($entities))
+      )->fetchAllAssoc('post_id');
+    }
+    foreach ($entities as $post_id => $post) {
+      if (isset($vote_counts[$post_id])) {
+        $post->vote_count = $vote_counts[$post_id]->vote_count;
+      }
+      else {
+        $post->vote_count = 0;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Alter the form at election/%election/posts.
+ *
+ * @param array $form
+ * @return void
+ */
+function election_result_form_election_post_manage_form_alter(&$form) {
+  $election = $form['#election'];
+  // For STV elections, add a 'download results' link.
+  if ($election->type == 'stv') {
+    $posts = $form['#posts'];
+    foreach ($form['election_posts']['#rows'] as $post_id => &$row) {
+      $post = $posts[$post_id];
+      if (!empty($post->vote_count) && election_post_access('edit', $post)) {
+        $row['operations']['data']['#items']['results'] = l(
+          t('results file (@count)', array('@count' => format_plural($post->vote_count, '1 vote', '@count votes'))),
+          election_post_uri_path($post) . '/result/blt'
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Download a ballot file.
+ *
+ * @param stdClass $post
+ * @return void
+ */
+function _election_result_download_blt($post) {
+
+  set_time_limit(0);
+
+  $start_time = microtime(true);
+
+  $post = election_post_load($post->post_id);
+
+  $election = election_load($post->election_id);
+
+  if ($election->type != 'stv') {
+    drupal_set_message(t('Results are only available for STV elections.'), 'warning');
+    return;
+  }
+
+  $filename = 'ElectionResults_'. $election->election_id . '_' . $post->post_id . '_' . date('YmdHis') . '.blt';
+
+  header('Content-Type:text/plain;charset=UTF-8');
+  header('Content-Disposition:attachment;filename=' . $filename);
+  header('Cache-Control:max-age=0; must-revalidate');
+
+  $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE post_id = :pid AND cstatus IN(:approved, :withdrawn)', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED, ':withdrawn' => ELECTION_CANDIDATE_WITHDRAWN))->fetchCol();
+  $candidates = election_candidate_load_multiple($candidate_ids);
+
+  $candidate_map = array();
+  $i = 1;
+  $candidate_lines = '';
+  $withdrawn = array();
+  foreach ($candidates as $candidate) {
+    $candidate_map[$candidate->candidate_id] = $i;
+    if ($candidate->cstatus == ELECTION_CANDIDATE_WITHDRAWN) {
+      $withdrawn[] = $i;
+    }
+    $name = addcslashes($candidate->first_name . ' ' . $candidate->last_name, '"');
+    $candidate_lines .= "\"$name\" # Candidate keyed by $i\n";
+    $i++;
+  }
+  if ($post->use_ron) {
+    $candidate_map['ron'] = $i;
+    $candidate_lines .= '"' . t('RON (Re-Open Nominations)') . '"' . " # Candidate keyed by $i\n";
+  }
+
+  $total_candidates = (int) count($candidates) + ($post->use_ron);
+  $total_vacancies = (int) $post->vacancy_count;
+
+  // --- START BALLOT FILE ---
+
+  echo "################################################\n";
+
+  echo '# ' . t('Ballot file generated on !date', array('!date' => format_date(REQUEST_TIME, 'custom', 'Y-m-d H:i:s'))) . " #\n";
+
+  echo "################################################\n";
+
+  echo '# ' . t('!candidates standing for !vacancies:',
+    array(
+      '!candidates' => format_plural($total_candidates, 'One candidate is', '@count candidates are'),
+      '!vacancies' => format_plural($total_vacancies, 'one vacancy', '@count vacancies'),
+    )
+  ) . "\n";
+
+  echo "$total_candidates $total_vacancies\n";
+
+  if (!empty($withdrawn)) {
+    echo '# ' . format_plural(
+      count($withdrawn),
+      "One candidate has withdrawn:",
+      "@count candidates have withdrawn:"
+    ) . "\n";
+    echo '-' . implode(' -', $withdrawn) . "\n";
+  }
+
+  $result = db_query(
+    'SELECT vote_id, GROUP_CONCAT(IF(ron = 1, \'ron\', IF(abstain = 1, NULL, candidate_id)) ORDER BY RANK SEPARATOR \' \') AS ballot FROM {election_ballot} WHERE post_id = :pid GROUP BY vote_id',
+    array(':pid' => $post->post_id)
+  );
+
+  echo "# Votes are below, each line is in the format:\n";
+  echo "#   [VOTE_ID] MULTIPLIER PREFERENCE PREFERENCE PREFERENCE 0\n";
+  echo "# Preferences are represented by an integer 'key' for each candidate (see the end of this file).\n";
+  echo "# They can be omitted, in the case of abstention or incomplete rankings.\n";
+
+  // @todo performance work & batch mode
+  foreach ($result as $row) {
+    $ballot = ' ' . $row->ballot . ' ';
+    foreach ($candidate_map as $id => $key) {
+      $ballot = str_replace(' ' . $id . ' ', ' ' . $key . ' ', $ballot);
+    }
+    // @todo add option to exclude vote IDs
+    echo '(' . $row->vote_id . ') 1';
+    $ballot = rtrim($ballot, ' ');
+    if ($ballot != ' ') {
+      echo $ballot;
+    }
+    echo " 0\n";
+  }
+
+  echo "0 # This marks the end of votes.\n";
+
+  echo $candidate_lines;
+
+  echo '"' . addcslashes($post->title, '"') . '"' . " # Position title\n";
+  echo '"' . addcslashes($election->title, '"') . '"' . " # Election title\n";
+
+  $time = microtime(true) - $start_time;
+  echo '# Time to generate file: ' . number_format($time * 1000, 2) . 'ms';
+
+  drupal_exit();
+
+}

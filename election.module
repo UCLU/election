@@ -35,11 +35,9 @@ function election_entity_info() {
     'view modes' => array(
       'full' => array(
         'label' => t('Full content'),
-        'custom settings' => TRUE,
       ),
       'teaser' => array(
         'label' => t('Teaser'),
-        'custom settings' => TRUE,
       ),
     ),
   );
@@ -181,9 +179,18 @@ function election_permission() {
       'title' => t('Administer elections'),
       'description' => t('Alter the fields and display settings for election types.'),
     ),
-    'vote in elections' => array(
-      'title' => t('Vote in elections'),
-      'description' => t('Users must have this permission in order to vote.'),
+    'delete any election' => array(
+      'title' => t('Delete any election'),
+      'description' => t('This permission is dangerous: deleting an election automatically deletes ALL associated data, for example votes.'),
+      'restrict access' => TRUE,
+    ),
+    'bypass running election lock' => array(
+      'title' => t('Bypass running election lock'),
+      'description' => t('This permission allows the user to delete elections, or edit posts, even while voting is open.'),
+    ),
+    'edit any election' => array(
+      'title' => t('Edit any election'),
+      'description' => t('This allows the user not only to edit all elections, but also to administer the posts and candidates for those elections.'),
     ),
     'create elections' => array(
       'title' => t('Create elections'),
@@ -193,18 +200,13 @@ function election_permission() {
       'description' => t('This permission is dangerous: deleting an election automatically deletes ALL associated data, for example votes.'),
       'restrict access' => TRUE,
     ),
-    'delete any election' => array(
-      'title' => t('Delete any election'),
-      'description' => t('This permission is dangerous: deleting an election automatically deletes ALL associated data, for example votes.'),
-      'restrict access' => TRUE,
-    ),
     'edit own elections' => array(
       'title' => t('Edit own elections'),
-      'description' => t('This permission allows the user not only to edit elections, but also to administer the posts and candidates for those elections.'),
+      'description' => t('This allows the user not only to edit their own elections, but also to administer the posts and candidates for those elections.'),
     ),
-    'edit any election' => array(
-      'title' => t('Edit any election'),
-      'description' => t('This permission allows the user not only to edit elections, but also to administer the posts and candidates for those elections.'),
+    'vote in elections' => array(
+      'title' => t('Vote in elections'),
+      'description' => t('Users must have this permission in order to vote.'),
     ),
     'view any election' => array(
       'title' => t('View any election'),
@@ -257,6 +259,9 @@ function election_access($op, $election = NULL, $account = NULL) {
       return user_access('vote in elections', $account);
       break;
     case 'delete':
+      if ($election && isset($election->vstatus) && _election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
+        return user_access('bypass running election lock');
+      }
       if ($election_belongs_to_account && user_access('delete own elections', $account)) {
         return TRUE;
       }
@@ -559,7 +564,7 @@ function election_theme() {
  * @return
  *   An array as expected by drupal_render().
  */
-function election_view($election, $view_mode = 'full') {
+function election_view($election, $view_mode = 'full' = NULL) {
 
   // Remove previously built content, if it exists.
   $election->content = array();
@@ -579,6 +584,7 @@ function election_view($election, $view_mode = 'full') {
   $election->content += field_attach_view('election', $election, $view_mode);
 
   $build = $election->content;
+
   // We don't need duplicate rendering info in election->content.
   unset($election->content);
 

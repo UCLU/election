@@ -425,7 +425,7 @@ function election_candidate_view($candidate, $election = NULL, $view_mode = 'ful
   $candidate->content += field_attach_view('election_candidate', $candidate, $view_mode);
 
   $build = $candidate->content;
-  // We don't need duplicate rendering info in election->content.
+  // We don't need duplicate rendering info in $candidate->content.
   unset($candidate->content);
 
   $post = election_post_load($candidate->post_id);

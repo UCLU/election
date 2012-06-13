@@ -40,6 +40,13 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
 
   drupal_set_breadcrumb($breadcrumb);
 
+  $post_name = _election_get_posts_name($election->type);
+
+  // Warn if voting is open.
+  if (!$post->is_new && _election_post_is_open($post, $election, 'v')) {
+    drupal_set_message(t('Voting is currently open: you should not make changes to this @post_name!', array('@post_name' => $post_name)), 'warning');
+  }
+
   $form['#id'] = 'election-post-form';
   $form_state['post'] = $post;
   $form_state['election'] = $election;
@@ -81,8 +88,6 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
   $form['voting'] = array(
     '#type' => 'fieldset',
     '#title' => t('Voting'),
-    '#collapsible' => TRUE,
-    '#collapsed' => (!isset($post->vstatus_inheritance) || $post->vstatus_inheritance == ELECTION_POST_STATUS_INHERIT),
     '#weight' => 98,
   );
   $form['voting']['vstatus_inheritance'] = array(
@@ -216,8 +221,7 @@ function election_post_position_form($form, &$form_state, $post, $election = NUL
   $form['nominations'] = array(
     '#type' => 'fieldset',
     '#title' => t('Nominations'),
-    '#collapsible' => TRUE,
-    '#collapsed' => (!isset($post->nstatus_inheritance) || $post->nstatus_inheritance == ELECTION_POST_STATUS_INHERIT),
+    '#collapsible' => FALSE,
     '#weight' => 97,
   );
 
@@ -426,6 +430,8 @@ function election_post_manage_form($form, $form_state, $election) {
     _election_build_breadcrumb($election)
   );
 
+  $form['#election'] = $election;
+
   // Build the sortable table header.
   $header = array(
     'title' => array('data' => t('Title'), 'field' => 'ep.title', 'sort' => 'asc'),
@@ -446,6 +452,7 @@ function election_post_manage_form($form, $form_state, $election) {
   $post_ids = $query->execute()->fetchCol();
 
   $posts = election_post_load_multiple($post_ids);
+  $form['#posts'] = $posts;
 
   $destination = drupal_get_destination();
 
