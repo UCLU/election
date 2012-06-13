@@ -564,7 +564,7 @@ function election_theme() {
  * @return
  *   An array as expected by drupal_render().
  */
-function election_view($election, $view_mode = 'full' = NULL) {
+function election_view($election, $view_mode = 'full') {
 
   // Remove previously built content, if it exists.
   $election->content = array();
