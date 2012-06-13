@@ -833,7 +833,7 @@ function election_post_preprocess_election(&$vars) {
       break;
   }
   $vars['content']['posts'] = array(
-    '#markup' => '<div class="election-post-candidates"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'
+    '#markup' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'
       . views_embed_view('election_posts', $display, $election->election_id)
       . '</div>',
     '#weight' => 100,

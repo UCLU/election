@@ -34,3 +34,8 @@
 .election-candidate-random-order-note {
   font-style: oblique;
 }
+
+/* Election page */
+.election-posts, .election-candidates {
+  clear: both;
+}
