@@ -195,11 +195,9 @@ function election_post_entity_info() {
     'view modes' => array(
       'full' => array(
         'label' => t('Full content'),
-        'custom settings' => TRUE,
       ),
       'teaser' => array(
         'label' => t('Teaser'),
-        'custom settings' => TRUE,
       ),
     ),
   );
@@ -514,7 +512,7 @@ function election_post_view($election, $post, $view_mode = 'full') {
   $post->content += field_attach_view('election_post', $post, $view_mode);
 
   $build = $post->content;
-  // We don't need duplicate rendering info in post->content.
+  // We don't need duplicate rendering info in $post->content.
   unset($post->content);
 
   $build += array(
@@ -836,8 +834,9 @@ function election_post_preprocess_election(&$vars) {
   }
   $vars['content']['posts'] = array(
     '#markup' => '<div class="election-post-candidates"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'
-    . views_embed_view('election_posts', $display, $election->election_id)
-    . '</div>',
+      . views_embed_view('election_posts', $display, $election->election_id)
+      . '</div>',
+    '#weight' => 100,
   );
 }
 

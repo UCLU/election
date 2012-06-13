@@ -35,11 +35,9 @@ function election_entity_info() {
     'view modes' => array(
       'full' => array(
         'label' => t('Full content'),
-        'custom settings' => TRUE,
       ),
       'teaser' => array(
         'label' => t('Teaser'),
-        'custom settings' => TRUE,
       ),
     ),
   );
@@ -566,7 +564,7 @@ function election_theme() {
  * @return
  *   An array as expected by drupal_render().
  */
-function election_view($election, $view_mode = 'full') {
+function election_view($election, $view_mode = 'full' = NULL) {
 
   // Remove previously built content, if it exists.
   $election->content = array();
@@ -586,6 +584,7 @@ function election_view($election, $view_mode = 'full') {
   $election->content += field_attach_view('election', $election, $view_mode);
 
   $build = $election->content;
+
   // We don't need duplicate rendering info in election->content.
   unset($election->content);
 

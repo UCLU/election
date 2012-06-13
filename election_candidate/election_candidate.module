@@ -39,6 +39,9 @@ function election_candidate_entity_info() {
       ),
     ),
     'view modes' => array(
+      'full' => array(
+        'label' => t('Full content'),
+      ),
       'teaser' => array(
         'label' => t('Teaser'),
         'custom settings' => TRUE,
