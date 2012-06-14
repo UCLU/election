@@ -564,7 +564,7 @@ function election_theme() {
  * @return
  *   An array as expected by drupal_render().
  */
-function election_view($election, $view_mode = 'full' = NULL) {
+function election_view($election, $view_mode = 'full') {
 
   // Remove previously built content, if it exists.
   $election->content = array();
@@ -685,6 +685,7 @@ function _election_is_open($status, $open_time, $close_time) {
  * field of an election for display.
  *
  * @todo make this themeable
+ * @todo use this to replace code in class views_handler_field_election_post_eligibility
  *
  * @param stdClass $election
  * @param string $status_prefix

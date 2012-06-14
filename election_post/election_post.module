@@ -568,6 +568,13 @@ function template_preprocess_election_post(&$variables) {
   $variables['exclusivity'] = $post->exclusive? t('This is an exclusive position.') : t('This is not an exclusive position.');
   $variables['exclusivity_help'] = t('Candidates may only stand for one exclusive position per election.');
 
+  $election_uri = entity_uri('election', $election);
+  $election_type = _election_type_get_info($election->type);
+  $variables['election_url'] = url($election_uri['path'], $election_uri['options']);
+  $variables['election_title'] = check_plain($election->title);
+  $variables['election_link'] = l($election->title, $election_uri['path'], $election_uri['options']);
+  $variables['election_type'] = check_plain($election_type['name']);
+
   // Flatten the post object's member fields.
   $variables = array_merge((array) $post, $variables);
 
@@ -833,7 +840,7 @@ function election_post_preprocess_election(&$vars) {
       break;
   }
   $vars['content']['posts'] = array(
-    '#markup' => '<div class="election-post-candidates"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'
+    '#markup' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'
       . views_embed_view('election_posts', $display, $election->election_id)
       . '</div>',
     '#weight' => 100,

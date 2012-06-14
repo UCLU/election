@@ -28,6 +28,14 @@ class views_handler_field_election_post_eligibility extends views_handler_field 
       return t('Voting is currently closed for this @post_name.', array('@post_name' => $post_name));
     }
     elseif (!_election_is_open($vstatus, $vopen_time, $vclose_time)) {
+      if ($vstatus == ELECTION_STATUS_SCHEDULED) {
+        if ($vopen_time > REQUEST_TIME) {
+          return t('Voting opens: %date.', array('%date' => format_interval($vopen_time - REQUEST_TIME, 2)));
+        }
+        elseif ($vclose_time < REQUEST_TIME) {
+          return t('Voting closed: %date', array('%date' => format_date($vclose_time, 'short')));
+        }
+      }
       return t('Voting is currently closed.');
     }
     // The post now needs to be loaded in full for further checks.
@@ -40,7 +48,7 @@ class views_handler_field_election_post_eligibility extends views_handler_field 
     }
     elseif (election_post_access('vote', $post)) {
       if (election_vote_check_user_previously_voted($post)) {
-        return t('Already voted (or abstained).');
+        return t('You have already voted (or abstained).');
       }
       return t('<a href="@vote_link">You can vote</a> for this @post_name.', array('@post_name' => $post_name, '@vote_link' => url(election_post_uri_path($post) . '/vote')));
     }
