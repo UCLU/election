@@ -687,7 +687,7 @@ function _election_post_format_eligibility(stdClass $post, $election = NULL) {
     return t('<a href="@vote_link">You can vote</a> for this @post_name.', array('@post_name' => $post_name, '@vote_link' => url(election_post_uri_path($post) . '/vote')));
   }
   elseif (!user_is_logged_in()) {
-    return t('<a href="@login_uri">Log in</a> to vote.', array('@login' => url('user/login', array('query' => array('destination' => $_GET['q'])))));
+    return t('<a href="@login_uri">Log in</a> to vote.', array('@login_uri' => url('user/login', array('query' => array('destination' => $_GET['q'])))));
   }
   return t('You are not eligible to vote for this @post_name.', array('@post_name' => $post_name));
 }
