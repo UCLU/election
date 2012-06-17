@@ -314,6 +314,22 @@ function election_candidate_menu_alter(&$items) {
 }
 
 /**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function election_candidate_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Remove nomination form tab if nominations are closed.
+  // @todo can this be simpler or quicker?
+  if (substr($root_path, 0, 10) == 'election/%' && $router_item['map'][0] == 'election' && ($election = $router_item['map'][1]) && !_election_is_open($election->nstatus, $election->nopen_time, $election->nclose_time)) {
+    foreach ($data['tabs'][0]['output'] as $key => $tab) {
+      if ($tab['#link']['page_callback'] == 'election_page_nomination_form') {
+        $data['tabs'][0]['count']--;
+        unset($data['tabs'][0]['output'][$key]);
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_field_extra_fields().
  */
 function election_candidate_field_extra_fields() {
