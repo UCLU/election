@@ -144,7 +144,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
   $form_state['num_candidates'] = $num_candidates;
 
   if ($num_candidates == 0) {
-    drupal_set_message(t('There are no approved candidates standing for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
+    drupal_set_message(t('Voting is currently closed: there are no approved candidates standing for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
     $form['#disabled'] = TRUE;
     drupal_goto(election_post_uri_path($post));
   }
@@ -185,11 +185,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
     '#type' => 'fieldset',
     '#title' => t('Your ballot paper'),
     '#attributes' => array('class' => array('election-ballot-paper')),
-  );
-
-  $form['ballot_paper']['help'] = array(
-    '#type' => 'item',
-    '#markup' => t('Please rank the candidates according to your preference.'),
+    '#description' => t('Please rank the candidates according to your preference.'),
   );
 
   $form['ballot_paper']['start'] = array(

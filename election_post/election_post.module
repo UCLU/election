@@ -561,19 +561,21 @@ function template_preprocess_election_post(&$variables) {
   $variables['post'] = $variables['elements']['#post'];
   $post = $variables['post'];
 
-  $uri = entity_uri('election_post', $post);
+  $uri = election_post_uri($post);
   $variables['election_post_url'] = url($uri['path'], $uri['options']);
   $variables['title'] = check_plain($post->title);
   $variables['page'] = $variables['view_mode'] == 'full';
   $variables['exclusivity'] = $post->exclusive? t('This is an exclusive position.') : t('This is not an exclusive position.');
   $variables['exclusivity_help'] = t('Candidates may only stand for one exclusive position per election.');
 
-  $election_uri = entity_uri('election', $election);
+  $election_uri = election_uri($election);
   $election_type = _election_type_get_info($election->type);
   $variables['election_url'] = url($election_uri['path'], $election_uri['options']);
   $variables['election_title'] = check_plain($election->title);
   $variables['election_link'] = l($election->title, $election_uri['path'], $election_uri['options']);
   $variables['election_type'] = check_plain($election_type['name']);
+
+  $variables['eligibility'] = _election_post_format_eligibility($post, $election);
 
   // Flatten the post object's member fields.
   $variables = array_merge((array) $post, $variables);
@@ -643,6 +645,51 @@ function _election_post_is_open(stdClass $post, $election = NULL, $status_prefix
   $open_time = $election->{$status_prefix . 'open_time'};
   $close_time = $election->{$status_prefix . 'close_time'};
   return _election_is_open($status, $open_time, $close_time);
+}
+
+/**
+ * Describe the user's eligibility to vote for a particular post.
+ *
+ * @param stdClass $post
+ * @param stdClass $election
+ *
+ * @return string
+ */
+function _election_post_format_eligibility(stdClass $post, $election = NULL) {
+
+  if ($election === NULL) {
+    $election = election_load($post->election_id);
+  }
+
+  $post_name = _election_get_posts_name($election->type);
+
+  if ($post->vstatus_inheritance == ELECTION_POST_STATUS_CLOSED) {
+    return t('Voting is currently closed for this @post_name.', array('@post_name' => $post_name));
+  }
+  elseif (!_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
+    if ($election->vstatus == ELECTION_STATUS_SCHEDULED) {
+      if ($election->vopen_time > REQUEST_TIME) {
+        return t('Voting will open in %interval.', array('%interval' => format_interval($election->vopen_time - REQUEST_TIME, 2)));
+      }
+      elseif ($election->vclose_time < REQUEST_TIME) {
+        return t('Voting closed %interval ago.', array('%interval' => format_interval(REQUEST_TIME - $election->vclose_time, 1)));
+      }
+    }
+    return t('Voting is currently closed.');
+  }
+  if ($election->type != 'referendum' && !_election_post_has_approved_candidates($post)) {
+    return t('Voting is currently closed (not enough candidates).');
+  }
+  elseif (election_post_access('vote', $post)) {
+    if (election_vote_check_user_previously_voted($post)) {
+      return t('You have already voted (or abstained).');
+    }
+    return t('<a href="@vote_link">You can vote</a> for this @post_name.', array('@post_name' => $post_name, '@vote_link' => url(election_post_uri_path($post) . '/vote')));
+  }
+  elseif (!user_is_logged_in()) {
+    return t('<a href="@login_uri">Log in</a> to vote.', array('@login' => url('user/login', array('query' => array('destination' => $_GET['q'])))));
+  }
+  return t('You are not eligible to vote for this @post_name.', array('@post_name' => $post_name));
 }
 
 /**
@@ -772,10 +819,11 @@ function pathauto_election_post_update_alias_multiple(array $post_ids, $op, arra
  * @return bool
  */
 function election_vote_check_user_previously_voted($post) {
+
   global $user;
 
-  if ($user->uid == 0) {
-    // This is an anonymous user. Try checking on session hash.
+  // For anonymous users (who should rarely be allowed to vote), try checking on session hash.
+  if (!user_is_logged_in()) {
     $result = db_query_range('SELECT vote_id FROM {election_vote} WHERE (sid_hash = :sh OR (ip = :ip AND agent = :agent)) AND post_id = :pid', 0, 1, array(
       ':sh' => _election_vote_session_hash(),
       ':ip' => ip_address(),
@@ -785,7 +833,7 @@ function election_vote_check_user_previously_voted($post) {
     return (!empty($result));
   }
 
-  // This is an authenticated user: it's safe to check based on the $user->uid.
+  // Otherwise, check based on the $user->uid.
   $vote_count = db_query('SELECT COUNT(vote_id) FROM {election_vote} WHERE uid = :uid AND post_id = :pid', array(':uid' => $user->uid, ':pid' => $post->post_id))->fetchField(0);
 
   if ($vote_count > 1) {
