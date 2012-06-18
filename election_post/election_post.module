@@ -340,6 +340,27 @@ function election_post_load_multiple(array $post_ids = array()) {
   return entity_load('election_post', $post_ids);
 }
 
+/**
+ * Implements hook_entity_load().
+ */
+function election_post_entity_load($entities, $type) {
+  $elections = &drupal_static(__FUNCTION__, array());
+  // Add 'election' property to posts.
+  if ($type == 'election_post') {
+    $election_ids = array();
+    foreach ($entities as $post) {
+      $election_ids[] = $post->election_id;
+    }
+    if (count(array_diff($election_ids, array_keys($elections)))) {
+      $elections += election_load_multiple($election_ids);
+    }
+    foreach ($entities as $post) {
+      if (!isset($post->election) && !empty($elections[$post->election_id])) {
+        $post->election = $elections[$post->election_id];
+      }
+    }
+  }
+}
 
 /**
  * Wrapper function to allow deleting multiple election posts.
@@ -478,8 +499,6 @@ function election_post_theme() {
 /**
  * Generate an array for rendering the given election post.
  *
- * @param $election
- *   An election object.
  * @param $post
  *   An election post object.
  * @param $view_mode
@@ -488,7 +507,7 @@ function election_post_theme() {
  * @return
  *   An array as expected by drupal_render().
  */
-function election_post_view($election, $post, $view_mode = 'full') {
+function election_post_view($post, $view_mode = 'full') {
 
   // Remove previously built content, if it exists.
   $post->content = array();
@@ -517,7 +536,6 @@ function election_post_view($election, $post, $view_mode = 'full') {
 
   $build += array(
     '#theme' => 'election_post',
-    '#election' => $election,
     '#post' => $post,
     '#view_mode' => $view_mode,
   );
@@ -555,11 +573,11 @@ function template_preprocess_election_post(&$variables) {
   // Provide a distinct $teaser boolean.
   $variables['teaser'] = $variables['view_mode'] == 'teaser';
 
-  $variables['election'] = $variables['elements']['#election'];
-  $election = $variables['election'];
+  $post = $variables['elements']['#post'];
+  $election = $post->election;
 
-  $variables['post'] = $variables['elements']['#post'];
-  $post = $variables['post'];
+  $variables['post'] = $post;
+  $variables['election'] = $election;
 
   $uri = election_post_uri($post);
   $variables['election_post_url'] = url($uri['path'], $uri['options']);
@@ -639,7 +657,7 @@ function _election_post_is_open(stdClass $post, $election = NULL, $status_prefix
     return FALSE;
   }
   if (empty($election)) {
-    $election = election_load($post->election_id);
+    $election = $post->election;
   }
   $status = $election->{$status_prefix . 'status'};
   $open_time = $election->{$status_prefix . 'open_time'};
@@ -704,17 +722,15 @@ function _election_post_format_eligibility(stdClass $post, $election = NULL) {
  */
 function election_post_page_view($post, $view_mode = 'full') {
 
-  $election = election_load($post->election_id);
-
   if ($view_mode == 'full') {
     drupal_set_breadcrumb(
       _election_build_breadcrumb(
-        $election
+        $post->election
       )
     );
   }
 
-  return election_post_view($election, $post, $view_mode);
+  return election_post_view($post, $view_mode);
 
 }
 
@@ -774,11 +790,7 @@ function pathauto_election_post_update_alias(stdClass $post, $op, array $options
   if (!pathauto_pattern_load_by_entity('election_post', $post->type)) {
     return;
   }
-  $election = election_load($post->election_id);
-  if (!$election) {
-    watchdog('election_post', 'Could not update post alias: election ID @id could not be loaded', array('@id' => $post->election_id), WATCHDOG_WARNING);
-    return;
-  }
+  $election = $post->election;
   module_load_include('inc', 'pathauto');
   pathauto_create_alias(
     'election_post',

@@ -52,7 +52,7 @@ function election_post_vote_form($form, &$form_state, $post) {
     return election_post_vote_form_abstain_confirm($form, $form_state);
   }
 
-  $election = election_load($post->election_id);
+  $election = $post->election;
 
   if ($previously_voted = election_vote_check_user_previously_voted($post)) {
     drupal_set_message(t('You have already voted for (or abstained from) this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'status', FALSE);

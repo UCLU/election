@@ -970,7 +970,7 @@ function election_candidate_load_by_post($post) {
  */
 function election_candidate_preprocess_election_post(&$vars) {
   $post = $vars['elements']['#post'];
-  $election = $vars['elements']['#election'];
+  $election = $post->election;
   if ($election->type != 'referendum') {
     $candidates_view = views_embed_view('election_candidates', 'candidates_per_post', $post->post_id);
     if (!empty($candidates_view)) {

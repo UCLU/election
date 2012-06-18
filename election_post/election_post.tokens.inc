@@ -54,14 +54,13 @@ function election_post_tokens($type, array $tokens, array $data = array(), array
           $replacements[$original] = $post->title;
           break;
         case 'election':
-          $election = election_load($post->election_id);
+          $election = $post->election;
           $replacements[$original] = $sanitize ? check_plain($election->title) : $election->title;
           break;
       }
     }
     if ($election_tokens = token_find_with_prefix($tokens, 'election')) {
-      $election = election_load($post->election_id);
-      $replacements += token_generate('election', $election_tokens, array('election' => $election), $options);
+      $replacements += token_generate('election', $election_tokens, array('election' => $post->election), $options);
     }
   }
   return $replacements;

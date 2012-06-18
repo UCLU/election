@@ -336,7 +336,7 @@ function election_post_form_submit($form, &$form_state) {
  */
 function election_post_form_delete_confirm($form, &$form_state, $post) {
 
-  $election = election_load($post->election_id);
+  $election = $post->election;
 
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, '_MANAGE_POSTS_', l($post->title, election_post_uri_path($post)))
@@ -519,7 +519,7 @@ function election_post_page_edit($post) {
   $title = election_post_page_title($post);
   drupal_set_title(t('Edit: %title', array('%title' => truncate_utf8($title, 20, TRUE, TRUE))), PASS_THROUGH);
 
-  $election = election_load($post->election_id);
+  $election = $post->election;
 
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, '_MANAGE_POSTS_', l($post->title, election_post_uri_path($post)))
