@@ -39,22 +39,30 @@ class election_result_droophp_count extends DrooPHP_Count {
       array(':pid' => $post->post_id)
     );
 
+    /*
+     * Each row in $result is an object with the following properties:
+     *    vote_id    The unique ID of the vote.
+     *    ballot     A string (e.g. '10 15 6 23') of candidate IDs, in order of preference and separated by spaces.
+    */
     foreach ($result as $row) {
-      $multiplier = 1;
-      $dp_election->num_ballots += 1;
-      if (!strlen($row->ballot)) {
-        $dp_election->num_invalid_ballots += $multiplier;
+      $dp_election->num_ballots++;
+      if (!strlen($row->ballot)) { // abstention
+        $dp_election->num_invalid_ballots++;
         continue;
       }
-      $dp_election->num_valid_ballots += $multiplier;
-      $key = $row->ballot;
-      if (isset($dp_election->ballots[$key])) {
-        $dp_election->ballots[$key]->value += $multiplier;
-      }
       else {
-        $ranking = explode(' ', $row->ballot);
-        $ranking = array_combine(range(1, count($ranking)), $ranking);
-        $dp_election->ballots[$key] = new DrooPHP_Ballot($ranking, $multiplier);
+        $dp_election->num_valid_ballots++;
+        // The $key (string) means that identical ballots can simply have their ->value property incremented (saves memory).
+        $key = $row->ballot;
+        if (isset($dp_election->ballots[$key])) {
+          $dp_election->ballots[$key]->value++;
+        }
+        else {
+          $ranking = explode(' ', $row->ballot);
+          $ranking = array_combine(range(1, count($ranking)), $ranking);
+          // $ranking is an array of candidate IDs, keyed by integers representing preferences.
+          $dp_election->ballots[$key] = new DrooPHP_Ballot($ranking);
+        }
       }
     }
 
