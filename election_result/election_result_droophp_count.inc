@@ -18,10 +18,9 @@ class election_result_droophp_count extends DrooPHP_Count {
 
     $dp_election->num_seats = $post->vacancy_count;
 
-    $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE post_id = :pid AND cstatus IN(:statuses)', array(':pid' => $post->post_id, ':statuses' => array(ELECTION_CANDIDATE_APPROVED, ELECTION_CANDIDATE_WITHDRAWN)))->fetchCol();
-    $candidates = election_candidate_load_multiple($candidate_ids);
+    $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED, ELECTION_CANDIDATE_WITHDRAWN));
 
-    $dp_election->num_candidates = count($candidate_ids);
+    $dp_election->num_candidates = count($candidates);
 
     foreach ($candidates as $candidate) {
       $name = $candidate->first_name . ' ' . $candidate->last_name;

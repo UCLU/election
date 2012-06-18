@@ -11,18 +11,33 @@
  */
 function election_result_menu() {
   $items = array();
-  $items['election-post/%election_post/result/blt'] = array(
-    'title' => 'Download BLT file of results',
-    'page callback' => '_election_result_download_blt',
+  $items['election-post/%election_post/result'] = array(
+    'title' => 'Results',
+    'page callback' => 'election_result_page',
     'page arguments' => array(1),
     'access callback' => 'election_post_access',
     'access arguments' => array('edit', 1),
-    'type' => MENU_CALLBACK,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 4,
+  );
+  $items['election-post/%election_post/result/overview'] = array(
+    'title' => 'Overview',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
   );
   $items['election-post/%election_post/result/count'] = array(
-    'title' => 'Count results',
+    'title' => 'Count votes',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_result_count_form', 1),
+    'access callback' => 'election_post_access',
+    'access arguments' => array('edit', 1),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+  );
+  $items['election-post/%election_post/result/blt'] = array(
+    'title' => 'Download BLT file of votes',
+    'page callback' => '_election_result_download_blt',
+    'page arguments' => array(1),
     'access callback' => 'election_post_access',
     'access arguments' => array('edit', 1),
     'type' => MENU_CALLBACK,
@@ -52,6 +67,39 @@ function election_result_entity_load($entities, $type) {
       }
     }
   }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function election_result_theme() {
+  return array(
+    'election_result_overview' => array(
+      'variables' => array(
+        'post' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Theme the overview page for a post's results.
+ */
+function theme_election_result_overview($variables) {
+  $post = $variables['post'];
+
+  $output = '<p>Post: ' . check_plain($post->title) . '</p>';
+  $output .= '<p>Number of votes (or abstentions): ' . check_plain($post->vote_count) . '</p>';
+
+  return $output;
+}
+
+/**
+ * Page callback for election-post/%election_post/result.
+ */
+function election_result_page(stdClass $post) {
+  drupal_set_title(t('%post: Results', array('%post' => $post->title)), PASS_THROUGH);
+  return theme('election_result_overview', array('post' => $post));
 }
 
 /**
@@ -106,8 +154,7 @@ function _election_result_download_blt($post) {
   header('Content-Disposition:attachment;filename=' . $filename);
   header('Cache-Control:max-age=0; must-revalidate');
 
-  $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE post_id = :pid AND cstatus IN(:approved, :withdrawn)', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED, ':withdrawn' => ELECTION_CANDIDATE_WITHDRAWN))->fetchCol();
-  $candidates = election_candidate_load_multiple($candidate_ids);
+  $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED, ELECTION_CANDIDATE_WITHDRAWN));
 
   $candidate_map = array();
   $i = 1;
@@ -201,6 +248,8 @@ function _election_result_download_blt($post) {
  */
 function election_result_count_form($form, &$form_state, $post) {
 
+  drupal_set_title(t('%post: Count votes', array('%post' => $post->title)), PASS_THROUGH);
+
   $election = $post->election;
 
   // For STV elections, use the DrooPHP library.
@@ -210,10 +259,13 @@ function election_result_count_form($form, &$form_state, $post) {
       $count = new election_result_droophp_count($post);
       $method = new DrooPHP_Method_Wikipedia($count);
       $method->run();
-      dpm($method);
+      $form['count'] = array(
+        '#markup' => '<pre>' . print_r($method->stages, true) . '</pre>',
+      );
+      return $form;
     }
     else {
-      drupal_set_message(t('The DrooPHP library is not installed.'), 'warning');
+      drupal_set_message(t('The <a href="https://github.com/pjcdawkins/DrooPHP/" target="_blank">DrooPHP</a> library (required for counting votes in STV elections) is not installed.'), 'warning');
     }
   }
 

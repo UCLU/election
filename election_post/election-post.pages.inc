@@ -137,7 +137,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
 
   // Load candidates
   // @todo reconcile all this without mutual dependency between election_candidate and election_post, probably via another submodule.
-  $candidates = election_candidate_load_by_post($post);
+  $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED));
   $form_state['candidates'] = $candidates;
 
   $num_candidates = count($candidates);
