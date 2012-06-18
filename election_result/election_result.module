@@ -19,6 +19,14 @@ function election_result_menu() {
     'access arguments' => array('edit', 1),
     'type' => MENU_CALLBACK,
   );
+  $items['election-post/%election_post/result/count'] = array(
+    'title' => 'Count results',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_result_count_form', 1),
+    'access callback' => 'election_post_access',
+    'access arguments' => array('edit', 1),
+    'type' => MENU_CALLBACK,
+  );
   return $items;
 }
 
@@ -26,10 +34,10 @@ function election_result_menu() {
  * Implements hook_entity_load().
  */
 function election_result_entity_load($entities, $type) {
-  $vote_counts = &drupal_static(__FUNCTION__);
-  // Add vote_count to posts which have votes.
+  $vote_counts = &drupal_static(__FUNCTION__, array());
+  // Add 'vote_count' property to posts.
   if ($type == 'election_post') {
-    if (!is_array($vote_counts)) {
+    if (count(array_diff_key($entities, $vote_counts))) {
       $vote_counts = db_query(
         'SELECT post_id, COUNT(DISTINCT vote_id) AS vote_count FROM {election_vote} WHERE post_id IN(:pids) GROUP BY post_id',
         array(':pids' => array_keys($entities))
@@ -85,7 +93,7 @@ function _election_result_download_blt($post) {
 
   $post = election_post_load($post->post_id);
 
-  $election = election_load($post->election_id);
+  $election = $post->election;
 
   if ($election->type != 'stv') {
     drupal_set_message(t('Results are only available for STV elections.'), 'warning');
@@ -184,5 +192,29 @@ function _election_result_download_blt($post) {
   echo '# Time to generate file: ' . number_format($time * 1000, 2) . 'ms';
 
   drupal_exit();
+
+}
+
+
+/**
+ * Form builder function for the election results counting form.
+ */
+function election_result_count_form($form, &$form_state, $post) {
+
+  $election = $post->election;
+
+  // For STV elections, use the DrooPHP library.
+  if ($election->type == 'stv') {
+    if (file_exists($droophp_path = libraries_get_path('DrooPHP'))) {
+      require_once $droophp_path . '/library.php';
+      $count = new election_result_droophp_count($post);
+      $method = new DrooPHP_Method_Wikipedia($count);
+      $method->run();
+      dpm($method);
+    }
+    else {
+      drupal_set_message(t('The DrooPHP library is not installed.'), 'warning');
+    }
+  }
 
 }
