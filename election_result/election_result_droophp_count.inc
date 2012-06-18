@@ -9,6 +9,8 @@ class election_result_droophp_count extends DrooPHP_Count {
 
   public function __construct(stdClass $post, $options = array()) {
 
+    $this->loadOptions($options);
+
     $dp_election = new DrooPHP_Election;
 
     $dp_election->title = $post->title;
