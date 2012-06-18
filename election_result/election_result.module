@@ -260,7 +260,7 @@ function election_result_count_form($form, &$form_state, $post) {
       $method = new DrooPHP_Method_Wikipedia($count);
       $method->run();
       $form['count'] = array(
-        '#markup' => '<pre>' . print_r($method->stages, true) . '</pre>',
+        '#markup' => '<pre>' . check_plain(print_r($method->stages, true)) . '</pre>',
       );
       return $form;
     }
