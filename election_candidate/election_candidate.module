@@ -29,17 +29,7 @@ function election_candidate_entity_info() {
     'static cache' => TRUE,
     'fieldable' => TRUE,
     'module' => 'election',
-    'bundles' => array(
-      // This is the default bundle (not in use yet).
-      // @todo find some way of having a default candidate type
-      'election_candidate' => array(
-        'label' => t('Default candidate type'),
-        'admin' => array(
-          'path' => 'admin/election/candidate',
-          'access arguments' => array('administer elections'),
-        ),
-      ),
-    ),
+    'bundles' => array(),
     'bundle keys' => array(
       'bundle' => 'election_id',
     ),
@@ -49,19 +39,25 @@ function election_candidate_entity_info() {
       ),
       'teaser' => array(
         'label' => t('Teaser'),
-        'custom settings' => TRUE,
       ),
     ),
     'redirect' => FALSE, // for the Redirect module
   );
 
-  $election_ids = db_query('SELECT election_id FROM {election}')->fetchCol();
+  $election_types = election_types();
+  $types_with_candidates = array();
+  foreach ($election_types as $type => $info) {
+    if (!empty($info['has candidates'])) {
+      $types_with_candidates[] = $type;
+    }
+  }
+  $election_ids = db_query('SELECT election_id FROM {election} WHERE type IN(:types)', array(':types' => $types_with_candidates))->fetchCol();
   foreach ($election_ids as $election_id) {
     $entities['election_candidate']['bundles'][$election_id] = array(
-      'label' => t('Candidate type for election @id', array('@id' => $election_id)),
+      'label' => t('Candidate in election @id', array('@id' => $election_id)),
       'admin' => array(
-        'path' => 'election/%election/candidates/manage',
-        'real path' => 'election/' . $election_id . '/candidates/manage',
+        'path' => 'election/%election/candidates',
+        'real path' => 'election/' . $election_id . '/candidates',
         'bundle argument' => 1,
         'access callback' => 'election_candidate_access_per_election',
         'access arguments' => array('administer', 1),
@@ -174,8 +170,8 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
  * candidate.
  */
 function election_candidate_access_per_election($op, stdClass $election, $account = NULL) {
-  if ($election->type == 'referendum') {
-    // Referendums don't have candidates.
+  if (empty($election->type_info['has candidates'])) {
+    // Ignore if this election type doesn't have candidates.
     return FALSE;
   }
   switch ($op) {
@@ -192,21 +188,6 @@ function election_candidate_access_per_election($op, stdClass $election, $accoun
  */
 function election_candidate_menu() {
   $items = array();
-
-  $items['admin/election/candidate'] = array(
-    'title' => 'Candidate settings',
-    'description' => 'Manage fields and display settings for election candidates (not applicable to referendums).',
-    'page callback' => 'system_admin_menu_block_page',
-    'file' => 'system.admin.inc',
-    'file path' => drupal_get_path('module', 'system'),
-    'access arguments' => array('administer elections'),
-  );
-
-  $items['admin/election/candidate/settings'] = array(
-    'title' => 'Settings',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => 0,
-  );
 
   $items['election/%election/nomination-form'] = array(
     'title' => 'Nomination form',
@@ -258,7 +239,7 @@ function election_candidate_menu() {
     'access arguments' => array('edit', 1),
     'file' => 'election-candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 2,
+    'weight' => 4,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
@@ -270,7 +251,7 @@ function election_candidate_menu() {
     'access arguments' => array('edit', 1),
     'file' => 'election-candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 3,
+    'weight' => 5,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
@@ -335,11 +316,14 @@ function election_candidate_menu() {
  * Implements hook_menu_alter().
  */
 function election_candidate_menu_alter(&$items) {
-  unset($items['admin/election/candidate/settings']);
-  $items['admin/election/candidate/fields']['type'] = MENU_NORMAL_ITEM;
-  $items['admin/election/candidate/fields']['description'] = t('Manage fields for election candidates.');
-  $items['admin/election/candidate/display']['type'] = MENU_NORMAL_ITEM;
-  $items['admin/election/candidate/display']['description'] = t('Manage display for election candidates.');
+  $items['election/%election/candidates/fields']['type'] = MENU_LOCAL_TASK;
+  $items['election/%election/candidates/fields']['title'] = t('Fields');
+  $items['election/%election/candidates/fields']['context'] = MENU_CONTEXT_PAGE;
+  $items['election/%election/candidates/fields']['weight'] = 2;
+  $items['election/%election/candidates/display']['type'] = MENU_LOCAL_TASK;
+  $items['election/%election/candidates/display']['title'] = t('Display');
+  $items['election/%election/candidates/display']['context'] = MENU_CONTEXT_PAGE;
+  $items['election/%election/candidates/display']['weight'] = 3;
 }
 
 /**
@@ -1013,7 +997,7 @@ function election_candidate_load_by_post(stdClass $post, $statuses = NULL) {
 function election_candidate_preprocess_election_post(&$vars) {
   $post = $vars['elements']['#post'];
   $election = $post->election;
-  if ($election->type != 'referendum') {
+  if (!empty($election->type_info['has candidates'])) {
     $candidates_view = views_embed_view('election_candidates', 'candidates_per_post', $post->post_id);
     if (!empty($candidates_view)) {
       $vars['content']['candidates'] = array(

@@ -101,7 +101,7 @@ function election_list_form($form, $form_state) {
       );
     }
 
-    if ($election->type != 'referendum' && entity_access('update', 'election', $election)) {
+    if (!empty($election->type_info['has candidates']) && entity_access('update', 'election', $election)) {
       $operations['candidates_edit'] = l(
         t('edit candidates'),
         $election_uri_path . '/candidates/manage'
@@ -222,7 +222,7 @@ function election_form($form, &$form_state, $election) {
     $date_widget = 'date_text';
   }
 
-  if ($election->type != 'referendum') {
+  if (!empty($election->type_info['has candidates'])) {
 
     $nopen_default = isset($election->nopen_time)? $election->nopen_time : NULL;
     $nclose_default = isset($election->nclose_time)? $election->nclose_time : NULL;

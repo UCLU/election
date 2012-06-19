@@ -129,7 +129,7 @@ function election_page_nomination_form(stdClass $election) {
   drupal_set_title(t('Nomination form'), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
 
-  if ($election->type == 'referendum') {
+  if (empty($election->type_info['has candidates'])) {
     return MENU_NOT_FOUND;
   }
 

@@ -695,7 +695,7 @@ function _election_post_format_eligibility(stdClass $post, $election = NULL) {
     }
     return t('Voting is currently closed.');
   }
-  if ($election->type != 'referendum' && !_election_post_has_approved_candidates($post)) {
+  if (!empty($election->type_info['has candidates']) && !_election_post_has_approved_candidates($post)) {
     return t('Voting is currently closed (not enough candidates).');
   }
   elseif (election_post_access('vote', $post)) {
