@@ -3,8 +3,6 @@
  * @file
  * Field handler to present a link to an election's nomination form. This depends on
  * the election_candidate module.
- *
- * @todo add option to hide if nominations are closed.
  */
 class views_handler_field_election_link_nominate extends views_handler_field_election_link {
 

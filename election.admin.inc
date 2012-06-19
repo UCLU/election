@@ -96,14 +96,14 @@ function election_list_form($form, $form_state) {
     $operations = array();
     if (entity_access('update', 'election', $election)) {
       $operations['posts_edit'] = l(
-        t('edit @post_name_plural', array('@post_name_plural' => $post_name_plural)),
+        t('manage @post_name_plural', array('@post_name_plural' => $post_name_plural)),
         $election_uri_path . '/posts'
       );
     }
 
     if (!empty($election->type_info['has candidates']) && entity_access('update', 'election', $election)) {
       $operations['candidates_edit'] = l(
-        t('edit candidates'),
+        t('manage candidates'),
         $election_uri_path . '/candidates/manage'
       );
     }
@@ -222,6 +222,9 @@ function election_form($form, &$form_state, $election) {
     $date_widget = 'date_text';
   }
 
+  if (!isset($election->type_info)) {
+    $election->type_info = _election_type_get_info($election->type);
+  }
   if (!empty($election->type_info['has candidates'])) {
 
     $nopen_default = isset($election->nopen_time)? $election->nopen_time : NULL;

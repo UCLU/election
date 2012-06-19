@@ -322,6 +322,17 @@ function election_menu() {
   );
 
   foreach (election_types() as $type_mn => $type) {
+    $items['elections/add/' . $type_mn] = array(
+      'title' => 'Add new ' . $type['name'],
+      'title callback' => 'check_plain',
+      'page callback' => 'election_page_add',
+      'page arguments' => array(2),
+      'access arguments' => array('administer elections'),
+      'file' => 'election.admin.inc',
+      'description' => empty($type['description'])? '' : $type['description'],
+      'type' => MENU_LOCAL_ACTION,
+      'weight' => isset($type['weight'])? $type['weight'] : 0,
+    );
     $items['admin/election/list/add/' . $type_mn] = array(
       'title' => 'Add new ' . $type['name'],
       'title callback' => 'check_plain',

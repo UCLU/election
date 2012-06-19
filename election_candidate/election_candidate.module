@@ -44,16 +44,17 @@ function election_candidate_entity_info() {
     'redirect' => FALSE, // for the Redirect module
   );
 
-  $election_types = election_types();
-  $types_with_candidates = array();
-  foreach ($election_types as $type => $info) {
-    if (!empty($info['has candidates'])) {
-      $types_with_candidates[] = $type;
-    }
-  }
-  $election_ids = db_query('SELECT election_id FROM {election} WHERE type IN(:types)', array(':types' => $types_with_candidates))->fetchCol();
+  return $entities;
+
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function election_candidate_entity_info_alter(&$entity_info) {
+  $election_ids = _election_candidate_get_bundles();
   foreach ($election_ids as $election_id) {
-    $entities['election_candidate']['bundles'][$election_id] = array(
+    $entity_info['election_candidate']['bundles'][$election_id] = array(
       'label' => t('Candidate in election @id', array('@id' => $election_id)),
       'admin' => array(
         'path' => 'election/%election/candidates',
@@ -64,9 +65,6 @@ function election_candidate_entity_info() {
       ),
     );
   }
-
-  return $entities;
-
 }
 
 /**
@@ -232,7 +230,7 @@ function election_candidate_menu() {
   );
 
   $items['election/%election/candidates/totals'] = array(
-    'title' => 'View totals',
+    'title' => 'Totals',
     'page callback' => 'election_candidate_totals_page',
     'page arguments' => array(1),
     'access callback' => 'election_candidate_access_per_election',
@@ -244,7 +242,7 @@ function election_candidate_menu() {
   );
 
   $items['election/%election/candidates/download'] = array(
-    'title' => 'Download data',
+    'title' => 'Download',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_candidate_download_form', 1),
     'access callback' => 'election_candidate_access_per_election',
@@ -346,8 +344,7 @@ function election_candidate_menu_local_tasks_alter(&$data, $router_item, $root_p
  * Implements hook_field_extra_fields().
  */
 function election_candidate_field_extra_fields() {
-  $extra = array();
-  $extra['election_candidate']['election_candidate'] = array(
+  $extra = array(
     'form' => array(
       'post' => array(
         'label' => t('Post'),
@@ -393,7 +390,12 @@ function election_candidate_field_extra_fields() {
       ),
     ),
   );
-  return $extra;
+  // Add the above $extra array to every election_candidate bundle.
+  $info['election_candidate'] = array();
+  foreach (_election_candidate_get_bundles() as $bundle) {
+    $info['election_candidate'][$bundle] = $extra;
+  }
+  return $info;
 }
 
 
@@ -781,9 +783,7 @@ function template_preprocess_election_candidate_details(&$variables) {
 
   $variables['classes_array'][] = drupal_html_class('election-' . $election->type . '-candidate', 'election-candidate-details');
 
-  $variables['theme_hook_suggestions'][] = 'election_candidate_details__' . $candidate->candidate_id;
   $variables['theme_hook_suggestions'][] = 'election__' . $election->type . '__candidate_details';
-  $variables['theme_hook_suggestions'][] = 'election__' . $election->election_id . '__candidate_details';
 
 }
 
@@ -873,7 +873,12 @@ function election_candidate_entity_insert($entity, $type) {
       if (module_exists('pathauto')) {
         pathauto_election_candidate_update_alias($entity, 'insert');
       }
-    break;
+      break;
+    case 'election':
+      // Clear the entity info cache, because creating an election also creates candidate bundles.
+      // @todo review for performance.
+      entity_info_cache_clear();
+      break;
   }
 }
 
@@ -1008,4 +1013,26 @@ function election_candidate_preprocess_election_post(&$vars) {
       );
     }
   }
+}
+
+/**
+ * Get an array of candidate bundle type machine names.
+ *
+ * This is effectively an array of election IDs (for now).
+ *
+ * @return array
+ */
+function _election_candidate_get_bundles() {
+  $bundles = &drupal_static(__FUNCTION__);
+  if (!is_array($bundles)) {
+    $election_types = election_types();
+    $types_with_candidates = array();
+    foreach ($election_types as $type => $info) {
+      if (!empty($info['has candidates'])) {
+        $types_with_candidates[] = $type;
+      }
+    }
+    $bundles = db_query('SELECT election_id FROM {election} WHERE type IN(:types)', array(':types' => $types_with_candidates))->fetchCol();
+  }
+  return $bundles;
 }
