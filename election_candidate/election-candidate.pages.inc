@@ -176,7 +176,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
 
   global $user;
 
-  $candidate = entity_get_controller('election_candidate')->create();
+  $candidate = entity_get_controller('election_candidate')->create(array('election_id' => $election->election_id));
   $candidate->is_new = TRUE;
 
   $form['#id'] = 'election-nomination-form';

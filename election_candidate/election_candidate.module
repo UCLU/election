@@ -24,19 +24,24 @@ function election_candidate_entity_info() {
     'label callback' => 'election_candidate_label',
     'entity keys' => array(
       'id' => 'candidate_id',
+      'bundle' => 'election_id', // candidate are bundled per election.
     ),
     'static cache' => TRUE,
     'fieldable' => TRUE,
     'module' => 'election',
     'bundles' => array(
-      // Single bundles are named after the entity type (see entity_extract_ids()).
+      // This is the default bundle (not in use yet).
+      // @todo find some way of having a default candidate type
       'election_candidate' => array(
-        'label' => t('Election candidate'),
+        'label' => t('Default candidate type'),
         'admin' => array(
           'path' => 'admin/election/candidate',
           'access arguments' => array('administer elections'),
         ),
       ),
+    ),
+    'bundle keys' => array(
+      'bundle' => 'election_id',
     ),
     'view modes' => array(
       'full' => array(
@@ -50,6 +55,20 @@ function election_candidate_entity_info() {
     'redirect' => FALSE, // for the Redirect module
   );
 
+  $election_ids = db_query('SELECT election_id FROM {election}')->fetchCol();
+  foreach ($election_ids as $election_id) {
+    $entities['election_candidate']['bundles'][$election_id] = array(
+      'label' => t('Candidate type for election @id', array('@id' => $election_id)),
+      'admin' => array(
+        'path' => 'election/%election/candidates/manage',
+        'real path' => 'election/' . $election_id . '/candidates/manage',
+        'bundle argument' => 1,
+        'access callback' => 'election_candidate_access_per_election',
+        'access arguments' => array('administer', 1),
+      ),
+    );
+  }
+
   return $entities;
 
 }
@@ -59,6 +78,10 @@ function election_candidate_entity_info() {
  */
 function election_candidate_permission() {
   $permissions = array(
+    'administer candidate field settings' => array(
+      'title' => t('Administer candidate field settings'),
+      'description' => t('This allows the user to manage candidate fields and display settings, if they already have permission to edit the election.'),
+    ),
     'bypass nomination schedule' => array(
       'title' => t('Bypass nomination schedule'),
       'description' => t('This allows the user to submit a nomination at any time, regardless of whether or not nominations are open.'),
@@ -73,7 +96,7 @@ function election_candidate_permission() {
     ),
     'submit nominations' => array(
       'title' => t('Submit nominations'),
-      'description' => t('This allows the user to submit a nomination, only when nominations are open.'),
+      'description' => t('This allows the user to submit a nomination, provided nominations are open.'),
     ),
     'edit own nominations' => array(
       'title' => t('Edit own nominations'),
@@ -155,7 +178,13 @@ function election_candidate_access_per_election($op, stdClass $election, $accoun
     // Referendums don't have candidates.
     return FALSE;
   }
-  return (entity_access('view', 'election', $election, $account) && entity_access($op, 'election_candidate', NULL, $account));
+  switch ($op) {
+    case 'administer':
+      return entity_access('edit', 'election', $election) && user_access('administer candidate field settings');
+      break;
+    default:
+      return (entity_access('view', 'election', $election, $account) && entity_access($op, 'election_candidate', NULL, $account));
+  }
 }
 
 /**

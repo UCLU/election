@@ -223,11 +223,9 @@ function election_form($form, &$form_state, $election) {
   }
 
   if ($election->type != 'referendum') {
-    //$nopen_default = isset($election->nopen_time)? $election->nopen_time : strtotime('+1 Friday 10am');
-    //$nclose_default = isset($election->nclose_time)? $election->nclose_time : strtotime('+2 Friday 10am');
+
     $nopen_default = isset($election->nopen_time)? $election->nopen_time : NULL;
     $nclose_default = isset($election->nclose_time)? $election->nclose_time : NULL;
-
     $form['nstatus'] = array(
       '#type' => 'select',
       '#title' => t('Nominations status'),
