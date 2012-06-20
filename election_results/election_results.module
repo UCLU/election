@@ -9,11 +9,11 @@
  *
  * @return array
  */
-function election_result_menu() {
+function election_results_menu() {
   $items = array();
   $items['election-post/%election_post/result'] = array(
     'title' => 'Results',
-    'page callback' => 'election_result_page',
+    'page callback' => 'election_results_page',
     'page arguments' => array(1),
     'access callback' => 'election_post_access',
     'access arguments' => array('edit', 1),
@@ -28,7 +28,7 @@ function election_result_menu() {
   $items['election-post/%election_post/result/count'] = array(
     'title' => 'Count votes',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_result_count_form', 1),
+    'page arguments' => array('election_results_count_form', 1),
     'access callback' => 'election_post_access',
     'access arguments' => array('edit', 1),
     'type' => MENU_LOCAL_TASK,
@@ -36,7 +36,7 @@ function election_result_menu() {
   );
   $items['election-post/%election_post/result/blt'] = array(
     'title' => 'Download BLT file of votes',
-    'page callback' => '_election_result_download_blt',
+    'page callback' => '_election_results_download_blt',
     'page arguments' => array(1),
     'access callback' => 'election_post_access',
     'access arguments' => array('edit', 1),
@@ -48,7 +48,7 @@ function election_result_menu() {
 /**
  * Implements hook_entity_load().
  */
-function election_result_entity_load($entities, $type) {
+function election_results_entity_load($entities, $type) {
   $vote_counts = &drupal_static(__FUNCTION__, array());
   // Add 'vote_count' property to posts.
   if ($type == 'election_post') {
@@ -72,9 +72,9 @@ function election_result_entity_load($entities, $type) {
 /**
  * Implements hook_theme().
  */
-function election_result_theme() {
+function election_results_theme() {
   return array(
-    'election_result_overview' => array(
+    'election_results_overview' => array(
       'variables' => array(
         'post' => NULL,
       ),
@@ -85,7 +85,7 @@ function election_result_theme() {
 /**
  * Theme the overview page for a post's results.
  */
-function theme_election_result_overview($variables) {
+function theme_election_results_overview($variables) {
   $post = $variables['post'];
 
   $output = '<p>Post: ' . check_plain($post->title) . '</p>';
@@ -97,9 +97,10 @@ function theme_election_result_overview($variables) {
 /**
  * Page callback for election-post/%election_post/result.
  */
-function election_result_page(stdClass $post) {
-  drupal_set_title(t('%post: Results', array('%post' => $post->title)), PASS_THROUGH);
-  return theme('election_result_overview', array('post' => $post));
+function election_results_page(stdClass $post) {
+  drupal_set_title(t('Results: %post', array('%post' => $post->title)), PASS_THROUGH);
+  drupal_set_breadcrumb(_election_build_breadcrumb($post->election));
+  return theme('election_results_overview', array('post' => $post));
 }
 
 /**
@@ -110,16 +111,16 @@ function election_result_page(stdClass $post) {
  * @param array $form
  * @return void
  */
-function election_result_form_election_post_manage_form_alter(&$form) {
+function election_results_form_election_post_manage_form_alter(&$form) {
   $election = $form['#election'];
-  // For STV elections, add a 'download results' link.
+  // For STV elections, add a 'ballot file' link.
   if ($election->type == 'stv') {
     $posts = $form['#posts'];
     foreach ($form['election_posts']['#rows'] as $post_id => &$row) {
       $post = $posts[$post_id];
       if (!empty($post->vote_count) && election_post_access('edit', $post)) {
         $row['operations']['data']['#items']['results'] = l(
-          t('results file (@count)', array('@count' => format_plural($post->vote_count, '1 vote', '@count votes'))),
+          t('ballot file (@count)', array('@count' => format_plural($post->vote_count, '1 vote', '@count votes'))),
           election_post_uri_path($post) . '/result/blt'
         );
       }
@@ -133,7 +134,7 @@ function election_result_form_election_post_manage_form_alter(&$form) {
  * @param stdClass $post
  * @return void
  */
-function _election_result_download_blt($post) {
+function _election_results_download_blt($post) {
 
   set_time_limit(0);
 
@@ -209,9 +210,7 @@ function _election_result_download_blt($post) {
   );
 
   echo "# Votes are below, each line is in the format:\n";
-  echo "#   [VOTE_ID] MULTIPLIER PREFERENCE PREFERENCE PREFERENCE 0\n";
-  echo "# Preferences are represented by an integer 'key' for each candidate (see the end of this file).\n";
-  echo "# They can be omitted, in the case of abstention or incomplete rankings.\n";
+  echo "#   [(VOTE_ID)] MULTIPLIER [PREFERENCE PREFERENCE PREFERENCE ...] 0\n";
 
   // @todo performance work & batch mode
   foreach ($result as $row) {
@@ -246,9 +245,10 @@ function _election_result_download_blt($post) {
 /**
  * Form builder function for the election results counting form.
  */
-function election_result_count_form($form, &$form_state, $post) {
+function election_results_count_form($form, &$form_state, $post) {
 
-  drupal_set_title(t('%post: Count votes', array('%post' => $post->title)), PASS_THROUGH);
+  drupal_set_title(t('Count votes: %post', array('%post' => $post->title)), PASS_THROUGH);
+  drupal_set_breadcrumb(_election_build_breadcrumb($post->election));
 
   $election = $post->election;
 
@@ -256,7 +256,7 @@ function election_result_count_form($form, &$form_state, $post) {
   if ($election->type == 'stv') {
     if (file_exists($droophp_path = libraries_get_path('DrooPHP'))) {
       require_once $droophp_path . '/library.php';
-      $count = new election_result_droophp_count($post);
+      $count = new election_results_droophp_count($post);
       $method = new DrooPHP_Method_Wikipedia($count);
       $method->run();
       $form['count'] = array(

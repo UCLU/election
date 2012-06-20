@@ -9,12 +9,14 @@ class views_handler_field_election_link_candidates extends views_handler_field_e
   function construct() {
     parent::construct();
     $this->additional_fields['type'] = 'type';
+    $this->additional_fields['uid'] = 'uid';
   }
 
   function render_link($data, $values) {
     $election = new stdClass();
     $election->election_id = $this->get_value($values, 'election_id');
     $election->type = $this->get_value($values, 'type');
+    $election->uid = $this->get_value($values, 'uid');
 
     // Exit if the election type doesn't support candidates.
     $type_info = _election_type_get_info($election->type);

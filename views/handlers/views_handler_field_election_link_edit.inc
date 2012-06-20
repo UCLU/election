@@ -7,6 +7,7 @@ class views_handler_field_election_link_edit extends views_handler_field_electio
   function construct() {
     parent::construct();
     $this->additional_fields['type'] = 'type';
+    $this->additional_fields['uid'] = 'uid';
   }
 
   function render_link($data, $values) {
@@ -14,6 +15,7 @@ class views_handler_field_election_link_edit extends views_handler_field_electio
     $election = new stdClass();
     $election->election_id = $this->get_value($values, 'election_id');
     $election->type = $this->get_value($values, 'type');
+    $election->uid = $this->get_value($values, 'uid');
     if (!entity_access('update', 'election', $election)) {
       return;
     }

@@ -151,9 +151,9 @@ function election_candidate_totals_page(stdClass $election) {
     $totals = $result->fetchAll();
     $header = array(t('Position'), t('Pending'), t('Approved'), t('Rejected'), t('Withdrawn'));
     $rows = array();
-    $rows[] = array(t('TOTAL'), $total_all->num_pending, $total_all->num_approved, $total_all->num_withdrawn, $total_all->num_rejected);
+    $rows[] = array(t('TOTAL'), $total_all->num_pending, $total_all->num_approved, $total_all->num_rejected, $total_all->num_withdrawn);
     foreach ($totals as $total) {
-      $rows[] = array(check_plain($total->title), $total->num_pending, $total->num_approved, $total->num_withdrawn, $total->num_rejected);
+      $rows[] = array(check_plain($total->title), $total->num_pending, $total->num_approved, $total->num_rejected, $total->num_withdrawn);
     }
     $output['by_position'] = array(
       '#theme' => 'table',
