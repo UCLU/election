@@ -45,6 +45,7 @@ function election_post_tokens($type, array $tokens, array $data = array(), array
   $replacements = array();
   if ($type == 'election_post' && !empty($data['election_post'])) {
     $post = $data['election_post'];
+    $election = empty($post->election)? election_load($post->election_id) : $post->election;
     foreach ($tokens as $name => $original) {
       switch ($name) {
         case 'id':
@@ -60,7 +61,7 @@ function election_post_tokens($type, array $tokens, array $data = array(), array
       }
     }
     if ($election_tokens = token_find_with_prefix($tokens, 'election')) {
-      $replacements += token_generate('election', $election_tokens, array('election' => $post->election), $options);
+      $replacements += token_generate('election', $election_tokens, array('election' => $election), $options);
     }
   }
   return $replacements;

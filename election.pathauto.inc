@@ -5,7 +5,7 @@
  */
 
 /**
- * Implements hook_pathauto(). See the Pathauto module.
+ * Implements hook_pathauto().
  *
  * @param string $op
  * @return stdClass
@@ -34,6 +34,7 @@ function election_pathauto($op) {
  * Allow bulk updating of paths. See the Pathauto module.
  *
  * @see election_pathauto()
+ *
  * @param array &$context
  * @return void
  */
@@ -77,7 +78,7 @@ function election_pathauto_bulk_update_batch_process(&$context) {
  */
 function election_path_alias_types() {
   $objects = array(
-    'election/' => t('Elections')
+    'election/' => t('Elections'),
   );
   return $objects;
 }

@@ -18,7 +18,7 @@
     <span class="label">Your eligibility: </span><span class="item"><?php print $eligibility; ?></span>
   </div>
 
-  <?php if ($view_mode == 'full' && $post->type != 'motion') { ?>
+  <?php if ($view_mode == 'full' && $election_type_has_candidates) { ?>
 
     <div class="pseudo-field vacancy_count">
       <span class="label">Number of vacancies: </span><span class="item"><?php print $vacancy_count; ?></span>

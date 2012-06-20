@@ -393,9 +393,9 @@ function election_post_entity_insert($entity, $type) {
   switch ($type) {
     case 'election_post':
       if (module_exists('pathauto')) {
-        pathauto_election_post_update_alias($entity, 'insert');
+        _election_post_pathauto_update_alias($entity, 'insert');
       }
-    break;
+      break;
   }
 }
 
@@ -406,9 +406,9 @@ function election_post_entity_update($entity, $type) {
   switch ($type) {
     case 'election_post':
       if (module_exists('pathauto')) {
-        pathauto_election_post_update_alias($entity, 'update');
+        _election_post_pathauto_update_alias($entity, 'update');
       }
-    break;
+      break;
   }
 }
 
@@ -592,6 +592,7 @@ function template_preprocess_election_post(&$variables) {
   $variables['election_title'] = check_plain($election->title);
   $variables['election_link'] = l($election->title, $election_uri['path'], $election_uri['options']);
   $variables['election_type'] = check_plain($election_type['name']);
+  $variables['election_type_has_candidates'] = (!empty($election_type['has candidates']));
 
   $variables['eligibility'] = _election_post_format_eligibility($post, $election);
 
@@ -785,7 +786,7 @@ function election_post_views_default_views() {
  * @param $options
  *   An optional array of additional options.
  */
-function pathauto_election_post_update_alias(stdClass $post, $op, array $options = array()) {
+function _election_post_pathauto_update_alias(stdClass $post, $op, array $options = array()) {
   // Skip processing if the post has no pattern.
   if (!pathauto_pattern_load_by_entity('election_post', $post->type)) {
     return;
@@ -812,11 +813,11 @@ function pathauto_election_post_update_alias(stdClass $post, $op, array $options
  * @param $options
  *   An optional array of additional options.
  */
-function pathauto_election_post_update_alias_multiple(array $post_ids, $op, array $options = array()) {
+function _election_post_pathauto_update_alias_multiple(array $post_ids, $op, array $options = array()) {
   $options += array('message' => FALSE);
   $posts = election_post_load_multiple($post_ids);
   foreach ($posts as $post) {
-    pathauto_election_post_update_alias($post, $op, $options);
+    _election_post_pathauto_update_alias($post, $op, $options);
   }
   if (!empty($options['message'])) {
     drupal_set_message(format_plural(count($post_ids), 'Updated URL alias for 1 post.', 'Updated URL aliases for @count posts.'));

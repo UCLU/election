@@ -5,7 +5,7 @@
  */
 
 /**
- * Implements hook_pathauto(). See the Pathauto module.
+ * Implements hook_pathauto().
  *
  * @param string $op
  * @return stdClass

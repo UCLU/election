@@ -101,7 +101,7 @@ function election_election_type_info() {
   return $types;
 }
 
-/*
+/**
  * Return an array of election type names, keyed by machine name.
  *
  * @param bool $ucfirst
@@ -132,7 +132,7 @@ function election_uri($election) {
   );
 }
 
-/*
+/**
  * Return the path part of the election URI callback as a string.
  *
  * The implementation of this function throughout the module is debatable, see:
@@ -442,7 +442,7 @@ function election_menu_alter(&$items) {
   }
 }
 
-/*
+/**
  * Implements hook_field_extra_fields().
  *
  * @return array
@@ -538,7 +538,7 @@ function election_entity_update($entity, $type) {
       if (module_exists('pathauto')) {
         pathauto_election_update_alias($entity, 'update');
       }
-    break;
+      break;
   }
 }
 
@@ -552,7 +552,7 @@ function election_entity_delete($entity, $type) {
       if (function_exists('pathauto_entity_path_delete_all')) {
         pathauto_entity_path_delete_all('election', $entity);
       }
-    break;
+      break;
   }
 }
 
