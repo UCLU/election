@@ -254,12 +254,12 @@ function election_permission() {
  *   Whether access is allowed or not.
  */
 function election_access($op, $election = NULL, $account = NULL) {
-  if ($account === NULL) {
-    global $user;
-    $account = $user;
+  // If no user object is supplied, the access check is for the current user.
+  if (empty($account)) {
+    $account = $GLOBALS['user'];
   }
   // If checking a specific election, find out whether it belongs to the $account.
-  $election_belongs_to_account = ($election && $account && $election->uid == $account->uid);
+  $election_belongs_to_account = ($election && $election->uid == $account->uid);
   switch ($op) {
     case 'view':
       // If it's the $account's own election, always permit viewing.

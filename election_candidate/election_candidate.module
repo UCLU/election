@@ -329,6 +329,7 @@ function election_candidate_menu_alter(&$items) {
  */
 function election_candidate_admin_paths() {
   return array(
+    'election/*/candidates/manage' => TRUE,
     'election/*/candidates/fields' => TRUE,
     'election/*/candidates/display' => TRUE,
     'election/*/candidates/totals' => TRUE,
