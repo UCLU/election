@@ -167,7 +167,7 @@ function election_load($election_id = NULL) {
 /**
  * Load multiple elections.
  *
- * @param mixed $election_id
+ * @param array $election_ids
  *   An array of election IDs.
  *
  * @return stdClass
@@ -248,7 +248,7 @@ function election_permission() {
  * @param stdClass $election
  *   Optionally an election or an election type to check access for. If nothing is
  *   given, access for all elections is determined.
- * @param $account
+ * @param stdClass $account
  *   The user to check for. Leave it to NULL to check for the global user.
  * @return boolean
  *   Whether access is allowed or not.

@@ -8,7 +8,7 @@
 /**
  * Form builder function for the main administrative election candidate list.
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
  * @param array $form_state
  * @param stdClass $election
@@ -168,7 +168,7 @@ function election_candidate_totals_page(stdClass $election) {
 /**
  * Form builder function for the form at "election/%election/candidates/download".
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
  * @param array $form_state
  * @param stdClass $election
@@ -279,7 +279,7 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
 /**
  * Submit callback for the form election_candidate_download_form.
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
  * @param array $form_state
  */

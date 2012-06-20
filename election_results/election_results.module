@@ -108,7 +108,7 @@ function election_results_page(stdClass $post) {
  *
  * Alter the form at election/%election/posts.
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
  * @return void
  */

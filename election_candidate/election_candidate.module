@@ -109,7 +109,7 @@ function election_candidate_permission() {
  * @param $candidate
  *   Optionally a candidate to check access for. If nothing is
  *   given, access for all candidates is determined.
- * @param $account
+ * @param stdClass $account
  *   The user to check for. Leave it to NULL to check for the global user.
  * @return boolean
  *   Whether access is allowed or not.
@@ -423,9 +423,8 @@ function election_candidate_field_extra_fields() {
  * Title callback for election/%election_candidate/view (output should not be escaped here
  * as it is done later).
  *
- * @param stdClass $election
- *   An election object.
  * @param stdClass $candidate
+ *   The election candidate object.
  *
  * @return string
  */
@@ -810,9 +809,6 @@ function template_preprocess_election_candidate_details(&$variables) {
 
 /**
  * Theme function for displaying a candidate as an item on a ballot form.
- *
- * @param stdClass $candidate
- * @return string
  */
 function theme_election_candidate_ballot_item($variables) {
   $candidate = $variables['candidate'];
