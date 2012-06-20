@@ -136,12 +136,12 @@ function election_statistics_preprocess_election_statistics(&$variables) {
   }
 
   $top_ips_table = NULL;
-  $ips = db_query_range('SELECT ip, COUNT(DISTINCT vote_id) AS votes FROM {election_vote} JOIN {election_post} USING(post_id) WHERE election_id = :eid GROUP BY ip ORDER BY COUNT(vote_id) DESC', 0, 10, array(':eid' => $election->election_id));
+  $ips = db_query_range('SELECT ip, COUNT(DISTINCT vote_id) AS votes, COUNT(DISTINCT uid) AS voters FROM {election_vote} JOIN {election_post} USING(post_id) WHERE election_id = :eid GROUP BY ip ORDER BY COUNT(DISTINCT uid) DESC, COUNT(DISTINCT vote_id) DESC', 0, 10, array(':eid' => $election->election_id));
   if ($ips->rowCount()) {
-    $header = array(t('IP address'), t('Vote count'));
+    $header = array(t('IP address'), t('Votes'), t('Voters'));
     $rows = array();
     foreach ($ips as $row) {
-      $rows[] = array(check_plain($row->ip), number_format((int) $row->votes));
+      $rows[] = array(check_plain($row->ip), number_format((int) $row->votes), number_format((int) $row->voters));
     }
     $top_ips_table = array(
       '#caption' => t('Top 10 IP addresses'),
@@ -152,7 +152,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
   }
 
   $last_ips_table = NULL;
-  $last_ips = db_query_range('SELECT vote_time, ip, agent FROM {election_vote} JOIN {election_post} USING(post_id) WHERE election_id = :eid ORDER BY vote_time DESC', 0, 20, array(':eid' => $election->election_id));
+  $last_ips = db_query_range('SELECT vote_time, ip, agent FROM {election_vote} JOIN {election_post} USING(post_id) WHERE election_id = :eid ORDER BY vote_time DESC', 0, 10, array(':eid' => $election->election_id));
   if ($last_ips->rowCount()) {
     $header = array(t('Time'), t('IP address'), t('Browser'));
     $rows = array();
@@ -172,7 +172,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
       );
     }
     $last_ips_table = array(
-      '#caption' => t('Last 20 IP addresses'),
+      '#caption' => t('Last 10 IP addresses'),
       '#theme' => 'table',
       '#header' => $header,
       '#rows' => $rows,
