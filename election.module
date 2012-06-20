@@ -71,24 +71,33 @@ function election_types() {
   $types = &drupal_static(__FUNCTION__);
   if (empty($types)) {
     $types = array();
-    $types['referendum'] = array(
-      'name' => t('referendum'),
-      'description' => t('A simple referendum, where people can vote once (yes, no, or abstain) in response to a motion.'),
-      'post name' => t('motion'),
-      'post name plural' => t('motions'),
-      'post key' => 'motion',
-      'weight' => 0,
-    );
-    $types['stv'] = array(
-      'name' => t('STV election'),
-      'description' => t('A Single Transferable Vote election, conforming to the Electoral Reform Society\'s ERS97 standard.'),
-      'post name' => t('position'),
-      'post name plural' => t('positions'),
-      'post key' => 'position',
-      'weight' => 1,
-    );
     $types += module_invoke_all('election_type_info');
   }
+  return $types;
+}
+
+/**
+ * Implements hook_election_type_info().
+ */
+function election_election_type_info() {
+  $types = array();
+  $types['referendum'] = array(
+    'name' => t('referendum'),
+    'description' => t('A simple referendum, where people can vote once (yes, no, or abstain) in response to a motion.'),
+    'post name' => t('motion'),
+    'post name plural' => t('motions'),
+    'post key' => 'motion',
+    'weight' => 0,
+  );
+  $types['stv'] = array(
+    'name' => t('STV election'),
+    'description' => t('A Single Transferable Vote election, conforming to the Electoral Reform Society\'s ERS97 standard.'),
+    'post name' => t('position'),
+    'post name plural' => t('positions'),
+    'post key' => 'position',
+    'weight' => 1,
+    'has candidates' => TRUE,
+  );
   return $types;
 }
 
@@ -166,6 +175,20 @@ function election_load($election_id = NULL) {
  */
 function election_load_multiple(array $election_ids = array()) {
   return entity_load('election', $election_ids);
+}
+
+/**
+ * Implements hook_entity_load().
+ */
+function election_entity_load($entities, $type) {
+  // Add type information (in 'type_info' property) to each election.
+  if ($type == 'election') {
+    foreach ($entities as $election) {
+      if (!isset($election->type_info)) {
+        $election->type_info = _election_type_get_info($election->type);
+      }
+    }
+  }
 }
 
 /**
@@ -299,6 +322,17 @@ function election_menu() {
   );
 
   foreach (election_types() as $type_mn => $type) {
+    $items['elections/add/' . $type_mn] = array(
+      'title' => 'Add new ' . $type['name'],
+      'title callback' => 'check_plain',
+      'page callback' => 'election_page_add',
+      'page arguments' => array(2),
+      'access arguments' => array('administer elections'),
+      'file' => 'election.admin.inc',
+      'description' => empty($type['description'])? '' : $type['description'],
+      'type' => MENU_LOCAL_ACTION,
+      'weight' => isset($type['weight'])? $type['weight'] : 0,
+    );
     $items['admin/election/list/add/' . $type_mn] = array(
       'title' => 'Add new ' . $type['name'],
       'title callback' => 'check_plain',
@@ -694,9 +728,8 @@ function _election_is_open($status, $open_time, $close_time) {
  * @return string
  */
 function _election_format_status(stdClass $election, $status_prefix = 'v') {
-  // Nominations aren't relevant to referendums.
-  // @todo make this extensible
-  if (@$election->type == 'referendum' && $status_prefix == 'n') {
+  // Nominations aren't relevant to elections that don't have candidates.
+  if (!empty($election->type_info['has candidates']) && $status_prefix == 'n') {
     return t('N/A');
   }
   $status = $election->{$status_prefix . 'status'};

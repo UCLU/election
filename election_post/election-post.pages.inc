@@ -52,7 +52,7 @@ function election_post_vote_form($form, &$form_state, $post) {
     return election_post_vote_form_abstain_confirm($form, $form_state);
   }
 
-  $election = election_load($post->election_id);
+  $election = $post->election;
 
   if ($previously_voted = election_vote_check_user_previously_voted($post)) {
     drupal_set_message(t('You have already voted for (or abstained from) this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'status', FALSE);
@@ -137,14 +137,14 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
 
   // Load candidates
   // @todo reconcile all this without mutual dependency between election_candidate and election_post, probably via another submodule.
-  $candidates = election_candidate_load_by_post($post);
+  $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED));
   $form_state['candidates'] = $candidates;
 
   $num_candidates = count($candidates);
   $form_state['num_candidates'] = $num_candidates;
 
   if ($num_candidates == 0) {
-    drupal_set_message(t('There are no approved candidates standing for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
+    drupal_set_message(t('Voting is currently closed: there are no approved candidates standing for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
     $form['#disabled'] = TRUE;
     drupal_goto(election_post_uri_path($post));
   }
@@ -185,11 +185,7 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
     '#type' => 'fieldset',
     '#title' => t('Your ballot paper'),
     '#attributes' => array('class' => array('election-ballot-paper')),
-  );
-
-  $form['ballot_paper']['help'] = array(
-    '#type' => 'item',
-    '#markup' => t('Please rank the candidates according to your preference.'),
+    '#description' => t('Please rank the candidates according to your preference.'),
   );
 
   $form['ballot_paper']['start'] = array(

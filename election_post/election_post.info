@@ -1,5 +1,5 @@
 name = Election Post
-description = "Allows elections to have 'posts': STV elections have 'positions'; referendums have 'motions'."
+description = "Allows elections to have posts."
 package = Election
 core = 7.x
 dependencies[] = election

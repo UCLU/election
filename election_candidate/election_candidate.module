@@ -24,19 +24,14 @@ function election_candidate_entity_info() {
     'label callback' => 'election_candidate_label',
     'entity keys' => array(
       'id' => 'candidate_id',
+      'bundle' => 'election_id', // candidate are bundled per election.
     ),
     'static cache' => TRUE,
     'fieldable' => TRUE,
     'module' => 'election',
-    'bundles' => array(
-      // Single bundles are named after the entity type (see entity_extract_ids()).
-      'election_candidate' => array(
-        'label' => t('Election candidate'),
-        'admin' => array(
-          'path' => 'admin/election/candidate',
-          'access arguments' => array('administer elections'),
-        ),
-      ),
+    'bundles' => array(),
+    'bundle keys' => array(
+      'bundle' => 'election_id',
     ),
     'view modes' => array(
       'full' => array(
@@ -44,7 +39,6 @@ function election_candidate_entity_info() {
       ),
       'teaser' => array(
         'label' => t('Teaser'),
-        'custom settings' => TRUE,
       ),
     ),
     'redirect' => FALSE, // for the Redirect module
@@ -55,10 +49,33 @@ function election_candidate_entity_info() {
 }
 
 /**
+ * Implements hook_entity_info_alter().
+ */
+function election_candidate_entity_info_alter(&$entity_info) {
+  $election_ids = _election_candidate_get_bundles();
+  foreach ($election_ids as $election_id) {
+    $entity_info['election_candidate']['bundles'][$election_id] = array(
+      'label' => t('Candidate in election @id', array('@id' => $election_id)),
+      'admin' => array(
+        'path' => 'election/%election/candidates',
+        'real path' => 'election/' . $election_id . '/candidates',
+        'bundle argument' => 1,
+        'access callback' => 'election_candidate_access_per_election',
+        'access arguments' => array('administer', 1),
+      ),
+    );
+  }
+}
+
+/**
  * Implements hook_permission().
  */
 function election_candidate_permission() {
   $permissions = array(
+    'administer candidate field settings' => array(
+      'title' => t('Administer candidate field settings'),
+      'description' => t('This allows the user to manage candidate fields and display settings, if they already have permission to edit the election.'),
+    ),
     'bypass nomination schedule' => array(
       'title' => t('Bypass nomination schedule'),
       'description' => t('This allows the user to submit a nomination at any time, regardless of whether or not nominations are open.'),
@@ -73,7 +90,7 @@ function election_candidate_permission() {
     ),
     'submit nominations' => array(
       'title' => t('Submit nominations'),
-      'description' => t('This allows the user to submit a nomination, only when nominations are open.'),
+      'description' => t('This allows the user to submit a nomination, provided nominations are open.'),
     ),
     'edit own nominations' => array(
       'title' => t('Edit own nominations'),
@@ -151,11 +168,17 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
  * candidate.
  */
 function election_candidate_access_per_election($op, stdClass $election, $account = NULL) {
-  if ($election->type == 'referendum') {
-    // Referendums don't have candidates.
+  if (empty($election->type_info['has candidates'])) {
+    // Ignore if this election type doesn't have candidates.
     return FALSE;
   }
-  return (entity_access('view', 'election', $election, $account) && entity_access($op, 'election_candidate', NULL, $account));
+  switch ($op) {
+    case 'administer':
+      return entity_access('edit', 'election', $election) && user_access('administer candidate field settings');
+      break;
+    default:
+      return (entity_access('view', 'election', $election, $account) && entity_access($op, 'election_candidate', NULL, $account));
+  }
 }
 
 /**
@@ -163,21 +186,6 @@ function election_candidate_access_per_election($op, stdClass $election, $accoun
  */
 function election_candidate_menu() {
   $items = array();
-
-  $items['admin/election/candidate'] = array(
-    'title' => 'Candidate settings',
-    'description' => 'Manage fields and display settings for election candidates (not applicable to referendums).',
-    'page callback' => 'system_admin_menu_block_page',
-    'file' => 'system.admin.inc',
-    'file path' => drupal_get_path('module', 'system'),
-    'access arguments' => array('administer elections'),
-  );
-
-  $items['admin/election/candidate/settings'] = array(
-    'title' => 'Settings',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => 0,
-  );
 
   $items['election/%election/nomination-form'] = array(
     'title' => 'Nomination form',
@@ -222,26 +230,26 @@ function election_candidate_menu() {
   );
 
   $items['election/%election/candidates/totals'] = array(
-    'title' => 'View totals',
+    'title' => 'Totals',
     'page callback' => 'election_candidate_totals_page',
     'page arguments' => array(1),
     'access callback' => 'election_candidate_access_per_election',
     'access arguments' => array('edit', 1),
     'file' => 'election-candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 2,
+    'weight' => 4,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
   $items['election/%election/candidates/download'] = array(
-    'title' => 'Download data',
+    'title' => 'Download',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_candidate_download_form', 1),
     'access callback' => 'election_candidate_access_per_election',
     'access arguments' => array('edit', 1),
     'file' => 'election-candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 3,
+    'weight' => 5,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
@@ -306,19 +314,49 @@ function election_candidate_menu() {
  * Implements hook_menu_alter().
  */
 function election_candidate_menu_alter(&$items) {
-  unset($items['admin/election/candidate/settings']);
-  $items['admin/election/candidate/fields']['type'] = MENU_NORMAL_ITEM;
-  $items['admin/election/candidate/fields']['description'] = t('Manage fields for election candidates.');
-  $items['admin/election/candidate/display']['type'] = MENU_NORMAL_ITEM;
-  $items['admin/election/candidate/display']['description'] = t('Manage display for election candidates.');
+  $items['election/%election/candidates/fields']['type'] = MENU_LOCAL_TASK;
+  $items['election/%election/candidates/fields']['title'] = t('Fields');
+  $items['election/%election/candidates/fields']['context'] = MENU_CONTEXT_PAGE;
+  $items['election/%election/candidates/fields']['weight'] = 2;
+  $items['election/%election/candidates/display']['type'] = MENU_LOCAL_TASK;
+  $items['election/%election/candidates/display']['title'] = t('Display');
+  $items['election/%election/candidates/display']['context'] = MENU_CONTEXT_PAGE;
+  $items['election/%election/candidates/display']['weight'] = 3;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function election_candidate_admin_paths() {
+  return array(
+    'election/*/candidates/fields' => TRUE,
+    'election/*/candidates/display' => TRUE,
+    'election/*/candidates/totals' => TRUE,
+    'election/*/candidates/download' => TRUE,
+  );
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function election_candidate_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Remove nomination form tab if nominations are closed.
+  // @todo can this be simpler or quicker?
+  if (substr($root_path, 0, 10) == 'election/%' && $router_item['map'][0] == 'election' && ($election = $router_item['map'][1]) && !_election_is_open($election->nstatus, $election->nopen_time, $election->nclose_time)) {
+    foreach ($data['tabs'][0]['output'] as $key => $tab) {
+      if ($tab['#link']['page_callback'] == 'election_page_nomination_form') {
+        $data['tabs'][0]['count']--;
+        unset($data['tabs'][0]['output'][$key]);
+      }
+    }
+  }
 }
 
 /**
  * Implements hook_field_extra_fields().
  */
 function election_candidate_field_extra_fields() {
-  $extra = array();
-  $extra['election_candidate']['election_candidate'] = array(
+  $extra = array(
     'form' => array(
       'post' => array(
         'label' => t('Post'),
@@ -364,7 +402,12 @@ function election_candidate_field_extra_fields() {
       ),
     ),
   );
-  return $extra;
+  // Add the above $extra array to every election_candidate bundle.
+  $info['election_candidate'] = array();
+  foreach (_election_candidate_get_bundles() as $bundle) {
+    $info['election_candidate'][$bundle] = $extra;
+  }
+  return $info;
 }
 
 
@@ -752,9 +795,7 @@ function template_preprocess_election_candidate_details(&$variables) {
 
   $variables['classes_array'][] = drupal_html_class('election-' . $election->type . '-candidate', 'election-candidate-details');
 
-  $variables['theme_hook_suggestions'][] = 'election_candidate_details__' . $candidate->candidate_id;
   $variables['theme_hook_suggestions'][] = 'election__' . $election->type . '__candidate_details';
-  $variables['theme_hook_suggestions'][] = 'election__' . $election->election_id . '__candidate_details';
 
 }
 
@@ -844,7 +885,12 @@ function election_candidate_entity_insert($entity, $type) {
       if (module_exists('pathauto')) {
         pathauto_election_candidate_update_alias($entity, 'insert');
       }
-    break;
+      break;
+    case 'election':
+      // Clear the entity info cache, because creating an election also creates candidate bundles.
+      // @todo review for performance.
+      entity_info_cache_clear();
+      break;
   }
 }
 
@@ -941,10 +987,25 @@ function election_candidate_views_default_views() {
 }
 
 /**
- * Load candidates who are standing for the given post.
+ * Load candidates who are standing for the given post, and (optionally) who have the given statuses.
+ *
+ * @param stdClass $post
+ * @param array $statuses
+ *
+ * @return array
+ * An array of candidate objects keyed by candidate ID.
  */
-function election_candidate_load_by_post($post) {
-  $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE post_id = :pid AND cstatus = :approved ORDER BY RAND()', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED))->fetchCol();
+function election_candidate_load_by_post(stdClass $post, $statuses = NULL, $order_by = 'RAND()') {
+  $select = db_select('election_candidate', 'ec')
+    ->fields('ec', array('candidate_id'))
+    ->condition('post_id', $post->post_id);
+  if ($statuses !== NULL) {
+    $select->condition('cstatus', (array) $statuses, 'IN');
+  }
+  if (!empty($order_by)) {
+    $select->orderBy($order_by);
+  }
+  $candidate_ids = $select->execute()->fetchCol();
   $candidates = election_candidate_load_multiple($candidate_ids);
   return $candidates;
 }
@@ -954,8 +1015,8 @@ function election_candidate_load_by_post($post) {
  */
 function election_candidate_preprocess_election_post(&$vars) {
   $post = $vars['elements']['#post'];
-  $election = $vars['elements']['#election'];
-  if ($election->type != 'referendum') {
+  $election = $post->election;
+  if (!empty($election->type_info['has candidates'])) {
     $candidates_view = views_embed_view('election_candidates', 'candidates_per_post', $post->post_id);
     if (!empty($candidates_view)) {
       $vars['content']['candidates'] = array(
@@ -966,4 +1027,26 @@ function election_candidate_preprocess_election_post(&$vars) {
       );
     }
   }
+}
+
+/**
+ * Get an array of candidate bundle type machine names.
+ *
+ * This is effectively an array of election IDs (for now).
+ *
+ * @return array
+ */
+function _election_candidate_get_bundles() {
+  $bundles = &drupal_static(__FUNCTION__);
+  if (!is_array($bundles)) {
+    $election_types = election_types();
+    $types_with_candidates = array();
+    foreach ($election_types as $type => $info) {
+      if (!empty($info['has candidates'])) {
+        $types_with_candidates[] = $type;
+      }
+    }
+    $bundles = db_query('SELECT election_id FROM {election} WHERE type IN(:types)', array(':types' => $types_with_candidates))->fetchCol();
+  }
+  return $bundles;
 }

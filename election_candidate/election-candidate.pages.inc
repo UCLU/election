@@ -129,7 +129,7 @@ function election_page_nomination_form(stdClass $election) {
   drupal_set_title(t('Nomination form'), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
 
-  if ($election->type == 'referendum') {
+  if (empty($election->type_info['has candidates'])) {
     return MENU_NOT_FOUND;
   }
 
@@ -176,7 +176,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
 
   global $user;
 
-  $candidate = entity_get_controller('election_candidate')->create();
+  $candidate = entity_get_controller('election_candidate')->create(array('election_id' => $election->election_id));
   $candidate->is_new = TRUE;
 
   $form['#id'] = 'election-nomination-form';

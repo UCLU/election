@@ -3,8 +3,6 @@
  * @file
  * Field handler to present a link to an election's nomination form. This depends on
  * the election_candidate module.
- *
- * @todo add option to hide if nominations are closed.
  */
 class views_handler_field_election_link_nominate extends views_handler_field_election_link {
 
@@ -21,12 +19,13 @@ class views_handler_field_election_link_nominate extends views_handler_field_ele
     $election->election_id = $this->get_value($values, 'election_id');
     $election->type = $this->get_value($values, 'type');
 
-    // ensure we're not dealing with a referendum.
-    if ($election->type == 'referendum') {
+    // Exit if the election type doesn't support candidates.
+    $type_info = _election_type_get_info($election->type);
+    if (empty($type_info['has candidates'])) {
       return;
     }
 
-    // exit if the election_candidate module is not enabled.
+    // Exit if the election_candidate module is not enabled.
     if (!module_exists('election_candidate')) {
       return;
     }

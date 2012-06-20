@@ -10,7 +10,7 @@ class views_handler_field_election_post_eligibility extends views_handler_field 
     parent::init($view, $options);
     $this->field = 'vstatus_inheritance';
     $this->real_field = 'vstatus_inheritance';
-    $this->additional_fields['post_id'] = 'post_id';
+    $this->additional_fields['*'] = 'post_id';
     $this->additional_fields['vstatus'] = array('table' => 'election', 'field' => 'vstatus');
     $this->additional_fields['vopen_time'] = array('table' => 'election', 'field' => 'vopen_time');
     $this->additional_fields['vclose_time'] = array('table' => 'election', 'field' => 'vclose_time');
@@ -18,41 +18,14 @@ class views_handler_field_election_post_eligibility extends views_handler_field 
   }
 
   function render($values) {
-    $vstatus_inheritance = $this->get_value($values);
-    $election_type = $this->get_value($values, 'election_type');
-    $post_name = _election_get_posts_name($election_type);
-    $vstatus = $this->get_value($values, 'vstatus');
-    $vopen_time = $this->get_value($values, 'vopen_time');
-    $vclose_time = $this->get_value($values, 'vclose_time');
-    if ($vstatus_inheritance == ELECTION_POST_STATUS_CLOSED) {
-      return t('Voting is currently closed for this @post_name.', array('@post_name' => $post_name));
-    }
-    elseif (!_election_is_open($vstatus, $vopen_time, $vclose_time)) {
-      if ($vstatus == ELECTION_STATUS_SCHEDULED) {
-        if ($vopen_time > REQUEST_TIME) {
-          return t('Voting opens: %date.', array('%date' => format_interval($vopen_time - REQUEST_TIME, 2)));
-        }
-        elseif ($vclose_time < REQUEST_TIME) {
-          return t('Voting closed: %date', array('%date' => format_date($vclose_time, 'short')));
-        }
-      }
-      return t('Voting is currently closed.');
-    }
-    // The post now needs to be loaded in full for further checks.
     $post = election_post_load($this->get_value($values, 'post_id'));
-    if ($election_type != 'referendum' && !_election_post_has_approved_candidates($post)) {
-      return t('Voting is currently closed (not enough candidates).');
-    }
-    elseif (!user_is_logged_in()) {
-      return t('<a href="@login_uri">Log in</a> to vote.', array('@login' => url('user/login', array('query' => array('destination' => $_GET['q'])))));
-    }
-    elseif (election_post_access('vote', $post)) {
-      if (election_vote_check_user_previously_voted($post)) {
-        return t('You have already voted (or abstained).');
-      }
-      return t('<a href="@vote_link">You can vote</a> for this @post_name.', array('@post_name' => $post_name, '@vote_link' => url(election_post_uri_path($post) . '/vote')));
-    }
-    return t('You are not eligible to vote for this @post_name.', array('@post_name' => $post_name));
+    $election = (object) array(
+      'type' => $this->get_value($values, 'election_type'),
+      'vstatus' => $this->get_value($values, 'vstatus'),
+      'vopen_time' => $this->get_value($values, 'vopen_time'),
+      'vclose_time' => $this->get_value($values, 'vclose_time'),
+    );
+    return _election_post_format_eligibility($post, $election);
   }
 
 }

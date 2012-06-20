@@ -16,8 +16,9 @@ class views_handler_field_election_link_candidates extends views_handler_field_e
     $election->election_id = $this->get_value($values, 'election_id');
     $election->type = $this->get_value($values, 'type');
 
-    // ensure we're not dealing with a referendum.
-    if ($election->type == 'referendum') {
+    // Exit if the election type doesn't support candidates.
+    $type_info = _election_type_get_info($election->type);
+    if (empty($type_info['has candidates'])) {
       return;
     }
 

@@ -14,6 +14,10 @@
     <span class="label">Election: </span><span class="item"><?php print $election_link; ?></span>
   </div>
 
+  <div class="pseudo-field post-eligibility">
+    <span class="label">Your eligibility: </span><span class="item"><?php print $eligibility; ?></span>
+  </div>
+
   <?php if ($view_mode == 'full' && $post->type != 'motion') { ?>
 
     <div class="pseudo-field vacancy_count">
