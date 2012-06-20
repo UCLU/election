@@ -193,7 +193,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
  * Page callback for election/%election/statistics.
  */
 function election_statistics_page(stdClass $election) {
-  drupal_set_title(t('%election: Statistics', array('%election' => $election->title)), PASS_THROUGH);
+  drupal_set_title(t('Statistics: %election', array('%election' => $election->title)), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
   return theme('election_statistics', array('election' => $election));
 }

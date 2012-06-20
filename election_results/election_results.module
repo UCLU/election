@@ -98,7 +98,8 @@ function theme_election_results_overview($variables) {
  * Page callback for election-post/%election_post/result.
  */
 function election_results_page(stdClass $post) {
-  drupal_set_title(t('%post: Results', array('%post' => $post->title)), PASS_THROUGH);
+  drupal_set_title(t('Results: %post', array('%post' => $post->title)), PASS_THROUGH);
+  drupal_set_breadcrumb(_election_build_breadcrumb($post->election));
   return theme('election_results_overview', array('post' => $post));
 }
 
@@ -112,14 +113,14 @@ function election_results_page(stdClass $post) {
  */
 function election_results_form_election_post_manage_form_alter(&$form) {
   $election = $form['#election'];
-  // For STV elections, add a 'download results' link.
+  // For STV elections, add a 'ballot file' link.
   if ($election->type == 'stv') {
     $posts = $form['#posts'];
     foreach ($form['election_posts']['#rows'] as $post_id => &$row) {
       $post = $posts[$post_id];
       if (!empty($post->vote_count) && election_post_access('edit', $post)) {
         $row['operations']['data']['#items']['results'] = l(
-          t('results file (@count)', array('@count' => format_plural($post->vote_count, '1 vote', '@count votes'))),
+          t('ballot file (@count)', array('@count' => format_plural($post->vote_count, '1 vote', '@count votes'))),
           election_post_uri_path($post) . '/result/blt'
         );
       }
@@ -246,7 +247,8 @@ function _election_results_download_blt($post) {
  */
 function election_results_count_form($form, &$form_state, $post) {
 
-  drupal_set_title(t('%post: Count votes', array('%post' => $post->title)), PASS_THROUGH);
+  drupal_set_title(t('Count votes: %post', array('%post' => $post->title)), PASS_THROUGH);
+  drupal_set_breadcrumb(_election_build_breadcrumb($post->election));
 
   $election = $post->election;
 
