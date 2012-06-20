@@ -4,14 +4,21 @@
  * Field handler to present a link to manage an election's posts. This depends on
  * the election_post module.
  */
+
 class views_handler_field_election_link_posts extends views_handler_field_election_link {
 
+  /**
+   * Overrides parent::construct().
+   */
   public function construct() {
     parent::construct();
     $this->additional_fields['type'] = 'type';
     $this->additional_fields['uid'] = 'uid';
   }
 
+  /**
+   * Overrides parent::render_link().
+   */
   public function render_link($data, $values) {
 
     $election = new stdClass();

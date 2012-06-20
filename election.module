@@ -59,17 +59,17 @@ function election_entity_info() {
 }
 
 /**
- * Return information about election types in a structured array, keyed by
- * each type's machine name. Each element is also a structured array defining at
- * least 'name' and 'post key'.
+ * Get information about election types.
  *
  * This uses hook_election_type_info() to allow other modules to define types.
  *
  * @return array
+ * An array of election types, keyed by the type's machine name. Each element
+ * is also a structured array, defining at least 'name' and 'post key'.
  */
 function election_types() {
   $types = &drupal_static(__FUNCTION__);
-  if (empty($types)) {
+  if (!is_array($types)) {
     $types = array();
     $types += module_invoke_all('election_type_info');
   }
@@ -91,7 +91,7 @@ function election_election_type_info() {
   );
   $types['stv'] = array(
     'name' => t('STV election'),
-    'description' => t('A Single Transferable Vote election, conforming to the Electoral Reform Society\'s ERS97 standard.'),
+    'description' => t('A Single Transferable Vote election (ranked voting).'),
     'post name' => t('position'),
     'post name plural' => t('positions'),
     'post key' => 'position',

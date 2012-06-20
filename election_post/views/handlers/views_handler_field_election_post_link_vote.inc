@@ -3,13 +3,20 @@
  * @file
  * Field handler to present a link to a post's voting form.
  */
+
 class views_handler_field_election_post_link_vote extends views_handler_field_election_post_link {
 
+  /**
+   * Overrides parent::init().
+   */
   public function init(&$view, &$options) {
     parent::init($view, $options);
     $this->additional_fields['use_ron'] = 'use_ron';
   }
 
+  /**
+   * Overrides parent::render().
+   */
   public function render($values) {
     $post_id = $this->get_value($values, 'post_id');
 
@@ -36,6 +43,9 @@ class views_handler_field_election_post_link_vote extends views_handler_field_el
     return $this->render_link($post, $values);
   }
 
+  /**
+   * Overrides parent::render_link().
+   */
   public function render_link($post, $values) {
 
     $this->options['alter']['make_link'] = TRUE;

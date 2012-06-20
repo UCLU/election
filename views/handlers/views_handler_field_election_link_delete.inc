@@ -3,12 +3,16 @@
  * @file
  * Field handler to present a link to delete an election.
  */
+
 class views_handler_field_election_link_delete extends views_handler_field_election_link {
   public function construct() {
     parent::construct();
     $this->additional_fields['type'] = 'type';
   }
 
+  /**
+   * Overrides parent::render_link().
+   */
   public function render_link($data, $values) {
     // ensure user has access to delete this election.
     $election = new stdClass();

@@ -8,6 +8,7 @@
  * @extends
  * EntityAPIControllerExportable
  */
+
 class ElectionDefaultController extends EntityAPIControllerExportable {
 
   /**

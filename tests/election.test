@@ -6,6 +6,9 @@
 
 class ElectionTestCase extends DrupalWebTestCase {
 
+  /**
+   * Overrides parent::getInfo().
+   */
   public function getInfo() {
     return array(
       'name' => 'Election module test',

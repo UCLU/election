@@ -3,8 +3,12 @@
  * @file
  * Filter by voting status = open.
  */
+
 class views_handler_filter_election_vstatus extends views_handler_filter_boolean_operator {
 
+  /**
+   * Overrides parent::query().
+   */
   public function query() {
     $table = $this->ensure_my_table();
     $vars = array(

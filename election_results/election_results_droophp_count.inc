@@ -3,8 +3,12 @@
  * @file
  * Class extending DrooPHPCount (for running an STV count on an election post).
  */
+
 class election_results_droophp_count extends DrooPHP_Count {
 
+  /**
+   * Overrides parent::__construct().
+   */
   public function __construct(stdClass $post, $options = array()) {
 
     $this->loadOptions($options);

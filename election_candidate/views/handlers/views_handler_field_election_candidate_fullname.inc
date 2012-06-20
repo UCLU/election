@@ -6,12 +6,18 @@
 
 class views_handler_field_election_candidate_fullname extends views_handler_field {
 
+  /**
+   * Overrides parent::construct().
+   */
   public function construct() {
     parent::construct();
     $this->additional_fields['first_name'] = 'first_name';
     $this->additional_fields['last_name'] = 'last_name';
   }
 
+  /**
+   * Overrides parent::init().
+   */
   public function init(&$view, &$options) {
     parent::init($view, $options);
     if (!empty($this->options['link_to_candidate'])) {
@@ -19,6 +25,9 @@ class views_handler_field_election_candidate_fullname extends views_handler_fiel
     }
   }
 
+  /**
+   * Overrides parent::option_definition().
+   */
   public function option_definition() {
     $options = parent::option_definition();
     $options['link_to_candidate'] = array('default' => isset($this->definition['link_to_candidate default']) ? $this->definition['link_to_candidate default'] : FALSE);
@@ -57,11 +66,17 @@ class views_handler_field_election_candidate_fullname extends views_handler_fiel
     return $data;
   }
 
+  /**
+   * Overrides parent::query().
+   */
   public function query() {
     $this->ensure_my_table();
     $this->add_additional_fields();
   }
 
+  /**
+   * Overrides parent::render().
+   */
   public function render($values) {
     $first_name = $this->get_value($values, 'first_name');
     $last_name = $this->get_value($values, 'last_name');
