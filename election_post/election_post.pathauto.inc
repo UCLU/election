@@ -39,8 +39,6 @@ function election_post_pathauto($op) {
  *
  * @param array &$context
  *   The Batch API context array.
- *
- * @return void
  */
 function election_post_pathauto_bulk_update_batch_process(&$context) {
   if (!isset($context['sandbox']['current'])) {

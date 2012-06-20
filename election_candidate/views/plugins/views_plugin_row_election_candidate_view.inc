@@ -71,7 +71,7 @@ class views_plugin_row_election_candidate_view extends views_plugin_row {
     if (empty($options)) {
       $options = array(
         'teaser' => t('Teaser'),
-        'full' => t('Full content')
+        'full' => t('Full content'),
       );
     }
     return $options;

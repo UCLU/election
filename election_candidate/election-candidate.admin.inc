@@ -70,7 +70,7 @@ function election_candidate_manage_form($form, $form_state, $election) {
       'post_title' => $post_title,
       'first_name' => check_plain($candidate->first_name),
       'last_name' => check_plain($candidate->last_name),
-      'username' => $account? theme('username', array('account' => $account)) : t('Anonymous'),
+      'username' => $account ? theme('username', array('account' => $account)) : t('Anonymous'),
       'cstatus' => _election_candidate_format_status($candidate),
     );
 

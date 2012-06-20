@@ -102,8 +102,6 @@ function election_condition_modules_disabled($modules = array()) {
 /**
  * Delete conditions from the DB only if they are not assigned to any posts AND
  * they do not (or no longer) exist in code.
- *
- * @return void
  */
 function _election_condition_uninstall_code_conditions() {
   $code_conditions = _election_condition_get_code_conditions();
@@ -152,8 +150,6 @@ function _election_condition_uninstall_code_conditions() {
  * http://drupal.org/node/310085
  * and:
  * http://api.drupal.org/api/drupal/includes--database--query.inc/class/MergeQuery/7
- *
- * @return void
  */
 function _election_condition_install_code_conditions() {
   foreach (_election_condition_get_code_conditions() as $condition_mn => $condition) {
@@ -229,7 +225,7 @@ function election_condition_form_election_post_form_alter(&$form, &$form_state) 
       $items = $condition['callbacks'];
       foreach ($items as $key => $item) {
         $items[$key] = t('@key: %item', array(
-          '@key' => is_string($key)? drupal_ucfirst($key) : 'Function',
+          '@key' => is_string($key) ? drupal_ucfirst($key) : 'Function',
           '%item' => $item . '()',
         ));
       }

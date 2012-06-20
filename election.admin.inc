@@ -295,7 +295,7 @@ function election_form($form, &$form_state, $election) {
   $form['vschedule']['vopen_time'] = array(
     '#title' => t('Opening time'),
     '#type' => $date_widget,
-    '#default_value' => $vopen_default? date('Y-m-d H:i:s', $vopen_default) : NULL,
+    '#default_value' => $vopen_default ? date('Y-m-d H:i:s', $vopen_default) : NULL,
     '#date_format' => $date_format,
     '#date_increment' => 5,
     '#date_year_range' => '-2:+5',
@@ -303,7 +303,7 @@ function election_form($form, &$form_state, $election) {
   $form['vschedule']['vclose_time'] = array(
     '#title' => t('Closing time'),
     '#type' => $date_widget,
-    '#default_value' => $vclose_default? date('Y-m-d H:i:s', $vclose_default) : NULL,
+    '#default_value' => $vclose_default ? date('Y-m-d H:i:s', $vclose_default) : NULL,
     '#date_format' => $date_format,
     '#date_increment' => 5,
     '#date_year_range' => '-2:+5',
@@ -354,11 +354,11 @@ function election_form_validate($form, &$form_state) {
   $vstatus = $form_state['values']['vstatus'];
   $vopen_time = $form_state['values']['vopen_time'];
   if (is_array($vopen_time)) {
-    $vopen_time = $vopen_time['date'] . ' ' . ($vopen_time['time']? '00:00' : $vopen_time['time']);
+    $vopen_time = $vopen_time['date'] . ' ' . ($vopen_time['time'] ? '00:00' : $vopen_time['time']);
   }
   $vclose_time = $form_state['values']['vclose_time'];
   if (is_array($vclose_time)) {
-    $vclose_time = $vclose_time['date'] . ' ' . ($vclose_time['time']? '00:00' : $vclose_time['time']);
+    $vclose_time = $vclose_time['date'] . ' ' . ($vclose_time['time'] ? '00:00' : $vclose_time['time']);
   }
   // Check that the opening and closing times are set if voting is scheduled.
   if ($vstatus == ELECTION_STATUS_SCHEDULED
@@ -376,11 +376,11 @@ function election_form_validate($form, &$form_state) {
     $nstatus = $form_state['values']['nstatus'];
     $nopen_time = $form_state['values']['nopen_time'];
     if (is_array($nopen_time)) {
-      $nopen_time = $nopen_time['date'] . ' ' . ($nopen_time['time']? '00:00' : $nopen_time['time']);
+      $nopen_time = $nopen_time['date'] . ' ' . ($nopen_time['time'] ? '00:00' : $nopen_time['time']);
     }
     $nclose_time = $form_state['values']['nclose_time'];
     if (is_array($nclose_time)) {
-      $nclose_time = $nclose_time['date'] . ' ' . ($nclose_time['time']? '00:00' : $nclose_time['time']);
+      $nclose_time = $nclose_time['date'] . ' ' . ($nclose_time['time'] ? '00:00' : $nclose_time['time']);
     }
     // Check that nominations and voting are not open at the same time.
     if ($nstatus == ELECTION_STATUS_OPEN && $vstatus == ELECTION_STATUS_OPEN) {

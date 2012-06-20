@@ -766,14 +766,14 @@ function template_preprocess_election_candidate_details(&$variables) {
                . ' <span class="item">' . $variables['full_name'] . '</span>',
   );
 
-  $variables['username'] = theme('username', array('#account' => $candidate->uid? user_load($candidate->uid) : NULL));
+  $variables['username'] = theme('username', array('#account' => $candidate->uid ? user_load($candidate->uid) : NULL));
   $variables['phone'] = check_plain($candidate->phone);
   $variables['mail'] = l($candidate->mail, 'mailto:' . $candidate->mail, array('absolute' => TRUE));
 
   $variables['content']['mail'] = array(
     '#theme' => 'container',
     '#attributes' => array(
-      'class' => array('pseudo-field', 'candidate-email-address')
+      'class' => array('pseudo-field', 'candidate-email-address'),
     ),
     '#markup' => '<span class="label">' . t('Email address:') . '</span>'
                . ' <span class="item">' . $variables['mail'] . '</span>',

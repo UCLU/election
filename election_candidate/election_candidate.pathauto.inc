@@ -32,8 +32,6 @@ function election_candidate_pathauto($op) {
  *
  * @param array &$context
  *   The Batch API context array.
- *
- * @return void
  */
 function election_candidate_pathauto_bulk_update_batch_process(&$context) {
   if (!isset($context['sandbox']['current'])) {
@@ -76,7 +74,7 @@ function election_candidate_pathauto_bulk_update_batch_process(&$context) {
  */
 function election_candidate_path_alias_types() {
   $objects = array(
-    'election-candidate/' => t('Election candidates')
+    'election-candidate/' => t('Election candidates'),
   );
   return $objects;
 }

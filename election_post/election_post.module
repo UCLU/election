@@ -227,7 +227,7 @@ function election_post_access($op, $post = NULL, $account = NULL) {
       return FALSE;
     }
   }
-  $election = empty($post)? NULL : election_load($post->election_id);
+  $election = empty($post) ? NULL : election_load($post->election_id);
   switch ($op) {
     case 'view':
       return election_access($op, $election, $account);
@@ -571,7 +571,7 @@ function template_preprocess_election_post(&$variables) {
   $variables['election_post_url'] = url($uri['path'], $uri['options']);
   $variables['title'] = check_plain($post->title);
   $variables['page'] = $variables['view_mode'] == 'full';
-  $variables['exclusivity'] = $post->exclusive? t('This is an exclusive position.') : t('This is not an exclusive position.');
+  $variables['exclusivity'] = $post->exclusive ? t('This is an exclusive position.') : t('This is not an exclusive position.');
   $variables['exclusivity_help'] = t('Candidates may only stand for one exclusive position per election.');
 
   $election_uri = election_uri($election);
@@ -629,7 +629,7 @@ function _election_post_format_status(stdClass $election, stdClass $post, $statu
   $is_open = FALSE; // only two options for now are inherited or closed.
   $open_status = t('<span class="election-post-status-open">Open</span>');
   $closed_status = t('<span class="election-post-status-closed">Closed</span>');
-  $status_formatted = $is_open? $open_status : $closed_status;
+  $status_formatted = $is_open ? $open_status : $closed_status;
   return t('!status_formatted (overridden)', array('!status_formatted' => $status_formatted));
 }
 
