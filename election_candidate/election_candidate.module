@@ -325,6 +325,18 @@ function election_candidate_menu_alter(&$items) {
 }
 
 /**
+ * Implements hook_admin_paths().
+ */
+function election_candidate_admin_paths() {
+  return array(
+    'election/*/candidates/fields' => TRUE,
+    'election/*/candidates/display' => TRUE,
+    'election/*/candidates/totals' => TRUE,
+    'election/*/candidates/download' => TRUE,
+  );
+}
+
+/**
  * Implements hook_menu_local_tasks_alter().
  */
 function election_candidate_menu_local_tasks_alter(&$data, $router_item, $root_path) {
