@@ -254,6 +254,10 @@ function election_permission() {
  *   Whether access is allowed or not.
  */
 function election_access($op, $election = NULL, $account = NULL) {
+  if ($account === NULL) {
+    global $user;
+    $account = $user;
+  }
   // If checking a specific election, find out whether it belongs to the $account.
   $election_belongs_to_account = ($election && $account && $election->uid == $account->uid);
   switch ($op) {
@@ -282,8 +286,8 @@ function election_access($op, $election = NULL, $account = NULL) {
       return user_access('vote in elections', $account);
       break;
     case 'delete':
-      if ($election && isset($election->vstatus) && _election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
-        return user_access('bypass running election lock');
+      if ($election && isset($election->vstatus) && _election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time) && !user_access('bypass running election lock')) {
+        return FALSE;
       }
       if ($election_belongs_to_account && user_access('delete own elections', $account)) {
         return TRUE;
