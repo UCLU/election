@@ -107,7 +107,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
   );
 
   $posts_table = NULL;
-  if (count($post_ids)) {
+  if ($totals->votes > 0 && count($post_ids)) {
     $posts = election_post_load_multiple($post_ids);
     $header = array(
       'post' => check_plain(drupal_ucfirst($post_name)),
