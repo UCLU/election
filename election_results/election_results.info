@@ -1,4 +1,4 @@
-name = Election Result
+name = Election Results
 description = "Find out the result of an election."
 package = Election
 core = 7.x
@@ -6,4 +6,4 @@ dependencies[] = election
 dependencies[] = election_post
 dependencies[] = election_candidate
 dependencies[] = libraries
-files[] = election_result_droophp_count.inc
+files[] = election_results_droophp_count.inc

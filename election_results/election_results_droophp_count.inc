@@ -5,7 +5,7 @@
  *
  * @todo
  */
-class election_result_droophp_count extends DrooPHP_Count {
+class election_results_droophp_count extends DrooPHP_Count {
 
   public function __construct(stdClass $post, $options = array()) {
 
