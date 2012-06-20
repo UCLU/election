@@ -8,8 +8,12 @@
  * @extends
  * DrupalDefaultEntityController
  */
+
 class ElectionPostController extends ElectionDefaultController {
 
+  /**
+   * Overrides parent::create().
+   */
   public function create(array $values = array()) {
     $default_values = array(
       'post_id' => '',

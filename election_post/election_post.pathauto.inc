@@ -77,7 +77,7 @@ function election_post_pathauto_bulk_update_batch_process(&$context) {
 
 
 /**
- * Implements hook_path_alias_types(). See Pathauto module.
+ * Implements hook_path_alias_types().
  *
  * Used primarily by the bulk delete form.
  */

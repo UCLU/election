@@ -4,14 +4,21 @@
  * Field handler to present a link to an election's candidates. This depends on
  * the election_candidate module.
  */
+
 class views_handler_field_election_link_candidates extends views_handler_field_election_link {
 
+  /**
+   * Overrides parent::construct().
+   */
   public function construct() {
     parent::construct();
     $this->additional_fields['type'] = 'type';
     $this->additional_fields['uid'] = 'uid';
   }
 
+  /**
+   * Overrides parent::render_link().
+   */
   public function render_link($data, $values) {
     $election = new stdClass();
     $election->election_id = $this->get_value($values, 'election_id');

@@ -11,6 +11,9 @@
  */
 class views_handler_field_election extends views_handler_field {
 
+  /**
+   * Overrides parent::init().
+   */
   public function init(&$view, &$options) {
     parent::init($view, $options);
     if (!empty($this->options['link_to_election'])) {
@@ -18,6 +21,9 @@ class views_handler_field_election extends views_handler_field {
     }
   }
 
+  /**
+   * Overrides parent::option_definition().
+   */
   public function option_definition() {
     $options = parent::option_definition();
     $options['link_to_election'] = array('default' => isset($this->definition['link_to_election default']) ? $this->definition['link_to_election default'] : FALSE);
@@ -56,6 +62,9 @@ class views_handler_field_election extends views_handler_field {
     return $data;
   }
 
+  /**
+   * Overrides parent::render().
+   */
   public function render($values) {
     $value = $this->get_value($values);
     return $this->render_link($this->sanitize_value($value), $values);

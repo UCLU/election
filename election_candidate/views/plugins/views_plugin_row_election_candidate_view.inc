@@ -17,11 +17,17 @@ class views_plugin_row_election_candidate_view extends views_plugin_row {
   // Stores the entities loaded with pre_render.
   public $entities = array();
 
+  /**
+   * Overrides parent::init().
+   */
   public function init(&$view, &$display, $options = NULL) {
     parent::init($view, $display, $options);
     require_once drupal_get_path('module', 'election_candidate') . '/election-candidate.pages.inc';
   }
 
+  /**
+   * Overrides parent::option_definition().
+   */
   public function option_definition() {
     $options = parent::option_definition();
 
@@ -31,6 +37,9 @@ class views_plugin_row_election_candidate_view extends views_plugin_row {
     return $options;
   }
 
+  /**
+   * Overrides parent::options_form().
+   */
   public function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
 
@@ -68,11 +77,17 @@ class views_plugin_row_election_candidate_view extends views_plugin_row {
     return $options;
   }
 
+  /**
+   * Overrides parent::summary_title().
+   */
   public function summary_title() {
     $options = $this->options_form_summary_options();
     return check_plain($options[$this->options['view_mode']]);
   }
 
+  /**
+   * Overrides parent::pre_render().
+   */
   public function pre_render($values) {
     $candidate_ids = array();
     foreach ($values as $row) {
@@ -81,6 +96,9 @@ class views_plugin_row_election_candidate_view extends views_plugin_row {
     $this->entities = election_candidate_load_multiple($candidate_ids);
   }
 
+  /**
+   * Overrides parent::render().
+   */
   public function render($row) {
     $candidate = $this->entities[$row->{$this->field_alias}];
     $candidate->view = $this->view;

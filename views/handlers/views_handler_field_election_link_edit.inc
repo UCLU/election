@@ -3,6 +3,7 @@
  * @file
  * Field handler to present a link to edit an election.
  */
+
 class views_handler_field_election_link_edit extends views_handler_field_election_link {
   public function construct() {
     parent::construct();
@@ -10,6 +11,9 @@ class views_handler_field_election_link_edit extends views_handler_field_electio
     $this->additional_fields['uid'] = 'uid';
   }
 
+  /**
+   * Overrides parent::render_link().
+   */
   public function render_link($data, $values) {
     // ensure user has access to edit this election.
     $election = new stdClass();

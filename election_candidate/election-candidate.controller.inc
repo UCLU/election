@@ -8,6 +8,7 @@
  * @extends
  * ElectionDefaultController
  */
+
 class ElectionCandidateController extends ElectionDefaultController {
 
   /**

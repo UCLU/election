@@ -6,6 +6,9 @@
 
 class views_handler_field_election_vstatus extends views_handler_field {
 
+  /**
+   * Overrides parent::construct().
+   */
   public function construct() {
     parent::construct();
     $this->additional_fields['vstatus'] = 'vstatus';
@@ -13,11 +16,17 @@ class views_handler_field_election_vstatus extends views_handler_field {
     $this->additional_fields['vclose_time'] = 'vclose_time';
   }
 
+  /**
+   * Overrides parent::query().
+   */
   public function query() {
     $this->ensure_my_table();
     $this->add_additional_fields();
   }
 
+  /**
+   * Overrides parent::render().
+   */
   public function render($values) {
     // Create dummy election object
     $election = new stdClass();
