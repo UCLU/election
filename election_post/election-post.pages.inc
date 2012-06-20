@@ -456,9 +456,7 @@ function election_post_vote_form_abstain($form, &$form_state) {
 
   if ($success) {
     $post_name = _election_get_posts_name($election->type);
-    $message = 'You have abstained from voting for the @post_name !post_link.';
-    $message = t($message, array('@post_name' => $post_name, '!post_link' => l($post->title, election_post_uri_path($post))));
-    drupal_set_message($message);
+    drupal_set_message(t('You have abstained from voting for the @post_name @post_link.', array('@post_name' => $post_name, '@post_link' => l($post->title, election_post_uri_path($post)))));
     $form_state['redirect'] = url(election_uri_path($election));
   }
   else {
@@ -518,9 +516,7 @@ function election_post_vote_form_vote($form, &$form_state) {
 
   if ($success) {
     $post_name = _election_get_posts_name($election->type);
-    $message = 'Thank you for voting for the @post_name !post_link.';
-    $message = t($message, array('@post_name' => $post_name, '!post_link' => l($post->title, election_post_uri_path($post))));
-    drupal_set_message($message);
+    drupal_set_message(t('Thank you for voting for the @post_name @post_link.', array('@post_name' => $post_name, '@post_link' => l($post->title, election_post_uri_path($post)))));
     $form_state['redirect'] = url(election_uri_path($election));
   }
   else {
