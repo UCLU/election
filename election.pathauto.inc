@@ -6,9 +6,6 @@
 
 /**
  * Implements hook_pathauto().
- *
- * @param string $op
- * @return stdClass
  */
 function election_pathauto($op) {
   switch ($op) {
@@ -27,6 +24,7 @@ function election_pathauto($op) {
       return (object) $settings;
     default:
       break;
+
   }
 }
 
@@ -36,6 +34,7 @@ function election_pathauto($op) {
  * @see election_pathauto()
  *
  * @param array &$context
+ *   The Batch API context array.
  * @return void
  */
 function election_pathauto_bulk_update_batch_process(&$context) {

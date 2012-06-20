@@ -5,12 +5,12 @@
  */
 class views_handler_field_election_post_link_vote extends views_handler_field_election_post_link {
 
-  function init(&$view, &$options) {
+  public function init(&$view, &$options) {
     parent::init($view, $options);
     $this->additional_fields['use_ron'] = 'use_ron';
   }
 
-  function render($values) {
+  public function render($values) {
     $post_id = $this->get_value($values, 'post_id');
 
     $small_post = new stdClass();
@@ -36,7 +36,7 @@ class views_handler_field_election_post_link_vote extends views_handler_field_el
     return $this->render_link($post, $values);
   }
 
-  function render_link($post, $values) {
+  public function render_link($post, $values) {
 
     $this->options['alter']['make_link'] = TRUE;
     $this->options['alter']['path'] = election_post_uri_path($post) . '/vote';

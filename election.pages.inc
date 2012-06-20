@@ -8,7 +8,9 @@
  * Menu callback for an election, path: election/%election.
  *
  * @param stdClass $election
+ *   An election object.
  * @param string $view_mode
+ *   View mode, e.g. 'full', 'teaser'...
  *
  * @return array
  *   Render array.

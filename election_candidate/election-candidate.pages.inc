@@ -89,6 +89,7 @@ function election_candidate_details_page_view(stdClass $candidate) {
  * Generate a table of a user's previous nominations in an election.
  *
  * @param stdClass $election
+ *   An election object.
  * @param array $previous_nominations
  */
 function election_candidate_display_previous_nominations(stdClass $election, array $previous_nominations) {
@@ -163,12 +164,14 @@ function election_page_nomination_form(stdClass $election) {
 
 }
 
-/*
+/**
  * Election nominations form function. This creates election_candidate entities.
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array $form_state
  * @param stdClass $election
+ *   An election object.
  * @param array $previous_nominations
  * @param array $available_posts
  */
@@ -247,7 +250,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
     '#type' => 'textfield',
     '#title' => t('Contact telephone number'),
     '#size' => 12,
-    '#required' => TRUE, // @todo make this alterable
+    '#required' => TRUE,
   );
 
   // Add custom fields from the Field system.
@@ -282,7 +285,8 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
 /**
  * Validation function for both the candidate edit form and the nomination form.
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array $form_state
  */
 function election_candidate_form_validate($form, &$form_state) {
@@ -302,7 +306,8 @@ function election_candidate_form_validate($form, &$form_state) {
 /**
  * Validation function for just the nomination form.
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array $form_state
  */
 function election_candidate_nomination_form_validate($form, &$form_state) {
@@ -312,7 +317,8 @@ function election_candidate_nomination_form_validate($form, &$form_state) {
 /**
  * Validation function for just the edit form.
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array $form_state
  */
 function election_candidate_edit_form_validate($form, &$form_state) {
@@ -327,7 +333,8 @@ function election_candidate_edit_form_validate($form, &$form_state) {
 /**
  * Submit callback for the nomination form.
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array $form_state
  */
 function election_candidate_nomination_form_submit($form, &$form_state) {
@@ -390,8 +397,10 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
 /**
  * Generate an array for rendering the given candidate.
  *
- * @param $candidate
- * @param $election
+ * @param stdClass $candidate
+ *   An election candidate object.
+ * @param stdClass $election
+ *   The election to which the candidate belongs (optional).
  * @param $view_mode
  *   View mode, e.g. 'full', 'teaser'...
  *
@@ -454,12 +463,14 @@ function election_candidate_view($candidate, $election = NULL, $view_mode = 'ful
 
 }
 
-/*
+/**
  * Form builder function for editing a single candidate.
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array $form_state
  * @param stdClass $election
+ *   An election object.
  * @param stdClass $candidate
  *
  * @return array
@@ -606,8 +617,10 @@ function election_candidate_edit_form($form, $form_state, stdClass $candidate) {
 /**
  * Form submit function for the Save button in the form election_candidate_edit_form().
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @return void
  */
 function election_candidate_edit_form_submit($form, &$form_state) {
@@ -648,8 +661,10 @@ function election_candidate_edit_form_submit($form, &$form_state) {
 /**
  * Form submit function for the Delete button in the form election_candidate_edit_form.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @return void
  */
 function election_candidate_edit_form_delete_submit($form, &$form_state) {
@@ -669,8 +684,10 @@ function election_candidate_edit_form_delete_submit($form, &$form_state) {
  * Form builder function to confirm the delete action for a candidate.
  * See http://api.drupal.org/api/drupal/modules--system--system.module/function/confirm_form.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @param stdClass $candidate
  *
  * @return array
@@ -702,8 +719,10 @@ function election_candidate_edit_form_delete_confirm($form, &$form_state, $candi
 /**
  * Form submit function for the Delete button in the form election_candidate_edit_form_delete_confirm.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @return void
  */
 function election_candidate_edit_form_delete_confirm_submit($form, &$form_state) {
@@ -715,7 +734,7 @@ function election_candidate_edit_form_delete_confirm_submit($form, &$form_state)
     $info = array(
       '%first_name' => $candidate->first_name,
       '%last_name' => $candidate->last_name,
-      '%election_title' => !empty($election)? $election->title : t('unknown'),
+      '%election_title' => !empty($election) ? $election->title : t('unknown'),
     );
 
     // Delete the candidate

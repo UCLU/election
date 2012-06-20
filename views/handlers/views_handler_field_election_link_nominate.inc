@@ -6,7 +6,7 @@
  */
 class views_handler_field_election_link_nominate extends views_handler_field_election_link {
 
-  function construct() {
+  public function construct() {
     parent::construct();
     $this->additional_fields['type'] = array('table' => 'election', 'field' => 'type');
     $this->additional_fields['nstatus'] = array('table' => 'election', 'field' => 'nstatus');
@@ -14,7 +14,7 @@ class views_handler_field_election_link_nominate extends views_handler_field_ele
     $this->additional_fields['nclose_time'] = array('table' => 'election', 'field' => 'nclose_time');
   }
 
-  function render_link($data, $values) {
+  public function render_link($data, $values) {
     $election = new stdClass();
     $election->election_id = $this->get_value($values, 'election_id');
     $election->type = $this->get_value($values, 'type');

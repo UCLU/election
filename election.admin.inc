@@ -39,7 +39,8 @@ function election_page_edit($election) {
  * Form builder function for the main administrative election list.
  * See http://api.drupal.org/api/drupal/includes--form.inc/group/form_api/7.
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array $form_state
  *
  * @return array
@@ -192,7 +193,8 @@ function election_page_add($type_mn) {
  * Form builder function for adding or editing an election.
  * See http://api.drupal.org/api/drupal/includes--form.inc/group/form_api/7.
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array $form_state
  * @param stdClass $election
  *
@@ -209,7 +211,7 @@ function election_form($form, &$form_state, $election) {
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
-    '#default_value' => isset($election->title)? $election->title : '',
+    '#default_value' => isset($election->title) ? $election->title : '',
     '#required' => TRUE,
   );
 
@@ -227,12 +229,12 @@ function election_form($form, &$form_state, $election) {
   }
   if (!empty($election->type_info['has candidates'])) {
 
-    $nopen_default = isset($election->nopen_time)? $election->nopen_time : NULL;
-    $nclose_default = isset($election->nclose_time)? $election->nclose_time : NULL;
+    $nopen_default = isset($election->nopen_time) ? $election->nopen_time : NULL;
+    $nclose_default = isset($election->nclose_time) ? $election->nclose_time : NULL;
     $form['nstatus'] = array(
       '#type' => 'select',
       '#title' => t('Nominations status'),
-      '#default_value' => isset($election->nstatus)? $election->nstatus : ELECTION_STATUS_CLOSED,
+      '#default_value' => isset($election->nstatus) ? $election->nstatus : ELECTION_STATUS_CLOSED,
       '#options' => array(
         ELECTION_STATUS_CLOSED => t('Closed'),
         ELECTION_STATUS_OPEN => t('Open'),
@@ -252,7 +254,7 @@ function election_form($form, &$form_state, $election) {
     $form['nschedule']['nopen_time'] = array(
       '#title' => t('Opening time'),
       '#type' => $date_widget,
-      '#default_value' => $nopen_default? date('Y-m-d H:i:s', $nopen_default) : NULL,
+      '#default_value' => $nopen_default ? date('Y-m-d H:i:s', $nopen_default) : NULL,
       '#date_format' => $date_format,
       '#date_increment' => 5,
       '#date_year_range' => '-2:+5',
@@ -260,20 +262,20 @@ function election_form($form, &$form_state, $election) {
     $form['nschedule']['nclose_time'] = array(
       '#title' => t('Closing time'),
       '#type' => $date_widget,
-      '#default_value' => $nclose_default? date('Y-m-d H:i:s', $nclose_default) : NULL,
+      '#default_value' => $nclose_default ? date('Y-m-d H:i:s', $nclose_default) : NULL,
       '#date_format' => $date_format,
       '#date_increment' => 5,
       '#date_year_range' => '-2:+5',
     );
   }
 
-  $vopen_default = isset($election->vopen_time)? $election->vopen_time : NULL;
-  $vclose_default = isset($election->vclose_time)? $election->vclose_time : NULL;
+  $vopen_default = isset($election->vopen_time) ? $election->vopen_time : NULL;
+  $vclose_default = isset($election->vclose_time) ? $election->vclose_time : NULL;
 
   $form['vstatus'] = array(
     '#type' => 'select',
     '#title' => t('Voting status'),
-    '#default_value' => isset($election->vstatus)? $election->vstatus : ELECTION_STATUS_CLOSED,
+    '#default_value' => isset($election->vstatus) ? $election->vstatus : ELECTION_STATUS_CLOSED,
     '#options' => array(
       ELECTION_STATUS_CLOSED => t('Closed'),
       ELECTION_STATUS_OPEN => t('Open'),
@@ -340,8 +342,10 @@ function election_form($form, &$form_state, $election) {
  *
  * @todo allow other widgets not depending on Date module.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @return void
  */
 function election_form_validate($form, &$form_state) {
@@ -407,8 +411,10 @@ function election_form_validate($form, &$form_state) {
 /**
  * Form submit function for the Save button in the form election_form.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @return void
  */
 function election_form_submit($form, &$form_state) {
@@ -447,8 +453,10 @@ function election_form_submit($form, &$form_state) {
 /**
  * Form submit function for the Delete button in the form election_form.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @return void
  */
 function election_form_delete_submit($form, &$form_state) {
@@ -468,8 +476,10 @@ function election_form_delete_submit($form, &$form_state) {
  * Form builder function to confirm the delete action for an election.
  * See http://api.drupal.org/api/drupal/modules--system--system.module/function/confirm_form.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @param stdClass $election
  *
  * @return array
@@ -500,8 +510,10 @@ function election_form_delete_confirm($form, &$form_state, $election) {
 /**
  * Form submit function for the Delete button in the form election_form_delete_confirm.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @return void
  */
 function election_form_delete_confirm_submit($form, &$form_state) {

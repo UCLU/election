@@ -6,7 +6,7 @@
 
 class views_handler_field_election_post_eligibility extends views_handler_field {
 
-  function init(&$view, &$options) {
+  public function init(&$view, &$options) {
     parent::init($view, $options);
     $this->field = 'vstatus_inheritance';
     $this->real_field = 'vstatus_inheritance';
@@ -17,7 +17,7 @@ class views_handler_field_election_post_eligibility extends views_handler_field 
     $this->additional_fields['election_type'] = array('table' => 'election', 'field' => 'type');
   }
 
-  function render($values) {
+  public function render($values) {
     $post = election_post_load($this->get_value($values, 'post_id'));
     $election = (object) array(
       'type' => $this->get_value($values, 'election_type'),

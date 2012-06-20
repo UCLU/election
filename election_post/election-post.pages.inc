@@ -17,12 +17,15 @@ function election_post_list_page(stdClass $election) {
     case 'referendum':
       $view = views_embed_view('election_posts', 'block_referendum', $election->election_id);
       break;
+
     case 'stv':
       $view = views_embed_view('election_posts', 'block_stv', $election->election_id);
       break;
+
     default:
       $view = views_embed_view('election_posts', 'default', $election->election_id);
       break;
+
   }
 
   drupal_set_title(drupal_ucfirst($posts_name), PASS_THROUGH);
@@ -37,7 +40,8 @@ function election_post_list_page(stdClass $election) {
 /**
  * Form builder function for election-post/%election_post/vote
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array &$form_state
  *
  * @return array $form
@@ -240,7 +244,8 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
 /**
  * Validate the voting form (general).
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array &$form_state
  *
  * @return void
@@ -259,7 +264,8 @@ function election_post_vote_form_validate($form, &$form_state) {
 /**
  * Validate the voting form (positions only).
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array &$form_state
  *
  * @return void
@@ -270,20 +276,24 @@ function election_post_position_vote_form_validate($form, &$form_state) {
   $num_candidates = $form_state['num_candidates'];
 
   $candidate_rankings = array();
-  $had = array();
+  $already_used = array();
   $someone_ranked = FALSE;
+
+  // Add each selected preference to $candidate_rankings.
   foreach ($form_state['values'] as $key => $value) {
+    // The form values are keyed by candidate ID, prefixed with 'candidate_'.
     if (substr($key, 0, 10) == 'candidate_') {
       $candidate_id = substr($key, 10);
       $candidate_rankings[$candidate_id] = $value;
-      if (isset($had[$value])) {
+      if (isset($already_used[$value])) {
         form_set_error('', t('You have used the preference level %value more than once. Candidates cannot be ranked equally.', array('%value' => $value)));
         $form['rebuild'] = TRUE;
         break;
+
       }
       if ($value != 'NONE' && $value !== NULL) {
         $someone_ranked = TRUE;
-        $had[$value] = $key;
+        $already_used[$value] = $key;
       }
     }
   }
@@ -369,9 +379,11 @@ function theme_election_vote_confirm($variables) {
       case ELECTION_ANSWER_YES:
         $answer = t('Yes');
         break;
+
       case ELECTION_ANSWER_NO:
         $answer = t('No');
         break;
+
     }
 
     $answer = t('Answer: !answer', array('!answer' => $answer));

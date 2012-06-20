@@ -43,11 +43,6 @@ function election_menu_position_rule_election_form(&$form, &$form_state) {
     '#title' => t('Elections'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-/*
-    '#attached' => array(
-      'js' => array(drupal_get_path('module', 'election') . '/includes/election.menu-position.js'),
-    ),
-*/
   );
 
   $form['conditions']['election']['election_type'] = array(

@@ -16,7 +16,7 @@ class views_handler_argument_election_electionid extends views_handler_argument_
    *
    * @return array
    */
-  function title_query() {
+  public function title_query() {
     $titles = array();
     $result = db_query("SELECT title FROM {election} WHERE election_id IN (:ids)", array(':ids' => $this->value));
     foreach ($result as $term) {

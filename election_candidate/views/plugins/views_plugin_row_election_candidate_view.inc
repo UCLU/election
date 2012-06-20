@@ -11,18 +11,18 @@ class views_plugin_row_election_candidate_view extends views_plugin_row {
 
   // Basic properties that let the row style follow relationships.
   // from Views module
-  var $base_table = 'election_candidate';
-  var $base_field = 'candidate_id';
+  public $base_table = 'election_candidate';
+  public $base_field = 'candidate_id';
 
   // Stores the entities loaded with pre_render.
-  var $entities = array();
+  public $entities = array();
 
-  function init(&$view, &$display, $options = NULL) {
+  public function init(&$view, &$display, $options = NULL) {
     parent::init($view, $display, $options);
     require_once drupal_get_path('module', 'election_candidate') . '/election-candidate.pages.inc';
   }
 
-  function option_definition() {
+  public function option_definition() {
     $options = parent::option_definition();
 
     $options['view_mode'] = array('default' => 'teaser');
@@ -31,7 +31,7 @@ class views_plugin_row_election_candidate_view extends views_plugin_row {
     return $options;
   }
 
-  function options_form(&$form, &$form_state) {
+  public function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
 
     $options = $this->options_form_summary_options();
@@ -40,7 +40,7 @@ class views_plugin_row_election_candidate_view extends views_plugin_row {
       '#options' => $options,
       '#title' => t('View mode'),
       '#default_value' => $this->options['view_mode'],
-     );
+    );
     $form['links'] = array(
       '#type' => 'checkbox',
       '#title' => t('Display links'),
@@ -51,7 +51,7 @@ class views_plugin_row_election_candidate_view extends views_plugin_row {
   /**
    * Return the main options, which are shown in the summary title.
    */
-  function options_form_summary_options() {
+  public function options_form_summary_options() {
     $entity_info = entity_get_info('election_candidate');
     $options = array();
     if (!empty($entity_info['view modes'])) {
@@ -68,12 +68,12 @@ class views_plugin_row_election_candidate_view extends views_plugin_row {
     return $options;
   }
 
-  function summary_title() {
+  public function summary_title() {
     $options = $this->options_form_summary_options();
     return check_plain($options[$this->options['view_mode']]);
   }
 
-  function pre_render($values) {
+  public function pre_render($values) {
     $candidate_ids = array();
     foreach ($values as $row) {
       $candidate_ids[] = $row->{$this->field_alias};
@@ -81,7 +81,7 @@ class views_plugin_row_election_candidate_view extends views_plugin_row {
     $this->entities = election_candidate_load_multiple($candidate_ids);
   }
 
-  function render($row) {
+  public function render($row) {
     $candidate = $this->entities[$row->{$this->field_alias}];
     $candidate->view = $this->view;
 

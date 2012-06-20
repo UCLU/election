@@ -5,7 +5,7 @@
  */
 class views_handler_filter_election_candidate_cstatus extends views_handler_filter_in_operator {
 
-  function get_value_options() {
+  public function get_value_options() {
     $this->value_options = array(
       ELECTION_CANDIDATE_APPROVED => t('Approved'),
       ELECTION_CANDIDATE_PENDING => t('Pending'),
@@ -15,7 +15,7 @@ class views_handler_filter_election_candidate_cstatus extends views_handler_filt
     return $this->value_options;
   }
 
-  function query() {
+  public function query() {
     $table = $this->ensure_my_table();
     if (empty($this->value)) {
       return;

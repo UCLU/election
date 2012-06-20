@@ -242,10 +242,10 @@ function election_permission() {
 /**
  * Determines whether the given user has access to an election.
  *
- * @param $op
+ * @param string $op
  *   The operation being performed. One of 'view', 'update', 'create', 'delete'
  *   or just 'edit' (being the same as 'create' or 'update').
- * @param $election
+ * @param stdClass $election
  *   Optionally an election or an election type to check access for. If nothing is
  *   given, access for all elections is determined.
  * @param $account
@@ -268,9 +268,11 @@ function election_access($op, $election = NULL, $account = NULL) {
       }
       return user_access('view any election', $account);
       break;
+
     case 'create':
       return user_access('create elections', $account);
       break;
+
     case 'update':
     case 'edit':
       if ($election_belongs_to_account && user_access('edit own elections', $account)) {
@@ -278,6 +280,7 @@ function election_access($op, $election = NULL, $account = NULL) {
       }
       return user_access('edit any election', $account);
       break;
+
     case 'vote':
       // If checking a specific election, check whether voting is open.
       if ($election && !_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
@@ -285,6 +288,7 @@ function election_access($op, $election = NULL, $account = NULL) {
       }
       return user_access('vote in elections', $account);
       break;
+
     case 'delete':
       if ($election && isset($election->vstatus) && _election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time) && !user_access('bypass running election lock')) {
         return FALSE;
@@ -294,6 +298,7 @@ function election_access($op, $election = NULL, $account = NULL) {
       }
       return user_access('delete any election', $account);
       break;
+
   }
   return FALSE;
 }
@@ -335,7 +340,7 @@ function election_menu() {
       'file' => 'election.admin.inc',
       'description' => empty($type['description'])? '' : $type['description'],
       'type' => MENU_LOCAL_ACTION,
-      'weight' => isset($type['weight'])? $type['weight'] : 0,
+      'weight' => isset($type['weight']) ? $type['weight'] : 0,
     );
     $items['admin/election/list/add/' . $type_mn] = array(
       'title' => 'Add new ' . $type['name'],
@@ -346,7 +351,7 @@ function election_menu() {
       'file' => 'election.admin.inc',
       'description' => empty($type['description'])? '' : $type['description'],
       'type' => MENU_LOCAL_ACTION,
-      'weight' => isset($type['weight'])? $type['weight'] : 0,
+      'weight' => isset($type['weight']) ? $type['weight'] : 0,
     );
     $items['admin/election/' . $type_mn] = array(
       'title' => drupal_ucfirst($type['name']) . ' settings',
@@ -356,7 +361,7 @@ function election_menu() {
       'file' => 'system.admin.inc',
       'file path' => drupal_get_path('module', 'system'),
       'description' => empty($type['description'])? '' : $type['description'],
-      'weight' => isset($type['weight'])? $type['weight'] : 0,
+      'weight' => isset($type['weight']) ? $type['weight'] : 0,
     );
     if (!empty($type['post key'])) {
       $post_key = $type['post key'];
@@ -539,6 +544,7 @@ function election_entity_update($entity, $type) {
         _election_pathauto_update_alias($entity, 'update');
       }
       break;
+
   }
 }
 
@@ -553,6 +559,7 @@ function election_entity_delete($entity, $type) {
         pathauto_entity_path_delete_all('election', $entity);
       }
       break;
+
   }
 }
 
@@ -594,7 +601,7 @@ function election_theme() {
 /**
  * Generate an array for rendering the given election.
  *
- * @param $election
+ * @param stdClass $election
  *   An election object.
  * @param $view_mode
  *   View mode, e.g. 'full', 'teaser'...
@@ -723,9 +730,9 @@ function _election_is_open($status, $open_time, $close_time) {
  * field of an election for display.
  *
  * @todo make this themeable
- * @todo use this to replace code in class views_handler_field_election_post_eligibility
  *
  * @param stdClass $election
+ *   An election object.
  * @param string $status_prefix
  *   The type of status ('v' for voting, 'n' for nominations).
  *
@@ -755,12 +762,12 @@ function _election_format_status(stdClass $election, $status_prefix = 'v') {
 
 /**
  * General function for creating breadcrumbs. Accepts any number of parameters,
- * each corresponding to the breadcrumb link. Output must be sanitized before
- * passing to this function. The string '_POST_' will be replaced by the
- * election's post type name.
+ * each corresponding to the breadcrumb link. The first parameter, if given,
+ * must be an election object. Output must be sanitized before passing to this
+ * function.
  *
  * @param stdClass $election
- * @param string $part
+ *   An election object (optional).
  *
  * @return array
  *   An array of breadcrumb parts that can be provided to drupal_set_breadcrumb().
@@ -792,12 +799,15 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
         $posts_name = _election_get_posts_name($election->type, TRUE);
         $link = l(drupal_ucfirst($posts_name), $election_uri_path . '/posts');
         break;
+
       case '_CANDIDATES_':
         $link = l(t('Candidates'), $election_uri_path . '/candidates');
         break;
+
       default:
         $link = $arg;
         break;
+
     }
     $links[] = $link;
   }
@@ -849,7 +859,7 @@ function _election_get_posts_name($type_mn, $plural = FALSE) {
   return $name;
 }
 
-/*
+/**
  * Implements hook_file_download_access().
  *
  * Allow private files to be downloaded when they are attached to an election
@@ -874,7 +884,7 @@ function election_views_api() {
   );
 }
 
-/*
+/**
  * Implements hook_views_default_views().
  */
 function election_views_default_views() {
@@ -905,11 +915,11 @@ function election_menu_position_rule_plugins() {
 /**
  * Update the URL aliases for an individual election.
  *
- * @param $election
+ * @param stdClass $election
  *   A election object.
- * @param $op
+ * @param string $op
  *   Operation being performed on the election ('insert', 'update' or 'bulkupdate').
- * @param $options
+ * @param array $options
  *   An optional array of additional options.
  */
 function _election_pathauto_update_alias(stdClass $election, $op, array $options = array()) {
@@ -930,12 +940,12 @@ function _election_pathauto_update_alias(stdClass $election, $op, array $options
 /**
  * Update the URL aliases for multiple elections.
  *
- * @param $election_ids
+ * @param array $election_ids
  *   An array of election IDs.
- * @param $op
+ * @param string $op
  *   Operation being performed on the elections ('insert', 'update' or
  *   'bulkupdate').
- * @param $options
+ * @param array $options
  *   An optional array of additional options.
  */
 function _election_pathauto_update_alias_multiple(array $election_ids, $op, array $options = array()) {

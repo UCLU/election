@@ -58,20 +58,25 @@ function election_tokens($type, array $tokens, array $data = array(), array $opt
         case 'id':
           $replacements[$original] = $election->election_id;
           break;
+
         case 'type':
           $replacements[$original] = $sanitize ? check_plain($election->type) : $election->type;
           break;
+
         case 'type_name':
           $type = _election_type_get_info($election->type);
           $type_name = $type['name'];
           $replacements[$original] = $sanitize ? check_plain($type_name) : $type_name;
           break;
+
         case 'title':
           $replacements[$original] = $sanitize ? check_plain($election->title) : $election->title;
           break;
+
         case 'created':
           $replacements[$original] = format_date($election->created, 'medium');
           break;
+
       }
     }
   }

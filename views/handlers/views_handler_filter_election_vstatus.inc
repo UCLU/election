@@ -5,7 +5,7 @@
  */
 class views_handler_filter_election_vstatus extends views_handler_filter_boolean_operator {
 
-  function query() {
+  public function query() {
     $table = $this->ensure_my_table();
     $vars = array(
       ':openstatus' => ELECTION_STATUS_OPEN,

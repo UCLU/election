@@ -77,6 +77,7 @@ function election_condition_modules_enabled($modules = array()) {
     if (function_exists($module . '_condition_info')) {
       _election_condition_install_code_conditions();
       break;
+
     }
   }
 }
@@ -93,11 +94,12 @@ function election_condition_modules_disabled($modules = array()) {
     if (function_exists($module . '_condition_info')) {
       _election_condition_uninstall_code_conditions();
       break;
+
     }
   }
 }
 
-/*
+/**
  * Delete conditions from the DB only if they are not assigned to any posts AND
  * they do not (or no longer) exist in code.
  *
@@ -157,7 +159,7 @@ function _election_condition_install_code_conditions() {
   foreach (_election_condition_get_code_conditions() as $condition_mn => $condition) {
     $record = array(
       'machine_name' => $condition_mn,
-      'name' => empty($condition['name'])? $condition_mn : $condition['name'],
+      'name' => empty($condition['name']) ? $condition_mn : $condition['name'],
       'description' => @$condition['description'],
       'locked' => 1,
       'changed' => REQUEST_TIME,
@@ -299,6 +301,7 @@ function election_condition_entity_delete($entity, $type) {
         ->condition('post_id', $entity->post_id)
         ->execute();
     break;
+
   }
 }
 

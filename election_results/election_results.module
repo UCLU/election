@@ -108,7 +108,8 @@ function election_results_page(stdClass $post) {
  *
  * Alter the form at election/%election/posts.
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @return void
  */
 function election_results_form_election_post_manage_form_alter(&$form) {
@@ -132,6 +133,7 @@ function election_results_form_election_post_manage_form_alter(&$form) {
  * Download a ballot file.
  *
  * @param stdClass $post
+ *   An election post object.
  * @return void
  */
 function _election_results_download_blt($post) {
