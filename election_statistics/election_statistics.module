@@ -106,7 +106,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
     '#rows' => $rows,
   );
 
-  $posts_table = array();
+  $posts_table = NULL;
   if (count($post_ids)) {
     $posts = election_post_load_multiple($post_ids);
     $header = array(
@@ -135,11 +135,57 @@ function election_statistics_preprocess_election_statistics(&$variables) {
     );
   }
 
+  $top_ips_table = NULL;
+  $ips = db_query_range('SELECT ip, COUNT(DISTINCT vote_id) AS votes FROM {election_vote} JOIN {election_post} USING(post_id) WHERE election_id = :eid GROUP BY ip ORDER BY COUNT(vote_id) DESC', 0, 10, array(':eid' => $election->election_id));
+  if ($ips->rowCount()) {
+    $header = array(t('IP address'), t('Vote count'));
+    $rows = array();
+    foreach ($ips as $row) {
+      $rows[] = array(check_plain($row->ip), number_format((int) $row->votes));
+    }
+    $top_ips_table = array(
+      '#caption' => t('Top 10 IP addresses'),
+      '#theme' => 'table',
+      '#header' => $header,
+      '#rows' => $rows,
+    );
+  }
+
+  $last_ips_table = NULL;
+  $last_ips = db_query_range('SELECT vote_time, ip, agent FROM {election_vote} JOIN {election_post} USING(post_id) WHERE election_id = :eid ORDER BY vote_time DESC', 0, 20, array(':eid' => $election->election_id));
+  if ($last_ips->rowCount()) {
+    $header = array(t('Time'), t('IP address'), t('Browser'));
+    $rows = array();
+    $browsecap = TRUE;
+    if (!ini_get('browscap')) {
+      $browsecap = FALSE;
+    }
+    foreach ($last_ips as $row) {
+      $browser = FALSE;
+      if ($browsecap) {
+        $browser = get_browser($row->agent);
+      }
+      $rows[] = array(
+        format_date($row->vote_time, 'short'),
+        check_plain($row->ip),
+        $browser? check_plain($browser->parent) : t('Browscap not installed'),
+      );
+    }
+    $last_ips_table = array(
+      '#caption' => t('Last 20 IP addresses'),
+      '#theme' => 'table',
+      '#header' => $header,
+      '#rows' => $rows,
+    );
+  }
+
   $variables['totals'] = $totals;
 
   $variables['content'] = array();
   $variables['content']['election_table'] = $election_table;
   $variables['content']['posts_table'] = $posts_table;
+  $variables['content']['top_ips_table'] = $top_ips_table;
+  $variables['content']['last_ips_table'] = $last_ips_table;
 
 }
 
