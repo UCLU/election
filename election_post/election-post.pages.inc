@@ -7,7 +7,7 @@
  */
 
 /**
- * Page callback for election/%election/posts/list
+ * Page callback for 'election/%election/posts/list'.
  */
 function election_post_list_page(stdClass $election) {
 
@@ -40,11 +40,13 @@ function election_post_list_page(stdClass $election) {
 /**
  * Form builder function for election-post/%election_post/vote
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
  * @param array &$form_state
+ *   The Form API state array.
  *
  * @return array $form
+ *   Render array.
  */
 function election_post_vote_form($form, &$form_state, $post) {
 
@@ -244,9 +246,10 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
 /**
  * Validate the voting form (general).
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
  * @param array &$form_state
+ *   The Form API state array.
  */
 function election_post_vote_form_validate($form, &$form_state) {
 
@@ -262,9 +265,10 @@ function election_post_vote_form_validate($form, &$form_state) {
 /**
  * Validate the voting form (positions only).
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
  * @param array &$form_state
+ *   The Form API state array.
  */
 function election_post_position_vote_form_validate($form, &$form_state) {
 

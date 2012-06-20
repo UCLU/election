@@ -207,10 +207,10 @@ function election_post_entity_info() {
  * @param string $op
  *   The operation being performed. One of 'view', 'update', 'create', 'delete'
  *   or just 'edit' (being the same as 'create' or 'update').
- * @param stdClass $election
+ * @param stdClass $post
  *   Optionally a post to check access for. If nothing is given, access for all
  *   posts is determined.
- * @param $account
+ * @param stdClass $account
  *   The user to check for. Leave it to NULL to check for the global user.
  * @return boolean
  *   Whether access is allowed or not.
@@ -454,14 +454,15 @@ function election_post_manage_page_title($election) {
 }
 
 /**
- * Title callback for election-post/%election_post (output should not
- * be escaped here as it is done later).
+ * Title callback for 'election-post/%election_post'.
  *
- * @param stdClass $election
- *   An election object.
+ * Output should not be escaped here as it is done later.
+ *
  * @param stdClass $post
+ * The election post object.
  *
  * @return string
+ * The title of the post.
  */
 function election_post_page_title($post) {
   return $post->title;
@@ -616,7 +617,7 @@ function template_preprocess_election_post(&$variables) {
  *   An election object.
  * @param stdClass $post
  *   An election post object.
- * @param string $type
+ * @param string $status_prefix
  *   The type of status ('v' for voting, 'n' for nominations).
  *
  * @return string
@@ -708,8 +709,6 @@ function _election_post_format_eligibility(stdClass $post, $election = NULL) {
 /**
  * Menu callback for an election post, path: election-post/%election_post.
  *
- * @param stdClass $election
- *   An election object.
  * @param stdClass $post
  *   An election post object.
  * @param string $view_mode

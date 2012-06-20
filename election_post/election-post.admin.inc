@@ -7,9 +7,9 @@
 /**
  * Form builder function for adding or editing an election post.
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
- * @param stdClass &$form_state
+ * @param array &$form_state
  *   The form state array.
  * @param stdClass $post
  *   An election post object.
@@ -80,7 +80,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
     '#type' => 'checkboxes',
     '#title' => t('Roles eligible to vote'),
     '#options' => $roles_that_can_vote_global,
-    '#description' => t('Select the roles eligible to vote in this election. There may be other restrictions. Only roles with the permission \'vote in elections\' are listed here.'),
+    '#description' => t("Select the roles eligible to vote in this election. There may be other restrictions. Only roles with the permission 'vote in elections' are listed here."),
     '#default_value' => (array) $post->rids,
   );
 
@@ -134,9 +134,9 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
  *
  * @see election_post_form()
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
- * @param stdClass &$form_state
+ * @param array &$form_state
  *   The form state array.
  * @param stdClass $post
  *
@@ -171,9 +171,9 @@ function election_post_motion_form($form, &$form_state, $post, $election) {
  *
  * @see election_post_form()
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
- * @param stdClass &$form_state
+ * @param array &$form_state
  *   The form state array.
  * @param stdClass $post
  *   An election post object.
@@ -246,9 +246,9 @@ function election_post_position_form($form, &$form_state, $post, $election) {
 /**
  * Form submit function for the Delete button in the form election_post_form.
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
- * @param stdClass &$form_state
+ * @param array &$form_state
  *   The form state array.
  * @return void
  */
@@ -270,9 +270,9 @@ function election_post_form_delete_submit($form, &$form_state) {
 /**
  * Form validate function for the form election_post_form.
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
- * @param stdClass &$form_state
+ * @param array &$form_state
  *   The form state array.
  * @return void
  */
@@ -291,9 +291,9 @@ function election_post_form_validate($form, &$form_state) {
 /**
  * Form submit function for the Save button in the form election_post_form.
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
- * @param stdClass &$form_state
+ * @param array &$form_state
  *   The form state array.
  * @return void
  */
@@ -335,15 +335,15 @@ function election_post_form_submit($form, &$form_state) {
 
 /**
  * Form builder function to confirm the delete action for an election post.
+ *
  * See http://api.drupal.org/api/drupal/modules--system--system.module/function/confirm_form.
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
- * @param stdClass &$form_state
+ * @param array &$form_state
  *   The form state array.
- * @param stdClass $election
- *   An election object.
  * @param stdClass $post
+ *   The election post object.
  *
  * @return array
  *   Render array.
@@ -384,9 +384,9 @@ function election_post_form_delete_confirm($form, &$form_state, $post) {
 /**
  * Form submit function for the Delete button in the form election_post_form_delete_confirm.
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
- * @param stdClass &$form_state
+ * @param array &$form_state
  *   The form state array.
  * @return void
  */
@@ -430,7 +430,7 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
  * Form builder function for the administrative list of election posts, path:
  * election/%election/posts/manage.
  *
- * @param stdClass $form
+ * @param array $form
  *   The Drupal Form API form definition.
  * @param array $form_state
  * @param stdClass $election
