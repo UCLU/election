@@ -845,7 +845,7 @@ function election_candidate_entity_update($entity, $type) {
   switch ($type) {
     case 'election_candidate':
       if (module_exists('pathauto')) {
-        pathauto_election_candidate_update_alias($entity, 'update');
+        _election_candidate_pathauto_update_alias($entity, 'update');
       }
     break;
   }
@@ -884,7 +884,7 @@ function election_candidate_entity_insert($entity, $type) {
   switch ($type) {
     case 'election_candidate':
       if (module_exists('pathauto')) {
-        pathauto_election_candidate_update_alias($entity, 'insert');
+        _election_candidate_pathauto_update_alias($entity, 'insert');
       }
       break;
     case 'election':
@@ -921,7 +921,7 @@ function election_candidate_file_download_access($field, $entity_type, $entity) 
  * @param $options
  *   An optional array of additional options.
  */
-function pathauto_election_candidate_update_alias(stdClass $candidate, $op, array $options = array()) {
+function _election_candidate_pathauto_update_alias(stdClass $candidate, $op, array $options = array()) {
   // Skip processing if the candidate has no pattern.
   if (!pathauto_pattern_load_by_entity('election_candidate', 'election_candidate')) {
     return;
@@ -952,11 +952,11 @@ function pathauto_election_candidate_update_alias(stdClass $candidate, $op, arra
  * @param $options
  *   An optional array of additional options.
  */
-function pathauto_election_candidate_update_alias_multiple(array $candidate_ids, $op, array $options = array()) {
+function _election_candidate_pathauto_update_alias_multiple(array $candidate_ids, $op, array $options = array()) {
   $options += array('message' => FALSE);
   $candidates = election_candidate_load_multiple($candidate_ids);
   foreach ($candidates as $candidate) {
-    pathauto_election_candidate_update_alias($candidate, $op, $options);
+    _election_candidate_pathauto_update_alias($candidate, $op, $options);
   }
   if (!empty($options['message'])) {
     drupal_set_message(format_plural(count($candidate_ids), 'Updated URL alias for 1 candidate.', 'Updated URL aliases for @count candidates.'));
