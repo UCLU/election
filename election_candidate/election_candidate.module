@@ -995,14 +995,16 @@ function election_candidate_views_default_views() {
  * @return array
  * An array of candidate objects keyed by candidate ID.
  */
-function election_candidate_load_by_post(stdClass $post, $statuses = NULL) {
+function election_candidate_load_by_post(stdClass $post, $statuses = NULL, $order_by = 'RAND()') {
   $select = db_select('election_candidate', 'ec')
     ->fields('ec', array('candidate_id'))
     ->condition('post_id', $post->post_id);
   if ($statuses !== NULL) {
     $select->condition('cstatus', (array) $statuses, 'IN');
   }
-  $select->orderBy('RAND()');
+  if (!empty($order_by)) {
+    $select->orderBy($order_by);
+  }
   $candidate_ids = $select->execute()->fetchCol();
   $candidates = election_candidate_load_multiple($candidate_ids);
   return $candidates;

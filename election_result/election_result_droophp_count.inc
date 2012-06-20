@@ -18,7 +18,7 @@ class election_result_droophp_count extends DrooPHP_Count {
 
     $dp_election->num_seats = $post->vacancy_count;
 
-    $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED, ELECTION_CANDIDATE_WITHDRAWN));
+    $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED, ELECTION_CANDIDATE_WITHDRAWN), FALSE);
 
     $dp_election->num_candidates = count($candidates);
 
