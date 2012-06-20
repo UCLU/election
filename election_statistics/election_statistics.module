@@ -64,9 +64,7 @@ function election_statistics_theme() {
  */
 function theme_election_statistics($variables) {
 
-  $output = '';
-  $output .= "<p>Total number of votes: {$variables['total_votes']}</p>";
-  $output .= "<p>Total number of voters: {$variables['total_voters']}</p>";
+  $output = render($variables['content']);
 
   return $output;
 }
@@ -76,10 +74,72 @@ function theme_election_statistics($variables) {
  */
 function election_statistics_preprocess_election_statistics(&$variables) {
   $election = $variables['election'];
-  $total_votes = db_query('SELECT COUNT(DISTINCT ev.vote_id) FROM {election_vote} ev JOIN {election_post} ep USING (post_id) WHERE ep.election_id = :eid', array(':eid' => $election->election_id))->fetchField();
-  $variables['total_votes'] = $total_votes;
-  $total_voters = db_query('SELECT COUNT(DISTINCT ev.uid) FROM {election_vote} ev JOIN {election_post} ep USING (post_id) WHERE ep.election_id = :eid', array(':eid' => $election->election_id))->fetchField();
-  $variables['total_voters'] = $total_voters;
+
+  $totals = db_query('SELECT COUNT(DISTINCT ev.vote_id) AS votes, COUNT(DISTINCT ev.uid) AS voters FROM {election_vote} ev JOIN {election_post} ep USING (post_id) WHERE ep.election_id = :eid', array(':eid' => $election->election_id))->fetch();
+  $totals->abstentions = db_query('SELECT COUNT(DISTINCT IF(eb.abstain, eb.vote_id, NULL)) FROM {election_ballot} eb JOIN {election_post} ep USING (post_id) WHERE ep.election_id = :eid', array(':eid' => $election->election_id))->fetchField();
+
+  $post_ids = db_query('SELECT post_id FROM {election_post} WHERE election_id = :eid', array(':eid' => $election->election_id))->fetchCol();
+  $totals->posts = count($post_ids);
+
+  $post_name = _election_get_posts_name($election->type);
+  $posts_name = _election_get_posts_name($election->type, TRUE);
+
+  $header = array(
+    'election' => t('Title'),
+    'posts' => check_plain(drupal_ucfirst($posts_name)),
+    'voters' => t('Voters'),
+    'votes' => t('Votes (inc. abstentions)'),
+    'abstentions' => t('Abstentions')
+  );
+  $rows = array();
+  $rows[] = array(
+    'title' => check_plain($election->title),
+    'posts' => number_format($totals->posts),
+    'voters' => number_format($totals->voters),
+    'votes' => number_format($totals->votes),
+    'abstentions' => number_format($totals->abstentions),
+  );
+  $election_table = array(
+    '#caption' => t('Election totals'),
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
+  );
+
+  $posts = election_post_load_multiple($post_ids);
+  $header = array(
+    'post' => check_plain(drupal_ucfirst($post_name)),
+    'votes' => t('Votes (inc. abstentions)'),
+    'abstentions' => t('Abstentions')
+  );
+  $rows = array();
+
+  $posts_statistics = db_query('SELECT post_id, COUNT(DISTINCT vote_id) AS votes, COUNT(DISTINCT IF(abstain=1,vote_id,NULL)) AS abstentions FROM {election_ballot} WHERE post_id IN(:pid) GROUP BY post_id', array(':pid' => $post_ids))->fetchAllAssoc('post_id');
+
+  foreach ($posts as $post) {
+    if (!isset($posts_statistics[$post->post_id])) {
+      continue;
+    }
+    $stats = $posts_statistics[$post->post_id];
+    $rows[] = array(
+      'post' => check_plain($post->title),
+      'votes' => number_format($stats->votes),
+      'abstentions' => number_format($stats->abstentions),
+    );
+  }
+  $posts_table = array(
+    '#caption' => t('Totals per @post_name', array('@post_name' => $post_name)),
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
+  );
+
+  $variables['totals'] = $totals;
+
+  $variables['content'] = array();
+  $variables['content']['election_table'] = $election_table;
+  $variables['content']['posts_table'] = $posts_table;
+
 }
 
 /**
@@ -87,5 +147,6 @@ function election_statistics_preprocess_election_statistics(&$variables) {
  */
 function election_statistics_page(stdClass $election) {
   drupal_set_title(t('%election: Statistics', array('%election' => $election->title)), PASS_THROUGH);
+  drupal_set_breadcrumb(_election_build_breadcrumb($election));
   return theme('election_statistics', array('election' => $election));
 }
