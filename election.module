@@ -536,7 +536,7 @@ function election_entity_update($entity, $type) {
   switch ($type) {
     case 'election':
       if (module_exists('pathauto')) {
-        pathauto_election_update_alias($entity, 'update');
+        _election_pathauto_update_alias($entity, 'update');
       }
       break;
   }
@@ -562,7 +562,7 @@ function election_entity_delete($entity, $type) {
 function election_entity_insert($entity, $type) {
   if ($type == 'election') {
     if (module_exists('pathauto')) {
-      pathauto_election_update_alias($entity, 'insert');
+      _election_pathauto_update_alias($entity, 'insert');
     }
   }
 }
@@ -912,7 +912,7 @@ function election_menu_position_rule_plugins() {
  * @param $options
  *   An optional array of additional options.
  */
-function pathauto_election_update_alias(stdClass $election, $op, array $options = array()) {
+function _election_pathauto_update_alias(stdClass $election, $op, array $options = array()) {
   // Skip processing if the election has no pattern.
   if (!pathauto_pattern_load_by_entity('election', $election->type)) {
     return;
@@ -938,11 +938,11 @@ function pathauto_election_update_alias(stdClass $election, $op, array $options 
  * @param $options
  *   An optional array of additional options.
  */
-function pathauto_election_update_alias_multiple(array $election_ids, $op, array $options = array()) {
+function _election_pathauto_update_alias_multiple(array $election_ids, $op, array $options = array()) {
   $options += array('message' => FALSE);
   $elections = election_load_multiple($election_ids);
   foreach ($elections as $election) {
-    pathauto_election_update_alias($election, $op, $options);
+    _election_pathauto_update_alias($election, $op, $options);
   }
   if (!empty($options['message'])) {
     drupal_set_message(format_plural(count($election_ids), 'Updated URL alias for 1 election.', 'Updated URL aliases for @count elections.'));
