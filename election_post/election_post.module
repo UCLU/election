@@ -16,7 +16,7 @@ function election_post_menu() {
       $post_key = $type['post key'];
       $post_name = _election_get_posts_name($type_mn);
       $post_name_plural = _election_get_posts_name($type_mn, TRUE);
-      $items['admin/election/' . $type_mn . '/' . $post_key] = array(
+      $items['admin/config/election/' . $type_mn . '/' . $post_key] = array(
         'title' => drupal_ucfirst($post_name) . ' settings',
         'title callback' => 'check_plain',
         'page callback' => 'system_admin_menu_block_page',
@@ -119,7 +119,7 @@ function election_post_menu() {
 function election_post_menu_alter(&$items) {
   $election_types = election_types();
   foreach (election_types() as $type_mn => $type) {
-    $path = 'admin/election/' . $type_mn;
+    $path = 'admin/config/election/' . $type_mn;
     if (!empty($type['post key'])) {
       $post_key = $type['post key'];
       $post_name_plural = _election_get_posts_name($type_mn, TRUE);
@@ -188,9 +188,9 @@ function election_post_entity_info() {
       $entities['election_post']['bundles'][$post_key] = array(
         'label' => drupal_ucfirst($post_name),
         'admin' => array(
-          'path' => 'admin/election/' . $type_mn . '/' . $post_key,
-          'real path' => 'admin/election/' . $type_mn . '/' . $post_key,
-          'bundle argument' => 3,
+          'path' => 'admin/config/election/' . $type_mn . '/' . $post_key,
+          'real path' => 'admin/config/election/' . $type_mn . '/' . $post_key,
+          'bundle argument' => 4,
           'access arguments' => array('administer elections'),
         ),
         'metatags' => FALSE, // for the Metatags module

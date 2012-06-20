@@ -46,9 +46,9 @@ function election_entity_info() {
     $entities['election']['bundles'][$type_mn] = array(
       'label' => drupal_ucfirst($type['name']),
       'admin' => array(
-        'path' => 'admin/election/' . $type_mn,
-        'real path' => 'admin/election/' . $type_mn,
-        'bundle argument' => 2,
+        'path' => 'admin/config/election/' . $type_mn,
+        'real path' => 'admin/config/election/' . $type_mn,
+        'bundle argument' => 3,
         'access arguments' => array('administer elections'),
       ),
     );
@@ -310,7 +310,7 @@ function election_menu() {
 
   $items = array();
 
-  $items['admin/election'] = array(
+  $items['admin/config/election'] = array(
     'title' => 'Elections',
     'description' => 'Administer elections and referendums.',
     'page callback' => 'system_admin_menu_block_page',
@@ -320,7 +320,7 @@ function election_menu() {
     'weight' => 1,
   );
 
-  $items['admin/election/list'] = array(
+  $items['admin/config/election/list'] = array(
     'title' => 'Election list',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_list_form'),
@@ -342,7 +342,7 @@ function election_menu() {
       'type' => MENU_LOCAL_ACTION,
       'weight' => isset($type['weight']) ? $type['weight'] : 0,
     );
-    $items['admin/election/list/add/' . $type_mn] = array(
+    $items['admin/config/election/list/add/' . $type_mn] = array(
       'title' => 'Add new ' . $type['name'],
       'title callback' => 'check_plain',
       'page callback' => 'election_page_add',
@@ -353,7 +353,7 @@ function election_menu() {
       'type' => MENU_LOCAL_ACTION,
       'weight' => isset($type['weight']) ? $type['weight'] : 0,
     );
-    $items['admin/election/' . $type_mn] = array(
+    $items['admin/config/election/' . $type_mn] = array(
       'title' => drupal_ucfirst($type['name']) . ' settings',
       'title callback' => 'check_plain',
       'page callback' => 'system_admin_menu_block_page',
@@ -367,7 +367,7 @@ function election_menu() {
       $post_key = $type['post key'];
       $post_name = _election_get_posts_name($type_mn);
       $post_name_plural = _election_get_posts_name($type_mn, TRUE);
-      $items['admin/election/' . $type_mn . '/' . $post_key] = array(
+      $items['admin/config/election/' . $type_mn . '/' . $post_key] = array(
         'title' => drupal_ucfirst($post_name) . ' settings',
         'title callback' => 'check_plain',
         'page callback' => 'system_admin_menu_block_page',
@@ -428,7 +428,7 @@ function election_menu() {
  */
 function election_menu_alter(&$items) {
   foreach (election_types() as $type_mn => $type) {
-    $path = 'admin/election/' . $type_mn;
+    $path = 'admin/config/election/' . $type_mn;
     unset($items[$path . '/settings']);
     $items[$path . '/fields']['weight'] = -2;
     $items[$path . '/fields']['type'] = MENU_NORMAL_ITEM;
