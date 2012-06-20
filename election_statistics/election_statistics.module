@@ -1,0 +1,91 @@
+<?php
+/**
+ * @file
+ * Election Statistics primary module file.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function election_statistics_menu() {
+  $items = array();
+
+  $items['election/%election/statistics'] = array(
+    'title' => 'Statistics',
+    'page callback' => 'election_statistics_page',
+    'page arguments' => array(1),
+    'access callback' => 'election_statistics_access',
+    'access arguments' => array('view', 1),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 4,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function election_statistics_permission() {
+  $permissions = array(
+    'view election statistics' => array(
+      'title' => t('View election statistics'),
+      'description' => t('This allows the user to view election statistics, if they already have permission to view the election.'),
+    ),
+  );
+  return $permissions;
+}
+
+/**
+ * Access callback for viewing an election's statistics.
+ */
+function election_statistics_access($op, $election, $account = NULL) {
+  if (!election_access('view', $election, $account)) {
+    return FALSE;
+  }
+  return user_access('view election statistics');
+}
+
+/**
+ * Implements hook_theme().
+ */
+function election_statistics_theme() {
+  return array(
+    'election_statistics' => array(
+      'variables' => array(
+        'election' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Theme election statistics.
+ */
+function theme_election_statistics($variables) {
+
+  $output = '';
+  $output .= "<p>Total number of votes: {$variables['total_votes']}</p>";
+  $output .= "<p>Total number of voters: {$variables['total_voters']}</p>";
+
+  return $output;
+}
+
+/**
+ * Implements template_preprocess_election_statistics().
+ */
+function election_statistics_preprocess_election_statistics(&$variables) {
+  $election = $variables['election'];
+  $total_votes = db_query('SELECT COUNT(DISTINCT ev.vote_id) FROM {election_vote} ev JOIN {election_post} ep USING (post_id) WHERE ep.election_id = :eid', array(':eid' => $election->election_id))->fetchField();
+  $variables['total_votes'] = $total_votes;
+  $total_voters = db_query('SELECT COUNT(DISTINCT ev.uid) FROM {election_vote} ev JOIN {election_post} ep USING (post_id) WHERE ep.election_id = :eid', array(':eid' => $election->election_id))->fetchField();
+  $variables['total_voters'] = $total_voters;
+}
+
+/**
+ * Page callback for election/%election/statistics.
+ */
+function election_statistics_page(stdClass $election) {
+  drupal_set_title(t('%election: Statistics', array('%election' => $election->title)), PASS_THROUGH);
+  return theme('election_statistics', array('election' => $election));
+}
