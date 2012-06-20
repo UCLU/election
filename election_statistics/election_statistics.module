@@ -89,7 +89,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
     'posts' => check_plain(drupal_ucfirst($posts_name)),
     'voters' => t('Voters'),
     'votes' => t('Votes (inc. abstentions)'),
-    'abstentions' => t('Abstentions')
+    'abstentions' => t('Abstentions'),
   );
   $rows = array();
   $rows[] = array(
@@ -112,7 +112,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
     $header = array(
       'post' => check_plain(drupal_ucfirst($post_name)),
       'votes' => t('Votes (inc. abstentions)'),
-      'abstentions' => t('Abstentions')
+      'abstentions' => t('Abstentions'),
     );
     $rows = array();
     $posts_statistics = db_query('SELECT post_id, COUNT(DISTINCT vote_id) AS votes, COUNT(DISTINCT IF(abstain=1,vote_id,NULL)) AS abstentions FROM {election_ballot} WHERE post_id IN(:pid) GROUP BY post_id', array(':pid' => $post_ids))->fetchAllAssoc('post_id');
@@ -168,7 +168,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
       $rows[] = array(
         format_date($row->vote_time, 'short'),
         check_plain($row->ip),
-        $browser? check_plain($browser->parent) : t('Browscap not installed'),
+        $browser ? check_plain($browser->parent) : t('Browscap not installed'),
       );
     }
     $last_ips_table = array(

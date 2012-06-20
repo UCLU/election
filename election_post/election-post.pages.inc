@@ -247,8 +247,6 @@ function election_post_position_vote_form($form, &$form_state, $post, $election)
  * @param stdClass $form
  *   The Drupal Form API form definition.
  * @param array &$form_state
- *
- * @return void
  */
 function election_post_vote_form_validate($form, &$form_state) {
 
@@ -267,8 +265,6 @@ function election_post_vote_form_validate($form, &$form_state) {
  * @param stdClass $form
  *   The Drupal Form API form definition.
  * @param array &$form_state
- *
- * @return void
  */
 function election_post_position_vote_form_validate($form, &$form_state) {
 
@@ -363,7 +359,7 @@ function theme_election_vote_confirm($variables) {
       }
       $rows[] = array(
         $candidate_item,
-        $rank == 'NONE'? t('No preference') : _election_vote_get_ordinal($rank)
+        $rank == 'NONE' ? t('No preference') : _election_vote_get_ordinal($rank),
       );
     }
     return theme('table', array(

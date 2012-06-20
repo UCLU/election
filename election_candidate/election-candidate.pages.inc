@@ -106,12 +106,12 @@ function election_candidate_display_previous_nominations(stdClass $election, arr
   $rows = array();
   foreach ($previous_nominations as $nomination) {
     $post = election_post_load($nomination->post_id);
-    $post_title = empty($post)? '?' : check_plain($post->title);
+    $post_title = empty($post) ? '?' : check_plain($post->title);
     $rows[] = array(
       format_date($nomination->created, 'short'),
       $post_title,
       check_plain($nomination->first_name . ' ' . $nomination->last_name),
-      _election_candidate_format_status($nomination)
+      _election_candidate_format_status($nomination),
     );
   }
   return array(
@@ -243,7 +243,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
     '#title' => t('Email address'),
     '#size' => 30,
     '#required' => TRUE,
-    '#default_value' => empty($user->mail)? NULL: $user->mail,
+    '#default_value' => empty($user->mail) ? NULL: $user->mail,
   );
 
   $form['phone'] = array(
@@ -518,7 +518,7 @@ function election_candidate_edit_form($form, $form_state, stdClass $candidate) {
   $form['user_info']['current_user'] = array(
     '#title' => t('Associated user account'),
     '#type' => 'item',
-    '#default_value' => empty($candidate_account)? NULL : $candidate_account->name,
+    '#default_value' => empty($candidate_account) ? NULL : $candidate_account->name,
     '#weight' => 1,
   );
   if (empty($account)) {

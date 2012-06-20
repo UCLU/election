@@ -113,7 +113,7 @@ function election_type_get_names($ucfirst = TRUE) {
   $names = array();
   $types = election_types();
   foreach ($types as $mn => $type) {
-    $names[$mn] = $ucfirst? drupal_ucfirst($type['name']) : $type['name'];
+    $names[$mn] = $ucfirst ? drupal_ucfirst($type['name']) : $type['name'];
   }
   return $names;
 }
@@ -338,7 +338,7 @@ function election_menu() {
       'page arguments' => array(2),
       'access arguments' => array('administer elections'),
       'file' => 'election.admin.inc',
-      'description' => empty($type['description'])? '' : $type['description'],
+      'description' => empty($type['description']) ? '' : $type['description'],
       'type' => MENU_LOCAL_ACTION,
       'weight' => isset($type['weight']) ? $type['weight'] : 0,
     );
@@ -349,7 +349,7 @@ function election_menu() {
       'page arguments' => array(4),
       'access arguments' => array('administer elections'),
       'file' => 'election.admin.inc',
-      'description' => empty($type['description'])? '' : $type['description'],
+      'description' => empty($type['description']) ? '' : $type['description'],
       'type' => MENU_LOCAL_ACTION,
       'weight' => isset($type['weight']) ? $type['weight'] : 0,
     );
@@ -360,7 +360,7 @@ function election_menu() {
       'access arguments' => array('administer elections'),
       'file' => 'system.admin.inc',
       'file path' => drupal_get_path('module', 'system'),
-      'description' => empty($type['description'])? '' : $type['description'],
+      'description' => empty($type['description']) ? '' : $type['description'],
       'weight' => isset($type['weight']) ? $type['weight'] : 0,
     );
     if (!empty($type['post key'])) {
@@ -757,7 +757,7 @@ function _election_format_status(stdClass $election, $status_prefix = 'v') {
     }
   }
   $is_open = _election_is_open($status, $open_time, $close_time);
-  return $is_open? $open_status : $closed_status;
+  return $is_open ? $open_status : $closed_status;
 }
 
 /**

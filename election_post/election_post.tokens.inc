@@ -45,7 +45,7 @@ function election_post_tokens($type, array $tokens, array $data = array(), array
   $replacements = array();
   if ($type == 'election_post' && !empty($data['election_post'])) {
     $post = $data['election_post'];
-    $election = empty($post->election)? election_load($post->election_id) : $post->election;
+    $election = empty($post->election) ? election_load($post->election_id) : $post->election;
     foreach ($tokens as $name => $original) {
       switch ($name) {
         case 'id':

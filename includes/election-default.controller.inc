@@ -17,7 +17,7 @@ class ElectionDefaultController extends EntityAPIControllerExportable {
   public function save($entity, DatabaseTransaction $transaction = NULL) {
 
     // Determine whether the entity is new.
-    $primary_key = @$this->entityInfo['entity keys']['id'] ?: 'id';
+    $primary_key = isset($this->entityInfo['entity keys']['id']) ? $this->entityInfo['entity keys']['id'] : 'id';
     $entity->is_new = empty($entity->$primary_key);
 
     // Convert timestamp fields.
