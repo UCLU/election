@@ -2,8 +2,6 @@
 /**
  * @file
  * Class extending DrooPHPCount (for running an STV count on an election post).
- *
- * @todo
  */
 class election_results_droophp_count extends DrooPHP_Count {
 
@@ -47,13 +45,14 @@ class election_results_droophp_count extends DrooPHP_Count {
     */
     foreach ($result as $row) {
       $dp_election->num_ballots++;
-      if (!strlen($row->ballot)) { // abstention
+      // If the string $row->ballot is empty, it indicates an abstention: increment invalid ballot count and move on.
+      if (!strlen($row->ballot)) {
         $dp_election->num_invalid_ballots++;
         continue;
       }
       else {
         $dp_election->num_valid_ballots++;
-        // The $key (string) means that identical ballots can simply have their ->value property incremented (saves memory).
+        // The string $key means that identical ballots can simply have their ->value property incremented (saves memory).
         $key = $row->ballot;
         if (isset($dp_election->ballots[$key])) {
           $dp_election->ballots[$key]->value++;

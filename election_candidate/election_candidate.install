@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- *   Install functions for the Election Candidate module.
+ * Install functions for the Election Candidate module.
  */
 
 require_once 'election_candidate.constants.inc';
@@ -34,7 +34,8 @@ function election_candidate_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
-      'cstatus' => array( // 'status' as field name causes Entity API confusion
+      // Using 'status' as a column name would cause Entity API confusion.
+      'cstatus' => array(
         'description' => sprintf(
           'The candidate\'s status: pending %d, approved %d, withdrawn %d, or rejected %d.',
           ELECTION_CANDIDATE_PENDING,
@@ -146,9 +147,7 @@ function election_candidate_schema_alter(&$schema) {
  * Implements hook_install().
  */
 function election_candidate_install() {
-
   menu_rebuild();
-
 }
 
 /**

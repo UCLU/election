@@ -8,7 +8,8 @@
 /**
  * Form builder function for the main administrative election candidate list.
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array $form_state
  * @param stdClass $election
  *
@@ -168,13 +169,13 @@ function election_candidate_totals_page(stdClass $election) {
 /**
  * Form builder function for the form at "election/%election/candidates/download".
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array $form_state
  * @param stdClass $election
  */
 function election_candidate_download_form($form, &$form_state, stdClass $election) {
 
-//  drupal_set_title(t('Download candidate data'), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
 
   $candidate_field_instances = field_info_instances('election_candidate', 'election_candidate');
@@ -245,7 +246,7 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
   $property_options = array();
   $default_properties = array();
   foreach ($properties as $property_key => $property) {
-    $label = is_string($property)? $property : $property['label'];
+    $label = is_string($property) ? $property : $property['label'];
     $property_options[$property_key] = $label;
     if (isset($property['default']) && $property['default'] === TRUE) {
       $default_properties[] = $property_key;
@@ -279,7 +280,8 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
 /**
  * Submit callback for the form election_candidate_download_form.
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array $form_state
  */
 function election_candidate_download_form_submit($form, &$form_state) {
@@ -319,7 +321,7 @@ function election_candidate_download_form_submit($form, &$form_state) {
 
   $property_headers = array();
   foreach ($properties as $property) {
-    $property_headers[] = is_string($property)? $property : $property['label'];
+    $property_headers[] = is_string($property) ? $property : $property['label'];
   }
 
   fputcsv($outstream, $property_headers, $separator, $enclosure);
@@ -329,7 +331,7 @@ function election_candidate_download_form_submit($form, &$form_state) {
     $row = array();
     foreach ($properties as $property_key => $property) {
       $value = _election_candidate_download_format_property($candidate, $property_key, $property);
-      $row[$property_key] = strlen($value)? $value : $empty;
+      $row[$property_key] = strlen($value) ? $value : $empty;
     }
 
     fputcsv($outstream, $row, $separator, $enclosure);
@@ -349,16 +351,18 @@ function election_candidate_download_form_submit($form, &$form_state) {
  * @param stdClass $candidate
  */
 function _election_candidate_download_format_property(stdClass $candidate, $property_key, $property) {
-  $value = isset($candidate->{$property_key})? $candidate->{$property_key} : NULL;
+  $value = isset($candidate->{$property_key}) ? $candidate->{$property_key} : NULL;
   switch ($property_key) {
     case 'profile_link':
       return url(election_candidate_uri_path($candidate), array('absolute' => TRUE));
       return $election->title;
       break;
+
     case 'election_title':
       $election = election_load($candidate->election_id);
       return $election->title;
       break;
+
     case 'post_title':
       if (empty($candidate->post_id)) {
         return;
@@ -366,9 +370,11 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
       $post = election_post_load($candidate->post_id);
       return $post->title;
       break;
+
     case 'cstatus':
       return _election_candidate_format_status($candidate);
       break;
+
   }
   $type = 'string';
   if (is_array($property) && !empty($property['type'])) {
@@ -378,17 +384,20 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
     case 'timestamp':
       return date('Y-m-d H:i:s', $value);
       break;
+
     case 'string':
       if (is_string($value)) {
         return check_plain($value);
       }
       break;
+
     case 'file':
     case 'image':
       if (is_array($value) && isset($value['und'][0]['uri'])) {
         return file_create_url($value['und'][0]['uri']);
       }
       break;
+
     default:
       if (is_array($value)) {
         if (isset($value['und'][0]['safe_value'])) {

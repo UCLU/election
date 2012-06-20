@@ -7,9 +7,12 @@
 /**
  * Form builder function for adding or editing an election post.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @param stdClass $post
+ *   An election post object.
  * @param stdClass $election
  *   Optional: the election the post belongs to.
  *
@@ -54,7 +57,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
-    '#default_value' => isset($post->title)? $post->title : '',
+    '#default_value' => isset($post->title) ? $post->title : '',
     '#required' => TRUE,
     '#weight' => -100,
   );
@@ -93,7 +96,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
   $form['voting']['vstatus_inheritance'] = array(
     '#type' => 'radios',
     '#title' => t('Voting status'),
-    '#default_value' => isset($post->vstatus_inheritance)? $post->vstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
+    '#default_value' => isset($post->vstatus_inheritance) ? $post->vstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
     '#options' => array(
       ELECTION_POST_STATUS_INHERIT => t('Inherited (currently: %status)', array('%status' => strip_tags(_election_format_status($election, 'v')))),
       ELECTION_POST_STATUS_CLOSED => t('Closed'),
@@ -131,14 +134,15 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
  *
  * @see election_post_form()
  *
- * @param array $form
- * @param array &$form_state
- * @param stdClass $election
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @param stdClass $post
  *
  * @return array
  */
-function election_post_motion_form($form, &$form_state, $post, $election = NULL) {
+function election_post_motion_form($form, &$form_state, $post, $election) {
 
   $form['allow_abstention'] = array(
     '#type' => 'select',
@@ -151,7 +155,7 @@ function election_post_motion_form($form, &$form_state, $post, $election = NULL)
         '@no' => t('No'),
       )
     ),
-    '#default_value' => isset($post->allow_abstention)? $post->allow_abstention : 1,
+    '#default_value' => isset($post->allow_abstention) ? $post->allow_abstention : 1,
     '#options' => array(
       1 => t('Allow abstention'),
       0 => t('Do not allow abstention'),
@@ -167,31 +171,31 @@ function election_post_motion_form($form, &$form_state, $post, $election = NULL)
  *
  * @see election_post_form()
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @param stdClass $post
+ *   An election post object.
  * @param stdClass $election
+ *   The election the post belongs to.
  *
  * @return array
  */
-function election_post_position_form($form, &$form_state, $post, $election = NULL) {
-
-  if (empty($election)) {
-    $election = election_load($post->election_id);
-  }
+function election_post_position_form($form, &$form_state, $post, $election) {
 
   $form['exclusive'] = array(
     '#type' => 'checkbox',
     '#title' => t('Exclusive'),
     '#description' => t('A candidate can only stand for one exclusive position per election.<br /><strong>N.B. if anonymous users are given permission to submit nominations, exclusivity cannot be enforced.</strong>'),
-    '#default_value' => isset($post->exclusive)? $post->exclusive : 1,
+    '#default_value' => isset($post->exclusive) ? $post->exclusive : 1,
     '#weight' => -30,
   );
 
   $form['vacancy_count'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of vacancies'),
-    '#default_value' => isset($post->vacancy_count)? $post->vacancy_count : 1,
+    '#default_value' => isset($post->vacancy_count) ? $post->vacancy_count : 1,
     '#size' => 2,
     '#maxlength' => 2,
     '#required' => TRUE,
@@ -201,7 +205,7 @@ function election_post_position_form($form, &$form_state, $post, $election = NUL
   $form['use_ron'] = array(
     '#type' => 'select',
     '#title' => t('RON (Re-Open Nominations)'),
-    '#default_value' => isset($post->use_ron)? $post->use_ron : 1,
+    '#default_value' => isset($post->use_ron) ? $post->use_ron : 1,
     '#options' => array(
       1 => t('Include RON as a candidate'),
       0 => t('Do not include RON'),
@@ -209,7 +213,8 @@ function election_post_position_form($form, &$form_state, $post, $election = NUL
     '#weight' => -10,
   );
 
-  if (!variable_get('election_allow_multi_vacancy_ron', TRUE)) { // @todo settings form
+  // @todo Implement a settings form, to allow RON in multi-vacancy positions.
+  if (!variable_get('election_allow_multi_vacancy_ron', TRUE)) {
     $form['use_ron']['#states'] = array(
       'visible' => array(
         ':input[name=vacancy_count]' => array('value' => '1'),
@@ -228,7 +233,7 @@ function election_post_position_form($form, &$form_state, $post, $election = NUL
   $form['nominations']['nstatus_inheritance'] = array(
     '#type' => 'radios',
     '#title' => t('Nominations status'),
-    '#default_value' => isset($post->nstatus_inheritance)? $post->nstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
+    '#default_value' => isset($post->nstatus_inheritance) ? $post->nstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
     '#options' => array(
       ELECTION_POST_STATUS_INHERIT => t('Inherited (currently: %status)', array('%status' => strip_tags(_election_format_status($election, 'n')))),
       ELECTION_POST_STATUS_CLOSED => t('Closed'),
@@ -241,8 +246,10 @@ function election_post_position_form($form, &$form_state, $post, $election = NUL
 /**
  * Form submit function for the Delete button in the form election_post_form.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @return void
  */
 function election_post_form_delete_submit($form, &$form_state) {
@@ -263,8 +270,10 @@ function election_post_form_delete_submit($form, &$form_state) {
 /**
  * Form validate function for the form election_post_form.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @return void
  */
 function election_post_form_validate($form, &$form_state) {
@@ -282,8 +291,10 @@ function election_post_form_validate($form, &$form_state) {
 /**
  * Form submit function for the Save button in the form election_post_form.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @return void
  */
 function election_post_form_submit($form, &$form_state) {
@@ -326,9 +337,12 @@ function election_post_form_submit($form, &$form_state) {
  * Form builder function to confirm the delete action for an election post.
  * See http://api.drupal.org/api/drupal/modules--system--system.module/function/confirm_form.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @param stdClass $election
+ *   An election object.
  * @param stdClass $post
  *
  * @return array
@@ -370,8 +384,10 @@ function election_post_form_delete_confirm($form, &$form_state, $post) {
 /**
  * Form submit function for the Delete button in the form election_post_form_delete_confirm.
  *
- * @param array $form
- * @param array &$form_state
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
+ * @param stdClass &$form_state
+ *   The form state array.
  * @return void
  */
 function election_post_form_delete_confirm_submit($form, &$form_state) {
@@ -414,7 +430,8 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
  * Form builder function for the administrative list of election posts, path:
  * election/%election/posts/manage.
  *
- * @param array $form
+ * @param stdClass $form
+ *   The Drupal Form API form definition.
  * @param array $form_state
  * @param stdClass $election
  *
@@ -423,7 +440,6 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
  */
 function election_post_manage_form($form, $form_state, $election) {
 
-  // @todo this should not be necessary
   $title = election_post_manage_page_title($election);
   drupal_set_title($title, PASS_THROUGH);
   drupal_set_breadcrumb(

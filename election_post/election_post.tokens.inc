@@ -51,13 +51,16 @@ function election_post_tokens($type, array $tokens, array $data = array(), array
         case 'id':
           $replacements[$original] = $post->post_id;
           break;
+
         case 'title':
           $replacements[$original] = $post->title;
           break;
+
         case 'election':
           $election = $post->election;
           $replacements[$original] = $sanitize ? check_plain($election->title) : $election->title;
           break;
+
       }
     }
     if ($election_tokens = token_find_with_prefix($tokens, 'election')) {

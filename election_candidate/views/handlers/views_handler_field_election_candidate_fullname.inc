@@ -6,20 +6,20 @@
 
 class views_handler_field_election_candidate_fullname extends views_handler_field {
 
-  function construct() {
+  public function construct() {
     parent::construct();
     $this->additional_fields['first_name'] = 'first_name';
     $this->additional_fields['last_name'] = 'last_name';
   }
 
-  function init(&$view, &$options) {
+  public function init(&$view, &$options) {
     parent::init($view, $options);
     if (!empty($this->options['link_to_candidate'])) {
       $this->additional_fields['candidate_id'] = array('table' => 'election_candidate', 'field' => 'candidate_id');
     }
   }
 
-  function option_definition() {
+  public function option_definition() {
     $options = parent::option_definition();
     $options['link_to_candidate'] = array('default' => isset($this->definition['link_to_candidate default']) ? $this->definition['link_to_candidate default'] : FALSE);
     return $options;
@@ -28,7 +28,7 @@ class views_handler_field_election_candidate_fullname extends views_handler_fiel
   /**
    * Provide 'link to candidate' option
    */
-  function options_form(&$form, &$form_state) {
+  public function options_form(&$form, &$form_state) {
     $form['link_to_candidate'] = array(
       '#title' => t('Link this field to the candidate\'s profile.'),
       '#description' => t("Enable to override this field's links."),
@@ -44,7 +44,7 @@ class views_handler_field_election_candidate_fullname extends views_handler_fiel
    *
    * Data should be made XSS safe prior to calling this function.
    */
-  function render_link($data, $values) {
+  public function render_link($data, $values) {
     if (!empty($this->options['link_to_candidate'])) {
       if ($data !== NULL && $data !== '') {
         $this->options['alter']['make_link'] = TRUE;
@@ -57,12 +57,12 @@ class views_handler_field_election_candidate_fullname extends views_handler_fiel
     return $data;
   }
 
-  function query() {
+  public function query() {
     $this->ensure_my_table();
     $this->add_additional_fields();
   }
 
-  function render($values) {
+  public function render($values) {
     $first_name = $this->get_value($values, 'first_name');
     $last_name = $this->get_value($values, 'last_name');
     $data = check_plain($first_name . ' ' . $last_name);

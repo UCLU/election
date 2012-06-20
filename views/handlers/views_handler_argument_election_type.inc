@@ -16,7 +16,7 @@ class views_handler_argument_election_type extends views_handler_argument_numeri
    *
    * @return array
    */
-  function title_query() {
+  public function title_query() {
     $names = array();
     $election_types = election_types();
     foreach ($this->value as $machine_name) {

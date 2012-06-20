@@ -11,14 +11,14 @@
  */
 class views_handler_field_election_post extends views_handler_field {
 
-  function init(&$view, &$options) {
+  public function init(&$view, &$options) {
     parent::init($view, $options);
     if (!empty($this->options['link_to_post'])) {
       $this->additional_fields['post_id'] = array('table' => 'election_post', 'field' => 'post_id');
     }
   }
 
-  function option_definition() {
+  public function option_definition() {
     $options = parent::option_definition();
     $options['link_to_post'] = array('default' => isset($this->definition['link_to_post default']) ? $this->definition['link_to_post default'] : FALSE);
     return $options;
@@ -27,7 +27,7 @@ class views_handler_field_election_post extends views_handler_field {
   /**
    * Provide link to election option
    */
-  function options_form(&$form, &$form_state) {
+  public function options_form(&$form, &$form_state) {
     $form['link_to_post'] = array(
       '#title' => t('Link this field to the election post'),
       '#description' => t("Enable to override this field's links."),
@@ -43,7 +43,7 @@ class views_handler_field_election_post extends views_handler_field {
    *
    * Data should be made XSS safe prior to calling this function.
    */
-  function render_link($data, $values) {
+  public function render_link($data, $values) {
     if (empty($this->options['link_to_post'])) {
       return $data;
     }
@@ -59,7 +59,7 @@ class views_handler_field_election_post extends views_handler_field {
     return $data;
   }
 
-  function render($values) {
+  public function render($values) {
     $value = $this->get_value($values);
     return $this->render_link($this->sanitize_value($value), $values);
   }

@@ -58,19 +58,24 @@ function election_candidate_tokens($type, array $tokens, array $data = array(), 
         case 'id':
           $replacements[$original] = $candidate->candidate_id;
           break;
+
         case 'mail':
           $replacements[$original] = $sanitize ? check_plain($candidate->mail) : $candidate->mail;
           break;
+
         case 'first_name':
           $replacements[$original] = $sanitize ? check_plain($candidate->first_name) : $candidate->first_name;
           break;
+
         case 'last_name':
           $replacements[$original] = $sanitize ? check_plain($candidate->last_name) : $candidate->last_name;
           break;
+
         case 'election':
           $election = election_load($candidate->election_id);
           $replacements[$original] = $sanitize ? check_plain($election->title) : $election->title;
           break;
+
       }
     }
     if ($election_tokens = token_find_with_prefix($tokens, 'election')) {

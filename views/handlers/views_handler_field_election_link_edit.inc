@@ -4,13 +4,13 @@
  * Field handler to present a link to edit an election.
  */
 class views_handler_field_election_link_edit extends views_handler_field_election_link {
-  function construct() {
+  public function construct() {
     parent::construct();
     $this->additional_fields['type'] = 'type';
     $this->additional_fields['uid'] = 'uid';
   }
 
-  function render_link($data, $values) {
+  public function render_link($data, $values) {
     // ensure user has access to edit this election.
     $election = new stdClass();
     $election->election_id = $this->get_value($values, 'election_id');

@@ -7,7 +7,7 @@
  */
 class views_handler_filter_election_post_eligibility extends views_handler_filter_in_operator {
 
-  function get_value_options() {
+  public function get_value_options() {
     $this->value_options = array(
       1 => t('Eligible'),
       2 => t('Already voted'),
@@ -17,7 +17,7 @@ class views_handler_filter_election_post_eligibility extends views_handler_filte
     return $this->value_options;
   }
 
-  function query() {
+  public function query() {
     $table = $this->ensure_my_table();
     if (empty($this->value)) {
       return;
