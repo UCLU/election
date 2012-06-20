@@ -209,9 +209,7 @@ function _election_result_download_blt($post) {
   );
 
   echo "# Votes are below, each line is in the format:\n";
-  echo "#   [VOTE_ID] MULTIPLIER PREFERENCE PREFERENCE PREFERENCE 0\n";
-  echo "# Preferences are represented by an integer 'key' for each candidate (see the end of this file).\n";
-  echo "# They can be omitted, in the case of abstention or incomplete rankings.\n";
+  echo "#   [(VOTE_ID)] MULTIPLIER [PREFERENCE PREFERENCE PREFERENCE ...] 0\n";
 
   // @todo performance work & batch mode
   foreach ($result as $row) {
