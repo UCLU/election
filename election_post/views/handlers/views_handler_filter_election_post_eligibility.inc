@@ -10,7 +10,7 @@ class views_handler_filter_election_post_eligibility extends views_handler_filte
   function get_value_options() {
     $this->value_options = array(
       1 => t('Eligible'),
-      2 => t('Already voted')
+      2 => t('Already voted'),
       3 => t('Eligible, but voting is currently unavailable.'),
       4 => t('Ineligible'),
     );
