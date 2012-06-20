@@ -4,4 +4,3 @@ package = Election
 core = 7.x
 dependencies[] = election
 dependencies[] = election_post
-dependencies[] = election_results
