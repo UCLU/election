@@ -65,7 +65,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
   $form['role_access'] = array(
     '#type' => 'fieldset',
     '#title' => t('Role eligibility'),
-    '#collapsible' => FALSE,
+    '#collapsible' => TRUE,
     '#weight' => 10,
   );
   $roles_that_can_vote_global = user_roles(FALSE, 'vote in elections');
@@ -84,6 +84,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
   $form['voting'] = array(
     '#type' => 'fieldset',
     '#title' => t('Voting'),
+    '#collapsible' => TRUE,
     '#weight' => 98,
   );
   $form['voting']['vstatus_inheritance'] = array(
@@ -206,7 +207,7 @@ function election_post_stv_settings_form($form, &$form_state, stdClass $post, st
   $form['nominations'] = array(
     '#type' => 'fieldset',
     '#title' => t('Nominations'),
-    '#collapsible' => FALSE,
+    '#collapsible' => TRUE,
     '#weight' => 97,
   );
 

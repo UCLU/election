@@ -709,7 +709,7 @@ function _election_is_open($status, $open_time, $close_time) {
  */
 function _election_format_status(stdClass $election, $status_prefix = 'v') {
   // Nominations aren't relevant to elections that don't have candidates.
-  if (!empty($election->type_info['has candidates']) && $status_prefix == 'n') {
+  if ($status_prefix == 'n' && empty($election->type_info['has candidates'])) {
     return t('N/A');
   }
   $status = $election->{$status_prefix . 'status'};
