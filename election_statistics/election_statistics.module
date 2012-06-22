@@ -91,12 +91,25 @@ function election_statistics_preprocess_election_statistics(&$variables) {
     'abstentions' => t('Abstentions'),
   );
   $rows = array();
-  $rows[] = array(
+  $rows[0] = array(
     'posts' => number_format($totals->posts),
     'voters' => number_format($totals->voters),
     'votes' => number_format($totals->votes),
     'abstentions' => number_format($totals->abstentions),
   );
+
+  if (!empty($election->type_info['has candidates'])) {
+    $candidates = db_query('SELECT COUNT(DISTINCT candidate_id) AS total, COUNT(DISTINCT IF(cstatus=:approved,candidate_id,NULL)) AS approved FROM {election_candidate} WHERE election_id = :eid', array(':eid' => $election->election_id, ':approved' => ELECTION_CANDIDATE_APPROVED))->fetch();
+    $header += array(
+      'candidates' => t('Candidates'),
+      'approved_candidates' => t('Approved candidates'),
+    );
+    $rows[0] += array(
+      'candidates' => number_format($candidates->total),
+      'approved_candidates' => number_format($candidates->approved),
+    );
+  }
+
   $election_table = array(
     '#caption' => t('Election totals'),
     '#theme' => 'table',
