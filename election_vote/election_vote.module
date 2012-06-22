@@ -704,14 +704,10 @@ function election_vote_referendum_save_votes($form, &$form_state, $post, $electi
  *
  * @param stdClass $post
  *   An election post object.
- * @param stdClass $election
- *   The election the post belongs to (optional).
  */
-function _election_vote_format_eligibility(stdClass $post, $election = NULL) {
+function _election_vote_format_eligibility(stdClass $post) {
 
-  if ($election === NULL) {
-    $election = empty($post->election)? election_load($post->election_id) : $post->election;
-  }
+  $election = $post->election;
 
   $post_name = _election_get_posts_name($election->type);
 
@@ -841,9 +837,6 @@ function election_vote_html_head_alter(&$head_elements) {
  *   FALSE otherwise.
  */
 function _election_vote_post_has_approved_candidates($post) {
-  if (!module_exists('election_candidate')) { // @todo sort this dependency
-    return;
-  }
   $num_candidates = db_query('SELECT COUNT(candidate_id) FROM {election_candidate} WHERE post_id = :pid AND cstatus = :approved', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED))->fetchField(0);
   return ($num_candidates > 1 || ($num_candidates == 1 && $post->use_ron));
 }
@@ -854,8 +847,7 @@ function _election_vote_post_has_approved_candidates($post) {
 function election_vote_preprocess_election_post(&$variables) {
 
   $post = $variables['elements']['#post'];
-  $election = $post->election;
 
-  $variables['eligibility'] = _election_vote_format_eligibility($post, $election);
+  $variables['eligibility'] = _election_vote_format_eligibility($post);
 
 }
