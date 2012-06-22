@@ -39,7 +39,7 @@ class views_handler_field_election_candidate_fullname extends views_handler_fiel
    */
   public function options_form(&$form, &$form_state) {
     $form['link_to_candidate'] = array(
-      '#title' => t('Link this field to the candidate\'s profile.'),
+      '#title' => t("Link this field to the candidate's profile."),
       '#description' => t("Enable to override this field's links."),
       '#type' => 'checkbox',
       '#default_value' => !empty($this->options['link_to_candidate']),

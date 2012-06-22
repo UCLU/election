@@ -121,7 +121,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
       '#type' => 'submit',
       '#value' => t('Delete'),
       '#submit' => array('election_post_form_delete_submit'),
-      '#access' => entity_access('update', 'election', $election), // deleting a post is really 'updating' an election
+      '#access' => election_post_access('delete', $post),
     );
   }
 

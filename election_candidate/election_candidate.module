@@ -859,7 +859,7 @@ function election_candidate_entity_update($entity, $type) {
       if (module_exists('pathauto')) {
         _election_candidate_pathauto_update_alias($entity, 'update');
       }
-    break;
+      break;
 
   }
 }
@@ -873,7 +873,7 @@ function election_candidate_entity_delete($entity, $type) {
     case 'election':
       $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE election_id = :eid', array(':eid' => $entity->election_id))->fetchCol();
       election_candidate_delete_multiple($candidate_ids);
-    break;
+      break;
 
     // Clear the post_id property of associated candidates when a post is deleted.
     case 'election_post':
@@ -881,14 +881,14 @@ function election_candidate_entity_delete($entity, $type) {
         ->fields(array('post_id' => NULL))
         ->condition('post_id', $entity->post_id)
         ->execute();
-    break;
+      break;
 
     // Delete Pathauto path aliases when a candidate is deleted.
     case 'election_candidate':
       if (function_exists('pathauto_entity_path_delete_all')) {
         pathauto_entity_path_delete_all('election_candidate', $entity);
       }
-    break;
+      break;
 
   }
 }
@@ -1042,8 +1042,8 @@ function election_candidate_preprocess_election_post(&$vars) {
     if (!empty($candidates_view)) {
       $vars['content']['candidates'] = array(
         '#markup' => '<div class="election-post-candidates"><h2>' . t('Candidates') . '</h2>'
-          . $candidates_view
-          . '</div>',
+        . $candidates_view
+        . '</div>',
         '#weight' => 100,
       );
     }

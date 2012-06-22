@@ -91,7 +91,7 @@ function election_candidate_views_data() {
   $data['election_candidate']['view_link'] = array(
     'field' => array(
       'title' => t('Profile link'),
-      'help' => t('Provide a simple link to the candidate\'s profile page.'),
+      'help' => t("Provide a simple link to the candidate's profile page."),
       'handler' => 'views_handler_field_election_candidate_link',
     ),
   );

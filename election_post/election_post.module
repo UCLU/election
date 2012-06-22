@@ -226,6 +226,7 @@ function election_post_access($op, $post = NULL, $account = NULL) {
     case 'update':
     case 'edit':
     case 'delete':
+      // Creating, editing or deleting a post has the same access as editing an election.
       if ($post && isset($post->vstatus_inheritance) && _election_post_is_open($post, $election, 'v')) {
         return user_access('bypass running election lock');
       }
@@ -374,14 +375,14 @@ function election_post_entity_delete($entity, $type) {
     case 'election':
       $post_ids = db_query('SELECT post_id FROM {election_post} WHERE election_id = :eid', array(':eid' => $entity->election_id))->fetchCol();
       election_post_delete_multiple($post_ids);
-    break;
+      break;
 
     // Delete Pathauto path aliases when a post is deleted.
     case 'election_post':
       if (function_exists('pathauto_entity_path_delete_all')) {
         pathauto_entity_path_delete_all('election_post', $entity);
       }
-    break;
+      break;
 
   }
 }
@@ -751,8 +752,8 @@ function election_post_preprocess_election(&$vars) {
   }
   $vars['content']['posts'] = array(
     '#markup' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'
-      . views_embed_view('election_posts', $display, $election->election_id)
-      . '</div>',
+    . views_embed_view('election_posts', $display, $election->election_id)
+    . '</div>',
     '#weight' => 100,
   );
 }

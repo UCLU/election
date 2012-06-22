@@ -137,7 +137,7 @@ function _election_results_download_blt($post) {
 
   set_time_limit(0);
 
-  $start_time = microtime(true);
+  $start_time = microtime(TRUE);
 
   $post = election_post_load($post->post_id);
 
@@ -233,7 +233,7 @@ function _election_results_download_blt($post) {
   echo '"' . addcslashes($post->title, '"') . '"' . " # Position title\n";
   echo '"' . addcslashes($election->title, '"') . '"' . " # Election title\n";
 
-  $time = microtime(true) - $start_time;
+  $time = microtime(TRUE) - $start_time;
   echo '# Time to generate file: ' . number_format($time * 1000, 2) . 'ms';
 
   drupal_exit();
@@ -258,8 +258,9 @@ function election_results_count_form($form, &$form_state, stdClass $post) {
       $count = new election_results_droophp_count($post);
       $method = new DrooPHP_Method_Wikipedia($count);
       $method->run();
+      // @todo output this in a sensible format.
       $form['count'] = array(
-        '#markup' => '<pre>' . check_plain(print_r($method->stages, true)) . '</pre>',
+        '#markup' => '<pre>' . check_plain(print_r($method->stages, TRUE)) . '</pre>',
       );
       return $form;
     }

@@ -234,7 +234,7 @@ function election_permission() {
     ),
     'view any election' => array(
       'title' => t('View any election'),
-      'description' => t('This permission allows the user to view elections, including those elections\' posts and approved candidates.'),
+      'description' => t("This permission allows the user to view elections, including those elections' posts and approved candidates."),
     ),
   );
   return $permissions;

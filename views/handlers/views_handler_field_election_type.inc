@@ -34,8 +34,8 @@ class views_handler_field_election_type extends views_handler_field {
   }
 
   /**
-    * Render election type as human readable name, unless using machine_name option.
-    */
+   * Render election type as human readable name, unless using machine_name option.
+   */
   public function render_name($data, $values) {
     if ($this->options['machine_name'] != 1 && $data !== NULL && $data !== '') {
       $type = _election_type_get_info($data);

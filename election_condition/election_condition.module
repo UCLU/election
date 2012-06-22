@@ -291,7 +291,7 @@ function election_condition_entity_delete($entity, $type) {
       db_delete('election_post_condition')
         ->condition('post_id', $entity->post_id)
         ->execute();
-    break;
+      break;
 
   }
 }
