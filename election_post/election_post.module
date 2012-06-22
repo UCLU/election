@@ -681,7 +681,7 @@ function _election_post_pathauto_update_alias(stdClass $post, $op, array $option
   if (!pathauto_pattern_load_by_entity('election_post', $post->type)) {
     return;
   }
-  $election = $post->election;
+  $election = empty($post->election)? election_load($post->election_id) : $post->election;
   module_load_include('inc', 'pathauto');
   pathauto_create_alias(
     'election_post',
