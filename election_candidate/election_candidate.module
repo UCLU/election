@@ -117,17 +117,20 @@ function election_candidate_permission() {
  */
 function election_candidate_access($op, $candidate = NULL, $account = NULL) {
   if ($account === NULL) {
-    global $user;
-    $account = $user;
+    $account = $GLOBALS['user'];
+  }
+  $election = NULL;
+  if (!empty($candidate)) {
+    $election = election_load($candidate->election_id);
   }
   switch ($op) {
     case 'view':
-      // Users with the 'edit any election' permission may view all candidates.
-      if (user_access('edit any election', $account)) {
+      // Users who can edit elections can also view the candidates.
+      if (user_access('edit', $election, $account)) {
         return TRUE;
       }
-      // Users with the 'view any election' permission may view approved candidates.
-      if (user_access('view any election', $account) && (empty($candidate) || $candidate->cstatus == ELECTION_CANDIDATE_APPROVED)) {
+      // Users who can view the election can also view the candidates (if approved).
+      if (election_access('view', $election, $account) && (empty($candidate) || $candidate->cstatus == ELECTION_CANDIDATE_APPROVED)) {
         return TRUE;
       }
       break;
@@ -135,15 +138,16 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
     case 'edit':
     case 'update':
     case 'delete':
-    case 'view details': // 'Details' include personal contact information.
-      if (user_access('edit any election', $account)) {
+      if (election_access('edit', $election, $account)) {
         return TRUE;
       }
       break;
 
-    case 'create':
-      // Make sure we're explicitly "nominating" not creating by some other means.
-      return FALSE;
+    case 'view details':
+      // 'Details' include personal contact information. Only editors can view details.
+      if (election_access('edit', $election, $account)) {
+        return TRUE;
+      }
       break;
 
     case 'nominate':
@@ -151,7 +155,9 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
       break;
 
   }
-  if (!empty($candidate) && !empty($candidate->uid) && $candidate->uid == $account->uid) {
+  // Deal with candidates that were nominated by the user.
+  $own = (!empty($candidate) && $candidate->uid == $account->uid);
+  if ($own) {
     switch ($op) {
       case 'view':
       case 'view details':
@@ -171,22 +177,27 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
 }
 
 /**
- * Helper function to allow access callbacks to work per election, rather than per
- * candidate.
+ * Helper function to allow access callbacks to work per election, rather than per candidate.
  */
 function election_candidate_access_per_election($op, stdClass $election, $account = NULL) {
+  if (empty($account)) {
+    $account = $GLOBALS['user'];
+  }
   if (empty($election->type_info['has candidates'])) {
     // Ignore if this election type doesn't have candidates.
     return FALSE;
   }
   switch ($op) {
     case 'administer':
-      return entity_access('edit', 'election', $election) && user_access('administer candidate field settings');
+      return election_access('edit', $election, $account) && user_access('administer candidate field settings', $account);
       break;
 
     default:
-      return (entity_access('view', 'election', $election, $account) && entity_access($op, 'election_candidate', NULL, $account));
+      return election_access('view', $election, $account) && election_candidate_access($op, NULL, $account);
+      break;
+
   }
+  return FALSE;
 }
 
 /**
@@ -351,7 +362,7 @@ function election_candidate_admin_paths() {
 function election_candidate_menu_local_tasks_alter(&$data, $router_item, $root_path) {
   // Remove nomination form tab if nominations are closed.
   // @todo can this be simpler or quicker?
-  if (substr($root_path, 0, 10) == 'election/%' && $router_item['map'][0] == 'election' && ($election = $router_item['map'][1]) && !_election_is_open($election->nstatus, $election->nopen_time, $election->nclose_time)) {
+  if (substr($root_path, 0, 10) == 'election/%' && $router_item['map'][0] == 'election' && ($election = $router_item['map'][1]) && !_election_is_open($election->nstatus, $election->nopen_time, $election->nclose_time) && !user_access('bypass nominations schedule')) {
     foreach ($data['tabs'][0]['output'] as $key => $tab) {
       if ($tab['#link']['page_callback'] == 'election_page_nomination_form') {
         $data['tabs'][0]['count']--;

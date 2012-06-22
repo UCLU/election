@@ -37,16 +37,16 @@ class views_handler_field_election_link_nominate extends views_handler_field_ele
       return;
     }
 
-    // ensure user has access to view this election.
-    if (!election_candidate_access_per_election('nominate', $election)) {
+    // Ensure the user has access to submit nominations.
+    if (!election_candidate_access('nominate')) {
       return;
     }
 
-    // ensure nominations are open for the election.
+    // Ensure nominations are open for the election.
     $nstatus = $this->get_value($values, 'nstatus');
     $nopen_time = $this->get_value($values, 'nopen_time');
     $nclose_time = $this->get_value($values, 'nclose_time');
-    if (!_election_is_open($nstatus, $nopen_time, $nclose_time)) {
+    if (!_election_is_open($nstatus, $nopen_time, $nclose_time) && !user_access('bypass nominations schedule')) {
       return;
     }
 

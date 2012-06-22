@@ -9,38 +9,86 @@
  */
 function election_results_menu() {
   $items = array();
-  $items['election-post/%election_post/result'] = array(
+  $items['election-post/%election_post/results'] = array(
     'title' => 'Results',
     'page callback' => 'election_results_page',
     'page arguments' => array(1),
-    'access callback' => 'election_post_access',
-    'access arguments' => array('edit', 1),
+    'access callback' => 'election_results_access',
+    'access arguments' => array('view', 1),
     'type' => MENU_LOCAL_TASK,
     'weight' => 4,
   );
-  $items['election-post/%election_post/result/overview'] = array(
+  $items['election-post/%election_post/results/overview'] = array(
     'title' => 'Overview',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
-  $items['election-post/%election_post/result/count'] = array(
+  $items['election-post/%election_post/results/count'] = array(
     'title' => 'Count votes',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_results_count_form', 1),
-    'access callback' => 'election_post_access',
-    'access arguments' => array('edit', 1),
+    'access callback' => 'election_results_access',
+    'access arguments' => array('view', 1),
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
   );
-  $items['election-post/%election_post/result/blt'] = array(
+  $items['election-post/%election_post/results/blt'] = array(
     'title' => 'Download BLT file of votes',
     'page callback' => '_election_results_download_blt',
     'page arguments' => array(1),
-    'access callback' => 'election_post_access',
-    'access arguments' => array('edit', 1),
+    'access callback' => 'election_results_access',
+    'access arguments' => array('download', 1),
     'type' => MENU_CALLBACK,
   );
   return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function election_results_permission() {
+  return array(
+    'view any election results' => array(
+      'title' => t('View any election results'),
+      'description' => t('This allows the user to view the results of any elections.'),
+    ),
+    'view own election results' => array(
+      'title' => t('View own election results'),
+      'description' => t('This allows the user to view the results of their own elections (those to which they have editing access).'),
+    ),
+  );
+}
+
+/**
+ * Access callback for viewing an election post's results.
+ */
+function election_results_access($op, stdClass $post, $account = NULL) {
+  if (empty($account)) {
+    $account = $GLOBALS['user'];
+  }
+  switch ($op) {
+    case 'view':
+      if (_election_post_is_open($post, NULL, 'v') && !user_access('bypass running election lock', $account)) {
+        return FALSE;
+      }
+      elseif (election_post_access('edit', $post, $account) && user_access('view own election results', $account)) {
+        return TRUE;
+      }
+      elseif (user_access('view any election results', $account)) {
+        return TRUE;
+      }
+      return FALSE;
+      break;
+
+    case 'download':
+      if (_election_post_is_open($post, NULL, 'v') && !user_access('bypass running election lock', $account)) {
+        return FALSE;
+      }
+      return election_post_access('edit', $post);
+      break;
+
+  }
+  return FALSE;
 }
 
 /**
@@ -108,17 +156,20 @@ function election_results_page(stdClass $post) {
  */
 function election_results_form_election_post_manage_form_alter(&$form) {
   $election = $form['#election'];
-  // For STV elections, add a 'ballot file' link.
-  if ($election->type == 'stv') {
-    $posts = $form['#posts'];
-    foreach ($form['election_posts']['#rows'] as $post_id => &$row) {
-      $post = $posts[$post_id];
-      if (!empty($post->vote_count) && election_post_access('edit', $post)) {
-        $row['operations']['data']['#items']['results'] = l(
-          t('ballot file (@count)', array('@count' => format_plural($post->vote_count, '1 vote', '@count votes'))),
-          election_post_uri_path($post) . '/result/blt'
-        );
-      }
+  $posts = $form['#posts'];
+  foreach ($form['election_posts']['#rows'] as $post_id => &$row) {
+    $post = $posts[$post_id];
+    $path = election_post_uri_path($post);
+    // Add a 'results' link.
+    if (election_results_access('view', $post)) {
+      $row['operations']['data']['#items']['results'] = l(t('results'), $path . '/results');
+    }
+    // For STV elections, add a 'ballot file' link.
+    if ($election->type == 'stv' && election_results_access('download', $post)) {
+      $row['operations']['data']['#items']['results_blt'] = l(
+        t('ballot file (@count)', array('@count' => format_plural($post->vote_count, '1 vote', '@count votes'))),
+        $path . '/results/blt'
+      );
     }
   }
 }
@@ -144,7 +195,7 @@ function _election_results_download_blt($post) {
     return;
   }
 
-  $filename = 'ElectionResults_'. $election->election_id . '_' . $post->post_id . '_' . date('YmdHis') . '.blt';
+  $filename = 'Ballots_'. $election->election_id . '_' . $post->post_id . '_' . date('YmdHis') . '.blt';
 
   header('Content-Type:text/plain;charset=UTF-8');
   header('Content-Disposition:attachment;filename=' . $filename);

@@ -210,7 +210,7 @@ function election_permission() {
     ),
     'bypass running election lock' => array(
       'title' => t('Bypass running election lock'),
-      'description' => t('This permission allows the user to delete elections, or edit posts, even while voting is open.'),
+      'description' => t('This permission allows the user to delete elections, or edit posts, or view results, even while voting is open (if they have the other relevant permissions).'),
     ),
     'edit any election' => array(
       'title' => t('Edit any election'),
@@ -708,8 +708,9 @@ function _election_is_open($status, $open_time, $close_time) {
  *   The type of status ('v' for voting, 'n' for nominations).
  */
 function _election_format_status(stdClass $election, $status_prefix = 'v') {
+  $type = (empty($election->type_info)) ? _election_type_get_info($election->type) : $election->type_info;
   // Nominations aren't relevant to elections that don't have candidates.
-  if ($status_prefix == 'n' && empty($election->type_info['has candidates'])) {
+  if ($status_prefix == 'n' && empty($type['has candidates'])) {
     return t('N/A');
   }
   $status = $election->{$status_prefix . 'status'};

@@ -14,6 +14,7 @@ class views_handler_field_election_nstatus extends views_handler_field {
     $this->additional_fields['nstatus'] = 'nstatus';
     $this->additional_fields['nopen_time'] = 'nopen_time';
     $this->additional_fields['nclose_time'] = 'nclose_time';
+    $this->additional_fields['type'] = 'type';
   }
 
   /**
