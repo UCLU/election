@@ -1,10 +1,10 @@
 <?php
 /**
  * @file
- * Field handler to present a link to a post's voting form.
+ * Field handler to present a link to an election_post's voting form.
  */
 
-class views_handler_field_election_post_link_vote extends views_handler_field_election_post_link {
+class views_handler_field_election_vote_link extends views_handler_field_election_post_link {
 
   /**
    * Overrides parent::init().
@@ -25,7 +25,7 @@ class views_handler_field_election_post_link_vote extends views_handler_field_el
     $small_post->use_ron = $this->get_value($values, 'use_ron');
 
     // ensure there are actually some candidates to vote for
-    if (!_election_post_has_approved_candidates($small_post)) {
+    if (!_election_vote_post_has_approved_candidates($small_post)) {
       return;
     }
 

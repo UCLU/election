@@ -88,6 +88,8 @@ function election_election_type_info() {
     'post name plural' => t('motions'),
     'post key' => 'motion',
     'weight' => 0,
+    'vote form' => 'election_vote_referendum_vote_form',
+    'save votes' => 'election_vote_referendum_save_votes',
   );
   $types['stv'] = array(
     'name' => t('STV election'),
@@ -97,6 +99,8 @@ function election_election_type_info() {
     'post key' => 'position',
     'weight' => 1,
     'has candidates' => TRUE,
+    'vote form' => 'election_vote_stv_vote_form',
+    'save votes' => 'election_vote_stv_save_votes',
   );
   return $types;
 }
@@ -227,10 +231,6 @@ function election_permission() {
       'title' => t('Edit own elections'),
       'description' => t('This allows the user not only to edit their own elections, but also to administer the posts and candidates for those elections.'),
     ),
-    'vote in elections' => array(
-      'title' => t('Vote in elections'),
-      'description' => t('Users must have this permission in order to vote.'),
-    ),
     'view any election' => array(
       'title' => t('View any election'),
       'description' => t('This permission allows the user to view elections, including those elections\' posts and approved candidates.'),
@@ -279,14 +279,6 @@ function election_access($op, $election = NULL, $account = NULL) {
         return TRUE;
       }
       return user_access('edit any election', $account);
-      break;
-
-    case 'vote':
-      // If checking a specific election, check whether voting is open.
-      if ($election && !_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
-        return FALSE;
-      }
-      return user_access('vote in elections', $account);
       break;
 
     case 'delete':

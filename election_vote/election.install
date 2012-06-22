@@ -1,0 +1,160 @@
+<?php
+/**
+ * @file
+ * Install functions for the Election Vote module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function election_schema() {
+
+  $schema = array();
+
+  $schema['election_ballot'] = array(
+    'description' => 'The ballots table for the election module.',
+    'fields' => array(
+      'ballot_id' => array(
+        'description' => 'Primary key: identifier for a ballot.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'vote_id' => array(
+        'description' => 'Relates to {election_vote}.vote_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'post_id' => array(
+        'description' => 'For referendums: the motion being answered. Relates to {election_post}.post_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'abstain' => array(
+        'description' => 'Whether or not the voter abstained.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'answer' => array(
+        'description' => sprintf(
+          'For referendums: the answer (no %d or yes %d).',
+          ELECTION_ANSWER_NO,
+          ELECTION_ANSWER_YES
+        ),
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => FALSE,
+      ),
+      'candidate_id' => array(
+        'description' => 'For STV elections: the candidate being ranked.'
+                      . ' Relates to {election_candidate}.candidate_id.'
+                      . ' Ignored if {election_ballot}.ron = 1.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'rank' => array(
+        'description' => 'For ranked elections: the rank of the candidate in the ballot.',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'ron' => array(
+        'description' => 'For ranked elections: whether or not the candidate being ranked is RON (Re-Open Nominations).',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('ballot_id'),
+    'indexes' => array(
+      'vote_id' => array('vote_id'),
+      'post_id' => array('post_id'),
+      'candidate_id' => array('candidate_id'),
+      'rank' => array('rank'),
+      'ron' => array('ron'),
+      'answer' => array('answer'),
+      'abstain' => array('abstain'),
+    ),
+    'foreign keys' => array(
+      'vote' => array(
+        'table' => 'election_vote',
+        'columns' => array('vote_id' => 'vote_id'),
+      ),
+    ),
+  );
+
+  $schema['election_vote'] = array(
+    'description' => 'The votes table for the election module. This'
+                  . ' records the act of voting, but not the voting'
+                  . ' preferences (see the {election_ballot} table).',
+    'fields' => array(
+      'vote_id' => array(
+        'description' => 'Primary key: identifier for a vote.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'post_id' => array(
+        'description' => 'The post for which the vote has been made. Relates to {election_post}.post_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'uid' => array(
+        'description' => 'The {users}.uid of the voter.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'ip' => array(
+        'description' => 'The IP address of the voter (v4 or v6).',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'agent' => array(
+        'description' => 'The HTTP User Agent of the voter.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'sid_hash' => array(
+        'description' => 'An MD5 hash of the voter\'s session ID.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'vote_time' => array(
+        'description' => 'A UNIX timestamp for when the vote was cast.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('vote_id'),
+    'indexes' => array(
+      'post_id' => array('post_id'),
+      'uid' => array('uid'),
+      'agent' => array('agent'),
+      'vote_time' => array('vote_time'),
+      'ip' => array('ip'),
+      'sid_hash' => array('sid_hash'),
+    ),
+    'foreign keys' => array(
+      'user' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid'),
+      ),
+    ),
+  );
+
+  return $schema;
+
+}

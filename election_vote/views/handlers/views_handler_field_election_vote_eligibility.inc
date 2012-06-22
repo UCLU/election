@@ -1,10 +1,10 @@
 <?php
 /**
  * @file
- * Contains a field handler for displaying the user's eligibility to vote.
+ * Contains a field handler for displaying the user's eligibility to vote for a specified election_post.
  */
 
-class views_handler_field_election_post_eligibility extends views_handler_field {
+class views_handler_field_election_vote_eligibility extends views_handler_field {
 
   /**
    * Overrides parent::init().
@@ -31,7 +31,7 @@ class views_handler_field_election_post_eligibility extends views_handler_field 
       'vopen_time' => $this->get_value($values, 'vopen_time'),
       'vclose_time' => $this->get_value($values, 'vclose_time'),
     );
-    return _election_post_format_eligibility($post, $election);
+    return _election_vote_format_eligibility($post, $election);
   }
 
 }
