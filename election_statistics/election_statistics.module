@@ -75,8 +75,8 @@ function theme_election_statistics($variables) {
 function election_statistics_preprocess_election_statistics(&$variables) {
   $election = $variables['election'];
 
-  $totals = db_query('SELECT COUNT(DISTINCT ev.vote_id) AS votes, COUNT(DISTINCT ev.uid) AS voters FROM {election_vote} ev JOIN {election_post} ep USING (post_id) WHERE ep.election_id = :eid', array(':eid' => $election->election_id))->fetch();
-  $totals->abstentions = db_query('SELECT COUNT(DISTINCT IF(eb.abstain, eb.vote_id, NULL)) FROM {election_ballot} eb JOIN {election_post} ep USING (post_id) WHERE ep.election_id = :eid', array(':eid' => $election->election_id))->fetchField();
+  $totals = db_query('SELECT COUNT(DISTINCT IF(eb.abstain=0,vote_id,NULL)) AS votes, COUNT(DISTINCT IF(eb.abstain=1, eb.vote_id, NULL)) AS abstentions FROM {election_ballot} eb JOIN {election_post} ep USING (post_id) WHERE ep.election_id = :eid', array(':eid' => $election->election_id))->fetch();
+  $totals->voters = db_query('SELECT COUNT(DISTINCT ev.uid) AS voters FROM {election_vote} ev JOIN {election_post} ep USING (post_id) WHERE ep.election_id = :eid', array(':eid' => $election->election_id))->fetchField();
 
   $post_ids = db_query('SELECT post_id FROM {election_post} WHERE election_id = :eid ORDER BY title', array(':eid' => $election->election_id))->fetchCol();
   $totals->posts = count($post_ids);
@@ -87,7 +87,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
   $header = array(
     'posts' => check_plain(drupal_ucfirst($posts_name)),
     'voters' => t('Voters'),
-    'votes' => t('Votes (inc. abstentions)'),
+    'votes' => t('Votes'),
     'abstentions' => t('Abstentions'),
   );
   $rows = array();
@@ -109,11 +109,11 @@ function election_statistics_preprocess_election_statistics(&$variables) {
     $posts = election_post_load_multiple($post_ids);
     $header = array(
       'post' => check_plain(drupal_ucfirst($post_name)),
-      'votes' => t('Votes (inc. abstentions)'),
+      'votes' => t('Votes'),
       'abstentions' => t('Abstentions'),
     );
     $rows = array();
-    $posts_statistics = db_query('SELECT post_id, COUNT(DISTINCT vote_id) AS votes, COUNT(DISTINCT IF(abstain=1,vote_id,NULL)) AS abstentions FROM {election_ballot} WHERE post_id IN(:pid) GROUP BY post_id', array(':pid' => $post_ids))->fetchAllAssoc('post_id');
+    $posts_statistics = db_query('SELECT post_id, COUNT(DISTINCT IF(abstain=0,vote_id,NULL)) AS votes, COUNT(DISTINCT IF(abstain=1,vote_id,NULL)) AS abstentions FROM {election_ballot} WHERE post_id IN(:pid) GROUP BY post_id', array(':pid' => $post_ids))->fetchAllAssoc('post_id');
     foreach ($posts as $post) {
       if (!isset($posts_statistics[$post->post_id])) {
         continue;
@@ -134,12 +134,12 @@ function election_statistics_preprocess_election_statistics(&$variables) {
   }
 
   $top_ips_table = NULL;
-  $ips = db_query_range('SELECT ip, COUNT(DISTINCT vote_id) AS votes, COUNT(DISTINCT uid) AS voters FROM {election_vote} JOIN {election_post} USING(post_id) WHERE election_id = :eid GROUP BY ip ORDER BY COUNT(DISTINCT uid) DESC, COUNT(DISTINCT vote_id) DESC', 0, 10, array(':eid' => $election->election_id));
+  $ips = db_query_range('SELECT ip, COUNT(DISTINCT uid) AS voters FROM {election_vote} JOIN {election_post} USING(post_id) WHERE election_id = :eid GROUP BY ip ORDER BY COUNT(DISTINCT uid) DESC, COUNT(DISTINCT vote_id) DESC', 0, 10, array(':eid' => $election->election_id));
   if ($ips->rowCount()) {
-    $header = array(t('IP address'), t('Votes'), t('Voters'));
+    $header = array(t('IP address'), t('Voters'));
     $rows = array();
     foreach ($ips as $row) {
-      $rows[] = array(check_plain($row->ip), number_format((int) $row->votes), number_format((int) $row->voters));
+      $rows[] = array(check_plain($row->ip), number_format((int) $row->voters));
     }
     $top_ips_table = array(
       '#caption' => t('Top 10 IP addresses'),
