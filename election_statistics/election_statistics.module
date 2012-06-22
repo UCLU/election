@@ -78,14 +78,13 @@ function election_statistics_preprocess_election_statistics(&$variables) {
   $totals = db_query('SELECT COUNT(DISTINCT ev.vote_id) AS votes, COUNT(DISTINCT ev.uid) AS voters FROM {election_vote} ev JOIN {election_post} ep USING (post_id) WHERE ep.election_id = :eid', array(':eid' => $election->election_id))->fetch();
   $totals->abstentions = db_query('SELECT COUNT(DISTINCT IF(eb.abstain, eb.vote_id, NULL)) FROM {election_ballot} eb JOIN {election_post} ep USING (post_id) WHERE ep.election_id = :eid', array(':eid' => $election->election_id))->fetchField();
 
-  $post_ids = db_query('SELECT post_id FROM {election_post} WHERE election_id = :eid', array(':eid' => $election->election_id))->fetchCol();
+  $post_ids = db_query('SELECT post_id FROM {election_post} WHERE election_id = :eid ORDER BY title', array(':eid' => $election->election_id))->fetchCol();
   $totals->posts = count($post_ids);
 
   $post_name = _election_get_posts_name($election->type);
   $posts_name = _election_get_posts_name($election->type, TRUE);
 
   $header = array(
-    'election' => t('Title'),
     'posts' => check_plain(drupal_ucfirst($posts_name)),
     'voters' => t('Voters'),
     'votes' => t('Votes (inc. abstentions)'),
@@ -93,7 +92,6 @@ function election_statistics_preprocess_election_statistics(&$variables) {
   );
   $rows = array();
   $rows[] = array(
-    'title' => check_plain($election->title),
     'posts' => number_format($totals->posts),
     'voters' => number_format($totals->voters),
     'votes' => number_format($totals->votes),
@@ -122,7 +120,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
       }
       $stats = $posts_statistics[$post->post_id];
       $rows[] = array(
-        'post' => check_plain($post->title),
+        'post' => l(check_plain($post->title), election_post_uri_path($post)),
         'votes' => number_format($stats->votes),
         'abstentions' => number_format($stats->abstentions),
       );
