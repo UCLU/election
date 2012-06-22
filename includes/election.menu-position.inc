@@ -10,6 +10,7 @@
  * @param $variables
  *   An array containing each of the variables saved in the database necessary
  *   to evaluate this condition of the rule.
+ *
  * @return
  *   TRUE if condition applies successfully. Otherwise FALSE.
  */

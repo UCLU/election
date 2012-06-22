@@ -39,7 +39,7 @@ function election_post_views_data() {
   // post_id
   $data['election_post']['post_id'] = array(
     'title' => t('Post ID'),
-    'help' => t('The unique ID of the election post.'), // The help that appears on the UI,
+    'help' => t('The unique ID of the election post.'),
     // Information for displaying the post_id
     'field' => array(
       'handler' => 'views_handler_field_numeric',
@@ -65,7 +65,7 @@ function election_post_views_data() {
   // title
   $data['election_post']['title'] = array(
     'title' => t('Title'), // The item as it appears as on the UI,
-    'help' => t('The title of the election post.'), // The help that appears on the UI,
+    'help' => t('The title of the election post.'),
      // Information for displaying a title as a field
     'field' => array(
       'handler' => 'views_handler_field_election_post',

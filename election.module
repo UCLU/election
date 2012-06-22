@@ -64,7 +64,7 @@ function election_entity_info() {
  * This uses hook_election_type_info() to allow other modules to define types.
  *
  * @return array
- * An array of election types, keyed by the type's machine name. Each element
+ *   An array of election types, keyed by the type's machine name. Each element
  * is also a structured array, defining at least 'name' and 'post key'.
  */
 function election_types() {
@@ -251,6 +251,7 @@ function election_permission() {
  *   given, access for all elections is determined.
  * @param stdClass $account
  *   The user to check for. Leave it to NULL to check for the global user.
+ *
  * @return boolean
  *   Whether access is allowed or not.
  */
@@ -497,6 +498,7 @@ function election_field_extra_fields() {
  *
  * @param array $election_ids
  *   Array of election IDs.
+ *
  * @return bool
  */
 function election_delete_multiple(array $election_ids) {
@@ -510,6 +512,7 @@ function election_delete_multiple(array $election_ids) {
  *
  * @param mixed $election_id
  *   Single election ID.
+ *
  * @return bool
  */
 function election_delete($election_id) {
@@ -521,6 +524,7 @@ function election_delete($election_id) {
  *
  * @param stdClass $election
  *   Election object.
+ *
  * @return bool
  */
 function election_save($election) {
@@ -812,6 +816,7 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
  *
  * @param string $type_mn
  *   The machine name of the type.
+ *
  * @return mixed
  *   A stdClass election type object, or FALSE on failure.
  */
@@ -833,7 +838,9 @@ function _election_type_get_info($type_mn) {
  * Get the post name (i.e. 'motion' or 'position') for an election type.
  *
  * @param string $type_mn
+ *   The machine name of the type.
  * @param bool $plural
+ *   Whether to return a plural name (e.g. 'motions' or 'positions').
  *
  * @return string
  */

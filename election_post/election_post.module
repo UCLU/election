@@ -200,6 +200,7 @@ function election_post_entity_info() {
  *   posts is determined.
  * @param stdClass $account
  *   The user to check for. Leave it to NULL to check for the global user.
+ *
  * @return boolean
  *   Whether access is allowed or not.
  */
@@ -315,6 +316,7 @@ function election_post_entity_load($entities, $type) {
  *
  * @param array $post_ids
  *   Array of post IDs.
+ *
  * @return bool
  */
 function election_post_delete_multiple(array $post_ids) {
@@ -328,6 +330,7 @@ function election_post_delete_multiple(array $post_ids) {
  *
  * @param mixed $post_id
  *   Single post ID.
+ *
  * @return bool
  */
 function election_post_delete($post_id) {
@@ -388,6 +391,7 @@ function election_post_entity_delete($entity, $type) {
  *
  * @param stdClass $post
  *   Election post object.
+ *
  * @return bool
  */
 function election_post_save($post) {
@@ -424,10 +428,10 @@ function election_post_manage_page_title($election) {
  * Output should not be escaped here as it is done later.
  *
  * @param stdClass $post
- * The election post object.
+ *   The election post object.
  *
  * @return string
- * The title of the post.
+ *   The title of the post.
  */
 function election_post_page_title($post) {
   return $post->title;
@@ -601,6 +605,7 @@ function _election_post_format_status(stdClass $election, stdClass $post, $statu
  *   An election object.
  * @param string $status_prefix
  *   The type of status ('v' for voting, 'n' for nominations).
+ *
  * @return bool
  */
 function _election_post_is_open(stdClass $post, $election = NULL, $status_prefix = 'v') {

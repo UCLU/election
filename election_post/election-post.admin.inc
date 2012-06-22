@@ -215,12 +215,6 @@ function election_post_stv_settings_form($form, &$form_state, stdClass $post, st
 
 /**
  * Form submit function for the Delete button in the form election_post_form.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The form state array.
- * @return void
  */
 function election_post_form_delete_submit($form, &$form_state) {
   $destination = array();
@@ -239,12 +233,6 @@ function election_post_form_delete_submit($form, &$form_state) {
 
 /**
  * Form validate function for the form election_post_form.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The form state array.
- * @return void
  */
 function election_post_form_validate($form, &$form_state) {
 
@@ -260,12 +248,6 @@ function election_post_form_validate($form, &$form_state) {
 
 /**
  * Form submit function for the Save button in the form election_post_form.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The form state array.
- * @return void
  */
 function election_post_form_submit($form, &$form_state) {
 
@@ -307,15 +289,8 @@ function election_post_form_submit($form, &$form_state) {
  * Form builder function to confirm the delete action for an election post.
  *
  * See http://api.drupal.org/api/drupal/modules--system--system.module/function/confirm_form.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The form state array.
- * @param stdClass $post
- *   The election post object.
  */
-function election_post_form_delete_confirm($form, &$form_state, $post) {
+function election_post_form_delete_confirm($form, &$form_state, stdClass $post) {
 
   $election = $post->election;
 
@@ -350,12 +325,6 @@ function election_post_form_delete_confirm($form, &$form_state, $post) {
 
 /**
  * Form submit function for the Delete button in the form election_post_form_delete_confirm.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The form state array.
- * @return void
  */
 function election_post_form_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {

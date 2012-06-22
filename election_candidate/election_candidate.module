@@ -41,7 +41,7 @@ function election_candidate_entity_info() {
         'label' => t('Teaser'),
       ),
     ),
-    'redirect' => FALSE, // for the Redirect module
+    'redirect' => FALSE, // Disable fields added by the Redirect module.
   );
 
   return $entities;
@@ -111,6 +111,7 @@ function election_candidate_permission() {
  *   given, access for all candidates is determined.
  * @param stdClass $account
  *   The user to check for. Leave it to NULL to check for the global user.
+ *
  * @return boolean
  *   Whether access is allowed or not.
  */
@@ -437,6 +438,7 @@ function election_candidate_page_title($candidate) {
  *
  * @param stdClass $candidate
  *   Election candidate object.
+ *
  * @return bool
  */
 function election_candidate_save($candidate) {
@@ -448,6 +450,7 @@ function election_candidate_save($candidate) {
  *
  * @param array $candidate_ids
  *   Array of candidate IDs.
+ *
  * @return bool
  */
 function election_candidate_delete_multiple(array $candidate_ids) {
@@ -461,6 +464,7 @@ function election_candidate_delete_multiple(array $candidate_ids) {
  *
  * @param mixed $candidate_id
  *   Single candidate ID.
+ *
  * @return bool
  */
 function election_candidate_delete($candidate_id) {
@@ -1010,7 +1014,7 @@ function election_candidate_views_default_views() {
  *   An array of candidate statuses, by which to filter results.
  *
  * @return array
- * An array of candidate objects keyed by candidate ID.
+ *   An array of candidate objects keyed by candidate ID.
  */
 function election_candidate_load_by_post(stdClass $post, $statuses = NULL, $order_by = 'RAND()') {
   $select = db_select('election_candidate', 'ec')

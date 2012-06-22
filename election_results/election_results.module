@@ -107,10 +107,6 @@ function election_results_page(stdClass $post) {
  * Implements hook_form_FORM_ID_alter().
  *
  * Alter the form at election/%election/posts.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @return void
  */
 function election_results_form_election_post_manage_form_alter(&$form) {
   $election = $form['#election'];
@@ -134,6 +130,7 @@ function election_results_form_election_post_manage_form_alter(&$form) {
  *
  * @param stdClass $post
  *   An election post object.
+ *
  * @return void
  */
 function _election_results_download_blt($post) {

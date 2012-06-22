@@ -106,16 +106,6 @@ function election_vote_access($op, stdClass $post, $account = NULL) {
 
 /**
  * Form builder function for election-post/%election_post/vote
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The Form API state array.
- * @param stdClass $post
- *   The election post object (loaded by the menu system).
- *
- * @return array $form
- *   Render array.
  */
 function election_vote_form($form, &$form_state, stdClass $post) {
 
@@ -313,11 +303,6 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
 
 /**
  * Validate the voting form (general).
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The Form API state array.
  */
 function election_vote_form_validate($form, &$form_state) {
 
@@ -332,11 +317,6 @@ function election_vote_form_validate($form, &$form_state) {
 
 /**
  * Validate the voting form (for STV elections).
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The Form API state array.
  */
 function election_vote_stv_vote_form_validate($form, &$form_state) {
 
@@ -718,11 +698,13 @@ function _election_vote_format_eligibility(stdClass $post, $election = NULL) {
 
 
 /**
- * Find out whether the logged in user has previously voted for the $post.
+ * Find out whether the logged-in user has previously voted for the $post.
  *
  * @param stdClass $post
+ *   The election post object.
  *
  * @return bool
+ *   TRUE if previously voted, FALSE otherwise.
  */
 function election_vote_check_user_previously_voted($post) {
 

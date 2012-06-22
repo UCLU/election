@@ -18,7 +18,7 @@ function election_candidate_views_data() {
   // have a group defined will go into this field by default.
   $data['election_candidate']['table']['group']  = t('Election candidate');
 
-  // Advertise this table as a possible base table
+  // Advertise this table as a possible base table.
   $data['election_candidate']['table']['base'] = array(
     'field' => 'candidate_id',
     'title' => t('Election candidate'),
@@ -44,13 +44,13 @@ function election_candidate_views_data() {
   // candidate_id
   $data['election_candidate']['candidate_id'] = array(
     'title' => t('Candidate ID'),
-    'help' => t('The unique ID of the election candidate.'), // The help that appears on the UI,
-    // Information for displaying the candidate_id
+    'help' => t('The unique ID of the election candidate.'),
+    // Information for displaying the candidate_id.
     'field' => array(
       'handler' => 'views_handler_field_numeric',
       'click sortable' => TRUE,
     ),
-    // Information for accepting a candidate_id as a filter
+    // Information for accepting a candidate_id as a filter.
     'filter' => array(
       'handler' => 'views_handler_filter_numeric',
     ),

@@ -5,11 +5,10 @@
  */
 
 /**
- * Return information about all conditions.
- *
- * @todo document this
+ * Get information about all conditions.
  *
  * @return array
+ *   Array of conditions keyed by machine name.
  */
 function election_condition_conditions($post = NULL) {
   $query = db_select('election_condition', 'ee');
@@ -69,10 +68,8 @@ function _election_condition_get_code_conditions() {
  * Implements hook_modules_enabled().
  */
 function election_condition_modules_enabled($modules = array()) {
-  /*
-    If any of the enabled modules contains an implementation of
-    hook_condition_info, run _election_condition_install_code_conditions().
-  */
+  // If any of the enabled modules contains an implementation of
+  // hook_condition_info, run _election_condition_install_code_conditions().
   foreach ($modules as $module) {
     if (function_exists($module . '_condition_info')) {
       _election_condition_install_code_conditions();
@@ -86,10 +83,8 @@ function election_condition_modules_enabled($modules = array()) {
  * Implements hook_modules_disabled().
  */
 function election_condition_modules_disabled($modules = array()) {
-  /*
-    If any of the disabled modules contains an implementation of
-    hook_condition_info, run _election_condition_uninstall_code_conditions().
-  */
+  // If any of the enabled modules contains an implementation of
+  // hook_condition_info, run _election_condition_uninstall_code_conditions().
   foreach ($modules as $module) {
     if (function_exists($module . '_condition_info')) {
       _election_condition_uninstall_code_conditions();

@@ -6,6 +6,7 @@
 
 /**
  * Implements hook_token_info().
+ *
  * See http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_token_info/7.
  */
 function election_post_token_info() {

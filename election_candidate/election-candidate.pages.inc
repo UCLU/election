@@ -170,10 +170,16 @@ function election_page_nomination_form(stdClass $election) {
  * @param array $form
  *   The Drupal Form API form definition.
  * @param array $form_state
+ *   The Form API state array.
  * @param stdClass $election
- *   An election object.
+ *   The election object.
  * @param array $previous_nominations
+ *   An array of previous nominations for the user.
  * @param array $available_posts
+ *   An array of posts available for nomination.
+ *
+ * @return array
+ *   Form API definition.
  */
 function election_candidate_nomination_form($form, &$form_state, stdClass $election, array $previous_nominations, array $available_posts) {
 
@@ -284,10 +290,6 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
 
 /**
  * Validation function for both the candidate edit form and the nomination form.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array $form_state
  */
 function election_candidate_form_validate($form, &$form_state) {
 
@@ -305,10 +307,6 @@ function election_candidate_form_validate($form, &$form_state) {
 
 /**
  * Validation function for just the nomination form.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array $form_state
  */
 function election_candidate_nomination_form_validate($form, &$form_state) {
   // @todo validate post again
@@ -316,10 +314,6 @@ function election_candidate_nomination_form_validate($form, &$form_state) {
 
 /**
  * Validation function for just the edit form.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array $form_state
  */
 function election_candidate_edit_form_validate($form, &$form_state) {
   if (!empty($form_state['values']['new_user'])) {
@@ -332,10 +326,6 @@ function election_candidate_edit_form_validate($form, &$form_state) {
 
 /**
  * Submit callback for the nomination form.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array $form_state
  */
 function election_candidate_nomination_form_submit($form, &$form_state) {
 
@@ -343,7 +333,6 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
 
   $values = $form_state['values'];
 
-  // election object won't be changed, no need to pass by reference
   $election = $form_state['election'];
   $post = election_post_load($values['post_id']);
 
@@ -594,7 +583,7 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
     '#value' => t('Delete'),
     '#submit' => array('election_candidate_edit_form_delete_submit'),
     '#access' => entity_access('delete', 'election_candidate', $candidate),
-    '#limit_validation_errors' => array(), // No need to validate on deletion
+    '#limit_validation_errors' => array(), // No need to validate on deletion.
   );
 
   $form['#validate'][] = 'election_candidate_form_validate';
@@ -660,6 +649,7 @@ function election_candidate_edit_form_delete_submit($form, &$form_state) {
 
 /**
  * Form builder function to confirm the delete action for a candidate.
+ *
  * See http://api.drupal.org/api/drupal/modules--system--system.module/function/confirm_form.
  */
 function election_candidate_edit_form_delete_confirm($form, &$form_state, stdClass $candidate) {
@@ -700,7 +690,7 @@ function election_candidate_edit_form_delete_confirm_submit($form, &$form_state)
       '%election_title' => !empty($election) ? $election->title : t('unknown'),
     );
 
-    // Delete the candidate
+    // Delete the candidate.
     $delete = election_candidate_delete($form_state['values']['candidate_id']);
     if ($delete) {
       watchdog('election_candidate', 'Deleted candidate "%first_name %last_name".', $info);

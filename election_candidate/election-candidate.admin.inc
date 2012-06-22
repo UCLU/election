@@ -39,7 +39,7 @@ function election_candidate_manage_form($form, $form_state, stdClass $election) 
     ->orderByHeader($header);
   $result = $query->execute();
 
-  // Get array of candidates
+  // Get array of candidates.
   $candidate_ids = $result->fetchCol();
   $candidates = election_candidate_load_multiple($candidate_ids);
 
@@ -265,10 +265,6 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
 
 /**
  * Submit callback for the form election_candidate_download_form.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array $form_state
  */
 function election_candidate_download_form_submit($form, &$form_state) {
 
