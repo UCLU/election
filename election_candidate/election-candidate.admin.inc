@@ -7,16 +7,8 @@
 
 /**
  * Form builder function for the main administrative election candidate list.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array $form_state
- * @param stdClass $election
- *
- * @return array
- *   Render array.
  */
-function election_candidate_manage_form($form, $form_state, $election) {
+function election_candidate_manage_form($form, $form_state, stdClass $election) {
 
   drupal_set_title(t('Candidates'), PASS_THROUGH);
   drupal_set_breadcrumb(
@@ -167,11 +159,6 @@ function election_candidate_totals_page(stdClass $election) {
 
 /**
  * Form builder function for the form at "election/%election/candidates/download".
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array $form_state
- * @param stdClass $election
  */
 function election_candidate_download_form($form, &$form_state, stdClass $election) {
 

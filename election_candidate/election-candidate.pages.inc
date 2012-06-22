@@ -465,16 +465,6 @@ function election_candidate_view($candidate, $election = NULL, $view_mode = 'ful
 
 /**
  * Form builder function for editing a single candidate.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The Form API state array.
- * @param stdClass $candidate
- *   The election candidate object.
- *
- * @return array
- *   Render array.
  */
 function election_candidate_edit_form($form, &$form_state, stdClass $candidate) {
 
@@ -616,12 +606,6 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
 
 /**
  * Form submit function for the Save button in the form election_candidate_edit_form().
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The form state array.
- * @return void
  */
 function election_candidate_edit_form_submit($form, &$form_state) {
 
@@ -660,12 +644,6 @@ function election_candidate_edit_form_submit($form, &$form_state) {
 
 /**
  * Form submit function for the Delete button in the form election_candidate_edit_form.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The form state array.
- * @return void
  */
 function election_candidate_edit_form_delete_submit($form, &$form_state) {
   $destination = array();
@@ -683,17 +661,8 @@ function election_candidate_edit_form_delete_submit($form, &$form_state) {
 /**
  * Form builder function to confirm the delete action for a candidate.
  * See http://api.drupal.org/api/drupal/modules--system--system.module/function/confirm_form.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The form state array.
- * @param stdClass $candidate
- *
- * @return array
- *   Render array.
  */
-function election_candidate_edit_form_delete_confirm($form, &$form_state, $candidate) {
+function election_candidate_edit_form_delete_confirm($form, &$form_state, stdClass $candidate) {
 
   $election = election_load($candidate->election_id);
 
@@ -718,12 +687,6 @@ function election_candidate_edit_form_delete_confirm($form, &$form_state, $candi
 
 /**
  * Form submit function for the Delete button in the form election_candidate_edit_form_delete_confirm.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The form state array.
- * @return void
  */
 function election_candidate_edit_form_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {

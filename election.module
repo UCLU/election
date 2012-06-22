@@ -99,6 +99,7 @@ function election_election_type_info() {
     'post key' => 'position',
     'weight' => 1,
     'has candidates' => TRUE,
+    'post settings form' => 'election_post_stv_settings_form',
     'vote form' => 'election_vote_stv_vote_form',
     'save votes' => 'election_vote_stv_save_votes',
   );

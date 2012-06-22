@@ -111,11 +111,13 @@ function election_vote_access($op, stdClass $post, $account = NULL) {
  *   The Drupal Form API form definition.
  * @param array &$form_state
  *   The Form API state array.
+ * @param stdClass $post
+ *   The election post object (loaded by the menu system).
  *
  * @return array $form
  *   Render array.
  */
-function election_vote_form($form, &$form_state, $post) {
+function election_vote_form($form, &$form_state, stdClass $post) {
 
   if (isset($form_state['vote_require_confirm'])) {
     return election_vote_form_vote_confirm($form, $form_state);
@@ -151,12 +153,15 @@ function election_vote_form($form, &$form_state, $post) {
     '#value' => t('Vote…'),
     '#submit' => array('election_vote_form_vote'),
   );
-  $form['buttons']['abstain'] = array(
-    '#type' => 'submit',
-    '#value' => t('Abstain…'),
-    '#submit' => array('election_vote_form_abstain'),
-    '#limit_validation_errors' => array(),
-  );
+
+  if (!empty($post->allow_abstention)) {
+    $form['buttons']['abstain'] = array(
+      '#type' => 'submit',
+      '#value' => t('Abstain…'),
+      '#submit' => array('election_vote_form_abstain'),
+      '#limit_validation_errors' => array(),
+    );
+  }
 
   $form['#validate'][] = 'election_vote_form_validate';
 
@@ -195,10 +200,6 @@ function election_vote_referendum_vote_form($form, &$form_state, $post, $electio
     '#options' => $answer_options,
     '#required' => TRUE,
   );
-
-  if (empty($post->allow_abstention)) {
-    unset($form['buttons']['abstain']);
-  }
 
   return $form;
 
@@ -297,7 +298,7 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
     '#markup' => '</table>',
   );
 
-  $form['#attached']['js'][] = drupal_get_path('module', 'election_post') . '/vote.min.js';
+  $form['#attached']['js'][] = drupal_get_path('module', 'election_vote') . '/vote.min.js';
   $form['#validate'][] = 'election_vote_stv_vote_form_validate';
 
   $form['buttons']['clear_form'] = array(
@@ -699,7 +700,12 @@ function _election_vote_format_eligibility(stdClass $post, $election = NULL) {
   }
   elseif (election_vote_access('vote', $post)) {
     if (election_vote_check_user_previously_voted($post)) {
-      return t('You have already voted (or abstained).');
+      if ($post->allow_abstention) {
+        return t('You have already voted (or abstained).');
+      }
+      else {
+        return t('You have already voted.');
+      }
     }
     return t('<a href="@vote_link">You can vote</a> for this @post_name.', array('@post_name' => $post_name, '@vote_link' => url(election_post_uri_path($post) . '/vote')));
   }
