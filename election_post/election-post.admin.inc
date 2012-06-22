@@ -102,6 +102,11 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
       ELECTION_POST_STATUS_CLOSED => t('Closed'),
     ),
   );
+  $form['voting']['allow_abstention'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow abstention'),
+    '#default_value' => !empty($post->allow_abstention),
+  );
 
   $form['buttons'] = array(
     '#type' => 'actions',
@@ -125,43 +130,6 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
 
   // Add custom fields from the Field system.
   field_attach_form('election_post', $post, $form, $form_state);
-
-  return $form;
-}
-
-/**
- * Partial form builder function for [referendum] motions.
- *
- * @see election_post_form()
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The form state array.
- * @param stdClass $post
- *
- * @return array
- */
-function election_post_motion_form($form, &$form_state, $post, $election) {
-
-  $form['allow_abstention'] = array(
-    '#type' => 'select',
-    '#title' => t('Allow abstention'),
-    '#description' => t(
-      'Select whether voters would be able to select @abstain as an option alongside @yes and @no.',
-      array(
-        '@abstain' => t('Abstain'),
-        '@yes' => t('Yes'),
-        '@no' => t('No'),
-      )
-    ),
-    '#default_value' => isset($post->allow_abstention) ? $post->allow_abstention : 1,
-    '#options' => array(
-      1 => t('Allow abstention'),
-      0 => t('Do not allow abstention'),
-    ),
-    '#weight' => -10,
-  );
 
   return $form;
 }

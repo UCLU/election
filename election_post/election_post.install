@@ -45,7 +45,7 @@ function election_post_schema() {
         'not null' => FALSE,
       ),
       'allow_abstention' => array(
-        'description' => 'For a motion: whether or not to allow voters to abstain.',
+        'description' => 'Whether or not to allow voters to abstain.',
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
