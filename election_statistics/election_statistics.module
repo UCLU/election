@@ -120,7 +120,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
       }
       $stats = $posts_statistics[$post->post_id];
       $rows[] = array(
-        'post' => l(check_plain($post->title), election_post_uri_path($post)),
+        'post' => l($post->title, election_post_uri_path($post)),
         'votes' => number_format($stats->votes),
         'abstentions' => number_format($stats->abstentions),
       );

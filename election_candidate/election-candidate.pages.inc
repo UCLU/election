@@ -445,7 +445,7 @@ function election_candidate_view($candidate, $election = NULL, $view_mode = 'ful
   }
 
   // Allow modules to modify the structured election.
-  $type = 'election_candidate'; // $type is passed by reference to drupal_alter() so it must be a variable.
+  $type = 'election_candidate';
   drupal_alter(array('election_candidate_view', 'entity_view'), $build, $type);
 
   return $build;

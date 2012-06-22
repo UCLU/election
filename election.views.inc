@@ -37,7 +37,7 @@ function election_views_data() {
   $data['election']['election_id'] = array(
     'title' => t('Election ID'),
     'help' => t('The unique ID of the election.'),
-    // Information for displaying the election_id
+    // Information for displaying the election_id.
     'field' => array(
       'handler' => 'views_handler_field_election',
       'click sortable' => TRUE,

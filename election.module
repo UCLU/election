@@ -645,7 +645,7 @@ function election_view($election, $view_mode = 'full') {
   }
 
   // Allow modules to modify the structured election.
-  $type = 'election'; // $type is passed by reference to drupal_alter() so it must be a variable.
+  $type = 'election';
   drupal_alter(array('election_view', 'entity_view'), $build, $type);
 
   return $build;
@@ -786,8 +786,9 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
   $election_uri_path = election_uri_path($election);
   unset($args[0]);
   $args_count = count($args);
+  // l() runs check_plain on the first argument.
   $links[] = l(
-    $election->title, // l() runs check_plain anyway.
+    $election->title,
     $election_uri_path
   );
   foreach ($args as $key => $arg) {

@@ -24,7 +24,7 @@ function election_candidate_entity_info() {
     'label callback' => 'election_candidate_label',
     'entity keys' => array(
       'id' => 'candidate_id',
-      'bundle' => 'election_id', // candidate are bundled per election.
+      'bundle' => 'election_id', // Candidates are bundled per election.
     ),
     'static cache' => TRUE,
     'fieldable' => TRUE,
