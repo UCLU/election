@@ -336,7 +336,7 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
       $candidate_id = substr($key, 10);
       $candidate_rankings[$candidate_id] = $value;
       if (isset($already_used[$value]) && !$post->allow_equal) {
-        form_set_error('', t('You have used the preference level %value more than once. Candidates cannot be ranked equally.', array('%value' => $value)));
+        form_set_error('', t('You have specified more than one %ordinal preference. Candidates cannot be ranked equally.', array('%ordinal' => _election_vote_get_ordinal($value))));
         $form['rebuild'] = TRUE;
         break;
 
@@ -355,7 +355,7 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
   // Force the ranks to be consecutive, starting with 1.
   // Keep a log of changes which can be displayed on the confirmation form.
   $rank_changes = array();
-  $consecutive_rank = 1;
+  $consecutive_rank = 0;
   $previous_rank = NULL;
   asort($candidate_rankings);
   foreach ($candidate_rankings as $candidate_id => &$rank) {
@@ -363,13 +363,17 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
     if ($rank == 'NONE') {
       continue;
     }
-    $equal = ($post->allow_equal && $rank == $previous_rank);
-    if ($rank != $consecutive_rank && !$equal) {
-      $rank_changes[$candidate_id] = array($rank, $consecutive_rank, $consecutive_rank - $rank);
+    // Increment $consecutive_rank, if equal rankings are not allowed.
+    if (!$post->allow_equal || !isset($previous_rank) || $rank != $previous_rank) {
+      $consecutive_rank++;
+    }
+    // Save the rank as $previous_rank for the next iteration.
+    $previous_rank = $rank;
+    // Make changes if needed and log them to the $rank_changes array.
+    if ($rank != $consecutive_rank) {
+      $rank_changes[$candidate_id] = array($rank, $consecutive_rank);
       $rank = $consecutive_rank;
     }
-    $previous_rank = $rank;
-    $consecutive_rank++;
   }
 
   $form_state['candidate_rankings'] = $candidate_rankings;
@@ -445,7 +449,7 @@ function theme_election_vote_confirm($variables) {
           $candidate_name = theme('election_candidate_full_name', array('candidate' => $candidate));
         }
         $warnings[] = t(
-          'You specified <strong>@original</strong> for %candidate, but you omitted ranking(s), so in consecutive order this candidate was your <strong>@changed</strong> preference.',
+          'You specified <strong>@original</strong> for %candidate. In consecutive order this candidate was your <strong>@changed</strong> preference.',
           array(
             '%candidate' => $candidate_name,
             '@original' => _election_vote_get_ordinal($change[0]),
