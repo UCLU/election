@@ -51,6 +51,13 @@ function election_post_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+      'allow_equal' => array(
+        'description' => 'For STV or ranked-choice elections: whether to allow equal rankings.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
       'vstatus_inheritance' => array(
         'description' => sprintf(
           'The post\'s voting status: inherited (%d) or closed (%d).',
@@ -150,4 +157,17 @@ function election_post_schema_alter(&$schema) {
  */
 function election_post_install() {
   menu_rebuild();
+}
+
+/**
+ * Add the allow_equal column to the election_post table.
+ */
+function election_post_update_7101() {
+  db_add_field('election_post', 'allow_equal', array(
+    'description' => 'For STV or ranked-choice elections: whether to allow equal rankings.',
+    'type' => 'int',
+    'size' => 'tiny',
+    'not null' => TRUE,
+    'default' => 0,
+  ));
 }

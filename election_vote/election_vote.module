@@ -176,8 +176,6 @@ function election_vote_referendum_vote_form($form, &$form_state, $post, $electio
     ELECTION_ANSWER_NO => t('No'),
   );
 
-  $form['#id'] = 'election-vote-form election-vote-form-referendum';
-
   $form['motion_preview'] = array(
     '#type' => 'item',
     '#title' => t('Motion'),
@@ -213,9 +211,11 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
     drupal_goto(election_post_uri_path($post));
   }
 
-  $form['#id'] = 'election-vote-form election-vote-form-stv';
-
   $rank_options = array();
+
+  if ($post->allow_equal) {
+    $form['#attributes']['class'][] = 'allow-equal';
+  }
 
   // For each candidate the user should be able to select a 'No preference' option instead of a rank.
   $rank_options['NONE'] = t('No preference');
@@ -290,7 +290,7 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
     '#markup' => '</table>',
   );
 
-  $form['#attached']['js'][] = drupal_get_path('module', 'election_vote') . '/vote.min.js';
+  $form['#attached']['js'][] = drupal_get_path('module', 'election_vote') . '/vote.js';
   $form['#validate'][] = 'election_vote_stv_vote_form_validate';
 
   $form['buttons']['clear_form'] = array(
@@ -335,7 +335,7 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
     if (substr($key, 0, 10) == 'candidate_') {
       $candidate_id = substr($key, 10);
       $candidate_rankings[$candidate_id] = $value;
-      if (isset($already_used[$value])) {
+      if (isset($already_used[$value]) && !$post->allow_equal) {
         form_set_error('', t('You have used the preference level %value more than once. Candidates cannot be ranked equally.', array('%value' => $value)));
         $form['rebuild'] = TRUE;
         break;
@@ -353,15 +353,27 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
   }
 
   // Force the ranks to be consecutive, starting with 1.
-  $i = 1;
+  // Keep a log of changes which can be displayed on the confirmation form.
+  $rank_changes = array();
+  $consecutive_rank = 1;
+  $previous_rank = NULL;
   asort($candidate_rankings);
-  foreach ($candidate_rankings as &$rank) {
-    if ($rank != 'NONE') {
-      $rank = $i++;
+  foreach ($candidate_rankings as $candidate_id => &$rank) {
+    // Allow for 'No preference'.
+    if ($rank == 'NONE') {
+      continue;
     }
+    $equal = ($post->allow_equal && $rank == $previous_rank);
+    if ($rank != $consecutive_rank && !$equal) {
+      $rank_changes[$candidate_id] = array($rank, $consecutive_rank, $consecutive_rank - $rank);
+      $rank = $consecutive_rank;
+    }
+    $previous_rank = $rank;
+    $consecutive_rank++;
   }
 
   $form_state['candidate_rankings'] = $candidate_rankings;
+  $form_state['rank_changes'] = $rank_changes;
 
 }
 
@@ -409,18 +421,56 @@ function theme_election_vote_confirm($variables) {
       }
       else {
         $candidate = $form_state['candidates'][$candidate_id];
-        $candidate_item = theme('election_candidate_ballot_item', array('candidate' => $candidate));
+        $candidate_item = theme('election_candidate_full_name', array('candidate' => $candidate));
       }
-      $rows[] = array(
+      $rows[$candidate_id] = array(
         $candidate_item,
         $rank == 'NONE' ? t('No preference') : _election_vote_get_ordinal($rank),
       );
     }
-    return theme('table', array(
+
+    $rankings = theme('table', array(
       'header' => $header,
       'rows' => $rows,
-      'empty' => 'No ranking',
     ));
+
+    $warnings = array();
+    if (count($form_state['rank_changes']) && variable_get('election_vote_warn_omitted_preferences', TRUE)) {
+      foreach ($form_state['rank_changes'] as $candidate_id => $change) {
+        if ($candidate_id == 'RON') {
+          $candidate_name = t('RON (Re-Open Nominations)');
+        }
+        else {
+          $candidate = $form_state['candidates'][$candidate_id];
+          $candidate_name = theme('election_candidate_full_name', array('candidate' => $candidate));
+        }
+        $warnings[] = t(
+          'You specified <strong>@original</strong> for %candidate, but you omitted ranking(s), so in consecutive order this candidate was your <strong>@changed</strong> preference.',
+          array(
+            '%candidate' => $candidate_name,
+            '@original' => _election_vote_get_ordinal($change[0]),
+            '@changed' => _election_vote_get_ordinal($change[1]),
+          )
+        );
+      }
+    }
+
+    $output = $rankings;
+
+    if ($warnings_count = count($warnings)) {
+      $output .= theme(
+        'item_list',
+        array(
+          'title' => t('Warning'),
+          'items' => $warnings,
+          'attributes' => array(
+            'class' => 'election-vote-confirm-warning',
+          ),
+        )
+      );
+    }
+
+    return $output;
 
   }
   elseif ($post->type == 'motion') {

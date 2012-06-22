@@ -78,9 +78,10 @@ class views_handler_field_election_candidate_fullname extends views_handler_fiel
    * Overrides parent::render().
    */
   public function render($values) {
-    $first_name = $this->get_value($values, 'first_name');
-    $last_name = $this->get_value($values, 'last_name');
-    $data = check_plain($first_name . ' ' . $last_name);
+    $candidate = new stdClass();
+    $candidate->first_name = $this->get_value($values, 'first_name');
+    $candidate->last_name = $this->get_value($values, 'last_name');
+    $data = theme('election_candidate_full_name', array('candidate' => $candidate));
     return $this->render_link($data, $values);
   }
 

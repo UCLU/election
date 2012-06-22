@@ -62,12 +62,6 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
     '#weight' => -100,
   );
 
-  $type = $election->type_info;
-  if (!empty($type['post settings form']) && function_exists($type['post settings form'])) {
-    $settings_form_function = $type['post settings form'];
-    $form = $settings_form_function($form, $form_state, $post, $election);
-  }
-
   $form['role_access'] = array(
     '#type' => 'fieldset',
     '#title' => t('Role eligibility'),
@@ -105,6 +99,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
     '#type' => 'checkbox',
     '#title' => t('Allow abstention'),
     '#default_value' => isset($post->allow_abstention)? $post->allow_abstention : 1,
+    '#description' => t('This enables a voter to abstain instead of entering a vote. Abstentions can be counted.'),
   );
 
   $form['buttons'] = array(
@@ -127,10 +122,18 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
 
   $form['#validate'][] = 'election_post_form_validate';
 
+  // Modify the form with the function $type['post settings form'], if it exists.
+  $type = $election->type_info;
+  if (!empty($type['post settings form']) && function_exists($type['post settings form'])) {
+    $settings_form_function = $type['post settings form'];
+    $form = $settings_form_function($form, $form_state, $post, $election);
+  }
+
   // Add custom fields from the Field system.
   field_attach_form('election_post', $post, $form, $form_state);
 
   return $form;
+
 }
 
 /**
@@ -181,6 +184,13 @@ function election_post_stv_settings_form($form, &$form_state, stdClass $post, st
       0 => t('Do not include RON'),
     ),
     '#weight' => -10,
+  );
+
+  $form['voting']['allow_equal'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow equal rankings'),
+    '#default_value' => isset($post->allow_equal)? $post->allow_equal : 0,
+    '#description' => t('Used (rarely) in STV elections, this allows the voter to select more than one candidate as the same preference.'),
   );
 
   // @todo Implement a settings form, to allow RON in multi-vacancy positions.
@@ -265,10 +275,6 @@ function election_post_form_submit($form, &$form_state) {
     }
   }
 
-  if (empty($form_state['values']['exclusive'])) {
-    $post->exclusive = 0;
-  }
-
   field_attach_submit('election_post', $post, $form, $form_state);
 
   // Save the post.
@@ -280,7 +286,7 @@ function election_post_form_submit($form, &$form_state) {
   );
 
   if (empty($_GET['destination'])) {
-    $form_state['redirect'] = election_uri_path($election) . '/posts';
+    $form_state['redirect'] = election_post_uri_path($post);
   }
 
 }

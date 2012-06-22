@@ -610,6 +610,11 @@ function election_candidate_theme() {
       'render element' => 'elements',
       'template' => 'election-candidate-details',
     ),
+    'election_candidate_full_name' => array(
+      'variables' => array(
+        'candidate' => NULL,
+      ),
+    ),
     'election_candidate_ballot_item' => array(
       'variables' => array(
         'candidate' => NULL,
@@ -797,6 +802,14 @@ function template_preprocess_election_candidate_details(&$variables) {
 
   $variables['theme_hook_suggestions'][] = 'election__' . $election->type . '__candidate_details';
 
+}
+
+/**
+ * Theme function for displaying a candidate's full name.
+ */
+function theme_election_candidate_full_name($variables) {
+  $candidate = $variables['candidate'];
+  return check_plain($candidate->first_name . ' ' . $candidate->last_name);
 }
 
 /**

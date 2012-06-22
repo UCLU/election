@@ -19,11 +19,13 @@
       };
 
     select_elems.each(function () {
-      var this_elem = $(this), others = select_elems.not(this_elem);
-      disableOptions(this_elem, others);
-      this_elem.change(function () {
+      var this_elem = $(this), others = select_elems.not(this_elem), allow_equal = this_elem.closest('form').hasClass('allow-equal');
+      if (!allow_equal) {
         disableOptions(this_elem, others);
-      });
+        this_elem.change(function () {
+          disableOptions(this_elem, others);
+        });
+      }
     });
 
   });

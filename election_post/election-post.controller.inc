@@ -30,6 +30,8 @@ class ElectionPostController extends ElectionDefaultController {
       'vacancy_count' => 1,
       'exclusive' => 1,
       'use_ron' => 1,
+      'allow_abstention' => 1,
+      'allow_equal' => 0,
     );
     // Overwrite default values with supplied values.
     $values = array_merge($default_values, $values);
