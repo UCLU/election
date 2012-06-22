@@ -17,7 +17,7 @@
  *   Optional: the election the post belongs to.
  *
  * @return array
- *   Render array.
+ *   Form API render array.
  */
 function election_post_form($form, &$form_state, stdClass $post, $election = NULL) {
 
@@ -62,11 +62,10 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
     '#weight' => -100,
   );
 
-  $type = _election_type_get_info($election->type);
-  $post_key = $type['post key'];
-  $post_form_function = 'election_post_' . $post_key . '_form';
-  if (function_exists($post_form_function)) {
-    $form = $post_form_function($form, $form_state, $post, $election);
+  $type = $election->type_info;
+  if (!empty($type['post settings form']) && function_exists($type['post settings form'])) {
+    $settings_form_function = $type['post settings form'];
+    $form = $settings_form_function($form, $form_state, $post, $election);
   }
 
   $form['role_access'] = array(
@@ -105,7 +104,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
   $form['voting']['allow_abstention'] = array(
     '#type' => 'checkbox',
     '#title' => t('Allow abstention'),
-    '#default_value' => !empty($post->allow_abstention),
+    '#default_value' => isset($post->allow_abstention)? $post->allow_abstention : 1,
   );
 
   $form['buttons'] = array(
@@ -135,7 +134,9 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
 }
 
 /**
- * Partial form builder function for [electoral] positions.
+ * Settings form for positions in STV elections.
+ *
+ * This adds to the form 'election_post_form'.
  *
  * @see election_post_form()
  *
@@ -149,8 +150,9 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
  *   The election the post belongs to.
  *
  * @return array
+ *   Form API render array.
  */
-function election_post_position_form($form, &$form_state, $post, $election) {
+function election_post_stv_settings_form($form, &$form_state, stdClass $post, stdClass $election) {
 
   $form['exclusive'] = array(
     '#type' => 'checkbox',
@@ -312,9 +314,6 @@ function election_post_form_submit($form, &$form_state) {
  *   The form state array.
  * @param stdClass $post
  *   The election post object.
- *
- * @return array
- *   Render array.
  */
 function election_post_form_delete_confirm($form, &$form_state, $post) {
 
@@ -395,18 +394,9 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
 }
 
 /**
- * Form builder function for the administrative list of election posts, path:
- * election/%election/posts/manage.
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array $form_state
- * @param stdClass $election
- *
- * @return array
- *   Render array.
+ * Form builder function for the administrative list of election posts at election/%election/posts/manage.
  */
-function election_post_manage_form($form, $form_state, $election) {
+function election_post_manage_form($form, &$form_state, stdClass $election) {
 
   $title = election_post_manage_page_title($election);
   drupal_set_title($title, PASS_THROUGH);

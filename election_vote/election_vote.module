@@ -111,11 +111,13 @@ function election_vote_access($op, stdClass $post, $account = NULL) {
  *   The Drupal Form API form definition.
  * @param array &$form_state
  *   The Form API state array.
+ * @param stdClass $post
+ *   The election post object (loaded by the menu system).
  *
  * @return array $form
  *   Render array.
  */
-function election_vote_form($form, &$form_state, $post) {
+function election_vote_form($form, &$form_state, stdClass $post) {
 
   if (isset($form_state['vote_require_confirm'])) {
     return election_vote_form_vote_confirm($form, $form_state);
@@ -296,7 +298,7 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
     '#markup' => '</table>',
   );
 
-  $form['#attached']['js'][] = drupal_get_path('module', 'election_post') . '/vote.min.js';
+  $form['#attached']['js'][] = drupal_get_path('module', 'election_vote') . '/vote.min.js';
   $form['#validate'][] = 'election_vote_stv_vote_form_validate';
 
   $form['buttons']['clear_form'] = array(

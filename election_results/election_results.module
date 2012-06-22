@@ -247,7 +247,7 @@ function _election_results_download_blt($post) {
 /**
  * Form builder function for the election results counting form.
  */
-function election_results_count_form($form, &$form_state, $post) {
+function election_results_count_form($form, &$form_state, stdClass $post) {
 
   drupal_set_title(t('Count votes: %post', array('%post' => $post->title)), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($post->election));

@@ -624,9 +624,6 @@ function _election_post_is_open(stdClass $post, $election = NULL, $status_prefix
  *   An election post object.
  * @param string $view_mode
  *   View mode, e.g. 'full', 'teaser'...
- *
- * @return array
- *   Render array.
  */
 function election_post_page_view($post, $view_mode = 'full') {
 
