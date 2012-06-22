@@ -239,8 +239,6 @@ function election_post_access($op, $post = NULL, $account = NULL) {
 
 /**
  * URI callback for a single election post.
- *
- * @return array
  */
 function election_post_uri($post) {
   $path = 'election-post/' . $post->post_id;
@@ -317,8 +315,6 @@ function election_post_entity_load($entities, $type) {
  *
  * @param array $post_ids
  *   Array of post IDs.
- *
- * @return bool
  */
 function election_post_delete_multiple(array $post_ids) {
   return entity_get_controller('election_post')->delete($post_ids);
@@ -331,8 +327,6 @@ function election_post_delete_multiple(array $post_ids) {
  *
  * @param mixed $post_id
  *   Single post ID.
- *
- * @return bool
  */
 function election_post_delete($post_id) {
   return election_post_delete_multiple(array($post_id));
@@ -392,8 +386,6 @@ function election_post_entity_delete($entity, $type) {
  *
  * @param stdClass $post
  *   Election post object.
- *
- * @return bool
  */
 function election_post_save($post) {
   return entity_get_controller('election_post')->save($post);
@@ -404,8 +396,6 @@ function election_post_save($post) {
  * be escaped here as it is done later).
  *
  * @param stdClass $election
- *
- * @return string
  */
 function election_post_list_page_title($election) {
   return drupal_ucfirst(_election_get_posts_name($election->type, TRUE));
@@ -416,8 +406,6 @@ function election_post_list_page_title($election) {
  * be escaped here as it is done later).
  *
  * @param stdClass $election
- *
- * @return string
  */
 function election_post_manage_page_title($election) {
   return t('Manage @posts_name', array('@posts_name' => _election_get_posts_name($election->type, TRUE)));
@@ -582,8 +570,6 @@ function template_preprocess_election_post(&$variables) {
  *   An election post object.
  * @param string $status_prefix
  *   The type of status ('v' for voting, 'n' for nominations).
- *
- * @return string
  */
 function _election_post_format_status(stdClass $election, stdClass $post, $status_prefix = 'v') {
   $status = $post->{$status_prefix . 'status'};
@@ -606,8 +592,6 @@ function _election_post_format_status(stdClass $election, stdClass $post, $statu
  *   An election object.
  * @param string $status_prefix
  *   The type of status ('v' for voting, 'n' for nominations).
- *
- * @return bool
  */
 function _election_post_is_open(stdClass $post, $election = NULL, $status_prefix = 'v') {
   $status_inheritance = $post->{$status_prefix . 'status_inheritance'};

@@ -260,8 +260,8 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
     $form['ballot_paper']['candidate_' . $candidate->candidate_id] = array(
       '#type' => 'select',
       '#prefix' => '<tr class="election-ballot-row"><td>'
-        . theme('election_candidate_ballot_item', array('candidate' => $candidate))
-        . '</td><td>',
+      . theme('election_candidate_ballot_item', array('candidate' => $candidate))
+      . '</td><td>',
       '#suffix' => '</td></tr>',
       '#title' => t('Your rank for %candidate', array('%candidate' => $candidate->first_name . ' ' . $candidate->last_name)),
       '#title_display' => 'invisible',
@@ -650,8 +650,6 @@ function election_vote_referendum_save_votes($form, &$form_state, $post, $electi
  *   An election post object.
  * @param stdClass $election
  *   The election the post belongs to (optional).
- *
- * @return string
  */
 function _election_vote_format_eligibility(stdClass $post, $election = NULL) {
 
@@ -734,8 +732,6 @@ function election_vote_check_user_previously_voted($post) {
 
 /**
  * Get a hash of the session ID.
- *
- * @return string
  */
 function _election_vote_session_hash() {
   $sid = session_id();
@@ -744,8 +740,6 @@ function _election_vote_session_hash() {
 
 /**
  * Find the ordinal of a number.
- *
- * @return string
  */
 function _election_vote_get_ordinal($num) {
   $ends = array('th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th');

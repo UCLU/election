@@ -111,8 +111,6 @@ function election_election_type_info() {
  *
  * @param bool $ucfirst
  *   Whether to apply drupal_ucfirst() to each election type name.
- *
- * @return array
  */
 function election_type_get_names($ucfirst = TRUE) {
   $names = array();
@@ -124,10 +122,9 @@ function election_type_get_names($ucfirst = TRUE) {
 }
 
 /**
- * Implements entity_uri(). URI callback for a single election. See:
- * http://api.drupal.org/api/drupal/includes--common.inc/function/entity_uri/7.
+ * Implements entity_uri(). URI callback for a single election.
  *
- * @return array
+ * See: http://api.drupal.org/api/drupal/includes--common.inc/function/entity_uri/7.
  */
 function election_uri($election) {
   $path = 'election/' . $election->election_id;
@@ -138,7 +135,7 @@ function election_uri($election) {
 }
 
 /**
- * Return the path part of the election URI callback as a string.
+ * Get the URI to an election as a string.
  *
  * The implementation of this function throughout the module is debatable, see:
  * http://drupal.org/node/823428.
@@ -146,6 +143,7 @@ function election_uri($election) {
  * @see election_uri()
  *
  * @return string
+ *   The 'path' part of the election URI array.
  */
 function election_uri_path($election) {
   $uri = election_uri($election);
@@ -198,8 +196,6 @@ function election_entity_load($entities, $type) {
 
 /**
  * Implements hook_permission().
- *
- * @return array
  */
 function election_permission() {
   $permissions = array(
@@ -443,8 +439,6 @@ function election_menu_alter(&$items) {
 
 /**
  * Implements hook_field_extra_fields().
- *
- * @return array
  */
 function election_field_extra_fields() {
   $extra = array();
@@ -498,8 +492,6 @@ function election_field_extra_fields() {
  *
  * @param array $election_ids
  *   Array of election IDs.
- *
- * @return bool
  */
 function election_delete_multiple(array $election_ids) {
   return entity_get_controller('election')->delete($election_ids);
@@ -512,8 +504,6 @@ function election_delete_multiple(array $election_ids) {
  *
  * @param mixed $election_id
  *   Single election ID.
- *
- * @return bool
  */
 function election_delete($election_id) {
   return election_delete_multiple(array($election_id));
@@ -524,8 +514,6 @@ function election_delete($election_id) {
  *
  * @param stdClass $election
  *   Election object.
- *
- * @return bool
  */
 function election_save($election) {
   return entity_get_controller('election')->save($election);
@@ -572,14 +560,10 @@ function election_entity_insert($entity, $type) {
 }
 
 /**
- * Title callback for election/%election/view (output should not be escaped here
- * as it is done later).
- *
- * @param stdClass $election
- *
- * @return string
+ * Title callback for election/%election/view.
  */
-function election_page_title($election) {
+function election_page_title(stdClass $election) {
+   // Output should not be escaped here: it will be escaped in the menu system.
   return $election->title;
 }
 
@@ -597,16 +581,8 @@ function election_theme() {
 
 /**
  * Generate an array for rendering the given election.
- *
- * @param stdClass $election
- *   An election object.
- * @param $view_mode
- *   View mode, e.g. 'full', 'teaser'...
- *
- * @return
- *   An array as expected by drupal_render().
  */
-function election_view($election, $view_mode = 'full') {
+function election_view(stdClass $election, $view_mode = 'full') {
 
   // Remove previously built content, if it exists.
   $election->content = array();
@@ -706,8 +682,6 @@ function template_preprocess_election(&$variables) {
  *   The UNIX timestamp for the election's voting opening time.
  * @param int $close_time
  *   The UNIX timestamp for the election's voting closing time.
- *
- * @return bool
  */
 function _election_is_open($status, $open_time, $close_time) {
   if ($status == ELECTION_STATUS_OPEN) {
@@ -732,8 +706,6 @@ function _election_is_open($status, $open_time, $close_time) {
  *   An election object.
  * @param string $status_prefix
  *   The type of status ('v' for voting, 'n' for nominations).
- *
- * @return string
  */
 function _election_format_status(stdClass $election, $status_prefix = 'v') {
   // Nominations aren't relevant to elections that don't have candidates.
@@ -842,8 +814,6 @@ function _election_type_get_info($type_mn) {
  *   The machine name of the type.
  * @param bool $plural
  *   Whether to return a plural name (e.g. 'motions' or 'positions').
- *
- * @return string
  */
 function _election_get_posts_name($type_mn, $plural = FALSE) {
   $name = 'post';
@@ -865,10 +835,6 @@ function _election_get_posts_name($type_mn, $plural = FALSE) {
  *
  * Allow private files to be downloaded when they are attached to an election
  * entity via a file field.
- *
- * @param string $field
- * @param string $entity_type
- * @param stdClass $entity
  */
 function election_file_download_access($field, $entity_type, $entity) {
   if ($entity_type == 'election') {

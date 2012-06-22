@@ -426,8 +426,6 @@ function election_candidate_field_extra_fields() {
  *
  * @param stdClass $candidate
  *   The election candidate object.
- *
- * @return string
  */
 function election_candidate_page_title($candidate) {
   return $candidate->first_name . ' ' . $candidate->last_name;
@@ -438,8 +436,6 @@ function election_candidate_page_title($candidate) {
  *
  * @param stdClass $candidate
  *   Election candidate object.
- *
- * @return bool
  */
 function election_candidate_save($candidate) {
   return entity_get_controller('election_candidate')->save($candidate);
@@ -450,8 +446,6 @@ function election_candidate_save($candidate) {
  *
  * @param array $candidate_ids
  *   Array of candidate IDs.
- *
- * @return bool
  */
 function election_candidate_delete_multiple(array $candidate_ids) {
   return entity_get_controller('election_candidate')->delete($candidate_ids);
@@ -464,8 +458,6 @@ function election_candidate_delete_multiple(array $candidate_ids) {
  *
  * @param mixed $candidate_id
  *   Single candidate ID.
- *
- * @return bool
  */
 function election_candidate_delete($candidate_id) {
   return election_candidate_delete_multiple(array($candidate_id));
@@ -546,8 +538,6 @@ function election_candidate_get_available_posts(stdClass $election, $nominations
 
 /**
  * URI callback for a single election candidate.
- *
- * @return array
  */
 function election_candidate_uri($candidate) {
   $path = 'election-candidate/' . $candidate->candidate_id;
@@ -572,8 +562,6 @@ function election_candidate_uri_path($candidate) {
  *
  * @param stdClass $entity
  * @param string $entity_type
- *
- * @return string
  */
 function election_candidate_label(stdClass $entity, $entity_type) {
   return $entity->first_name . ' ' . $entity->last_name;
@@ -825,8 +813,6 @@ function theme_election_candidate_ballot_item($variables) {
  * @todo make this themeable
  *
  * @param stdClass $candidate
- *
- * @return string
  */
 function _election_candidate_format_status(stdClass $candidate) {
   switch ($candidate->cstatus) {
@@ -1054,8 +1040,6 @@ function election_candidate_preprocess_election_post(&$vars) {
  * Get an array of candidate bundle type machine names.
  *
  * This is effectively an array of election IDs (for now).
- *
- * @return array
  */
 function _election_candidate_get_bundles() {
   $bundles = &drupal_static(__FUNCTION__);

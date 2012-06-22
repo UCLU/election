@@ -52,8 +52,6 @@ function election_condition_conditions($post = NULL) {
  *
  * This function uses hook_condition_info() to allow other modules to
  * define conditions.
- *
- * @return array
  */
 function _election_condition_get_code_conditions() {
   $conditions = &drupal_static(__FUNCTION__);
