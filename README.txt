@@ -14,3 +14,12 @@ Enable at least these three modules and their dependencies:
    election
    election_post
    election_candidate
+
+Author
+-----
+Patrick Dawkins (Drupal user pjcdawkins), pjcdawkins@gmail.com, p.dawkins@ucl.ac.uk.
+
+Copyright
+---------
+(C) 2012 UCLU (uclu.org)
+25 Gordon St, London WC1H 0AY
