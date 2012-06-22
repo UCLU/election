@@ -64,7 +64,7 @@ function election_post_schema() {
       ),
       'nstatus_inheritance' => array(
         'description' => sprintf(
-          'For a position: whether its nominations status is inherited (%d) or closed (%d).',
+          'For an STV position: whether its nominations status is inherited (%d) or closed (%d).',
           ELECTION_POST_STATUS_INHERIT,
           ELECTION_POST_STATUS_CLOSED
         ),
@@ -74,20 +74,20 @@ function election_post_schema() {
         'default' => ELECTION_POST_STATUS_INHERIT,
       ),
       'exclusive' => array(
-        'description' => 'For a position: whether or not the candidate can nominate for additional positions.',
+        'description' => 'For an STV position: whether or not the candidate can nominate for additional positions.',
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
         'default' => 1,
       ),
       'vacancy_count' => array(
-        'description' => 'For a position: the number of vacancies.',
+        'description' => 'For an STV position: the number of vacancies.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 1,
       ),
       'use_ron' => array(
-        'description' => 'For a position: whether or not RON (Re-Open Nominations)'
+        'description' => 'For an STV position: whether or not RON (Re-Open Nominations)'
                        . ' is to be provided as a candidate.',
         'type' => 'int',
         'size' => 'tiny',
