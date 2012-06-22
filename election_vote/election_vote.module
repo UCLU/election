@@ -215,8 +215,10 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
 
   $form['#id'] = 'election-vote-form election-vote-form-stv';
 
-  // For each candidate the user should be able to select a 'No preference' option instead of a rank.
   $rank_options = array();
+
+  // For each candidate the user should be able to select a 'No preference' option instead of a rank.
+  $rank_options['NONE'] = t('No preference');
 
   // Find all the other possible preference levels (number of (candidates + ron)).
   $pref_limit = $num_candidates;
@@ -226,8 +228,6 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
   for ($i = 0; $i < $pref_limit; $i++) {
     $rank_options[$i + 1] = _election_vote_get_ordinal($i + 1);
   }
-
-  $rank_options['NONE'] = t('No preference');
 
   $post_name = _election_get_posts_name($election->type);
 
@@ -266,7 +266,8 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
       '#title' => t('Your rank for %candidate', array('%candidate' => $candidate->first_name . ' ' . $candidate->last_name)),
       '#title_display' => 'invisible',
       '#options' => $rank_options,
-      '#required' => TRUE,
+      '#required' => FALSE,
+      '#default_value' => 'NONE',
       '#attributes' => array('class' => array('election-candidate-preference-select')),
     );
   }
@@ -279,7 +280,8 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
       '#title' => t('Your rank for %candidate', array('%candidate' => t('RON (Re-Open Nominations)'))),
       '#title_display' => 'invisible',
       '#options' => $rank_options,
-      '#required' => TRUE,
+      '#required' => FALSE,
+      '#default_value' => 'NONE',
       '#attributes' => array('class' => array('election-candidate-preference-select')),
     );
   }
@@ -347,7 +349,7 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
   }
 
   if (!$someone_ranked) {
-    form_set_error('', t('You must rank at least one candidate.'));
+    form_set_error('', t('You must rank at least one candidate in order to vote.'));
   }
 
   // Force the ranks to be consecutive, starting with 1.
