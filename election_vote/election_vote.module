@@ -1,0 +1,823 @@
+<?php
+/**
+ * @file
+ * Election Vote: primary module file.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function election_vote_menu() {
+  $items = array();
+
+  $items['election-post/%election_post/vote'] = array(
+    'title' => 'Vote',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_vote_form', 1),
+    'access callback' => 'election_vote_access',
+    'access arguments' => array('vote', 1),
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'weight' => 3,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function election_vote_permission() {
+  return array(
+    'vote in elections' => array(
+      'title' => t('Vote in elections'),
+      'description' => t('Users must have this permission in order to vote.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function election_vote_views_api() {
+  return array(
+    'api' => 3,
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function election_vote_theme() {
+  return array(
+    'election_vote_confirm' => array(
+      'variables' => array(
+        'form_state' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Access callback for voting.
+ *
+ * @param string $op
+ *   The operation requested (e.g. 'vote').
+ * @param stdClass $post
+ *   The election post object.
+ */
+function election_vote_access($op, stdClass $post, $account = NULL) {
+  if (empty($account)) {
+    global $user;
+    $account = $user;
+  }
+  // Allow other modules to block access (by implementing hook_election_vote_access() and returning FALSE).
+  $hook_results = module_invoke_all('election_vote_access', $op, $post, $account);
+  foreach ($hook_results as $hook_result) {
+    if ($hook_result === FALSE) {
+      return FALSE;
+    }
+  }
+  $election = $post->election;
+  switch ($op) {
+    case 'vote':
+      // Check whether the election is open.
+      if (!_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
+        return FALSE;
+      }
+      // Check whether the post is individually set to 'closed'.
+      switch ($post->vstatus_inheritance) {
+        case ELECTION_POST_STATUS_CLOSED:
+          return FALSE;
+          break;
+
+      }
+      // Check role access.
+      $accounts_roles_with_access = array_intersect(array_keys($account->roles), (array) $post->rids);
+      if (!count($accounts_roles_with_access)) {
+        return FALSE;
+      }
+      return TRUE;
+      break;
+  }
+  return FALSE;
+}
+
+
+/**
+ * Form builder function for election-post/%election_post/vote
+ *
+ * @param array $form
+ *   The Drupal Form API form definition.
+ * @param array &$form_state
+ *   The Form API state array.
+ *
+ * @return array $form
+ *   Render array.
+ */
+function election_vote_form($form, &$form_state, $post) {
+
+  if (isset($form_state['vote_require_confirm'])) {
+    return election_vote_form_vote_confirm($form, $form_state);
+  }
+
+  if (isset($form_state['abstain_require_confirm'])) {
+    return election_vote_form_abstain_confirm($form, $form_state);
+  }
+
+  $election = $post->election;
+
+  if ($previously_voted = election_vote_check_user_previously_voted($post)) {
+    drupal_set_message(t('You have already voted for (or abstained from) this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'status', FALSE);
+    $form['#disabled'] = TRUE;
+    drupal_goto(election_post_uri_path($post));
+  }
+
+  $form_state['election'] = $election;
+  $form_state['post'] = $post;
+
+  $title = election_post_page_title($post);
+  drupal_set_title(t('Vote: %title_trim', array('%title_trim' => truncate_utf8($post->title, 50, TRUE, TRUE))), PASS_THROUGH);
+  drupal_set_breadcrumb(
+    _election_build_breadcrumb($election, l($post->title, election_post_uri_path($post)))
+  );
+
+  $form['buttons'] = array(
+    '#type' => 'actions',
+    '#weight' => 100,
+  );
+  $form['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Vote…'),
+    '#submit' => array('election_vote_form_vote'),
+  );
+  $form['buttons']['abstain'] = array(
+    '#type' => 'submit',
+    '#value' => t('Abstain…'),
+    '#submit' => array('election_vote_form_abstain'),
+    '#limit_validation_errors' => array(),
+  );
+
+  $form['#validate'][] = 'election_vote_form_validate';
+
+  $type = $election->type_info;
+  if (!empty($type['vote form']) && function_exists($type['vote form'])) {
+    $function = $type['vote form'];
+    $form = $function($form, $form_state, $post, $election);
+  }
+
+  return $form;
+
+}
+
+
+/**
+ * Form modifying function for election-post/%election_post/vote
+ */
+function election_vote_referendum_vote_form($form, &$form_state, $post, $election) {
+
+  $answer_options = array(
+    ELECTION_ANSWER_YES => t('Yes'),
+    ELECTION_ANSWER_NO => t('No'),
+  );
+
+  $form['#id'] = 'election-vote-form election-vote-form-referendum';
+
+  $form['motion_preview'] = array(
+    '#type' => 'item',
+    '#title' => t('Motion'),
+    '#markup' => check_plain($post->title),
+  );
+
+  $form['answer'] = array(
+    '#type' => 'select',
+    '#title' => t('Your answer'),
+    '#options' => $answer_options,
+    '#required' => TRUE,
+  );
+
+  if (empty($post->allow_abstention)) {
+    unset($form['buttons']['abstain']);
+  }
+
+  return $form;
+
+}
+
+/**
+ * Form modifying function for election-post/%election_post/vote
+ */
+function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
+
+  // Load candidates
+  $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED));
+  $form_state['candidates'] = $candidates;
+
+  $num_candidates = count($candidates);
+  $form_state['num_candidates'] = $num_candidates;
+
+  if ($num_candidates == 0) {
+    drupal_set_message(t('Voting is currently closed: there are no approved candidates standing for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
+    $form['#disabled'] = TRUE;
+    drupal_goto(election_post_uri_path($post));
+  }
+
+  $form['#id'] = 'election-vote-form election-vote-form-stv';
+
+  // For each candidate the user should be able to select a 'No preference' option instead of a rank.
+  $rank_options = array();
+
+  // Find all the other possible preference levels (number of (candidates + ron)).
+  $pref_limit = $num_candidates;
+  if ($post->use_ron) {
+    $pref_limit++;
+  }
+  for ($i = 0; $i < $pref_limit; $i++) {
+    $rank_options[$i + 1] = _election_vote_get_ordinal($i + 1);
+  }
+
+  $rank_options['NONE'] = t('No preference');
+
+  $post_name = _election_get_posts_name($election->type);
+
+  $form['post_help'] = array('#type' => 'container');
+
+  $form['post_help']['nums'] = array(
+    '#markup' => t(
+      'The following candidates are standing for the @post_name <a href="@post_url">%post_title</a> (!vacancies).',
+      array(
+        '@post_name' => $post_name,
+        '%post_title' => $post->title,
+        '@post_url' => url(election_post_uri_path($post)),
+        '!vacancies' => format_plural($post->vacancy_count, '1 vacancy', '@count vacancies'),
+      )
+    ),
+  );
+
+  $form['ballot_paper'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Your ballot paper'),
+    '#attributes' => array('class' => array('election-ballot-paper')),
+    '#description' => t('Please rank the candidates according to your preference.'),
+  );
+
+  $form['ballot_paper']['start'] = array(
+    '#markup' => '<table class="election-ballot-table"><tr><th>' . t('Name') . '</th><th>' . t('Preference') . '</th></tr>',
+  );
+
+  foreach ($candidates as $candidate) {
+    $form['ballot_paper']['candidate_' . $candidate->candidate_id] = array(
+      '#type' => 'select',
+      '#prefix' => '<tr class="election-ballot-row"><td>'
+        . theme('election_candidate_ballot_item', array('candidate' => $candidate))
+        . '</td><td>',
+      '#suffix' => '</td></tr>',
+      '#title' => t('Your rank for %candidate', array('%candidate' => $candidate->first_name . ' ' . $candidate->last_name)),
+      '#title_display' => 'invisible',
+      '#options' => $rank_options,
+      '#required' => TRUE,
+      '#attributes' => array('class' => array('election-candidate-preference-select')),
+    );
+  }
+
+  if ($post->use_ron) {
+    $form['ballot_paper']['candidate_RON'] = array(
+      '#type' => 'select',
+      '#prefix' => '<tr class="election-ballot-row ballot-item-ron"><td>' . t('RON (Re-Open Nominations)') . '</td><td>',
+      '#suffix' => '</td></tr>',
+      '#title' => t('Your rank for %candidate', array('%candidate' => t('RON (Re-Open Nominations)'))),
+      '#title_display' => 'invisible',
+      '#options' => $rank_options,
+      '#required' => TRUE,
+      '#attributes' => array('class' => array('election-candidate-preference-select')),
+    );
+  }
+
+  $form['ballot_paper']['end'] = array(
+    '#markup' => '</table>',
+  );
+
+  $form['#attached']['js'][] = drupal_get_path('module', 'election_post') . '/vote.min.js';
+  $form['#validate'][] = 'election_vote_stv_vote_form_validate';
+
+  $form['buttons']['clear_form'] = array(
+    '#type' => 'link',
+    '#title' => 'Clear form',
+    '#href' => $_GET['q'],
+  );
+
+  return $form;
+
+}
+
+/**
+ * Validate the voting form (general).
+ *
+ * @param array $form
+ *   The Drupal Form API form definition.
+ * @param array &$form_state
+ *   The Form API state array.
+ */
+function election_vote_form_validate($form, &$form_state) {
+
+  $post = $form_state['post'];
+
+  // Last minute check to see whether a vote has already been entered.
+  if (election_vote_check_user_previously_voted($post)) {
+    $form_state['rebuild'] = TRUE;
+  }
+
+}
+
+/**
+ * Validate the voting form (for STV elections).
+ *
+ * @param array $form
+ *   The Drupal Form API form definition.
+ * @param array &$form_state
+ *   The Form API state array.
+ */
+function election_vote_stv_vote_form_validate($form, &$form_state) {
+
+  $post = $form_state['post'];
+  $num_candidates = $form_state['num_candidates'];
+
+  $candidate_rankings = array();
+  $already_used = array();
+  $someone_ranked = FALSE;
+
+  // Add each selected preference to $candidate_rankings.
+  foreach ($form_state['values'] as $key => $value) {
+    // The form values are keyed by candidate ID, prefixed with 'candidate_'.
+    if (substr($key, 0, 10) == 'candidate_') {
+      $candidate_id = substr($key, 10);
+      $candidate_rankings[$candidate_id] = $value;
+      if (isset($already_used[$value])) {
+        form_set_error('', t('You have used the preference level %value more than once. Candidates cannot be ranked equally.', array('%value' => $value)));
+        $form['rebuild'] = TRUE;
+        break;
+
+      }
+      if ($value != 'NONE' && $value !== NULL) {
+        $someone_ranked = TRUE;
+        $already_used[$value] = $key;
+      }
+    }
+  }
+
+  if (!$someone_ranked) {
+    form_set_error('', t('You must rank at least one candidate.'));
+  }
+
+  // Force the ranks to be consecutive, starting with 1.
+  $i = 1;
+  asort($candidate_rankings);
+  foreach ($candidate_rankings as &$rank) {
+    if ($rank != 'NONE') {
+      $rank = $i++;
+    }
+  }
+
+  $form_state['candidate_rankings'] = $candidate_rankings;
+
+}
+
+/**
+ * Submit callback for the 'Vote' button on the vote form.
+ */
+function election_vote_form_vote_confirm($form, &$form_state) {
+
+  $form['vote_confirmed'] = array(
+    '#type' => 'hidden',
+    '#value' => TRUE,
+  );
+
+  $form['#submit'] = array('election_vote_form_vote');
+
+  // confirm_form() ignores its third argument ($path) if $_GET['destination'] is set.
+  unset($_GET['destination']);
+
+  return confirm_form(
+    $form,
+    t('Are you sure you want to cast this vote?'),
+    current_path(),
+    theme('election_vote_confirm', array('form_state' => $form_state)),
+    t('Confirm'),
+    t('Cancel')
+  );
+
+}
+
+/**
+ * Theme a confirmation page for a vote.
+ */
+function theme_election_vote_confirm($variables) {
+  $form_state = $variables['form_state'];
+  $post = $form_state['post'];
+
+  // @todo split this sensibly
+
+  if ($post->type == 'position') {
+
+    $header = array(t('Candidate'), t('Preference'));
+    foreach ($form_state['candidate_rankings'] as $candidate_id => $rank) {
+      if ($candidate_id == 'RON') {
+        $candidate_item = t('RON (Re-Open Nominations)');
+      }
+      else {
+        $candidate = $form_state['candidates'][$candidate_id];
+        $candidate_item = theme('election_candidate_ballot_item', array('candidate' => $candidate));
+      }
+      $rows[] = array(
+        $candidate_item,
+        $rank == 'NONE' ? t('No preference') : _election_vote_get_ordinal($rank),
+      );
+    }
+    return theme('table', array(
+      'header' => $header,
+      'rows' => $rows,
+      'empty' => 'No ranking',
+    ));
+
+  }
+  elseif ($post->type == 'motion') {
+
+    switch ($form_state['values']['answer']) {
+      case ELECTION_ANSWER_YES:
+        $answer = t('Yes');
+        break;
+
+      case ELECTION_ANSWER_NO:
+        $answer = t('No');
+        break;
+
+    }
+
+    $answer = t('Answer: !answer', array('!answer' => $answer));
+
+    return '<dl><dt>' . check_plain($post->title) . '</dt><dd>' . $answer . '</dd></dl>';
+
+  }
+
+}
+
+/**
+ * Confirm the 'Abstain' button on the vote form.
+ */
+function election_vote_form_abstain_confirm($form, &$form_state) {
+
+  $form['abstain_confirmed'] = array(
+    '#type' => 'hidden',
+    '#value' => TRUE,
+  );
+
+  $form['#submit'] = array('election_vote_form_abstain');
+
+  // confirm_form() ignores its third argument ($path) if $_GET['destination'] is set.
+  unset($_GET['destination']);
+
+  return confirm_form($form, t('Are you sure you want to abstain?'), current_path());
+
+}
+
+
+/**
+ * Submit callback for the 'Abstain' button on the vote form.
+ */
+function election_vote_form_abstain($form, &$form_state) {
+
+  if (empty($form_state['values']['abstain_confirmed'])) {
+    $form_state['abstain_require_confirm'] = TRUE;
+    $form_state['rebuild'] = TRUE;
+    return;
+  }
+
+  $post = $form_state['post'];
+  $election = $form_state['election'];
+
+  $success = FALSE;
+
+  $transaction = db_transaction();
+
+  try {
+
+    global $user;
+
+    $vote = array(
+      'post_id' => $post->post_id,
+      'uid' => $user->uid,
+      'ip' => ip_address(),
+      'agent' => $_SERVER['HTTP_USER_AGENT'],
+      'sid_hash' => _election_vote_session_hash(),
+      'vote_time' => REQUEST_TIME,
+    );
+    $vote_id = db_insert('election_vote')
+      ->fields($vote)
+      ->execute();
+    if (empty($vote_id)) {
+      throw new Exception('The vote record could not be saved.');
+    }
+
+    $ballot_entry = array(
+      'vote_id' => $vote_id,
+      'post_id' => $post->post_id,
+      'abstain' => 1,
+    );
+    $success = db_insert('election_ballot')
+      ->fields($ballot_entry)
+      ->execute();
+
+  }
+  catch (Exception $e) {
+    $transaction->rollback();
+    watchdog_exception('election_post', $e, NULL, WATCHDOG_ERROR);
+  }
+
+  if ($success) {
+    $post_name = _election_get_posts_name($election->type);
+    drupal_set_message(t('You have abstained from voting for the @post_name !post_link.', array('@post_name' => $post_name, '!post_link' => l($post->title, election_post_uri_path($post)))));
+    $form_state['redirect'] = url(election_uri_path($election));
+  }
+  else {
+    $form_state['rebuild'] = TRUE;
+  }
+
+}
+
+/**
+ * Submit callback for the 'Vote' button on the form election_vote_form_confirm.
+ */
+function election_vote_form_vote($form, &$form_state) {
+
+  if (empty($form_state['values']['vote_confirmed'])) {
+    $form_state['vote_require_confirm'] = TRUE;
+    $form_state['rebuild'] = TRUE;
+    return;
+  }
+
+  $post = $form_state['post'];
+  $election = $form_state['election'];
+
+  $success = FALSE;
+
+  $transaction = db_transaction();
+
+  try {
+
+    global $user;
+
+    $vote = array(
+      'post_id' => $post->post_id,
+      'uid' => $user->uid,
+      'ip' => ip_address(),
+      'agent' => $_SERVER['HTTP_USER_AGENT'],
+      'sid_hash' => _election_vote_session_hash(),
+      'vote_time' => REQUEST_TIME,
+    );
+    $vote_id = db_insert('election_vote')
+      ->fields($vote)
+      ->execute();
+    if (empty($vote_id)) {
+      throw new Exception('The vote record could not be saved.');
+    }
+
+    $type = $election->type_info;
+    if (!empty($type['save votes']) && function_exists($type['save votes'])) {
+      $function = $type['save votes'];
+      $success = $function($form, $form_state, $post, $election, $vote_id);
+    }
+
+  }
+  catch (Exception $e) {
+    $transaction->rollback();
+    watchdog_exception('election_post', $e, NULL, WATCHDOG_ERROR);
+  }
+
+  if ($success) {
+    $post_name = _election_get_posts_name($election->type);
+    drupal_set_message(t('Thank you for voting for the @post_name !post_link.', array('@post_name' => $post_name, '!post_link' => l($post->title, election_post_uri_path($post)))));
+    $form_state['redirect'] = url(election_uri_path($election));
+  }
+  else {
+    $form_state['rebuild'] = TRUE;
+  }
+
+}
+
+/**
+ * Save votes for an STV election.
+ */
+function election_vote_stv_save_votes($form, &$form_state, $post, $election, $vote_id) {
+
+  global $user;
+
+  $candidate_rankings = $form_state['candidate_rankings'];
+
+  foreach ($candidate_rankings as $cid => $candidate_ranking) {
+
+    if ($candidate_ranking == 'NONE') {
+      // Don't save anything if the user did not rank this candidate.
+      continue;
+    }
+
+    $ballot_entry = array(
+      'vote_id' => $vote_id,
+      'post_id' => $post->post_id,
+      'rank' => $candidate_ranking,
+    );
+
+    if ($cid == 'RON') {
+      $ballot_entry['ron'] = 1;
+    }
+    else {
+      $ballot_entry['candidate_id'] = $cid;
+    }
+
+    db_insert('election_ballot')
+      ->fields($ballot_entry)
+      ->execute();
+
+  }
+
+  return TRUE;
+
+}
+
+/**
+ * Save answer to a motion, in a referendum.
+ */
+function election_vote_referendum_save_votes($form, &$form_state, $post, $election, $vote_id) {
+
+  $ballot_entry = array(
+    'vote_id' => $vote_id,
+    'post_id' => $post->post_id,
+    'answer' => $form_state['values']['answer'],
+  );
+
+  db_insert('election_ballot')
+    ->fields($ballot_entry)
+    ->execute();
+
+  return TRUE;
+
+}
+
+/**
+ * Describe the user's eligibility to vote for a particular post.
+ *
+ * @param stdClass $post
+ *   An election post object.
+ * @param stdClass $election
+ *   The election the post belongs to (optional).
+ *
+ * @return string
+ */
+function _election_vote_format_eligibility(stdClass $post, $election = NULL) {
+
+  if ($election === NULL) {
+    $election = empty($post->election)? election_load($post->election_id) : $post->election;
+  }
+
+  $post_name = _election_get_posts_name($election->type);
+
+  if ($post->vstatus_inheritance == ELECTION_POST_STATUS_CLOSED) {
+    return t('Voting is currently closed for this @post_name.', array('@post_name' => $post_name));
+  }
+  elseif (!_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
+    if ($election->vstatus == ELECTION_STATUS_SCHEDULED) {
+      if ($election->vopen_time > REQUEST_TIME) {
+        return t('Voting will open in %interval.', array('%interval' => format_interval($election->vopen_time - REQUEST_TIME, 2)));
+      }
+      elseif ($election->vclose_time < REQUEST_TIME) {
+        return t('Voting closed %interval ago.', array('%interval' => format_interval(REQUEST_TIME - $election->vclose_time, 1)));
+      }
+    }
+    return t('Voting is currently closed.');
+  }
+  if (!empty($election->type_info['has candidates']) && !_election_vote_post_has_approved_candidates($post)) {
+    return t('Voting is currently closed (not enough candidates).');
+  }
+  elseif (election_vote_access('vote', $post)) {
+    if (election_vote_check_user_previously_voted($post)) {
+      return t('You have already voted (or abstained).');
+    }
+    return t('<a href="@vote_link">You can vote</a> for this @post_name.', array('@post_name' => $post_name, '@vote_link' => url(election_post_uri_path($post) . '/vote')));
+  }
+  elseif (!user_is_logged_in()) {
+    return t('<a href="@login_uri">Log in</a> to vote.', array('@login_uri' => url('user/login', array('query' => array('destination' => $_GET['q'])))));
+  }
+
+  return t('You are not eligible to vote for this @post_name.', array('@post_name' => $post_name));
+}
+
+
+/**
+ * Find out whether the logged in user has previously voted for the $post.
+ *
+ * @param stdClass $post
+ *
+ * @return bool
+ */
+function election_vote_check_user_previously_voted($post) {
+
+  global $user;
+
+  // For anonymous users (who should rarely be allowed to vote), try checking on session hash.
+  if (!user_is_logged_in()) {
+    $result = db_query_range('SELECT vote_id FROM {election_vote} WHERE (sid_hash = :sh OR (ip = :ip AND agent = :agent)) AND post_id = :pid', 0, 1, array(
+      ':sh' => _election_vote_session_hash(),
+      ':ip' => ip_address(),
+      ':agent' => $_SERVER['HTTP_USER_AGENT'],
+      ':pid' => $post->post_id,
+    ))->fetchCol();
+    return (!empty($result));
+  }
+
+  // Otherwise, check based on the $user->uid.
+  $vote_count = db_query('SELECT COUNT(vote_id) FROM {election_vote} WHERE uid = :uid AND post_id = :pid', array(':uid' => $user->uid, ':pid' => $post->post_id))->fetchField(0);
+
+  if ($vote_count > 1) {
+    watchdog('election', 'User @uid has cast more than one vote for post @pid!', array('@uid' => $user->uid, '@pid' => $post->post_id), WATCHDOG_WARNING);
+  }
+
+  return ($vote_count > 0);
+
+}
+
+/**
+ * Get a hash of the session ID.
+ *
+ * @return string
+ */
+function _election_vote_session_hash() {
+  $sid = session_id();
+  return md5($sid . 'TIMj1g4C6xyMi8L');
+}
+
+/**
+ * Find the ordinal of a number.
+ *
+ * @return string
+ */
+function _election_vote_get_ordinal($num) {
+  $ends = array('th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th');
+  if ($num % 100 >= 11 && $num % 100 <= 13) {
+    $ord = $num. 'th';
+  }
+  else {
+    $ord = $num. $ends[$num % 10];
+  }
+  return $ord;
+}
+
+/**
+ * Implements hook_html_head_alter().
+ */
+function election_vote_html_head_alter(&$head_elements) {
+  // Set robots=noindex,nofollow on voting forms.
+  if (preg_match('/election\-post\/[0-9]+\/vote/', current_path())) {
+    foreach ($head_elements as $key => $element) {
+      if (isset($element['#atributes']['name']) && $element['#attributes']['name'] == 'robots' && $element['#attributes']['content'] != 'noindex,nofollow') {
+        unset($head_elements[$key]);
+        break;
+
+      }
+    }
+    $head_elements['robots'] = array(
+      '#type' => 'html_tag',
+      '#tag' => 'meta',
+      '#attributes' => array('name' => 'robots', 'content' => 'noindex,nofollow'),
+    );
+  }
+}
+
+/**
+ * Check whether a post has approved candidates (e.g. to see whether voting is possible).
+ *
+ * @param stdClass $post
+ *
+ * @return bool
+ *   TRUE if:
+ *     (A) the number of approved candidates > 1
+ *     or (B) there is 1 approved candidate, and RON;
+ *   FALSE otherwise.
+ */
+function _election_vote_post_has_approved_candidates($post) {
+  if (!module_exists('election_candidate')) { // @todo sort this dependency
+    return;
+  }
+  $num_candidates = db_query('SELECT COUNT(candidate_id) FROM {election_candidate} WHERE post_id = :pid AND cstatus = :approved', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED))->fetchField(0);
+  return ($num_candidates > 1 || ($num_candidates == 1 && $post->use_ron));
+}
+
+/**
+ * Implements template_preprocess_election_post().
+ */
+function election_vote_preprocess_election_post(&$variables) {
+
+  $post = $variables['elements']['#post'];
+  $election = $post->election;
+
+  $variables['eligibility'] = _election_vote_format_eligibility($post, $election);
+
+}

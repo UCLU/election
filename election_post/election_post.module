@@ -16,7 +16,7 @@ function election_post_menu() {
       $post_key = $type['post key'];
       $post_name = _election_get_posts_name($type_mn);
       $post_name_plural = _election_get_posts_name($type_mn, TRUE);
-      $items['admin/election/' . $type_mn . '/' . $post_key] = array(
+      $items['admin/config/election/' . $type_mn . '/' . $post_key] = array(
         'title' => drupal_ucfirst($post_name) . ' settings',
         'title callback' => 'check_plain',
         'page callback' => 'system_admin_menu_block_page',
@@ -97,18 +97,6 @@ function election_post_menu() {
     'context' => MENU_CONTEXT_INLINE,
   );
 
-  $items['election-post/%election_post/vote'] = array(
-    'title' => 'Vote',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_post_vote_form', 1),
-    'file' => 'election-post.pages.inc',
-    'access callback' => 'election_post_access',
-    'access arguments' => array('vote', 1),
-    'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-    'weight' => 3,
-  );
-
   return $items;
 
 }
@@ -119,7 +107,7 @@ function election_post_menu() {
 function election_post_menu_alter(&$items) {
   $election_types = election_types();
   foreach (election_types() as $type_mn => $type) {
-    $path = 'admin/election/' . $type_mn;
+    $path = 'admin/config/election/' . $type_mn;
     if (!empty($type['post key'])) {
       $post_key = $type['post key'];
       $post_name_plural = _election_get_posts_name($type_mn, TRUE);
@@ -188,9 +176,9 @@ function election_post_entity_info() {
       $entities['election_post']['bundles'][$post_key] = array(
         'label' => drupal_ucfirst($post_name),
         'admin' => array(
-          'path' => 'admin/election/' . $type_mn . '/' . $post_key,
-          'real path' => 'admin/election/' . $type_mn . '/' . $post_key,
-          'bundle argument' => 3,
+          'path' => 'admin/config/election/' . $type_mn . '/' . $post_key,
+          'real path' => 'admin/config/election/' . $type_mn . '/' . $post_key,
+          'bundle argument' => 4,
           'access arguments' => array('administer elections'),
         ),
         'metatags' => FALSE, // for the Metatags module
@@ -241,29 +229,6 @@ function election_post_access($op, $post = NULL, $account = NULL) {
         return user_access('bypass running election lock');
       }
       return election_access('edit', $election, $account);
-      break;
-
-    case 'vote':
-      // Check voting access for the whole election.
-      if (!election_access('vote', $election, $account)) {
-        return FALSE;
-      }
-      if (empty($post)) {
-        return FALSE;
-      }
-      // Check whether the post is individually set to 'closed'.
-      switch ($post->vstatus_inheritance) {
-        case ELECTION_POST_STATUS_CLOSED:
-          return FALSE;
-          break;
-
-      }
-      // Check role access.
-      $accounts_roles_with_access = array_intersect(array_keys($account->roles), (array) $post->rids);
-      if (!count($accounts_roles_with_access)) {
-        return FALSE;
-      }
-      return TRUE;
       break;
 
   }
@@ -477,11 +442,6 @@ function election_post_theme() {
       'render element' => 'elements',
       'template' => 'election-post',
     ),
-    'election_vote_confirm' => array(
-      'variables' => array(
-        'form_state' => NULL,
-      ),
-    ),
   );
 }
 
@@ -583,8 +543,6 @@ function template_preprocess_election_post(&$variables) {
   $variables['election_type'] = check_plain($election_type['name']);
   $variables['election_type_has_candidates'] = (!empty($election_type['has candidates']));
 
-  $variables['eligibility'] = _election_post_format_eligibility($post, $election);
-
   // Flatten the post object's member fields.
   $variables = array_merge((array) $post, $variables);
 
@@ -657,53 +615,6 @@ function _election_post_is_open(stdClass $post, $election = NULL, $status_prefix
   $open_time = $election->{$status_prefix . 'open_time'};
   $close_time = $election->{$status_prefix . 'close_time'};
   return _election_is_open($status, $open_time, $close_time);
-}
-
-/**
- * Describe the user's eligibility to vote for a particular post.
- *
- * @param stdClass $post
- *   An election post object.
- * @param stdClass $election
- *   The election the post belongs to (optional).
- *
- * @return string
- */
-function _election_post_format_eligibility(stdClass $post, $election = NULL) {
-
-  if ($election === NULL) {
-    $election = election_load($post->election_id);
-  }
-
-  $post_name = _election_get_posts_name($election->type);
-
-  if ($post->vstatus_inheritance == ELECTION_POST_STATUS_CLOSED) {
-    return t('Voting is currently closed for this @post_name.', array('@post_name' => $post_name));
-  }
-  elseif (!_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
-    if ($election->vstatus == ELECTION_STATUS_SCHEDULED) {
-      if ($election->vopen_time > REQUEST_TIME) {
-        return t('Voting will open in %interval.', array('%interval' => format_interval($election->vopen_time - REQUEST_TIME, 2)));
-      }
-      elseif ($election->vclose_time < REQUEST_TIME) {
-        return t('Voting closed %interval ago.', array('%interval' => format_interval(REQUEST_TIME - $election->vclose_time, 1)));
-      }
-    }
-    return t('Voting is currently closed.');
-  }
-  if (!empty($election->type_info['has candidates']) && !_election_post_has_approved_candidates($post)) {
-    return t('Voting is currently closed (not enough candidates).');
-  }
-  elseif (election_post_access('vote', $post)) {
-    if (election_vote_check_user_previously_voted($post)) {
-      return t('You have already voted (or abstained).');
-    }
-    return t('<a href="@vote_link">You can vote</a> for this @post_name.', array('@post_name' => $post_name, '@vote_link' => url(election_post_uri_path($post) . '/vote')));
-  }
-  elseif (!user_is_logged_in()) {
-    return t('<a href="@login_uri">Log in</a> to vote.', array('@login_uri' => url('user/login', array('query' => array('destination' => $_GET['q'])))));
-  }
-  return t('You are not eligible to vote for this @post_name.', array('@post_name' => $post_name));
 }
 
 /**
@@ -817,65 +728,6 @@ function _election_post_pathauto_update_alias_multiple(array $post_ids, $op, arr
 }
 
 /**
- * Find out whether the logged in user has previously voted for the $post.
- *
- * @param stdClass $post
- *
- * @return bool
- */
-function election_vote_check_user_previously_voted($post) {
-
-  global $user;
-
-  // For anonymous users (who should rarely be allowed to vote), try checking on session hash.
-  if (!user_is_logged_in()) {
-    $result = db_query_range('SELECT vote_id FROM {election_vote} WHERE (sid_hash = :sh OR (ip = :ip AND agent = :agent)) AND post_id = :pid', 0, 1, array(
-      ':sh' => _election_vote_session_hash(),
-      ':ip' => ip_address(),
-      ':agent' => $_SERVER['HTTP_USER_AGENT'],
-      ':pid' => $post->post_id,
-    ))->fetchCol();
-    return (!empty($result));
-  }
-
-  // Otherwise, check based on the $user->uid.
-  $vote_count = db_query('SELECT COUNT(vote_id) FROM {election_vote} WHERE uid = :uid AND post_id = :pid', array(':uid' => $user->uid, ':pid' => $post->post_id))->fetchField(0);
-
-  if ($vote_count > 1) {
-    watchdog('election', 'User @uid has cast more than one vote for post @pid!', array('@uid' => $user->uid, '@pid' => $post->post_id), WATCHDOG_WARNING);
-  }
-
-  return ($vote_count > 0);
-
-}
-
-/**
- * Get a hash of the session ID.
- *
- * @return string
- */
-function _election_vote_session_hash() {
-  $sid = session_id();
-  return md5($sid . 'TIMj1g4C6xyMi8L');
-}
-
-/**
- * Find the ordinal of a number.
- *
- * @return string
- */
-function _election_vote_get_ordinal($num) {
-  $ends = array('th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th');
-  if ($num % 100 >= 11 && $num % 100 <= 13) {
-    $ord = $num. 'th';
-  }
-  else {
-    $ord = $num. $ends[$num % 10];
-  }
-  return $ord;
-}
-
-/**
  * Implements template_preprocess_election().
  */
 function election_post_preprocess_election(&$vars) {
@@ -901,44 +753,4 @@ function election_post_preprocess_election(&$vars) {
       . '</div>',
     '#weight' => 100,
   );
-}
-
-/**
- * Check whether a post has approved candidates (e.g. to see whether voting is possible).
- *
- * @param stdClass $post
- *
- * @return bool
- *   TRUE if:
- *     (A) the number of approved candidates > 1
- *     or (B) there is 1 approved candidate, and RON;
- *   FALSE otherwise.
- */
-function _election_post_has_approved_candidates($post) {
-  if (!module_exists('election_candidate')) { // @todo sort this dependency
-    return;
-  }
-  $num_candidates = db_query('SELECT COUNT(candidate_id) FROM {election_candidate} WHERE post_id = :pid AND cstatus = :approved', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED))->fetchField(0);
-  return ($num_candidates > 1 || ($num_candidates == 1 && $post->use_ron));
-}
-
-/**
- * Implements hook_html_head_alter().
- */
-function election_post_html_head_alter(&$head_elements) {
-  // Set robots=noindex,nofollow on voting forms.
-  if (preg_match('/election\-post\/[0-9]+\/vote/', current_path())) {
-    foreach ($head_elements as $key => $element) {
-      if (isset($element['#atributes']['name']) && $element['#attributes']['name'] == 'robots' && $element['#attributes']['content'] != 'noindex,nofollow') {
-        unset($head_elements[$key]);
-        break;
-
-      }
-    }
-    $head_elements['robots'] = array(
-      '#type' => 'html_tag',
-      '#tag' => 'meta',
-      '#attributes' => array('name' => 'robots', 'content' => 'noindex,nofollow'),
-    );
-  }
 }

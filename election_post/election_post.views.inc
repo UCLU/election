@@ -89,13 +89,6 @@ function election_post_views_data() {
       'handler' => 'views_handler_field_election_post_link',
     ),
   );
-  $data['election_post']['vote_link'] = array(
-    'field' => array(
-      'title' => t('Vote link'),
-      'help' => t('Provide a link to cast a vote for this post.'),
-      'handler' => 'views_handler_field_election_post_link_vote',
-    ),
-  );
 
   // vacancy_count
   $data['election_post']['vacancy_count'] = array(
@@ -110,16 +103,6 @@ function election_post_views_data() {
     ),
     'sort' => array(
       'handler' => 'views_handler_sort',
-    ),
-  );
-
-  // eligibility
-  $data['election_post']['eligibility'] = array(
-    'title' => t('Eligibility'),
-    'help' => t('Whether the current user is eligible to vote.'),
-    'field' => array(
-      'handler' => 'views_handler_field_election_post_eligibility',
-      'click sortable' => FALSE,
     ),
   );
 
