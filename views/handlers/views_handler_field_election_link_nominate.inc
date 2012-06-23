@@ -46,7 +46,7 @@ class views_handler_field_election_link_nominate extends views_handler_field_ele
     $nstatus = $this->get_value($values, 'nstatus');
     $nopen_time = $this->get_value($values, 'nopen_time');
     $nclose_time = $this->get_value($values, 'nclose_time');
-    if (!_election_is_open($nstatus, $nopen_time, $nclose_time) && !user_access('bypass nominations schedule')) {
+    if (!_election_is_open($nstatus, $nopen_time, $nclose_time) && !user_access('bypass nomination schedule')) {
       return;
     }
 
