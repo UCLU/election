@@ -574,21 +574,21 @@ function election_vote_form_abstain($form, &$form_state) {
       'ip' => ip_address(),
       'agent' => $_SERVER['HTTP_USER_AGENT'],
       'sid_hash' => _election_vote_session_hash(),
-      'vote_time' => REQUEST_TIME,
+      'timestamp' => REQUEST_TIME,
     );
-    $vote_id = db_insert('election_vote')
+    $ballot_id = db_insert('election_vote')
       ->fields($vote)
       ->execute();
-    if (empty($vote_id)) {
+    if (empty($ballot_id)) {
       throw new Exception('The vote record could not be saved.');
     }
 
     $ballot_entry = array(
-      'vote_id' => $vote_id,
+      'ballot_id' => $ballot_id,
       'post_id' => $post->post_id,
       'abstain' => 1,
     );
-    $success = db_insert('election_ballot')
+    $success = db_insert('election_vote')
       ->fields($ballot_entry)
       ->execute();
 
@@ -631,25 +631,25 @@ function election_vote_form_vote($form, &$form_state) {
 
     global $user;
 
-    $vote = array(
+    $ballot = array(
       'post_id' => $post->post_id,
       'uid' => $user->uid,
       'ip' => ip_address(),
       'agent' => $_SERVER['HTTP_USER_AGENT'],
       'sid_hash' => _election_vote_session_hash(),
-      'vote_time' => REQUEST_TIME,
+      'timestamp' => REQUEST_TIME,
     );
-    $vote_id = db_insert('election_vote')
-      ->fields($vote)
+    $ballot_id = db_insert('election_ballot')
+      ->fields($ballot)
       ->execute();
-    if (empty($vote_id)) {
+    if (empty($ballot_id)) {
       throw new Exception('The vote record could not be saved.');
     }
 
     $type = $election->type_info;
     if (!empty($type['save votes']) && function_exists($type['save votes'])) {
       $function = $type['save votes'];
-      $success = $function($form, $form_state, $post, $election, $vote_id);
+      $success = $function($form, $form_state, $post, $election, $ballot_id);
     }
 
   }
@@ -672,7 +672,7 @@ function election_vote_form_vote($form, &$form_state) {
 /**
  * Save votes for an STV election.
  */
-function election_vote_stv_save_votes($form, &$form_state, $post, $election, $vote_id) {
+function election_vote_stv_save_votes($form, &$form_state, $post, $election, $ballot_id) {
 
   global $user;
 
@@ -685,21 +685,22 @@ function election_vote_stv_save_votes($form, &$form_state, $post, $election, $vo
       continue;
     }
 
-    $ballot_entry = array(
-      'vote_id' => $vote_id,
+    $vote_entry = array(
+      'ballot_id' => $ballot_id,
       'post_id' => $post->post_id,
       'rank' => $candidate_ranking,
     );
 
     if ($cid == 'RON') {
-      $ballot_entry['ron'] = 1;
+      $vote_entry['ron'] = 1;
     }
     else {
-      $ballot_entry['candidate_id'] = $cid;
+      $vote_entry['candidate_id'] = $cid;
     }
 
-    db_insert('election_ballot')
-      ->fields($ballot_entry)
+    // Note the whole of this function is inside a DB transaction.
+    db_insert('election_vote')
+      ->fields($vote_entry)
       ->execute();
 
   }
@@ -711,15 +712,15 @@ function election_vote_stv_save_votes($form, &$form_state, $post, $election, $vo
 /**
  * Save answer to a motion, in a referendum.
  */
-function election_vote_referendum_save_votes($form, &$form_state, $post, $election, $vote_id) {
+function election_vote_referendum_save_votes($form, &$form_state, $post, $election, $ballot_id) {
 
   $ballot_entry = array(
-    'vote_id' => $vote_id,
+    'ballot_id' => $ballot_id,
     'post_id' => $post->post_id,
     'answer' => $form_state['values']['answer'],
   );
 
-  db_insert('election_ballot')
+  db_insert('election_vote')
     ->fields($ballot_entry)
     ->execute();
 
@@ -790,7 +791,7 @@ function election_vote_check_user_previously_voted($post) {
 
   // For anonymous users (who should rarely be allowed to vote), try checking on session hash.
   if (!user_is_logged_in()) {
-    $result = db_query_range('SELECT vote_id FROM {election_vote} WHERE (sid_hash = :sh OR (ip = :ip AND agent = :agent)) AND post_id = :pid', 0, 1, array(
+    $result = db_query_range('SELECT ballot_id FROM {election_ballot} WHERE (sid_hash = :sh OR (ip = :ip AND agent = :agent)) AND post_id = :pid', 0, 1, array(
       ':sh' => _election_vote_session_hash(),
       ':ip' => ip_address(),
       ':agent' => $_SERVER['HTTP_USER_AGENT'],
@@ -800,10 +801,10 @@ function election_vote_check_user_previously_voted($post) {
   }
 
   // Otherwise, check based on the $user->uid.
-  $vote_count = db_query('SELECT COUNT(vote_id) FROM {election_vote} WHERE uid = :uid AND post_id = :pid', array(':uid' => $user->uid, ':pid' => $post->post_id))->fetchField(0);
+  $vote_count = db_query('SELECT COUNT(ballot_id) FROM {election_ballot} WHERE uid = :uid AND post_id = :pid', array(':uid' => $user->uid, ':pid' => $post->post_id))->fetchField(0);
 
   if ($vote_count > 1) {
-    watchdog('election', 'User @uid has cast more than one vote for post @pid!', array('@uid' => $user->uid, '@pid' => $post->post_id), WATCHDOG_WARNING);
+    watchdog('election', 'User @uid has cast more than one ballot for post @pid!', array('@uid' => $user->uid, '@pid' => $post->post_id), WATCHDOG_WARNING);
   }
 
   return ($vote_count > 0);
@@ -812,6 +813,8 @@ function election_vote_check_user_previously_voted($post) {
 
 /**
  * Get a hash of the session ID.
+ *
+ * @todo perhaps don't hard-code the salt
  */
 function _election_vote_session_hash() {
   $sid = session_id();
