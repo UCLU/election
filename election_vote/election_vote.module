@@ -325,6 +325,8 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
   $post = $form_state['post'];
   $num_candidates = $form_state['num_candidates'];
 
+  $error = FALSE;
+
   $candidate_rankings = array();
   $already_used = array();
   $someone_ranked = FALSE;
@@ -336,8 +338,8 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
       $candidate_id = substr($key, 10);
       $candidate_rankings[$candidate_id] = $value;
       if (isset($already_used[$value]) && !$post->allow_equal) {
-        form_set_error('', t('You have specified more than one %ordinal preference. Candidates cannot be ranked equally.', array('%ordinal' => _election_vote_get_ordinal($value))));
-        $form['rebuild'] = TRUE;
+        form_set_error('', t('You have specified more than one candidate as your %ordinal preference. Candidates cannot be ranked equally.', array('%ordinal' => _election_vote_get_ordinal($value))));
+        $error = TRUE;
         break;
 
       }
@@ -350,6 +352,13 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
 
   if (!$someone_ranked) {
     form_set_error('', t('You must rank at least one candidate in order to vote.'));
+    $error = TRUE;
+  }
+
+  // Skip the rest of this function if the input was invalid.
+  if ($error) {
+    $form_state['rebuild'] = TRUE;
+    return;
   }
 
   // Force the ranks to be consecutive, starting with 1.
@@ -416,12 +425,17 @@ function theme_election_vote_confirm($variables) {
   $form_state = $variables['form_state'];
   $post = $form_state['post'];
 
-  // @todo split this sensibly
+  // @todo split this sensibly, and split logic into preprocess function
 
   if ($post->type == 'position') {
 
-    $header = array(t('Candidate'), t('Your preference'));
-    foreach ($form_state['candidate_rankings'] as $candidate_id => $rank) {
+    $candidate_rankings = $form_state['candidate_rankings'];
+    $original_rankings = $form_state['original_rankings'];
+    $rank_changes = $form_state['rank_changes'];
+    $ranking_changed = count($rank_changes) ? TRUE : FALSE;
+
+    $header = array(t('Candidate'));
+    foreach ($candidate_rankings as $candidate_id => $rank) {
       if ($candidate_id == 'RON') {
         $candidate_item = t('RON (Re-Open Nominations)');
       }
@@ -429,17 +443,27 @@ function theme_election_vote_confirm($variables) {
         $candidate = $form_state['candidates'][$candidate_id];
         $candidate_item = theme('election_candidate_full_name', array('candidate' => $candidate));
       }
-      $rows[$candidate_id] = array(
-        $candidate_item,
-        $rank == 'NONE' ? t('No preference') : _election_vote_get_ordinal($rank),
-      );
+      $rows[$candidate_id][] = $candidate_item;
     }
 
-    if (count($form_state['rank_changes'])) {
+    // Add an intermediate column if the user's input had to be changed to produce a consecutive ranking.
+    if ($ranking_changed) {
       $header[] = t('Your input');
-      foreach ($form_state['original_rankings'] as $candidate_id => $rank) {
-        $rows[$candidate_id][] = $rank == 'NONE' ? t('No preference') : _election_vote_get_ordinal($rank);
+      foreach ($original_rankings as $candidate_id => $rank) {
+        $rows[$candidate_id][] = $rank == 'NONE' ? t('-') : _election_vote_get_ordinal($rank);
       }
+    }
+
+    $header[] = t('Your vote') . ($ranking_changed ? '<sup>*</sup>' : '');
+    foreach ($candidate_rankings as $candidate_id => $rank) {
+      if ($candidate_id == 'RON') {
+        $candidate_item = t('RON (Re-Open Nominations)');
+      }
+      else {
+        $candidate = $form_state['candidates'][$candidate_id];
+        $candidate_item = theme('election_candidate_full_name', array('candidate' => $candidate));
+      }
+      $rows[$candidate_id][] = $rank == 'NONE' ? t('-') : _election_vote_get_ordinal($rank);
     }
 
     $rankings = theme('table', array(
@@ -448,6 +472,10 @@ function theme_election_vote_confirm($variables) {
     ));
 
     $output = $rankings;
+
+    if ($ranking_changed) {
+      $output .= '<p><sup>*</sup>' . t('Your input is converted so that the candidates are ranked consecutively.') . '</p>';
+    }
 
     return $output;
 
