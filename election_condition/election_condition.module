@@ -295,41 +295,45 @@ function election_condition_entity_delete($entity, $type) {
 }
 
 /**
- * Implements hook_election_post_access().
+ * Implements hook_election_vote_access().
  *
  * @return
- *   FALSE on permission denied, void/NULL otherwise.
+ *   FALSE on permission denied, NULL otherwise.
  */
-function election_condition_election_post_access($op, $post = NULL, $account = NULL) {
+function election_condition_election_vote_access($op, $post = NULL, $account = NULL) {
 
   if (empty($account)) {
-    global $user;
-    $account = $user;
+    $account = $GLOBALS['user'];
   }
 
-  if ($op != 'vote') {
-    // This module only deals with voting eligibility.
-    return;
-  }
+  switch ($op) {
 
-  $code_conditions = _election_condition_get_code_conditions();
+    case 'vote':
 
-  // Get the conditions associated with this post.
-  $conditions = election_condition_get_conditions($post);
-  if (!count($conditions)) {
-    return;
-  }
-
-  // If any condition fails, return FALSE.
-  foreach ($conditions as $condition) {
-    if (isset($code_conditions[$condition->machine_name])) {
-      $condition->callbacks = $code_conditions[$condition->machine_name]['callbacks'];
-    }
-    foreach ($condition->callbacks as $callback) {
-      if (!function_exists($callback) || !$callback($account)) {
-        return FALSE;
+      // Get the conditions associated with this post.
+      $conditions = election_condition_get_conditions($post);
+      if (!count($conditions)) {
+        return NULL;
       }
-    }
+
+      // If any condition fails, return FALSE.
+      $code_conditions = _election_condition_get_code_conditions();
+      foreach ($conditions as $condition) {
+        // Callbacks aren't saved in the database for 'code conditions'.
+        if (isset($code_conditions[$condition->machine_name])) {
+          $condition->callbacks = $code_conditions[$condition->machine_name]['callbacks'];
+        }
+        // Run each callback function. Each must exist and return TRUE to succeed.
+        foreach ($condition->callbacks as $callback) {
+          if (!function_exists($callback) || $callback($account) !== TRUE) {
+            return FALSE;
+          }
+        }
+      }
+      break;
+
   }
+
+  return FALSE;
 
 }
