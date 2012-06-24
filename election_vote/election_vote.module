@@ -357,17 +357,17 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
 
   // Skip the rest of this function if the input was invalid.
   if ($error) {
-    $form_state['rebuild'] = TRUE;
     return;
   }
 
-  // Force the ranks to be consecutive, starting with 1.
-  // Keep a log of changes which can be displayed on the confirmation form.
-  $rank_changes = array();
-  $consecutive_rank = 0;
-  $previous_rank = NULL;
+  // Assemble the ranks in order (1st, 2nd, 5th, 8th, etc.)
   asort($candidate_rankings);
+
+  // Force the ranks to be consecutive.
   $original_rankings = $candidate_rankings;
+  $consecutive_rank = 0;
+  $rank_changes = array(); // Keep a log of changes for later.
+  $previous_rank = NULL;
   foreach ($candidate_rankings as $candidate_id => &$rank) {
     // Allow for 'No preference'.
     if ($rank == 'NONE') {
@@ -386,6 +386,7 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
     }
   }
 
+  // Save all this to $form_state so it can be used when confirming/saving votes.
   $form_state['candidate_rankings'] = $candidate_rankings;
   $form_state['original_rankings'] = $original_rankings;
   $form_state['rank_changes'] = $rank_changes;
@@ -419,20 +420,23 @@ function election_vote_form_vote_confirm($form, &$form_state) {
 }
 
 /**
- * Theme a confirmation page for a vote.
+ * Preprocess function for the voting confirmation page.
  */
-function theme_election_vote_confirm($variables) {
+function template_preprocess_election_vote_confirm(&$variables) {
+
   $form_state = $variables['form_state'];
   $post = $form_state['post'];
 
-  // @todo split this sensibly, and split logic into preprocess function
+  // @todo split this sensibly
 
   if ($post->type == 'position') {
 
     $candidate_rankings = $form_state['candidate_rankings'];
     $original_rankings = $form_state['original_rankings'];
+
     $rank_changes = $form_state['rank_changes'];
     $ranking_changed = count($rank_changes) ? TRUE : FALSE;
+    $variables['ranking_changed'] = $ranking_changed;
 
     $header = array(t('Candidate'));
     foreach ($candidate_rankings as $candidate_id => $rank) {
@@ -466,14 +470,35 @@ function theme_election_vote_confirm($variables) {
       $rows[$candidate_id][] = $rank == 'NONE' ? t('-') : _election_vote_get_ordinal($rank);
     }
 
-    $rankings = theme('table', array(
-      'header' => $header,
-      'rows' => $rows,
-    ));
+    $variables['rankings'] = array(
+      '#theme' => 'table',
+      '#header' => $header,
+      '#rows' => $rows,
+    );
 
-    $output = $rankings;
+  }
+  elseif ($post->type == 'motion') {
 
-    if ($ranking_changed) {
+    $variables['answer'] = $form_state['values']['answer'];
+
+  }
+
+}
+
+/**
+ * Theme a confirmation page for a vote.
+ */
+function theme_election_vote_confirm($variables) {
+  $form_state = $variables['form_state'];
+  $post = $form_state['post'];
+
+  // @todo split this sensibly
+
+  if ($post->type == 'position') {
+
+    $output = render($variables['rankings']);
+
+    if ($variables['ranking_changed']) {
       $output .= '<p><sup>*</sup>' . t('Your input is converted so that the candidates are ranked consecutively.') . '</p>';
     }
 
@@ -482,7 +507,7 @@ function theme_election_vote_confirm($variables) {
   }
   elseif ($post->type == 'motion') {
 
-    switch ($form_state['values']['answer']) {
+    switch ($variables['answer']) {
       case ELECTION_ANSWER_YES:
         $answer = t('Yes');
         break;
