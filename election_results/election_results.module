@@ -95,21 +95,21 @@ function election_results_access($op, stdClass $post, $account = NULL) {
  * Implements hook_entity_load().
  */
 function election_results_entity_load($entities, $type) {
-  $vote_counts = &drupal_static(__FUNCTION__, array());
-  // Add 'vote_count' property to posts.
+  $ballot_counts = &drupal_static(__FUNCTION__, array());
+  // Add 'ballot_count' property to posts.
   if ($type == 'election_post') {
-    if (count(array_diff_key($entities, $vote_counts))) {
-      $vote_counts = db_query(
-        'SELECT post_id, COUNT(DISTINCT vote_id) AS vote_count FROM {election_vote} WHERE post_id IN(:pids) GROUP BY post_id',
+    if (count(array_diff_key($entities, $ballot_counts))) {
+      $ballot_counts = db_query(
+        'SELECT post_id, COUNT(DISTINCT ballot_id) AS ballot_count FROM {election_ballot} WHERE post_id IN(:pids) GROUP BY post_id',
         array(':pids' => array_keys($entities))
       )->fetchAllAssoc('post_id');
     }
     foreach ($entities as $post_id => $post) {
-      if (isset($vote_counts[$post_id])) {
-        $post->vote_count = $vote_counts[$post_id]->vote_count;
+      if (isset($ballot_counts[$post_id])) {
+        $post->ballot_count = $ballot_counts[$post_id]->ballot_count;
       }
       else {
-        $post->vote_count = 0;
+        $post->ballot_count = 0;
       }
     }
   }
@@ -135,7 +135,7 @@ function theme_election_results_overview($variables) {
   $post = $variables['post'];
 
   $output = '<p>Post: ' . check_plain($post->title) . '</p>';
-  $output .= '<p>Number of votes (or abstentions): ' . check_plain($post->vote_count) . '</p>';
+  $output .= '<p>Number of votes (or abstentions): ' . check_plain($post->ballot_count) . '</p>';
 
   return $output;
 }
@@ -167,7 +167,7 @@ function election_results_form_election_post_manage_form_alter(&$form) {
     // For STV elections, add a 'ballot file' link.
     if ($election->type == 'stv' && election_results_access('download', $post)) {
       $row['operations']['data']['#items']['results_blt'] = l(
-        t('ballot file (@count)', array('@count' => format_plural($post->vote_count, '1 vote', '@count votes'))),
+        t('ballot file (@count)', array('@count' => format_plural($post->ballot_count, '1 vote', '@count ballots'))),
         $path . '/results/blt'
       );
     }
@@ -251,12 +251,12 @@ function _election_results_download_blt($post) {
   }
 
   $result = db_query(
-    'SELECT vote_id, GROUP_CONCAT(IF(ron = 1, \'ron\', IF(abstain = 1, NULL, candidate_id)) ORDER BY RANK SEPARATOR \' \') AS ballot FROM {election_ballot} WHERE post_id = :pid GROUP BY vote_id',
+    'SELECT ballot_id, GROUP_CONCAT(IF(ron = 1, \'ron\', IF(abstain = 1, NULL, candidate_id)) ORDER BY RANK SEPARATOR \' \') AS ballot FROM {election_vote} WHERE post_id = :pid GROUP BY ballot_id',
     array(':pid' => $post->post_id)
   );
 
   echo "# Votes are below, each line is in the format:\n";
-  echo "#   [(VOTE_ID)] MULTIPLIER [PREFERENCE PREFERENCE PREFERENCE ...] 0\n";
+  echo "#   [(BALLOT_ID)] MULTIPLIER [PREFERENCE PREFERENCE PREFERENCE ...] 0\n";
 
   // @todo performance work & batch mode
   foreach ($result as $row) {
@@ -264,8 +264,8 @@ function _election_results_download_blt($post) {
     foreach ($candidate_map as $id => $key) {
       $ballot = str_replace(' ' . $id . ' ', ' ' . $key . ' ', $ballot);
     }
-    // @todo add option to exclude vote IDs
-    echo '(' . $row->vote_id . ') 1';
+    // @todo add option to exclude ballot IDs for anonymised results
+    echo '(' . $row->ballot_id . ') 1';
     $ballot = rtrim($ballot, ' ');
     if ($ballot != ' ') {
       echo $ballot;
@@ -273,7 +273,7 @@ function _election_results_download_blt($post) {
     echo " 0\n";
   }
 
-  echo "0 # This marks the end of votes.\n";
+  echo "0 # This marks the end of ballots.\n";
 
   echo $candidate_lines;
 

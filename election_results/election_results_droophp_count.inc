@@ -38,7 +38,7 @@ class election_results_droophp_count extends DrooPHP_Count {
     }
 
     $result = db_query(
-      'SELECT vote_id, GROUP_CONCAT(IF(ron = 1, \'ron\', IF(abstain = 1, NULL, candidate_id)) ORDER BY RANK SEPARATOR \' \') AS ballot FROM {election_ballot} WHERE post_id = :pid GROUP BY vote_id',
+      'SELECT ballot_id, GROUP_CONCAT(IF(ron = 1, \'ron\', IF(abstain = 1, NULL, candidate_id)) ORDER BY RANK SEPARATOR \' \') AS ballot FROM {election_vote} WHERE post_id = :pid GROUP BY ballot_id',
       array(':pid' => $post->post_id)
     );
 
