@@ -169,7 +169,12 @@ function election_condition_get_conditions($post) {
     $post->conditions = array();
     if (!empty($post->post_id)) {
       $conditions = db_query('SELECT ec.* FROM {election_condition} ec LEFT JOIN {election_post_condition} epc USING (condition_id) WHERE epc.post_id = :pid', array(':pid' => $post->post_id));
+      $code_conditions = _election_condition_get_code_conditions();
       foreach ($conditions as $condition) {
+        // Callbacks aren't saved in the database for locked 'code conditions'.
+        if ($condition->locked && isset($code_conditions[$condition->machine_name])) {
+          $condition->callbacks = $code_conditions[$condition->machine_name]['callbacks'];
+        }
         $post->conditions[$condition->condition_id] = $condition;
       }
     }
@@ -317,12 +322,7 @@ function election_condition_election_vote_access($op, $post = NULL, $account = N
       }
 
       // If any condition fails, return FALSE.
-      $code_conditions = _election_condition_get_code_conditions();
       foreach ($conditions as $condition) {
-        // Callbacks aren't saved in the database for 'code conditions'.
-        if (isset($code_conditions[$condition->machine_name])) {
-          $condition->callbacks = $code_conditions[$condition->machine_name]['callbacks'];
-        }
         // Run each callback function. Each must exist and return TRUE to succeed.
         foreach ($condition->callbacks as $callback) {
           if (!function_exists($callback) || $callback($account) !== TRUE) {
