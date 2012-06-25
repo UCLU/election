@@ -75,25 +75,21 @@ function theme_election_statistics($variables) {
 function election_statistics_preprocess_election_statistics(&$variables) {
   $election = $variables['election'];
 
-  $totals = db_query('SELECT COUNT(DISTINCT IF(abstain=0,ballot_id,NULL)) AS votes, COUNT(DISTINCT IF(abstain=1, ballot_id, NULL)) AS abstentions FROM {election_vote} WHERE election_id = :eid', array(':eid' => $election->election_id))->fetch();
+  $totals = db_query('SELECT COUNT(DISTINCT ballot_id) AS ballots, COUNT(DISTINCT IF(abstain=0,ballot_id,NULL)) AS votes, COUNT(DISTINCT IF(abstain=1, ballot_id, NULL)) AS abstentions FROM {election_vote} WHERE election_id = :eid', array(':eid' => $election->election_id))->fetch();
   $totals->voters = db_query('SELECT COUNT(DISTINCT IF(uid = 0, sid_hash, uid)) AS voters FROM {election_ballot} WHERE election_id = :eid', array(':eid' => $election->election_id))->fetchField();
 
-  $post_ids = db_query('SELECT post_id FROM {election_post} WHERE election_id = :eid ORDER BY title', array(':eid' => $election->election_id))->fetchCol();
-  $totals->posts = count($post_ids);
-
   $post_name = _election_get_posts_name($election->type);
-  $posts_name = _election_get_posts_name($election->type, TRUE);
 
   $header = array(
-    'posts' => check_plain(drupal_ucfirst($posts_name)),
     'voters' => t('Voters'),
+    'ballots' => t('Ballots'),
     'votes' => t('Votes'),
     'abstentions' => t('Abstentions'),
   );
   $rows = array();
   $rows[0] = array(
-    'posts' => number_format($totals->posts),
     'voters' => number_format($totals->voters),
+    'ballots' => number_format($totals->ballots),
     'votes' => number_format($totals->votes),
     'abstentions' => number_format($totals->abstentions),
   );
@@ -118,32 +114,38 @@ function election_statistics_preprocess_election_statistics(&$variables) {
   );
 
   $posts_table = NULL;
-  if ($totals->votes > 0 && count($post_ids)) {
-    $posts = election_post_load_multiple($post_ids);
+  if ($totals->votes > 0) {
     $header = array(
       'post' => check_plain(drupal_ucfirst($post_name)),
+      'ballots' => t('Ballots'),
       'votes' => t('Votes'),
       'abstentions' => t('Abstentions'),
     );
+
+    $posts_totals = db_query('SELECT ep.title, ep.post_id, COUNT(DISTINCT ev.ballot_id) AS ballots, COUNT(DISTINCT IF(ev.abstain=0,ev.ballot_id,NULL)) AS votes, COUNT(DISTINCT IF(ev.abstain=1,ev.ballot_id,NULL)) AS abstentions FROM {election_vote} ev JOIN {election_post} ep USING(post_id) WHERE ev.election_id = :eid GROUP BY ep.post_id', array(':eid' => $election->election_id))->fetchAllAssoc('post_id');
+
+    $posts = election_post_load_multiple(array_keys($posts_totals));
+
     $rows = array();
-    $posts_statistics = db_query('SELECT post_id, COUNT(DISTINCT IF(abstain=0,ballot_id,NULL)) AS votes, COUNT(DISTINCT IF(abstain=1,ballot_id,NULL)) AS abstentions FROM {election_vote} WHERE post_id IN(:pid) GROUP BY post_id', array(':pid' => $post_ids))->fetchAllAssoc('post_id');
-    foreach ($posts as $post) {
-      if (!isset($posts_statistics[$post->post_id])) {
-        continue;
-      }
-      $stats = $posts_statistics[$post->post_id];
+    foreach ($posts_totals as $post_id => $post_totals) {
+
+      $post = $posts[$post_id];
       $rows[] = array(
         'post' => l($post->title, election_post_uri_path($post)),
-        'votes' => number_format($stats->votes),
-        'abstentions' => number_format($stats->abstentions),
+        'ballots' => number_format($post_totals->ballots),
+        'votes' => number_format($post_totals->votes),
+        'abstentions' => number_format($post_totals->abstentions),
       );
+
     }
+
     $posts_table = array(
       '#caption' => t('Totals per @post_name', array('@post_name' => $post_name)),
       '#theme' => 'table',
       '#header' => $header,
       '#rows' => $rows,
     );
+
   }
 
   $top_ips_table = NULL;
