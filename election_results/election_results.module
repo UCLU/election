@@ -167,7 +167,7 @@ function election_results_form_election_post_manage_form_alter(&$form) {
     // For STV elections, add a 'ballot file' link.
     if ($election->type == 'stv' && election_results_access('download', $post)) {
       $row['operations']['data']['#items']['results_blt'] = l(
-        t('ballot file (@count)', array('@count' => format_plural($post->ballot_count, '1 vote', '@count ballots'))),
+        t('ballot file (@count)', array('@count' => format_plural($post->ballot_count, '1 ballot', '@count ballots'))),
         $path . '/results/blt'
       );
     }
