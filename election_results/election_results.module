@@ -224,6 +224,49 @@ function _election_results_download_blt($post) {
   $total_candidates = (int) count($candidates) + ($post->use_ron);
   $total_vacancies = (int) $post->vacancy_count;
 
+  $votes_fields = array('ballot_id', 'candidate_id', 'ron', 'rank', 'abstain');
+
+  $votes_query = db_select('election_vote', 'ev')
+    ->fields('ev', $votes_fields)
+    ->condition('ev.post_id', $post->post_id)
+    ->orderBy('ballot_id')
+    ->orderBy('rank');
+
+  $votes = $votes_query->execute();
+
+  $allow_equal = $post->allow_equal;
+  $allow_abstention = $post->allow_abstention;
+
+  $ballots = array();
+  $ballot_errors = array();
+  $last_rank = NULL;
+  foreach ($votes as $vote) {
+
+    $ballot_id = $vote->ballot_id;
+
+    if (!isset($ballots[$ballot_id])) {
+      $ballots[$ballot_id] = '';
+      if ($vote->abstain) {
+        if (!$allow_abstention) {
+          $ballot_errors[$ballot_id] .= 'Abstention found, but abstention is not allowed!';
+        }
+        continue;
+      }
+    }
+    elseif (isset($last_rank) && $last_rank === $vote->rank) {
+      if (!$allow_equal) {
+        $ballot_errors[$ballot_id] .= 'Equal ranking found, but equal ranking is not allowed!';
+      }
+      $ballots[$ballot_id] .= '=';
+    }
+    else {
+      $ballots[$ballot_id] .= ' ';
+    }
+    $candidate_id = $vote->ron ? 'ron' : $vote->candidate_id;
+    $ballots[$ballot_id] .= $candidate_map[$candidate_id];
+    $last_rank = $vote->rank;
+  }
+
   // --- START BALLOT FILE ---
 
   echo "################################################\n";
@@ -250,35 +293,43 @@ function _election_results_download_blt($post) {
     echo '-' . implode(' -', $withdrawn) . "\n";
   }
 
-  $result = db_query(
-    'SELECT ballot_id, GROUP_CONCAT(IF(ron = 1, \'ron\', IF(abstain = 1, NULL, candidate_id)) ORDER BY RANK SEPARATOR \' \') AS ballot FROM {election_vote} WHERE post_id = :pid GROUP BY ballot_id',
-    array(':pid' => $post->post_id)
-  );
+  $anonymise = FALSE;
 
-  echo "# Votes are below, each line is in the format:\n";
-  echo "#   [(BALLOT_ID)] MULTIPLIER [PREFERENCE PREFERENCE PREFERENCE ...] 0\n";
+  echo "# Votes are below, each line is in the format:\n#    ";
+  if (!$anonymise) {
+    echo "[(BALLOT_ID)] ";
+  }
+  echo "MULTIPLIER [CANDIDATE CANDIDATE ...] 0\n";
+  echo "# where candidates are represented by keys in order of preference.\n";
+  echo "# Candidate keys are each separated by a space, or by = for equal rankings.\n";
 
-  // @todo performance work & batch mode
-  foreach ($result as $row) {
-    $ballot = ' ' . $row->ballot . ' ';
-    foreach ($candidate_map as $id => $key) {
-      $ballot = str_replace(' ' . $id . ' ', ' ' . $key . ' ', $ballot);
+  // Print the ballot lines.
+  foreach ($ballots as $ballot_id => $ballot) {
+    // If the ballot ID is omitted, the results will be anonymised.
+    if (!$anonymise) {
+      echo '(' . $ballot_id . ') ';
     }
-    // @todo add option to exclude ballot IDs for anonymised results
-    echo '(' . $row->ballot_id . ') 1';
-    $ballot = rtrim($ballot, ' ');
-    if ($ballot != ' ') {
-      echo $ballot;
+    // Each line begins with a multiplier (always 1) and ends with 0.
+    if (empty($ballot)) {
+      // This is an abstention.
+      echo '1 0';
     }
-    echo " 0\n";
+    else {
+      echo '1 ' . $ballot . ' 0';
+    }
+    // Add any error messages for this ballot in a comment at the end.
+    if (isset($ballot_errors[$ballot_id])) {
+      echo '# ' . $ballot_errors[$ballot_id];
+    }
+    echo "\n";
   }
 
   echo "0 # This marks the end of ballots.\n";
 
   echo $candidate_lines;
 
-  echo '"' . addcslashes($post->title, '"') . '"' . " # Position title\n";
-  echo '"' . addcslashes($election->title, '"') . '"' . " # Election title\n";
+  echo '"' . addcslashes($post->title, '"') . '" # Position title' . "\n";
+  echo '"' . addcslashes($election->title, '"') . '" # Election title' . "\n";
 
   $time = microtime(TRUE) - $start_time;
   echo '# Time to generate file: ' . number_format($time * 1000, 2) . 'ms';
@@ -303,7 +354,10 @@ function election_results_count_form($form, &$form_state, stdClass $post) {
     if (file_exists($droophp_path = libraries_get_path('DrooPHP'))) {
       require_once $droophp_path . '/library.php';
       $count = new election_results_droophp_count($post);
-      $method = new DrooPHP_Method_Wikipedia($count);
+      $options = array(
+        'allow_equal' => $post->allow_equal,
+      );
+      $method = new DrooPHP_Method_Wikipedia($count, $options);
       $method->run();
       // @todo output this in a sensible format.
       $form['count'] = array(

@@ -2,6 +2,8 @@
 /**
  * @file
  * Class extending DrooPHPCount (for running an STV count on an election post).
+ *
+ * @todo add equal rankings
  */
 
 class election_results_droophp_count extends DrooPHP_Count {
