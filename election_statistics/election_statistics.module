@@ -122,19 +122,22 @@ function election_statistics_preprocess_election_statistics(&$variables) {
       'abstentions' => t('Abstentions'),
     );
 
-    $posts_totals = db_query('SELECT ep.title, ep.post_id, COUNT(DISTINCT ev.ballot_id) AS ballots, COUNT(DISTINCT IF(ev.abstain=0,ev.ballot_id,NULL)) AS votes, COUNT(DISTINCT IF(ev.abstain=1,ev.ballot_id,NULL)) AS abstentions FROM {election_vote} ev JOIN {election_post} ep USING(post_id) WHERE ev.election_id = :eid GROUP BY ep.post_id', array(':eid' => $election->election_id))->fetchAllAssoc('post_id');
+    $post_ids = db_query('SELECT post_id FROM {election_post} WHERE election_id = :eid ORDER BY title', array(':eid' => $election->election_id))->fetchCol();
 
-    $posts = election_post_load_multiple(array_keys($posts_totals));
+    $posts = election_post_load_multiple($post_ids);
+
+    $posts_totals = db_query('SELECT post_id, COUNT(DISTINCT ballot_id) AS ballots, COUNT(DISTINCT IF(abstain=0,ballot_id,NULL)) AS votes, COUNT(DISTINCT IF(abstain=1,ballot_id,NULL)) AS abstentions FROM {election_vote} WHERE election_id = :eid GROUP BY post_id', array(':eid' => $election->election_id))->fetchAllAssoc('post_id');
 
     $rows = array();
-    foreach ($posts_totals as $post_id => $post_totals) {
+    foreach ($posts as $post_id => $post) {
 
-      $post = $posts[$post_id];
+      $post_totals = isset($posts_totals[$post_id])? $posts_totals[$post_id] : FALSE;
+
       $rows[] = array(
         'post' => l($post->title, election_post_uri_path($post)),
-        'ballots' => number_format($post_totals->ballots),
-        'votes' => number_format($post_totals->votes),
-        'abstentions' => number_format($post_totals->abstentions),
+        'ballots' => $post_totals ? number_format($post_totals->ballots) : 0,
+        'votes' => $post_totals ? number_format($post_totals->votes) : 0,
+        'abstentions' => $post_totals ? number_format($post_totals->abstentions) : 0,
       );
 
     }
