@@ -632,6 +632,7 @@ function election_vote_form_vote($form, &$form_state) {
     global $user;
 
     $ballot = array(
+      'election_id' => $election->election_id,
       'post_id' => $post->post_id,
       'uid' => $user->uid,
       'ip' => ip_address(),
@@ -687,6 +688,7 @@ function election_vote_stv_save_votes($form, &$form_state, $post, $election, $ba
 
     $vote_entry = array(
       'ballot_id' => $ballot_id,
+      'election_id' => $election->election_id,
       'post_id' => $post->post_id,
       'rank' => $candidate_ranking,
     );

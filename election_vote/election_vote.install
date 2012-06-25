@@ -20,6 +20,12 @@ function election_vote_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'election_id' => array(
+        'description' => 'The election in which the vote was cast. Relates to {election}.election_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
       'post_id' => array(
         'description' => 'Relates to {election_post}.post_id.',
         'type' => 'int',
@@ -73,6 +79,7 @@ function election_vote_schema() {
     'primary key' => array('vote_id'),
     'indexes' => array(
       'ballot_id' => array('ballot_id'),
+      'election_id' => array('election_id'),
       'post_id' => array('post_id'),
       'candidate_id' => array('candidate_id'),
       'rank' => array('rank'),
@@ -81,7 +88,15 @@ function election_vote_schema() {
       'abstain' => array('abstain'),
     ),
     'foreign keys' => array(
-      'vote' => array(
+      'election' => array(
+        'table' => 'election',
+        'columns' => array('election_id' => 'election_id'),
+      ),
+      'post' => array(
+        'table' => 'election_post',
+        'columns' => array('post_id' => 'post_id'),
+      ),
+      'ballot' => array(
         'table' => 'election_ballot',
         'columns' => array('ballot_id' => 'ballot_id'),
       ),
@@ -99,8 +114,14 @@ function election_vote_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'election_id' => array(
+        'description' => 'The election in which the ballot was cast. Relates to {election}.election_id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
       'post_id' => array(
-        'description' => 'The post for which the ballot has been cast. Relates to {election_post}.post_id.',
+        'description' => 'The post for which the ballot was cast. Relates to {election_post}.post_id.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => FALSE,
@@ -140,6 +161,7 @@ function election_vote_schema() {
     ),
     'primary key' => array('ballot_id'),
     'indexes' => array(
+      'election_id' => array('election_id'),
       'post_id' => array('post_id'),
       'uid' => array('uid'),
       'agent' => array('agent'),
@@ -148,6 +170,14 @@ function election_vote_schema() {
       'sid_hash' => array('sid_hash'),
     ),
     'foreign keys' => array(
+      'election' => array(
+        'table' => 'election',
+        'columns' => array('election_id' => 'election_id'),
+      ),
+      'post' => array(
+        'table' => 'election_post',
+        'columns' => array('post_id' => 'post_id'),
+      ),
       'user' => array(
         'table' => 'users',
         'columns' => array('uid' => 'uid'),
