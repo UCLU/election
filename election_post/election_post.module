@@ -301,30 +301,6 @@ function election_post_load_multiple(array $post_ids = array()) {
 }
 
 /**
- * Get all the post IDs for a given election.
- *
- * Note this just returns IDs, not post objects (hence 'get' not 'load').
- *
- * @param stdClass $election
- *   The election object (containing at least the property election_id).
- *
- * @return array
- *   An array of post IDs.
- */
-function _election_post_get_posts(stdClass $election) {
-  $post_ids = &drupal_static(__FUNCTION__, array());
-  $election_id = $election->election_id;
-  if (!isset($post_ids[$election_id])) {
-    $post_ids[$election_id] = db_select('election_post', 'ep')
-      ->fields('ep', array('post_id'))
-      ->condition('election_id', $election_id)
-      ->execute()
-      ->fetchCol();
-  }
-  return $post_ids[$election_id];
-}
-
-/**
  * Count the posts for a given election.
  *
  * @param stdClass $election
@@ -333,18 +309,17 @@ function _election_post_get_posts(stdClass $election) {
  * @return int
  *   The total number of posts.
  */
-function _election_post_count_posts(stdClass $election) {
+function _election_post_count_by_election(stdClass $election) {
   $post_counts = &drupal_static(__FUNCTION__, array());
   $election_id = $election->election_id;
   if (!isset($post_counts[$election_id])) {
     $post_counts[$election_id] = db_query(
-      'SELECT COUNT(post_id) FROM {election_post} WHERE election_id = :eid',
+      'SELECT COUNT(*) FROM {election_post} WHERE election_id = :eid',
       array(':eid' => $election_id)
     )->fetchField();
   }
   return (int) $post_counts[$election_id];
 }
-
 
 /**
  * Implements hook_entity_load().

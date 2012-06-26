@@ -1014,12 +1014,14 @@ function election_candidate_views_default_views() {
  * @param stdClass $post
  *   An election post object.
  * @param array $statuses
- *   An array of candidate statuses, by which to filter results.
+ *   An array of candidate statuses, by which to filter results (optional).
+ * @param string $order_by
+ *   A database column to order candidates by. Default is random (MySQL RAND()). Set FALSE for no ordering.
  *
  * @return array
  *   An array of candidate objects keyed by candidate ID.
  */
-function election_candidate_load_by_post(stdClass $post, $statuses = NULL, $order_by = 'RAND()') {
+function election_candidate_load_by_post(stdClass $post, array $statuses = NULL, $order_by = 'RAND()') {
   $select = db_select('election_candidate', 'ec')
     ->fields('ec', array('candidate_id'))
     ->condition('post_id', $post->post_id);
@@ -1032,6 +1034,36 @@ function election_candidate_load_by_post(stdClass $post, $statuses = NULL, $orde
   $candidate_ids = $select->execute()->fetchCol();
   $candidates = election_candidate_load_multiple($candidate_ids);
   return $candidates;
+}
+
+/**
+ * Count the candidates for a given post, who (optionally) have the given statuses.
+ *
+ * @param string $by
+ *   The entity type to filter candidates by (either 'election' or 'election_post').
+ * @param stdClass $entity
+ *   Either an election object or an election post object.
+ * @param array $statuses
+ *   An array of candidate statuses, by which to filter results (optional).
+ *
+ * @return int
+ *   The number of candidates.
+ */
+function _election_candidate_count($by, stdClass $entity, $statuses = NULL) {
+  $candidate_counts = &drupal_static(__FUNCTION__, array());
+  $id_field = ($by == 'election') ? 'election_id' : 'post_id';
+  $statuses = (array) $statuses;
+  $key = $by . '-' . $entity->$id_field  . '-' . implode($statuses);
+  if (!isset($candidate_counts[$key])) {
+    $select = db_select('election_candidate', 'ec');
+    $select->addExpression('COUNT(*)', 'count');
+    if (count($statuses)) {
+      $select->condition('cstatus', $statuses, 'IN');
+    }
+    $select->condition($id_field, $entity->$id_field);
+    $candidate_counts[$key] = $select->execute()->fetchField();
+  }
+  return $candidate_counts[$key];
 }
 
 /**
