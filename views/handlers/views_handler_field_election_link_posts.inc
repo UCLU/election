@@ -37,11 +37,12 @@ class views_handler_field_election_link_posts extends views_handler_field_electi
     }
 
     $posts_name = _election_get_posts_name($election->type, TRUE);
+    $posts_count = _election_post_count_posts($election);
 
     $this->options['alter']['make_link'] = TRUE;
     $this->options['alter']['path'] = "election/{$election->election_id}/posts";
 
-    $text = !empty($this->options['text']) ? $this->options['text'] : t('Manage @posts_name', array('@posts_name' => $posts_name));
+    $text = !empty($this->options['text']) ? $this->options['text'] : t('Manage @posts_name (!posts_count)', array('@posts_name' => $posts_name, '!posts_count' => $posts_count));
     return $text;
   }
 }

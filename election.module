@@ -318,6 +318,7 @@ function election_menu() {
     'file' => 'election.admin.inc',
     'description' => 'View, edit, and add new elections.',
     'weight' => -10,
+    'type' => MENU_SUGGESTED_ITEM,
   );
 
   foreach (election_types() as $type_mn => $type) {
