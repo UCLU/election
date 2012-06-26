@@ -48,7 +48,19 @@ function election_post_menu() {
   );
 
   $items['election/%election/posts/manage/add'] = array(
-    'title' => 'Add new',
+    'title callback' => 'election_post_page_add_title',
+    'title arguments' => array(1),
+    'page callback' => 'election_post_page_add',
+    'page arguments' => array(1),
+    'access callback' => 'election_post_access',
+    'access arguments' => array('create', 1),
+    'file' => 'election-post.admin.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+
+  $items['election/%election/add-post'] = array(
+    'title callback' => 'election_post_page_add_title',
+    'title arguments' => array(1),
     'page callback' => 'election_post_page_add',
     'page arguments' => array(1),
     'access callback' => 'election_post_access',
@@ -392,13 +404,21 @@ function election_post_save($post) {
 }
 
 /**
- * Title callback for election/%election/posts/manage (output should not
- * be escaped here as it is done later).
+ * Title callback for election/%election/posts/manage.
  *
- * @param stdClass $election
+ * Output should not be escaped here as it is done by the menu system.
  */
 function election_post_list_page_title($election) {
   return drupal_ucfirst(_election_get_posts_name($election->type, TRUE));
+}
+
+/**
+ * Title callback for election/%election/add-post and election/%election/posts/manage/add.
+ *
+ * Output should not be escaped here as it is done by the menu system.
+ */
+function election_post_page_add_title($election) {
+  return t('Add new !post_name', array('!post_name' => _election_get_posts_name($election->type)));
 }
 
 /**
