@@ -18,13 +18,20 @@ function election_results_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 4,
   );
+  $items['election-post/%election_post/results/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
   $items['election-post/%election_post/results/download'] = array(
-    'title' => 'Download BLT file of votes',
+    'title' => 'Download',
     'page callback' => '_election_results_download_blt',
     'page arguments' => array(1),
     'access callback' => 'election_results_access',
     'access arguments' => array('download', 1),
-    'type' => MENU_CALLBACK,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'weight' => 1,
   );
   return $items;
 }
@@ -115,10 +122,15 @@ function election_results_page(stdClass $post) {
 
   $election = $post->election;
 
+  drupal_set_title(t('Results: %post', array('%post' => $post->title)), PASS_THROUGH);
+  drupal_set_breadcrumb(_election_build_breadcrumb($election));
+
   $output = array();
 
   if (empty($post->ballot_count)) {
-    return $output;
+    return array(
+      '#markup' => '<p>' . t('No ballots have been cast for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))) . '</p>',
+    );
   }
 
   $totals = db_query(
@@ -193,20 +205,7 @@ function election_results_form_election_post_manage_form_alter(&$form) {
     if (election_results_access('view', $post)) {
       $row['operations']['data']['#items']['results'] = l(t('results'), $path . '/results');
     }
-    // For STV elections, add a 'ballot file' link.
-    if ($election->type == 'stv' && election_results_access('download', $post)) {
-      $row['operations']['data']['#items']['results_blt'] = l(
-        t('ballot file (@count)', array('@count' => format_plural($post->ballot_count, '1 ballot', '@count ballots'))),
-        $path . '/results/blt'
-      );
-    }
   }
-}
-
-/**
- * The form for downloading STV election results.
- */
-function election_results_download_form_stv($form, &$form_state, $post) {
 }
 
 /**
@@ -378,9 +377,6 @@ function _election_results_download_blt($post) {
  */
 function election_results_referendum_count_page(stdClass $post, $totals) {
 
-  drupal_set_title(t('Count votes: %post', array('%post' => $post->title)), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($post->election));
-
   $election = $post->election;
 
   $votes = db_query(
@@ -418,9 +414,6 @@ function election_results_referendum_count_page(stdClass $post, $totals) {
  * Page callback function for the election results counting page.
  */
 function election_results_stv_count_page(stdClass $post, $totals) {
-
-  drupal_set_title(t('Count votes: %post', array('%post' => $post->title)), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($post->election));
 
   $election = $post->election;
 
