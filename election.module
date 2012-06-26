@@ -90,6 +90,7 @@ function election_election_type_info() {
     'weight' => 0,
     'vote form' => 'election_vote_referendum_vote_form',
     'save votes' => 'election_vote_referendum_save_votes',
+    'results page' => 'election_results_referendum_count_page',
   );
   $types['stv'] = array(
     'name' => t('STV election'),
@@ -102,6 +103,8 @@ function election_election_type_info() {
     'post settings form' => 'election_post_stv_settings_form',
     'vote form' => 'election_vote_stv_vote_form',
     'save votes' => 'election_vote_stv_save_votes',
+    'results page' => 'election_results_stv_count_page',
+    'results download form' => 'election_results_download_form_stv',
   );
   return $types;
 }

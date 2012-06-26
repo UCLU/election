@@ -18,21 +18,7 @@ function election_results_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 4,
   );
-  $items['election-post/%election_post/results/overview'] = array(
-    'title' => 'Overview',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => 0,
-  );
-  $items['election-post/%election_post/results/count'] = array(
-    'title' => 'Count votes',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_results_count_form', 1),
-    'access callback' => 'election_results_access',
-    'access arguments' => array('view', 1),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 1,
-  );
-  $items['election-post/%election_post/results/blt'] = array(
+  $items['election-post/%election_post/results/download'] = array(
     'title' => 'Download BLT file of votes',
     'page callback' => '_election_results_download_blt',
     'page arguments' => array(1),
@@ -66,21 +52,28 @@ function election_results_access($op, stdClass $post, $account = NULL) {
   if (empty($account)) {
     $account = $GLOBALS['user'];
   }
+  $election = $post->election;
   switch ($op) {
     case 'view':
+      if (empty($election->type_info['results page']) || !function_exists($election->type_info['results page'])) {
+        return FALSE;
+      }
       if (_election_post_is_open($post, NULL, 'v') && !user_access('bypass running election lock', $account)) {
         return FALSE;
       }
-      elseif (election_post_access('edit', $post, $account) && user_access('view own election results', $account)) {
+      if (election_post_access('edit', $post, $account) && user_access('view own election results', $account)) {
         return TRUE;
       }
-      elseif (user_access('view any election results', $account)) {
+      if (user_access('view any election results', $account)) {
         return TRUE;
       }
       return FALSE;
       break;
 
     case 'download':
+      if (empty($election->type_info['results download form']) || !function_exists($election->type_info['results download form'])) {
+        return FALSE;
+      }
       if (_election_post_is_open($post, NULL, 'v') && !user_access('bypass running election lock', $account)) {
         return FALSE;
       }
@@ -116,37 +109,73 @@ function election_results_entity_load($entities, $type) {
 }
 
 /**
- * Implements hook_theme().
- */
-function election_results_theme() {
-  return array(
-    'election_results_overview' => array(
-      'variables' => array(
-        'post' => NULL,
-      ),
-    ),
-  );
-}
-
-/**
- * Theme the overview page for a post's results.
- */
-function theme_election_results_overview($variables) {
-  $post = $variables['post'];
-
-  $output = '<p>Post: ' . check_plain($post->title) . '</p>';
-  $output .= '<p>Number of votes (or abstentions): ' . check_plain($post->ballot_count) . '</p>';
-
-  return $output;
-}
-
-/**
- * Page callback for election-post/%election_post/result.
+ * Page callback for election-post/%election_post/results.
  */
 function election_results_page(stdClass $post) {
-  drupal_set_title(t('Results: %post', array('%post' => $post->title)), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($post->election));
-  return theme('election_results_overview', array('post' => $post));
+
+  $election = $post->election;
+
+  $output = array();
+
+  if (empty($post->ballot_count)) {
+    return $output;
+  }
+
+  $totals = db_query(
+    'SELECT COUNT(IF(abstain = 0, vote_id, NULL)) AS votes, COUNT(IF(abstain = 1, vote_id, NULL)) AS abstentions FROM {election_vote} WHERE post_id = :pid',
+    array(
+      ':pid' => $post->post_id,
+    )
+  )->fetch();
+
+  if ($totals->votes == 0) {
+    return $output;
+  }
+
+  $header = array(
+    'ballots' => t('Ballots'),
+    'votes' => t('Votes'),
+    'abstentions' => t('Abstentions')
+  );
+
+  $rows = array();
+  $rows[0] = array(
+    'ballots' => number_format($post->ballot_count),
+    'votes' => number_format($totals->votes),
+    'abstentions' => number_format($totals->abstentions),
+  );
+
+  $output['totals'] = array(
+    '#theme' => 'table',
+    '#caption' => t('Totals'),
+    '#header' => $header,
+    '#rows' => $rows,
+  );
+
+  if (!empty($election->type_info['results page']) && function_exists($election->type_info['results page'])) {
+    $function = $election->type_info['results page'];
+    $output += $function($post, $totals);
+  }
+
+  return $output;
+
+}
+
+/**
+ * Page callback for election-post/%election_post/results/download.
+ */
+function election_results_download(stdClass $post) {
+
+  $election = $post->election;
+
+  if (!empty($election->type_info['results download form']) && function_exists($election->type_info['results download form'])) {
+    $form = $election->type_info['results download form'];
+    return drupal_get_form($form, $post);
+  }
+  else {
+    return MENU_NOT_FOUND;
+  }
+
 }
 
 /**
@@ -172,6 +201,12 @@ function election_results_form_election_post_manage_form_alter(&$form) {
       );
     }
   }
+}
+
+/**
+ * The form for downloading STV election results.
+ */
+function election_results_download_form_stv($form, &$form_state, $post) {
 }
 
 /**
@@ -338,36 +373,81 @@ function _election_results_download_blt($post) {
 
 }
 
-
 /**
- * Form builder function for the election results counting form.
+ * Page callback function for the referendum results counting page.
  */
-function election_results_count_form($form, &$form_state, stdClass $post) {
+function election_results_referendum_count_page(stdClass $post, $totals) {
 
   drupal_set_title(t('Count votes: %post', array('%post' => $post->title)), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($post->election));
 
   $election = $post->election;
 
-  // For STV elections, use the DrooPHP library.
-  if ($election->type == 'stv') {
-    if (file_exists($droophp_path = libraries_get_path('DrooPHP'))) {
-      require_once $droophp_path . '/library.php';
-      $count = new election_results_droophp_count($post);
-      $options = array(
-        'allow_equal' => $post->allow_equal,
-      );
-      $method = new DrooPHP_Method_Wikipedia($count, $options);
-      $method->run();
-      // @todo output this in a sensible format.
-      $form['count'] = array(
-        '#markup' => '<pre>' . check_plain(print_r($method->stages, TRUE)) . '</pre>',
-      );
-      return $form;
-    }
-    else {
-      drupal_set_message(t('The <a href="https://github.com/pjcdawkins/DrooPHP/" target="_blank">DrooPHP</a> library (required for counting votes in STV elections) is not installed.'), 'warning');
-    }
+  $votes = db_query(
+    'SELECT COUNT(IF(answer = :yes, vote_id, NULL)) AS yes, COUNT(IF(answer = :no, vote_id, NULL)) AS no FROM {election_vote} WHERE post_id = :pid AND abstain <> 1',
+    array(
+      ':pid' => $post->post_id,
+      ':yes' => ELECTION_ANSWER_YES,
+      ':no' => ELECTION_ANSWER_NO,
+    )
+  )->fetch();
+
+  $header = array(
+    t('Yes'),
+    t('No'),
+  );
+  $rows = array(
+    array(
+      number_format($votes->yes) . ' (' . number_format(($votes->yes / $totals->votes) * 100, 2) . '%)',
+      number_format($votes->no) . ' (' . number_format(($votes->no / $totals->votes) * 100, 2) . '%)',
+    ),
+  );
+
+  $output['answers'] = array(
+    '#theme' => 'table',
+    '#caption' => t('Answers'),
+    '#header' => $header,
+    '#rows' => $rows,
+  );
+
+  return $output;
+
+}
+
+/**
+ * Page callback function for the election results counting page.
+ */
+function election_results_stv_count_page(stdClass $post, $totals) {
+
+  drupal_set_title(t('Count votes: %post', array('%post' => $post->title)), PASS_THROUGH);
+  drupal_set_breadcrumb(_election_build_breadcrumb($post->election));
+
+  $election = $post->election;
+
+  $output = array();
+
+  if (empty($post->ballot_count)) {
+    return $output;
   }
+
+  // For STV elections, use the DrooPHP library.
+  if (!file_exists($droophp_path = libraries_get_path('DrooPHP'))) {
+    drupal_set_message(t('The <a href="https://github.com/pjcdawkins/DrooPHP/" target="_blank">DrooPHP</a> library (required for counting votes in STV elections) is not installed.'), 'warning');
+    return $output;
+  }
+
+  require_once $droophp_path . '/library.php';
+  $count = new election_results_droophp_count($post);
+  $options = array(
+    'allow_equal' => $post->allow_equal,
+  );
+  $method = new DrooPHP_Method_Wikipedia($count, $options);
+  $method->run();
+
+  $output['results'] = array(
+    '#markup' => '<p><i>DrooPHP - value of $method->stages:</i></p><pre>' . htmlspecialchars(print_r($method->stages, TRUE)) . '</pre>',
+  );
+
+  return $output;
 
 }

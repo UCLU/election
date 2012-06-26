@@ -189,6 +189,8 @@ function election_vote_referendum_vote_form($form, &$form_state, $post, $electio
     '#required' => TRUE,
   );
 
+  $form['#validate'][] = 'election_vote_referendum_vote_form_validate';
+
   return $form;
 
 }
@@ -393,6 +395,19 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
 
 }
 
+
+/**
+ * Validate the voting form (for referendums).
+ */
+function election_vote_referendum_vote_form_validate($form, &$form_state) {
+
+  // Add 'answer' to $form_state (so it's available for later).
+  // @todo review this flow
+  $form_state['answer'] = $form_state['values']['answer'];
+
+}
+
+
 /**
  * Submit callback for the 'Vote' button on the vote form.
  */
@@ -426,11 +441,9 @@ function template_preprocess_election_vote_confirm(&$variables) {
 
   $form_state = $variables['form_state'];
   $post = $form_state['post'];
+  $election = $form_state['election'];
 
-  // @todo split this sensibly
-
-  if ($post->type == 'position') {
-
+  if ($election->type == 'stv') {
     $candidate_rankings = $form_state['candidate_rankings'];
     $original_rankings = $form_state['original_rankings'];
 
@@ -476,11 +489,12 @@ function template_preprocess_election_vote_confirm(&$variables) {
       '#rows' => $rows,
     );
 
+    return;
   }
-  elseif ($post->type == 'motion') {
 
+  if ($election->type == 'referendum') {
     $variables['answer'] = $form_state['values']['answer'];
-
+    return;
   }
 
 }
@@ -490,11 +504,11 @@ function template_preprocess_election_vote_confirm(&$variables) {
  */
 function theme_election_vote_confirm($variables) {
   $form_state = $variables['form_state'];
+
   $post = $form_state['post'];
+  $election = $form_state['election'];
 
-  // @todo split this sensibly
-
-  if ($post->type == 'position') {
+  if ($election->type == 'stv') {
 
     $output = render($variables['rankings']);
 
@@ -505,7 +519,8 @@ function theme_election_vote_confirm($variables) {
     return $output;
 
   }
-  elseif ($post->type == 'motion') {
+
+  if ($election->type == 'referendum') {
 
     switch ($variables['answer']) {
       case ELECTION_ANSWER_YES:
@@ -722,7 +737,7 @@ function election_vote_referendum_save_votes($form, &$form_state, $post, $electi
     'election_id' => $election->election_id,
     'ballot_id' => $ballot_id,
     'post_id' => $post->post_id,
-    'answer' => $form_state['values']['answer'],
+    'answer' => $form_state['answer'],
   );
 
   db_insert('election_vote')
