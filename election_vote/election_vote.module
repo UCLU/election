@@ -718,14 +718,15 @@ function election_vote_stv_save_votes($form, &$form_state, $post, $election, $ba
  */
 function election_vote_referendum_save_votes($form, &$form_state, $post, $election, $ballot_id) {
 
-  $ballot_entry = array(
+  $vote = array(
+    'election_id' => $election->election_id,
     'ballot_id' => $ballot_id,
     'post_id' => $post->post_id,
     'answer' => $form_state['values']['answer'],
   );
 
   db_insert('election_vote')
-    ->fields($ballot_entry)
+    ->fields($vote)
     ->execute();
 
   return TRUE;
