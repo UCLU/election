@@ -185,7 +185,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
     $header = array(t('Voters'), t('User agent'));
     $rows = array();
     $browscap = FALSE;
-    if (ini_get('browscap') && FALSE) {
+    if (ini_get('browscap')) {
       $browscap = TRUE;
       $header[] = t('Browser');
     }
