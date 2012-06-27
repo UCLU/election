@@ -134,7 +134,7 @@ function election_results_page(stdClass $post) {
   }
 
   $totals = db_query(
-    'SELECT COUNT(IF(abstain = 0, vote_id, NULL)) AS votes, COUNT(IF(abstain = 1, vote_id, NULL)) AS abstentions FROM {election_vote} WHERE post_id = :pid',
+    'SELECT COUNT(DISTINCT IF(abstain = 0, ballot_id, NULL)) AS votes, COUNT(DISTINCT IF(abstain = 1, ballot_id, NULL)) AS abstentions FROM {election_vote} WHERE post_id = :pid',
     array(
       ':pid' => $post->post_id,
     )
@@ -452,7 +452,7 @@ function election_results_referendum_count_page(stdClass $post, $totals) {
 }
 
 /**
- * Page callback function for the election results counting page.
+ * Page callback function for the position's counting page.
  */
 function election_results_stv_count_page(stdClass $post, $totals) {
 
@@ -479,10 +479,89 @@ function election_results_stv_count_page(stdClass $post, $totals) {
   $method = new DrooPHP_Method_Wikipedia($count, $options);
   $method->run();
 
+  $output['droophp_title'] = array(
+    '#markup' => '<h2>' . t('STV count') . '</h2>',
+  );
+
+  $output['explanation'] = array(
+    '#markup' => t(
+      '<p>This is a very basic STV count of the position\'s results, using !DrooPHP. A more accurate count can be obtained by downloading the ballot file (see <a href="@download_url">Download</a>), and counting results using software such as !droop or !OpenSTV.</p>',
+      array(
+        '@download_url' => url(election_post_uri_path($post) . '/results/download'),
+        '!DrooPHP' => l(
+          'DrooPHP',
+          'https://github.com/pjcdawkins/DrooPHP/',
+          array('attributes' => array('target' => '_blank'))
+        ),
+        '!droop' => l(
+          'droop',
+          'http://code.google.com/p/droop/',
+          array('attributes' => array('target' => '_blank'))
+        ),
+        '!OpenSTV' => l(
+          'OpenSTV',
+          'http://www.openstv.org/',
+          array('attributes' => array('target' => '_blank'))
+        ),
+      )
+    ),
+  );
+
+  $output['quota'] = array(
+    '#markup' => '<p>' . t('Quota: @quota', array('@quota' => number_format($method->quota))) . '</p>',
+  );
+
+  $candidates = $count->election->candidates;
+  $stages = $method->stages;
+
+  $header = array(
+    NULL,
+    array(
+      'data' => t('Stages'),
+      'colspan' => count($stages),
+    ),
+  );
+
+  $rows = array();
+
+  $rows[0] = array(
+    array(
+      'data' => t('Candidates'),
+      'header' => TRUE,
+    ),
+  );
+
+  foreach (array_keys($stages) as $stage_name) {
+    $rows[0][] = array(
+      'data' => check_plain($stage_name),
+      'header' => TRUE,
+    );
+  }
+
+  foreach ($candidates as $candidate) {
+    $row = array();
+    $row['name'] = check_plain(truncate_utf8($candidate->name, 30, TRUE, TRUE));
+    foreach ($stages as $stage_name => $stage) {
+      $data = '<div class="droophp-votes">' . number_format($stage['votes'][$candidate->cid]) . '</div>';
+      if (!empty($stage['changes'][$candidate->cid])) {
+        $data .= theme('item_list', array(
+          'items' => $stage['changes'][$candidate->cid],
+          'attributes' => array(
+            'classes' => array('droophp-changes'),
+          ),
+        ));
+      }
+      $row[$stage_name] = array(
+        'data' => $data,
+      );
+    }
+    $rows[] = $row;
+  }
+
   $output['results'] = array(
-    '#type' => 'item',
-    '#title' => t('DrooPHP - value of $method->stages'),
-    '#markup' => '<pre>' . htmlspecialchars(print_r($method->stages, TRUE)) . '</pre>',
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
   );
 
   return $output;
