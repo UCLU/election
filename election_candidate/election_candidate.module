@@ -489,7 +489,7 @@ function election_candidate_get_user_nominations(stdClass $election, $account = 
     return array();
   }
   $select = db_query(
-    'SELECT ec.*, ep.title AS post_title, ep.exclusive FROM {election_candidate} ec LEFT JOIN {election_post} ep USING (post_id) WHERE ec.uid = :uid AND ep.election_id = :eid',
+    'SELECT ec.*, ep.title AS post_title, ep.settings FROM {election_candidate} ec LEFT JOIN {election_post} ep USING (post_id) WHERE ec.uid = :uid AND ep.election_id = :eid',
     array(
       ':eid' => $election->election_id,
       ':uid' => $account->uid,
@@ -522,7 +522,8 @@ function election_candidate_get_available_posts(stdClass $election, $nominations
   $has_exclusive = FALSE;
   $prev_post_ids = array();
   foreach ($nominations as $nomination) {
-    if ($nomination->exclusive) {
+    $settings = (array) unserialize($nomination->settings);
+    if (!empty($settings['exclusive'])) {
       $has_exclusive = TRUE;
     }
     $prev_post_ids[] = $nomination->post_id;
