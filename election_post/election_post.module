@@ -566,8 +566,6 @@ function template_preprocess_election_post(&$variables) {
   $variables['election_post_url'] = url($uri['path'], $uri['options']);
   $variables['title'] = check_plain($post->title);
   $variables['page'] = $variables['view_mode'] == 'full';
-  $variables['exclusivity'] = $post->settings['exclusive'] ? t('This is an exclusive position.') : t('This is not an exclusive position.');
-  $variables['exclusivity_help'] = t('Candidates may only stand for one exclusive position per election.');
 
   $election_uri = election_uri($election);
   $election_type = _election_type_get_info($election->type);
@@ -781,4 +779,26 @@ function election_post_preprocess_election(&$vars) {
     . '</div>',
     '#weight' => 100,
   );
+}
+
+/**
+ * Helper function to extract the answer text (Yes/No, Agree/Disagree etc.) for a referendum motion.
+ */
+function _election_post_get_answer_text($post, $answer) {
+  switch ($answer) {
+    case ELECTION_ANSWER_YES:
+      if (!empty($post->settings['answer_pos'])) {
+        return $post->settings['answer_pos'];
+      }
+      return t('Yes');
+      break;
+
+    case ELECTION_ANSWER_NO:
+      if (!empty($post->settings['answer_neg'])) {
+        return $post->settings['answer_neg'];
+      }
+      return t('No');
+      break;
+
+  }
 }

@@ -137,6 +137,54 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
 
 }
 
+
+/**
+ * Settings form for motions in referendums.
+ *
+ * This adds to the form 'election_post_form'.
+ *
+ * @see election_post_form()
+ *
+ * @param array $form
+ *   The Drupal Form API form definition.
+ * @param array &$form_state
+ *   The form state array.
+ * @param stdClass $post
+ *   An election post object.
+ * @param stdClass $election
+ *   The election the post belongs to.
+ *
+ * @return array
+ *   Form API render array.
+ */
+function election_post_referendum_settings_form($form, &$form_state, stdClass $post, stdClass $election) {
+  $form['answers'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Answers'),
+    '#description' => t('Define the valid positive and negative answers to this motion (e.g. Yes/No, Agree/Disagree, etc.).'),
+    '#weight' => -30,
+    '#collapsible' => TRUE,
+  );
+  $form['answers']['settings_answer_pos'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Positive answer'),
+    // The default value is sanitized by the Form API so no check_plain() needed here.
+    '#default_value' => _election_post_get_answer_text($post, ELECTION_ANSWER_YES),
+    '#maxlength' => 10,
+    '#size' => 10,
+  );
+  $form['answers']['settings_answer_neg'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Negative answer'),
+    // The default value is sanitized by the Form API so no check_plain() needed here.
+    '#default_value' => _election_post_get_answer_text($post, ELECTION_ANSWER_NO),
+    '#maxlength' => 10,
+    '#size' => 10,
+  );
+  $form['#validate'][] = 'election_post_referendum_settings_form_validate';
+  return $form;
+}
+
 /**
  * Settings form for positions in STV elections.
  *
@@ -251,6 +299,17 @@ function election_post_form_validate($form, &$form_state) {
 
   field_attach_form_validate('election_post', $form_state['post'], $form, $form_state);
 
+}
+
+/**
+ * Form validate function for the referendum motion settings form.
+ *
+ * @see election_post_referendum_settings_form()
+ */
+function election_post_referendum_settings_form_validate($form, &$form_state) {
+  if ($form_state['values']['settings_answer_pos'] == $form_state['values']['settings_answer_neg']) {
+    form_set_error('answers', t('The positive and negative answers cannot be the same.'));
+  }
 }
 
 /**

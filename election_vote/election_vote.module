@@ -171,11 +171,6 @@ function election_vote_form($form, &$form_state, stdClass $post) {
  */
 function election_vote_referendum_vote_form($form, &$form_state, $post, $election) {
 
-  $answer_options = array(
-    ELECTION_ANSWER_YES => t('Yes'),
-    ELECTION_ANSWER_NO => t('No'),
-  );
-
   $form['motion_preview'] = array(
     '#type' => 'item',
     '#title' => t('Motion'),
@@ -183,9 +178,12 @@ function election_vote_referendum_vote_form($form, &$form_state, $post, $electio
   );
 
   $form['answer'] = array(
-    '#type' => 'select',
+    '#type' => 'radios',
     '#title' => t('Your answer'),
-    '#options' => $answer_options,
+    '#options' => array(
+      ELECTION_ANSWER_YES => check_plain(_election_post_get_answer_text($post, ELECTION_ANSWER_YES)),
+      ELECTION_ANSWER_NO => check_plain(_election_post_get_answer_text($post, ELECTION_ANSWER_NO)),
+    ),
     '#required' => TRUE,
   );
 
@@ -522,18 +520,7 @@ function theme_election_vote_confirm($variables) {
 
   if ($election->type == 'referendum') {
 
-    switch ($variables['answer']) {
-      case ELECTION_ANSWER_YES:
-        $answer = t('Yes');
-        break;
-
-      case ELECTION_ANSWER_NO:
-        $answer = t('No');
-        break;
-
-    }
-
-    $answer = t('Answer: !answer', array('!answer' => $answer));
+    $answer = t('Your answer: %answer', array('%answer' => _election_post_get_answer_text($post, $variables['answer'])));
 
     return '<dl><dt>' . check_plain($post->title) . '</dt><dd>' . $answer . '</dd></dl>';
 

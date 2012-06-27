@@ -226,6 +226,12 @@ function election_results_download_form_stv($form, &$form_state, $post) {
     '#type' => 'fieldset',
     '#title' => t('Settings inherited from %post', array('%post' => $post->title)),
   );
+  $form['settings']['use_ron'] = array(
+    '#type' => 'checkbox',
+    '#disabled' => TRUE,
+    '#title' => t('Include RON'),
+    '#default_value' => $post->settings['use_ron'],
+  );
   $form['settings']['allow_abstention'] = array(
     '#type' => 'checkbox',
     '#disabled' => TRUE,
@@ -281,7 +287,7 @@ function _election_results_download_blt($form, &$form_state) {
   $post = $form['#post'];
   $election = $post->election;
 
-  $filename = $form_state['values']['filename'];
+  $filename = $form_state['values']['filename'] . '.blt';
   $include_ids = $form_state['values']['include_ids'];
 
   // @todo generate files with Batch API
