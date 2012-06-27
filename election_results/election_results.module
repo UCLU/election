@@ -545,7 +545,7 @@ function election_results_stv_count_page(stdClass $post, $totals) {
       $data = '<div class="droophp-votes">' . number_format($stage['votes'][$candidate->cid]) . '</div>';
       if (!empty($stage['changes'][$candidate->cid])) {
         $data .= theme('item_list', array(
-          'items' => $stage['changes'][$candidate->cid],
+          'items' => array_map('check_plain', $stage['changes'][$candidate->cid]),
           'attributes' => array(
             'classes' => array('droophp-changes'),
           ),
