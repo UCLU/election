@@ -20,7 +20,7 @@ class election_results_droophp_count extends DrooPHP_Count {
     $dp_election->title = $post->title;
     $dp_election->source = $post->election->title;
 
-    $dp_election->num_seats = $post->vacancy_count;
+    $dp_election->num_seats = $post->settings['vacancy_count'];
 
     $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED, ELECTION_CANDIDATE_WITHDRAWN), FALSE);
 
@@ -33,7 +33,7 @@ class election_results_droophp_count extends DrooPHP_Count {
       $dp_election->candidates[$candidate->candidate_id] = $dp_candidate;
     }
 
-    if ($post->use_ron) {
+    if ($post->settings['use_ron']) {
       $dp_candidate_ron = new DrooPHP_Candidate(t('RON (Re-Open Nominations)'));
       $dp_candidate_ron->cid = 'ron';
       $dp_election->candidates['ron'] = $dp_candidate_ron;

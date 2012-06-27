@@ -18,10 +18,10 @@
     <span class="label">Your eligibility: </span><span class="item"><?php print $eligibility; ?></span>
   </div>
 
-  <?php if ($view_mode == 'full' && $election_type_has_candidates) { ?>
+  <?php if ($view_mode == 'full' && isset($settings['vacancy_count'])) { ?>
 
     <div class="pseudo-field vacancy_count">
-      <span class="label">Number of vacancies: </span><span class="item"><?php print $vacancy_count; ?></span>
+      <span class="label">Number of vacancies: </span><span class="item"><?php print $settings['vacancy_count']; ?></span>
     </div>
 
   <?php } ?>

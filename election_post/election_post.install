@@ -51,13 +51,6 @@ function election_post_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
-      'allow_equal' => array(
-        'description' => 'For STV or ranked-choice elections: whether to allow equal rankings.',
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
       'vstatus_inheritance' => array(
         'description' => sprintf(
           'The post\'s voting status: inherited (%d) or closed (%d).',
@@ -80,27 +73,6 @@ function election_post_schema() {
         'not null' => TRUE,
         'default' => ELECTION_POST_STATUS_INHERIT,
       ),
-      'exclusive' => array(
-        'description' => 'For an STV position: whether or not the candidate can nominate for additional positions.',
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 1,
-      ),
-      'vacancy_count' => array(
-        'description' => 'For an STV position: the number of vacancies.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 1,
-      ),
-      'use_ron' => array(
-        'description' => 'For an STV position: whether or not RON (Re-Open Nominations)'
-                       . ' is to be provided as a candidate.',
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 1,
-      ),
       'created' => array(
         'description' => 'The Unix timestamp for when the post was created.',
         'type' => 'int',
@@ -112,11 +84,16 @@ function election_post_schema() {
         'type' => 'int',
         'not null' => FALSE,
       ),
+      'settings' => array(
+        'description' => 'A serialized array of any further settings for this post.',
+        'type' => 'blob',
+        'size' => 'normal',
+        'serialize' => TRUE,
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('post_id'),
     'indexes' => array(
-      'use_ron' => array('use_ron'),
-      'exclusive' => array('exclusive'),
       'created' => array('created'),
       'title' => array('title'),
       'vstatus_inheritance' => array('vstatus_inheritance'),
@@ -170,4 +147,53 @@ function election_post_update_7101() {
     'not null' => TRUE,
     'default' => 0,
   ));
+}
+
+/**
+ * Add the settings column to the election_post table.
+ */
+function election_post_update_7102() {
+  db_add_field('election_post', 'settings', array(
+    'description' => 'A serialized array of any further settings for this post.',
+    'type' => 'blob',
+    'size' => 'normal',
+    'serialize' => TRUE,
+    'not null' => FALSE,
+  ));
+}
+
+/**
+ * Convert post settings to new serialized column.
+ */
+function election_post_update_7103() {
+  $columns = array('allow_equal', 'use_ron', 'vacancy_count', 'exclusive');
+  $posts = db_select('election_post', 'ep')
+    ->fields('ep', $columns + array('settings'))
+    ->condition('type', 'position')
+    ->execute();
+  foreach ($posts as $post) {
+    $post->settings = (array) unserialize($post->settings);
+    foreach ($columns as $column) {
+      if (!isset($post->settings[$column])) {
+        $post->settings[$column] = $post->$column;
+      }
+    }
+    db_update('election_post')
+      ->fields(array('settings' => serialize($post->settings)))
+      ->condition('type', 'position')
+      ->execute();
+  }
+}
+
+/**
+ * Delete old election_post fields (converted to serialized settings field).
+ */
+function election_post_update_7104() {
+  db_drop_index('election_post', 'use_ron');
+  db_drop_index('election_post', 'exclusive');
+  db_drop_field('election_post', 'use_ron');
+  db_drop_field('election_post', 'exclusive');
+  db_drop_field('election_post', 'vacancy_count');
+  db_drop_field('election_post', 'allow_equal');
+  drupal_flush_all_caches();
 }

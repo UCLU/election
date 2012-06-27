@@ -215,7 +215,7 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
 
   $rank_options = array();
 
-  if ($post->allow_equal) {
+  if ($post->settings['allow_equal']) {
     $form['#attributes']['class'][] = 'allow-equal';
   }
 
@@ -224,7 +224,7 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
 
   // Find all the other possible preference levels (number of (candidates + ron)).
   $pref_limit = $num_candidates;
-  if ($post->use_ron) {
+  if ($post->settings['use_ron']) {
     $pref_limit++;
   }
   for ($i = 0; $i < $pref_limit; $i++) {
@@ -242,7 +242,7 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
         '@post_name' => $post_name,
         '%post_title' => $post->title,
         '@post_url' => url(election_post_uri_path($post)),
-        '!vacancies' => format_plural($post->vacancy_count, '1 vacancy', '@count vacancies'),
+        '!vacancies' => format_plural($post->settings['vacancy_count'], '1 vacancy', '@count vacancies'),
       )
     ),
   );
@@ -274,7 +274,7 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
     );
   }
 
-  if ($post->use_ron) {
+  if ($post->settings['use_ron']) {
     $form['ballot_paper']['candidate_RON'] = array(
       '#type' => 'select',
       '#prefix' => '<tr class="election-ballot-row ballot-item-ron"><td>' . t('RON (Re-Open Nominations)') . '</td><td>',
@@ -339,7 +339,7 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
     if (substr($key, 0, 10) == 'candidate_') {
       $candidate_id = substr($key, 10);
       $candidate_rankings[$candidate_id] = $value;
-      if (isset($already_used[$value]) && !$post->allow_equal) {
+      if (isset($already_used[$value]) && !$post->settings['allow_equal']) {
         form_set_error('', t('You have specified more than one candidate as your %ordinal preference. Candidates cannot be ranked equally.', array('%ordinal' => _election_vote_get_ordinal($value))));
         $error = TRUE;
         break;
@@ -376,7 +376,7 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
       continue;
     }
     // Increment $consecutive_rank, if equal rankings are not allowed.
-    if (!$post->allow_equal || !isset($previous_rank) || $rank != $previous_rank) {
+    if (!$post->settings['allow_equal'] || !isset($previous_rank) || $rank != $previous_rank) {
       $consecutive_rank++;
     }
     // Save the rank as $previous_rank for the next iteration.
@@ -889,7 +889,7 @@ function election_vote_html_head_alter(&$head_elements) {
  */
 function _election_vote_post_has_approved_candidates($post) {
   $num_candidates = db_query('SELECT COUNT(candidate_id) FROM {election_candidate} WHERE post_id = :pid AND cstatus = :approved', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED))->fetchField(0);
-  return ($num_candidates > 1 || ($num_candidates == 1 && $post->use_ron));
+  return ($num_candidates > 1 || ($num_candidates == 1 && $post->settings['use_ron']));
 }
 
 /**

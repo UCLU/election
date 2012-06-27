@@ -566,7 +566,7 @@ function template_preprocess_election_post(&$variables) {
   $variables['election_post_url'] = url($uri['path'], $uri['options']);
   $variables['title'] = check_plain($post->title);
   $variables['page'] = $variables['view_mode'] == 'full';
-  $variables['exclusivity'] = $post->exclusive ? t('This is an exclusive position.') : t('This is not an exclusive position.');
+  $variables['exclusivity'] = $post->settings['exclusive'] ? t('This is an exclusive position.') : t('This is not an exclusive position.');
   $variables['exclusivity_help'] = t('Candidates may only stand for one exclusive position per election.');
 
   $election_uri = election_uri($election);

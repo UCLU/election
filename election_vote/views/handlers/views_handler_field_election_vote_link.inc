@@ -11,7 +11,7 @@ class views_handler_field_election_vote_link extends views_handler_field_electio
    */
   public function init(&$view, &$options) {
     parent::init($view, $options);
-    $this->additional_fields['use_ron'] = 'use_ron';
+    $this->additional_fields['settings'] = 'settings';
   }
 
   /**
@@ -22,7 +22,7 @@ class views_handler_field_election_vote_link extends views_handler_field_electio
 
     $small_post = new stdClass();
     $small_post->post_id = $post_id;
-    $small_post->use_ron = $this->get_value($values, 'use_ron');
+    $small_post->settings = $this->get_value($values, 'settings');
 
     // ensure there are actually some candidates to vote for
     if (!_election_vote_post_has_approved_candidates($small_post)) {

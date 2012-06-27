@@ -236,7 +236,7 @@ function election_results_download_form_stv($form, &$form_state, $post) {
     '#type' => 'checkbox',
     '#disabled' => TRUE,
     '#title' => t('Allow equal ranking'),
-    '#default_value' => $post->allow_equal,
+    '#default_value' => $post->settings['allow_equal'],
   );
 
   $form['options'] = array(
@@ -307,13 +307,13 @@ function _election_results_download_blt($form, &$form_state) {
     $candidate_lines .= "\"$name\" # Candidate keyed by $i\n";
     $i++;
   }
-  if ($post->use_ron) {
+  if ($post->settings['use_ron']) {
     $candidate_map['ron'] = $i;
     $candidate_lines .= '"' . t('RON (Re-Open Nominations)') . '"' . " # Candidate keyed by $i\n";
   }
 
-  $total_candidates = (int) count($candidates) + ($post->use_ron);
-  $total_vacancies = (int) $post->vacancy_count;
+  $total_candidates = (int) count($candidates) + ($post->settings['use_ron']);
+  $total_vacancies = (int) $post->settings['vacancy_count'];
 
   $votes_fields = array('ballot_id', 'candidate_id', 'ron', 'rank', 'abstain');
 
@@ -325,7 +325,7 @@ function _election_results_download_blt($form, &$form_state) {
 
   $votes = $votes_query->execute();
 
-  $allow_equal = $post->allow_equal;
+  $allow_equal = $post->settings['allow_equal'];
   $allow_abstention = $post->allow_abstention;
 
   $ballots = array();
@@ -487,7 +487,7 @@ function election_results_stv_count_page(stdClass $post, $totals) {
   require_once $droophp_path . '/library.php';
   $count = new election_results_droophp_count($post);
   $options = array(
-    'allow_equal' => $post->allow_equal,
+    'allow_equal' => $post->settings['allow_equal'],
   );
   $method = new DrooPHP_Method_Wikipedia($count, $options);
   $method->run();

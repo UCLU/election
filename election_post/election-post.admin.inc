@@ -158,28 +158,28 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
  */
 function election_post_stv_settings_form($form, &$form_state, stdClass $post, stdClass $election) {
 
-  $form['exclusive'] = array(
+  $form['settings_exclusive'] = array(
     '#type' => 'checkbox',
     '#title' => t('Exclusive'),
     '#description' => t('A candidate can only stand for one exclusive position per election.<br /><strong>N.B. if anonymous users are given permission to submit nominations, exclusivity cannot be enforced.</strong>'),
-    '#default_value' => isset($post->exclusive) ? $post->exclusive : 1,
+    '#default_value' => isset($post->settings['exclusive']) ? $post->settings['exclusive'] : 1,
     '#weight' => -30,
   );
 
-  $form['vacancy_count'] = array(
+  $form['settings_vacancy_count'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of vacancies'),
-    '#default_value' => isset($post->vacancy_count) ? $post->vacancy_count : 1,
+    '#default_value' => isset($post->settings['vacancy_count']) ? $post->settings['vacancy_count'] : 1,
     '#size' => 2,
     '#maxlength' => 2,
     '#required' => TRUE,
     '#weight' => -20,
   );
 
-  $form['use_ron'] = array(
+  $form['settings_use_ron'] = array(
     '#type' => 'select',
     '#title' => t('RON (Re-Open Nominations)'),
-    '#default_value' => isset($post->use_ron) ? $post->use_ron : 1,
+    '#default_value' => isset($post->settings['use_ron']) ? $post->settings['use_ron'] : 1,
     '#options' => array(
       1 => t('Include RON as a candidate'),
       0 => t('Do not include RON'),
@@ -187,18 +187,18 @@ function election_post_stv_settings_form($form, &$form_state, stdClass $post, st
     '#weight' => -10,
   );
 
-  $form['voting']['allow_equal'] = array(
+  $form['voting']['settings_allow_equal'] = array(
     '#type' => 'checkbox',
     '#title' => t('Allow equal rankings'),
-    '#default_value' => isset($post->allow_equal)? $post->allow_equal : 0,
+    '#default_value' => isset($post->settings['allow_equal'])? $post->settings['allow_equal'] : 0,
     '#description' => t('Used (rarely) in STV elections, this allows the voter to select more than one candidate as the same preference.'),
   );
 
-  // @todo Implement a settings form, to allow RON in multi-vacancy positions.
+  // @todo Implement an election-level settings form, to allow RON in multi-vacancy positions.
   if (!variable_get('election_allow_multi_vacancy_ron', TRUE)) {
     $form['use_ron']['#states'] = array(
       'visible' => array(
-        ':input[name=vacancy_count]' => array('value' => '1'),
+        ':input[name=settings_vacancy_count]' => array('value' => '1'),
       ),
     );
     $form['use_ron']['#description'] = t('RON can only be included for single-vacancy positions.');
@@ -220,6 +220,8 @@ function election_post_stv_settings_form($form, &$form_state, stdClass $post, st
       ELECTION_POST_STATUS_CLOSED => t('Closed'),
     ),
   );
+
+  $form['#validate'][] = 'election_post_stv_settings_form_validate';
 
   return $form;
 }
@@ -247,13 +249,21 @@ function election_post_form_delete_submit($form, &$form_state) {
  */
 function election_post_form_validate($form, &$form_state) {
 
-  $post = $form_state['post'];
+  field_attach_form_validate('election_post', $form_state['post'], $form, $form_state);
 
-  if ($post->type != 'motion' && $form_state['values']['use_ron'] == 1 && $form_state['values']['vacancy_count'] > 1 && !variable_get('election_allow_multi_vacancy_ron', TRUE)) {
+}
+
+/**
+ * Form validate function for the STV position settings form.
+ *
+ * @see election_post_stv_settings_form()
+ */
+function election_post_stv_settings_form_validate($form, &$form_state) {
+
+  $post = $form_state['post'];
+  if ($form_state['values']['settings_use_ron'] == 1 && $form_state['values']['settings_vacancy_count'] > 1 && !variable_get('election_allow_multi_vacancy_ron', TRUE)) {
     form_set_error('use_ron', t('RON can only be included for single-vacancy positions.'));
   }
-
-  field_attach_form_validate('election_post', $form_state['post'], $form, $form_state);
 
 }
 
@@ -268,6 +278,13 @@ function election_post_form_submit($form, &$form_state) {
   if (empty($post->uid)) {
     global $user;
     $post->uid = $user->uid;
+  }
+
+  foreach ($form_state['values'] as $property => $value) {
+    if (substr($property, 0, 9) == 'settings_') {
+      $key = substr($property, 9);
+      $post->settings[$key] = $value;
+    }
   }
 
   foreach ($post as $property => $value) {

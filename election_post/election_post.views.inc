@@ -90,22 +90,6 @@ function election_post_views_data() {
     ),
   );
 
-  // vacancy_count
-  $data['election_post']['vacancy_count'] = array(
-    'title' => t('No. vacancies'),
-    'help' => t('The number of vacancies of the post.'),
-    'field' => array(
-      'handler' => 'views_handler_field_numeric',
-      'click sortable' => TRUE,
-    ),
-    'filter' => array(
-      'handler' => 'views_handler_filter_numeric',
-    ),
-    'sort' => array(
-      'handler' => 'views_handler_sort',
-    ),
-  );
-
   return $data;
 
 }
