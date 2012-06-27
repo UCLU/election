@@ -73,7 +73,10 @@ function theme_election_statistics($variables) {
  * Implements template_preprocess_election_statistics().
  */
 function election_statistics_preprocess_election_statistics(&$variables) {
+
   $election = $variables['election'];
+
+  $variables['content'] = array();
 
   $totals = db_query('SELECT COUNT(DISTINCT ballot_id) AS ballots, COUNT(DISTINCT IF(abstain=0,ballot_id,NULL)) AS votes, COUNT(DISTINCT IF(abstain=1, ballot_id, NULL)) AS abstentions FROM {election_vote} WHERE election_id = :eid', array(':eid' => $election->election_id))->fetch();
   $totals->voters = db_query('SELECT COUNT(DISTINCT IF(uid = 0, sid_hash, uid)) AS voters FROM {election_ballot} WHERE election_id = :eid', array(':eid' => $election->election_id))->fetchField();
@@ -113,6 +116,8 @@ function election_statistics_preprocess_election_statistics(&$variables) {
     '#rows' => $rows,
   );
 
+  $variables['content']['election_table'] = $election_table;
+
   $posts_table = NULL;
   if ($totals->votes > 0) {
     $header = array(
@@ -151,13 +156,18 @@ function election_statistics_preprocess_election_statistics(&$variables) {
 
   }
 
+  $variables['content']['posts_table'] = $posts_table;
+
   $top_ips_table = NULL;
   $ips = db_query_range('SELECT ip, COUNT(DISTINCT IF(uid = 0, sid_hash, uid)) AS voters FROM {election_ballot} WHERE election_id = :eid GROUP BY ip ORDER BY COUNT(DISTINCT uid) DESC, COUNT(DISTINCT ballot_id) DESC', 0, 10, array(':eid' => $election->election_id));
   if ($ips->rowCount()) {
-    $header = array(t('IP address'), t('Voters'));
+    $header = array(t('Voters'), t('IP address'));
     $rows = array();
-    foreach ($ips as $row) {
-      $rows[] = array(check_plain($row->ip), number_format((int) $row->voters));
+    foreach ($ips as $record) {
+      $rows[] = array(
+        number_format($record->voters),
+        check_plain($record->ip),
+      );
     }
     $top_ips_table = array(
       '#caption' => t('Top 10 IP addresses'),
@@ -166,42 +176,52 @@ function election_statistics_preprocess_election_statistics(&$variables) {
       '#rows' => $rows,
     );
   }
+  $variables['content']['top_ips_table'] = $top_ips_table;
 
-  $last_ips_table = NULL;
-  $last_ips = db_query_range('SELECT timestamp, ip, agent FROM {election_ballot} WHERE election_id = :eid ORDER BY timestamp DESC', 0, 10, array(':eid' => $election->election_id));
-  if ($last_ips->rowCount()) {
-    $header = array(t('Time'), t('IP address'), t('Browser'));
+  // @todo find out how to make this 'Top 10 browsers'
+  $top_agents_table = NULL;
+  $top_agents = db_query_range('SELECT agent, COUNT(DISTINCT IF(uid = 0, sid_hash, uid)) AS voters FROM {election_ballot} WHERE election_id = :eid GROUP BY agent ORDER BY COUNT(DISTINCT uid) DESC, COUNT(DISTINCT ballot_id) DESC', 0, 10, array(':eid' => $election->election_id));
+  if ($top_agents->rowCount()) {
+    $header = array(t('Voters'), t('User agent'));
     $rows = array();
-    $browsecap = TRUE;
-    if (!ini_get('browscap')) {
-      $browsecap = FALSE;
+    $browscap = FALSE;
+    if (ini_get('browscap') && FALSE) {
+      $browscap = TRUE;
+      $header[] = t('Browser');
     }
-    foreach ($last_ips as $row) {
-      $browser = FALSE;
-      if ($browsecap) {
-        $browser = get_browser($row->agent);
-      }
-      $rows[] = array(
-        format_date($row->timestamp, 'short'),
-        check_plain($row->ip),
-        $browser ? check_plain($browser->parent) : t('Browscap not installed'),
+    foreach ($top_agents as $record) {
+      $row = array(
+        number_format($record->voters),
+        check_plain(truncate_utf8($record->agent, 60, FALSE, TRUE)),
       );
+      if ($browscap) {
+        $browser = get_browser($record->agent);
+        $row[] = check_plain($browser->parent);
+      }
+      $rows[] = $row;
     }
-    $last_ips_table = array(
-      '#caption' => t('Last 10 IP addresses'),
+    $top_agents_table = array(
+      '#caption' => t('Top 10 user agents'),
       '#theme' => 'table',
       '#header' => $header,
       '#rows' => $rows,
     );
+    if (!$browscap) {
+      $top_agents_table['#rows'][] = array(
+        array(
+          'data' => t(
+            'Install <code>browscap</code> to display browser names and versions in this table. See the PHP docs for <a href="@get_browser" target="_blank"><code>get_browser()</code></a>.',
+            array('@get_browser' => 'http://php.net/manual/en/function.get-browser.php')
+          ),
+          'colspan' => 2,
+        ),
+      );
+    }
   }
+  $variables['content']['top_agents_table'] = $top_agents_table;
 
   $variables['totals'] = $totals;
 
-  $variables['content'] = array();
-  $variables['content']['election_table'] = $election_table;
-  $variables['content']['posts_table'] = $posts_table;
-  $variables['content']['top_ips_table'] = $top_ips_table;
-  $variables['content']['last_ips_table'] = $last_ips_table;
 
 }
 
