@@ -25,7 +25,7 @@ function election_results_menu() {
   );
   $items['election-post/%election_post/results/download'] = array(
     'title' => 'Download',
-    'page callback' => '_election_results_download_blt',
+    'page callback' => 'election_results_download',
     'page arguments' => array(1),
     'access callback' => 'election_results_access',
     'access arguments' => array('download', 1),
@@ -123,7 +123,7 @@ function election_results_page(stdClass $post) {
   $election = $post->election;
 
   drupal_set_title(t('Results: %post', array('%post' => $post->title)), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($election));
+  drupal_set_breadcrumb(_election_build_breadcrumb($election, '_MANAGE_POSTS_'));
 
   $output = array();
 
@@ -180,6 +180,9 @@ function election_results_download(stdClass $post) {
 
   $election = $post->election;
 
+  drupal_set_title(t('Download results: %post', array('%post' => $post->title)), PASS_THROUGH);
+  drupal_set_breadcrumb(_election_build_breadcrumb($election, '_MANAGE_POSTS_'));
+
   if (!empty($election->type_info['results download form']) && function_exists($election->type_info['results download form'])) {
     $form = $election->type_info['results download form'];
     return drupal_get_form($form, $post);
@@ -203,9 +206,68 @@ function election_results_form_election_post_manage_form_alter(&$form) {
     $path = election_post_uri_path($post);
     // Add a 'results' link.
     if (election_results_access('view', $post)) {
-      $row['operations']['data']['#items']['results'] = l(t('results'), $path . '/results');
+      $row['operations']['data']['#items']['results'] = l(
+        t('results (@count)', array('@count' => $post->ballot_count)),
+        $path . '/results'
+      );
     }
   }
+}
+
+/**
+ * Download form for STV election results.
+ */
+function election_results_download_form_stv($form, &$form_state, $post) {
+
+  $form['#post'] = $post;
+  $form['#election'] = $post->election;
+
+  $form['settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Settings inherited from %post', array('%post' => $post->title)),
+  );
+  $form['settings']['allow_abstention'] = array(
+    '#type' => 'checkbox',
+    '#disabled' => TRUE,
+    '#title' => t('Allow abstention'),
+    '#default_value' => $post->allow_abstention,
+  );
+  $form['settings']['allow_equal'] = array(
+    '#type' => 'checkbox',
+    '#disabled' => TRUE,
+    '#title' => t('Allow equal ranking'),
+    '#default_value' => $post->allow_equal,
+  );
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Download options'),
+  );
+  $form['options']['filename'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Filename'),
+    '#size' => 30,
+    '#default_value' => t('Ballots') . '_'. $post->election_id . '_' . $post->post_id . '_' . date('YmdHis'),
+    '#field_suffix' => '.blt',
+  );
+  $form['options']['include_ids'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Include ballot IDs'),
+    '#description' => t('This enables you to identify ballots uniquely.'),
+    '#default_value' => TRUE,
+  );
+
+  $form['buttons'] = array(
+    '#type' => 'actions',
+  );
+  $form['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Download'),
+    '#submit' => array('_election_results_download_blt'),
+  );
+
+  return $form;
+
 }
 
 /**
@@ -214,22 +276,17 @@ function election_results_form_election_post_manage_form_alter(&$form) {
  * @param stdClass $post
  *   An election post object.
  */
-function _election_results_download_blt($post) {
+function _election_results_download_blt($form, &$form_state) {
 
-  set_time_limit(0);
-
-  $start_time = microtime(TRUE);
-
-  $post = election_post_load($post->post_id);
-
+  $post = $form['#post'];
   $election = $post->election;
 
-  if ($election->type != 'stv') {
-    drupal_set_message(t('Results are only available for STV elections.'), 'warning');
-    return;
-  }
+  $filename = $form_state['values']['filename'];
+  $include_ids = $form_state['values']['include_ids'];
 
-  $filename = 'Ballots_'. $election->election_id . '_' . $post->post_id . '_' . date('YmdHis') . '.blt';
+  // @todo generate files with Batch API
+
+  $start_time = microtime(TRUE);
 
   header('Content-Type:text/plain;charset=UTF-8');
   header('Content-Disposition:attachment;filename=' . $filename);
@@ -327,10 +384,8 @@ function _election_results_download_blt($post) {
     echo '-' . implode(' -', $withdrawn) . "\n";
   }
 
-  $anonymise = FALSE;
-
   echo "# Votes are below, each line is in the format:\n#    ";
-  if (!$anonymise) {
+  if ($include_ids) {
     echo "[(BALLOT_ID)] ";
   }
   echo "MULTIPLIER [CANDIDATE CANDIDATE ...] 0\n";
@@ -339,8 +394,7 @@ function _election_results_download_blt($post) {
 
   // Print the ballot lines.
   foreach ($ballots as $ballot_id => $ballot) {
-    // If the ballot ID is omitted, the results will be anonymised.
-    if (!$anonymise) {
+    if ($include_ids) {
       echo '(' . $ballot_id . ') ';
     }
     // Each line begins with a multiplier (always 1) and ends with 0.
@@ -424,6 +478,7 @@ function election_results_stv_count_page(stdClass $post, $totals) {
   }
 
   // For STV elections, use the DrooPHP library.
+  // @todo a proper count interface and output
   if (!file_exists($droophp_path = libraries_get_path('DrooPHP'))) {
     drupal_set_message(t('The <a href="https://github.com/pjcdawkins/DrooPHP/" target="_blank">DrooPHP</a> library (required for counting votes in STV elections) is not installed.'), 'warning');
     return $output;
@@ -438,7 +493,9 @@ function election_results_stv_count_page(stdClass $post, $totals) {
   $method->run();
 
   $output['results'] = array(
-    '#markup' => '<p><i>DrooPHP - value of $method->stages:</i></p><pre>' . htmlspecialchars(print_r($method->stages, TRUE)) . '</pre>',
+    '#type' => 'item',
+    '#title' => t('DrooPHP - value of $method->stages'),
+    '#markup' => '<pre>' . htmlspecialchars(print_r($method->stages, TRUE)) . '</pre>',
   );
 
   return $output;
