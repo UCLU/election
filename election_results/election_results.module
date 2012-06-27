@@ -222,28 +222,9 @@ function election_results_download_form_stv($form, &$form_state, $post) {
   $form['#post'] = $post;
   $form['#election'] = $post->election;
 
-  $form['settings'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Settings inherited from %post', array('%post' => $post->title)),
-  );
-  $form['settings']['use_ron'] = array(
-    '#type' => 'checkbox',
-    '#disabled' => TRUE,
-    '#title' => t('Include RON'),
-    '#default_value' => $post->settings['use_ron'],
-  );
-  $form['settings']['allow_abstention'] = array(
-    '#type' => 'checkbox',
-    '#disabled' => TRUE,
-    '#title' => t('Allow abstention'),
-    '#default_value' => $post->allow_abstention,
-  );
-  $form['settings']['allow_equal'] = array(
-    '#type' => 'checkbox',
-    '#disabled' => TRUE,
-    '#title' => t('Allow equal ranking'),
-    '#default_value' => $post->settings['allow_equal'],
-  );
+  $default_filename = $post->election->title . '-' . $post->election_id . '_' . $post->title . '-' . $post->post_id;
+  $default_filename = truncate_utf8(preg_replace('/[^A-Z0-9\-_]+/i', '-', $default_filename), 60, FALSE, FALSE);
+  $default_filename = $default_filename . '_' . date('YmdHis', REQUEST_TIME);
 
   $form['options'] = array(
     '#type' => 'fieldset',
@@ -252,8 +233,8 @@ function election_results_download_form_stv($form, &$form_state, $post) {
   $form['options']['filename'] = array(
     '#type' => 'textfield',
     '#title' => t('Filename'),
-    '#size' => 30,
-    '#default_value' => t('Ballots') . '_'. $post->election_id . '_' . $post->post_id . '_' . date('YmdHis'),
+    '#size' => strlen($default_filename),
+    '#default_value' => $default_filename,
     '#field_suffix' => '.blt',
   );
   $form['options']['include_ids'] = array(
@@ -392,7 +373,7 @@ function _election_results_download_blt($form, &$form_state) {
 
   echo "# Votes are below, each line is in the format:\n#    ";
   if ($include_ids) {
-    echo "[(BALLOT_ID)] ";
+    echo "(BALLOT_ID) ";
   }
   echo "MULTIPLIER [CANDIDATE CANDIDATE ...] 0\n";
   echo "# where candidates are represented by keys in order of preference.\n";
