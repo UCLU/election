@@ -195,5 +195,4 @@ function election_post_update_7104() {
   db_drop_field('election_post', 'exclusive');
   db_drop_field('election_post', 'vacancy_count');
   db_drop_field('election_post', 'allow_equal');
-  drupal_flush_all_caches();
 }

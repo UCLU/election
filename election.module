@@ -232,9 +232,9 @@ function election_permission() {
       'title' => t('Edit own elections'),
       'description' => t('This allows the user not only to edit their own elections, but also to administer the posts and candidates for those elections.'),
     ),
-    'view any election' => array(
-      'title' => t('View any election'),
-      'description' => t("This permission allows the user to view elections, including those elections' posts and approved candidates."),
+    'view published elections' => array(
+      'title' => t('View published elections'),
+      'description' => t("This permission allows the user to view published elections, including those elections' posts and approved candidates."),
     ),
   );
   return $permissions;
@@ -264,11 +264,18 @@ function election_access($op, $election = NULL, $account = NULL) {
   $election_belongs_to_account = ($election && $election->uid == $account->uid);
   switch ($op) {
     case 'view':
-      // If it's the $account's own election, always permit viewing.
       if ($election_belongs_to_account) {
+        // If it's the $account's own election, always permit viewing.
         return TRUE;
       }
-      return user_access('view any election', $account);
+      elseif (empty($election) || empty($election->published)) {
+        // If the election is unpublished, limit viewing to those with edit access.
+        return election_access('edit', $election, $account);
+      }
+      elseif (user_access('view published elections', $account)) {
+        // Otherwise, allow viewing to anyone with the permission 'view published elections'.
+        return TRUE;
+      }
       break;
 
     case 'create':
@@ -280,17 +287,22 @@ function election_access($op, $election = NULL, $account = NULL) {
       if ($election_belongs_to_account && user_access('edit own elections', $account)) {
         return TRUE;
       }
-      return user_access('edit any election', $account);
+      else {
+        return user_access('edit any election', $account);
+      }
       break;
 
     case 'delete':
       if ($election && isset($election->vstatus) && _election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time) && !user_access('bypass running election lock')) {
+        // Deny deleting running elections, unless the account has the permission 'bypass running election lock'.
         return FALSE;
       }
-      if ($election_belongs_to_account && user_access('delete own elections', $account)) {
+      elseif ($election_belongs_to_account && user_access('delete own elections', $account)) {
         return TRUE;
       }
-      return user_access('delete any election', $account);
+      else {
+        return user_access('delete any election', $account);
+      }
       break;
 
   }
@@ -322,7 +334,6 @@ function election_menu() {
     'file' => 'election.admin.inc',
     'description' => 'View, edit, and add new elections.',
     'weight' => -10,
-    'type' => MENU_SUGGESTED_ITEM,
   );
 
   foreach (election_types() as $type_mn => $type) {

@@ -24,7 +24,7 @@ function election_views_data() {
     'title' => t('Election'),
     'entity type' => 'election',
     'weight' => -10,
-    'access query tag' => 'election_access',
+    'access query tag' => 'election_access', // @todo implement query alter
     'defaults' => array(
       'field' => 'title',
     ),
@@ -78,6 +78,28 @@ function election_views_data() {
     ),
     'argument' => array(
       'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  // published status
+  $data['election']['published'] = array(
+    'title' => t('Published'),
+    'help' => t('Whether or not the election is published.'),
+    'field' => array(
+      'handler' => 'views_handler_field_boolean',
+      'click sortable' => TRUE,
+      'output formats' => array(
+        'published-notpublished' => array(t('Published'), t('Not published')),
+      ),
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_boolean_operator',
+      'label' => t('Published'),
+      'type' => 'yes-no',
+      'use equal' => TRUE, // Use status = 1 instead of status <> 0 in WHERE statment
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
     ),
   );
 

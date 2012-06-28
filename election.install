@@ -40,6 +40,13 @@ function election_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'published' => array(
+        'description' => 'Allows view access to all those with the "view published elections" permission.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
       'vstatus' => array(
         'description' => sprintf(
           'The voting status: open %d, closed %d, or scheduled %d.',
@@ -100,6 +107,7 @@ function election_schema() {
     'indexes' => array(
       'type' => array('type'),
       'uid' => array('uid'),
+      'published' => array('published'),
       'vstatus' => array('vstatus'),
       'nstatus' => array('nstatus'),
       'vperiod' => array('vopen_time', 'vclose_time'),
@@ -118,4 +126,30 @@ function election_schema() {
  */
 function election_install() {
   menu_rebuild();
+}
+
+/**
+ * Add the 'published' column to the election table.
+ */
+function election_update_7101() {
+    db_add_field('election', 'published', array(
+    'description' => 'Allows view access to all those with the "view published elections" permission.',
+    'type' => 'int',
+    'size' => 'tiny',
+    'not null' => TRUE,
+    'default' => 0,
+  ));
+  db_add_index('election', 'published', array('published'));
+
+  // Publish all existing elections (they used to be published anyway).
+  db_update('election')
+    ->fields(array('published' => 1))
+    ->execute();
+
+  // Rename 'view any election' permission to 'view published elections'
+  db_update('role_permission')
+    ->fields(array('permission' => 'view published elections'))
+    ->condition('permission', 'view any election')
+    ->execute();
+
 }

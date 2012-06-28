@@ -231,6 +231,7 @@ function election_post_access($op, $post = NULL, $account = NULL) {
   $election = empty($post) ? NULL : election_load($post->election_id);
   switch ($op) {
     case 'view':
+      // Viewing a post has the same access as viewing an election.
       return election_access($op, $election, $account);
       break;
 

@@ -126,7 +126,7 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
   switch ($op) {
     case 'view':
       // Users who can edit elections can also view the candidates.
-      if (user_access('edit', $election, $account)) {
+      if (election_access('edit', $election, $account)) {
         return TRUE;
       }
       // Users who can view the election can also view the candidates (if approved).

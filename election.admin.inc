@@ -287,6 +287,13 @@ function election_form($form, &$form_state, stdClass $election) {
     '#date_year_range' => '-2:+5',
   );
 
+  $form['published'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Published'),
+    '#default_value' => isset($election->published) ? $election->published : 0,
+    '#weight' => 99,
+  );
+
   $form['buttons'] = array(
     '#type' => 'actions',
     '#weight' => 100,

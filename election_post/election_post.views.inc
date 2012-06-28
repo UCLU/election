@@ -24,7 +24,7 @@ function election_post_views_data() {
     'title' => t('Election post'),
     'entity type' => 'election_post',
     'weight' => -9,
-    'access query tag' => 'election_post_access',
+    'access query tag' => 'election_post_access', // @todo implement query alter
     'defaults' => array(
       'field' => 'title',
     ),
