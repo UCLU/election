@@ -97,18 +97,6 @@ function election_statistics_preprocess_election_statistics(&$variables) {
     'abstentions' => number_format($totals->abstentions),
   );
 
-  if (!empty($election->type_info['has candidates'])) {
-    $candidates = db_query('SELECT COUNT(DISTINCT candidate_id) AS total, COUNT(DISTINCT IF(cstatus=:approved,candidate_id,NULL)) AS approved FROM {election_candidate} WHERE election_id = :eid', array(':eid' => $election->election_id, ':approved' => ELECTION_CANDIDATE_APPROVED))->fetch();
-    $header += array(
-      'candidates' => t('Candidates'),
-      'approved_candidates' => t('Approved candidates'),
-    );
-    $rows[0] += array(
-      'candidates' => number_format($candidates->total),
-      'approved_candidates' => number_format($candidates->approved),
-    );
-  }
-
   $election_table = array(
     '#caption' => t('Election totals'),
     '#theme' => 'table',
@@ -122,6 +110,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
   if ($totals->votes > 0) {
     $header = array(
       'post' => check_plain(drupal_ucfirst($post_name)),
+      'voters' => t('Voters'),
       'ballots' => t('Ballots'),
       'votes' => t('Votes'),
       'abstentions' => t('Abstentions'),
@@ -131,7 +120,10 @@ function election_statistics_preprocess_election_statistics(&$variables) {
 
     $posts = election_post_load_multiple($post_ids);
 
-    $posts_totals = db_query('SELECT post_id, COUNT(DISTINCT ballot_id) AS ballots, COUNT(DISTINCT IF(abstain=0,ballot_id,NULL)) AS votes, COUNT(DISTINCT IF(abstain=1,ballot_id,NULL)) AS abstentions FROM {election_vote} WHERE election_id = :eid GROUP BY post_id', array(':eid' => $election->election_id))->fetchAllAssoc('post_id');
+    $posts_totals = db_query(
+      'SELECT ev.post_id, COUNT(DISTINCT ev.ballot_id) AS ballots, COUNT(DISTINCT IF(ev.abstain=0,ev.ballot_id,NULL)) AS votes, COUNT(DISTINCT IF(ev.abstain=1,ev.ballot_id,NULL)) AS abstentions, COUNT(DISTINCT IF(eb.uid = 0,eb.sid_hash,eb.uid)) AS voters FROM {election_vote} ev LEFT JOIN {election_ballot} eb USING (ballot_id) WHERE ev.election_id = :eid GROUP BY ev.post_id',
+      array(':eid' => $election->election_id)
+    )->fetchAllAssoc('post_id');
 
     $rows = array();
     foreach ($posts as $post_id => $post) {
@@ -140,6 +132,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
 
       $rows[] = array(
         'post' => l($post->title, election_post_uri_path($post)),
+        'voters' => $post_totals ? number_format($post_totals->voters) : 0,
         'ballots' => $post_totals ? number_format($post_totals->ballots) : 0,
         'votes' => $post_totals ? number_format($post_totals->votes) : 0,
         'abstentions' => $post_totals ? number_format($post_totals->abstentions) : 0,
@@ -157,6 +150,49 @@ function election_statistics_preprocess_election_statistics(&$variables) {
   }
 
   $variables['content']['posts_table'] = $posts_table;
+
+  $top_agents_table = NULL;
+  $top_agents = db_query_range('SELECT agent, COUNT(DISTINCT IF(uid = 0, sid_hash, uid)) AS voters FROM {election_ballot} WHERE election_id = :eid GROUP BY agent ORDER BY COUNT(DISTINCT uid) DESC, COUNT(DISTINCT ballot_id) DESC', 0, 10, array(':eid' => $election->election_id));
+  if ($top_agents->rowCount()) {
+    $header = array(t('Voters'), t('User agent'));
+    $rows = array();
+    $browscap = FALSE;
+    if (ini_get('browscap')) {
+      $browscap = TRUE;
+      $header[] = t('Browser');
+      $header[] = t('Platform');
+    }
+    foreach ($top_agents as $record) {
+      $row = array(
+        number_format($record->voters),
+        check_plain(truncate_utf8($record->agent, 60, FALSE, TRUE)),
+      );
+      if ($browscap) {
+        $browser = get_browser($record->agent);
+        $row[] = check_plain($browser->parent);
+        $row[] = check_plain($browser->platform);
+      }
+      $rows[] = $row;
+    }
+    $top_agents_table = array(
+      '#caption' => t('Top 10 user agents'),
+      '#theme' => 'table',
+      '#header' => $header,
+      '#rows' => $rows,
+    );
+    if (!$browscap) {
+      $top_agents_table['#rows'][] = array(
+        array(
+          'data' => t(
+            'Install <code>browscap</code> to display browser and platform details in this table. See the PHP docs for <a href="@get_browser" target="_blank"><code>get_browser()</code></a>.',
+            array('@get_browser' => 'http://php.net/manual/en/function.get-browser.php')
+          ),
+          'colspan' => 3,
+        ),
+      );
+    }
+  }
+  $variables['content']['top_agents_table'] = $top_agents_table;
 
   $top_ips_table = NULL;
   $ips = db_query_range('SELECT ip, COUNT(DISTINCT IF(uid = 0, sid_hash, uid)) AS voters FROM {election_ballot} WHERE election_id = :eid GROUP BY ip ORDER BY COUNT(DISTINCT uid) DESC, COUNT(DISTINCT ballot_id) DESC', 0, 10, array(':eid' => $election->election_id));
@@ -177,48 +213,6 @@ function election_statistics_preprocess_election_statistics(&$variables) {
     );
   }
   $variables['content']['top_ips_table'] = $top_ips_table;
-
-  // @todo find out how to make this 'Top 10 browsers'
-  $top_agents_table = NULL;
-  $top_agents = db_query_range('SELECT agent, COUNT(DISTINCT IF(uid = 0, sid_hash, uid)) AS voters FROM {election_ballot} WHERE election_id = :eid GROUP BY agent ORDER BY COUNT(DISTINCT uid) DESC, COUNT(DISTINCT ballot_id) DESC', 0, 10, array(':eid' => $election->election_id));
-  if ($top_agents->rowCount()) {
-    $header = array(t('Voters'), t('User agent'));
-    $rows = array();
-    $browscap = FALSE;
-    if (ini_get('browscap')) {
-      $browscap = TRUE;
-      $header[] = t('Browser');
-    }
-    foreach ($top_agents as $record) {
-      $row = array(
-        number_format($record->voters),
-        check_plain(truncate_utf8($record->agent, 60, FALSE, TRUE)),
-      );
-      if ($browscap) {
-        $browser = get_browser($record->agent);
-        $row[] = check_plain($browser->parent);
-      }
-      $rows[] = $row;
-    }
-    $top_agents_table = array(
-      '#caption' => t('Top 10 user agents'),
-      '#theme' => 'table',
-      '#header' => $header,
-      '#rows' => $rows,
-    );
-    if (!$browscap) {
-      $top_agents_table['#rows'][] = array(
-        array(
-          'data' => t(
-            'Install <code>browscap</code> to display browser names and versions in this table. See the PHP docs for <a href="@get_browser" target="_blank"><code>get_browser()</code></a>.',
-            array('@get_browser' => 'http://php.net/manual/en/function.get-browser.php')
-          ),
-          'colspan' => 2,
-        ),
-      );
-    }
-  }
-  $variables['content']['top_agents_table'] = $top_agents_table;
 
   $variables['totals'] = $totals;
 

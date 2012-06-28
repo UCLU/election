@@ -471,6 +471,7 @@ function election_results_stv_count_page(stdClass $post, $totals) {
     return $output;
   }
 
+  // Run the count.
   require_once $droophp_path . '/library.php';
   $count = new election_results_droophp_count($post);
   $options = array(
@@ -479,6 +480,7 @@ function election_results_stv_count_page(stdClass $post, $totals) {
   $method = new DrooPHP_Method_Wikipedia($count, $options);
   $method->run();
 
+  // Format the results.
   $output['droophp_title'] = array(
     '#markup' => '<h2>' . t('STV count') . '</h2>',
   );
