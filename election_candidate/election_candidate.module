@@ -192,6 +192,10 @@ function election_candidate_access_per_election($op, stdClass $election, $accoun
       return election_access('edit', $election, $account) && user_access('administer candidate field settings', $account);
       break;
 
+    case 'view':
+      return election_access('view', $election, $account);
+      break;
+
     default:
       return election_access('view', $election, $account) && election_candidate_access($op, NULL, $account);
       break;
