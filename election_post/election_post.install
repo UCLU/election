@@ -170,7 +170,8 @@ function election_post_update_7103() {
   $posts = db_select('election_post', 'ep')
     ->fields('ep', $columns + array('settings'))
     ->condition('type', 'position')
-    ->execute();
+    ->execute()
+    ->fetchAll();
   foreach ($posts as $post) {
     $post->settings = (array) unserialize($post->settings);
     foreach ($columns as $column) {

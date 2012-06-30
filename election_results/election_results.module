@@ -326,14 +326,14 @@ function _election_results_download_blt($form, &$form_state) {
       $ballots[$ballot_id] = '';
       if ($vote->abstain) {
         if (!$allow_abstention) {
-          $ballot_errors[$ballot_id] .= 'Abstention found, but abstention is not allowed!';
+          $ballot_errors[$ballot_id] = 'Abstention found, but abstention is not allowed!';
         }
         continue;
       }
     }
     elseif (isset($last_rank) && $last_rank === $vote->rank) {
       if (!$allow_equal) {
-        $ballot_errors[$ballot_id] .= 'Equal ranking found, but equal ranking is not allowed!';
+        $ballot_errors[$ballot_id] = 'Equal ranking found, but equal ranking is not allowed!';
       }
       $ballots[$ballot_id] .= '=';
     }
@@ -394,7 +394,7 @@ function _election_results_download_blt($form, &$form_state) {
     }
     // Add any error messages for this ballot in a comment at the end.
     if (isset($ballot_errors[$ballot_id])) {
-      echo '# ' . $ballot_errors[$ballot_id];
+      echo ' # ' . $ballot_errors[$ballot_id];
     }
     echo "\n";
   }
