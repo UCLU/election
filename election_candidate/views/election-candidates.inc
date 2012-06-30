@@ -102,6 +102,11 @@ $handler->display->display_options['arguments']['election_id']['validate']['type
 $handler->display->display_options['arguments']['election_id']['validate']['fail'] = 'empty';
 $handler->display->display_options['arguments']['election_id']['break_phrase'] = 0;
 $handler->display->display_options['arguments']['election_id']['not'] = 0;
+/* Filter criterion: Election: Published or admin */
+$handler->display->display_options['filters']['published_or_admin']['id'] = 'published_or_admin';
+$handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
+$handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
+$handler->display->display_options['filters']['published_or_admin']['group'] = 1;
 /* Filter criterion: Election candidate: Status */
 $handler->display->display_options['filters']['cstatus']['id'] = 'cstatus';
 $handler->display->display_options['filters']['cstatus']['table'] = 'election_candidate';
@@ -109,6 +114,7 @@ $handler->display->display_options['filters']['cstatus']['field'] = 'cstatus';
 $handler->display->display_options['filters']['cstatus']['value'] = array(
   1 => '1',
 );
+$handler->display->display_options['filters']['cstatus']['group'] = 1;
 
 /* Display: Candidates per election */
 $handler = $view->new_display('page', 'Candidates per election', 'candidates_per_election');

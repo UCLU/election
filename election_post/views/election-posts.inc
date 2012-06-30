@@ -189,6 +189,10 @@ $handler->display->display_options['arguments']['election_id']['specify_validati
 $handler->display->display_options['arguments']['election_id']['validate']['type'] = 'numeric';
 $handler->display->display_options['arguments']['election_id']['break_phrase'] = 0;
 $handler->display->display_options['arguments']['election_id']['not'] = 0;
+/* Filter criterion: Election: Published or admin */
+$handler->display->display_options['filters']['published_or_admin']['id'] = 'published_or_admin';
+$handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
+$handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
 
 /* Display: STV election positions */
 $handler = $view->new_display('block', 'STV election positions', 'block_stv');
@@ -374,11 +378,17 @@ $handler->display->display_options['fields']['vote_link']['empty_zero'] = 0;
 $handler->display->display_options['fields']['vote_link']['hide_alter_empty'] = 1;
 $handler->display->display_options['fields']['vote_link']['text'] = 'Vote';
 $handler->display->display_options['defaults']['filters'] = FALSE;
+/* Filter criterion: Election: Published or admin */
+$handler->display->display_options['filters']['published_or_admin']['id'] = 'published_or_admin';
+$handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
+$handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
+$handler->display->display_options['filters']['published_or_admin']['group'] = 1;
 /* Filter criterion: Election: Type */
 $handler->display->display_options['filters']['type']['id'] = 'type';
 $handler->display->display_options['filters']['type']['table'] = 'election';
 $handler->display->display_options['filters']['type']['field'] = 'type';
 $handler->display->display_options['filters']['type']['value'] = 'stv';
+$handler->display->display_options['filters']['type']['group'] = 1;
 
 /* Display: Referendum motions */
 $handler = $view->new_display('block', 'Referendum motions', 'block_referendum');
@@ -395,10 +405,16 @@ $handler->display->display_options['empty']['area']['content'] = 'There are curr
 $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
 $handler->display->display_options['empty']['area']['tokenize'] = 0;
 $handler->display->display_options['defaults']['filters'] = FALSE;
+/* Filter criterion: Election: Published or admin */
+$handler->display->display_options['filters']['published_or_admin']['id'] = 'published_or_admin';
+$handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
+$handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
+$handler->display->display_options['filters']['published_or_admin']['group'] = 1;
 /* Filter criterion: Election: Type */
 $handler->display->display_options['filters']['type']['id'] = 'type';
 $handler->display->display_options['filters']['type']['table'] = 'election';
 $handler->display->display_options['filters']['type']['field'] = 'type';
 $handler->display->display_options['filters']['type']['value'] = 'referendum';
+$handler->display->display_options['filters']['type']['group'] = 1;
 
 $views[$view->name] = $view;

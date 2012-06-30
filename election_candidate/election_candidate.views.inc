@@ -24,7 +24,6 @@ function election_candidate_views_data() {
     'title' => t('Election candidate'),
     'entity type' => 'election_candidate',
     'weight' => -8,
-    'access query tag' => 'election_candidate_access',
     'defaults' => array(
       'field' => 'fullname',
     ),

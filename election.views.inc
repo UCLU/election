@@ -24,7 +24,6 @@ function election_views_data() {
     'title' => t('Election'),
     'entity type' => 'election',
     'weight' => -10,
-    'access query tag' => 'election_access', // @todo implement query alter
     'defaults' => array(
       'field' => 'title',
     ),
@@ -100,6 +99,17 @@ function election_views_data() {
     ),
     'sort' => array(
       'handler' => 'views_handler_sort',
+    ),
+  );
+
+  // published status or admin
+  $data['election']['published_or_admin'] = array(
+    'title' => t('Published or admin'),
+    'help' => t('Filters out unpublished content if the current user cannot view it.'),
+    'filter' => array(
+      'field' => 'status',
+      'handler' => 'views_handler_filter_election_published',
+      'label' => t('Published or admin'),
     ),
   );
 

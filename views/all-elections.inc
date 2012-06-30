@@ -320,11 +320,10 @@ $handler->display->display_options['sorts']['created']['table'] = 'election';
 $handler->display->display_options['sorts']['created']['field'] = 'created';
 $handler->display->display_options['sorts']['created']['order'] = 'DESC';
 $handler->display->display_options['sorts']['created']['expose']['label'] = 'Created date';
-/* Filter criterion: Election: Published */
-$handler->display->display_options['filters']['published']['id'] = 'published';
-$handler->display->display_options['filters']['published']['table'] = 'election';
-$handler->display->display_options['filters']['published']['field'] = 'published';
-$handler->display->display_options['filters']['published']['value'] = '1';
+/* Filter criterion: Election: Published or admin */
+$handler->display->display_options['filters']['published_or_admin']['id'] = 'published_or_admin';
+$handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
+$handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
 
 /* Display: Page */
 $handler = $view->new_display('page', 'Page', 'page');

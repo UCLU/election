@@ -942,3 +942,11 @@ function _election_pathauto_update_alias_multiple(array $election_ids, $op, arra
     drupal_set_message(format_plural(count($election_ids), 'Updated URL alias for 1 election.', 'Updated URL aliases for @count elections.'));
   }
 }
+/**
+ * Implements hook_views_query_substitutions().
+ */
+function election_views_query_substitutions() {
+  return array(
+    '***EDIT_ANY_ELECTION***' => intval(user_access('edit any election')),
+  );
+}
