@@ -199,7 +199,7 @@ function election_vote_referendum_vote_form($form, &$form_state, $post, $electio
 function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
 
   // Load candidates
-  $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED));
+  $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED), 'RAND()');
   $form_state['candidates'] = $candidates;
 
   $num_candidates = count($candidates);
@@ -251,6 +251,10 @@ function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
     '#attributes' => array('class' => array('election-ballot-paper')),
     '#description' => t('Please rank the candidates according to your preference.'),
   );
+
+  if (count($candidates) > 1 || $post->settings['use_ron']) {
+    $form['ballot_paper']['#description'] .= ' ' . t('Candidates are displayed in a random order.');
+  }
 
   $form['ballot_paper']['start'] = array(
     '#markup' => '<table class="election-ballot-table"><tr><th>' . t('Name') . '</th><th>' . t('Preference') . '</th></tr>',
