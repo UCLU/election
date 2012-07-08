@@ -517,33 +517,19 @@ function election_results_stv_count_page(stdClass $post, $totals) {
   $stages = $method->stages;
 
   $header = array(
-    NULL,
-    array(
-      'data' => t('Stages'),
-      'colspan' => count($stages),
-    ),
+    'candidates' => t('Candidates'),
   );
+
+  foreach (array_keys($stages) as $stage_id) {
+    $header[$stage_id] = t('Stage %stage', array('%stage' => $stage_id));
+  }
 
   $rows = array();
-
-  $rows[0] = array(
-    array(
-      'data' => t('Candidates'),
-      'header' => TRUE,
-    ),
-  );
-
-  foreach (array_keys($stages) as $stage_name) {
-    $rows[0][] = array(
-      'data' => check_plain($stage_name),
-      'header' => TRUE,
-    );
-  }
 
   foreach ($candidates as $candidate) {
     $row = array();
     $row['name'] = check_plain(truncate_utf8($candidate->name, 30, TRUE, TRUE));
-    foreach ($stages as $stage_name => $stage) {
+    foreach ($stages as $stage_id => $stage) {
       $data = '<div class="droophp-votes">' . number_format($stage['votes'][$candidate->cid]) . '</div>';
       if (!empty($stage['changes'][$candidate->cid])) {
         $data .= theme('item_list', array(
@@ -553,7 +539,7 @@ function election_results_stv_count_page(stdClass $post, $totals) {
           ),
         ));
       }
-      $row[$stage_name] = array(
+      $row[$stage_id] = array(
         'data' => $data,
       );
     }
