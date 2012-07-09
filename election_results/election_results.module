@@ -224,7 +224,7 @@ function election_results_download_form_stv($form, &$form_state, $post) {
 
   $default_filename = $post->election->title . '-' . $post->election_id . '_' . $post->title . '-' . $post->post_id;
   $default_filename = truncate_utf8(preg_replace('/[^A-Z0-9\-_]+/i', '-', $default_filename), 60, FALSE, FALSE);
-  $default_filename = $default_filename . '_' . date('YmdHis', REQUEST_TIME);
+  $default_filename .= '_' . date('YmdHis', REQUEST_TIME) . '.blt';
 
   $form['options'] = array(
     '#type' => 'fieldset',
@@ -235,7 +235,6 @@ function election_results_download_form_stv($form, &$form_state, $post) {
     '#title' => t('Filename'),
     '#size' => strlen($default_filename),
     '#default_value' => $default_filename,
-    '#field_suffix' => '.blt',
   );
   $form['options']['include_ids'] = array(
     '#type' => 'checkbox',
@@ -268,7 +267,7 @@ function _election_results_download_blt($form, &$form_state) {
   $post = $form['#post'];
   $election = $post->election;
 
-  $filename = $form_state['values']['filename'] . '.blt';
+  $filename = $form_state['values']['filename'];
   $include_ids = $form_state['values']['include_ids'];
 
   // @todo generate files with Batch API
