@@ -50,14 +50,14 @@ function election_condition_conditions($post = NULL) {
  * function names, for functions that each take one argument (the Drupal $user
  * object) and return TRUE or FALSE.
  *
- * This function uses hook_condition_info() to allow other modules to
+ * This function uses hook_election_condition_info() to allow other modules to
  * define conditions.
  */
 function _election_condition_get_code_conditions() {
   $conditions = &drupal_static(__FUNCTION__);
   if (empty($conditions)) {
     $conditions = array();
-    $conditions += module_invoke_all('condition_info');
+    $conditions += module_invoke_all('election_condition_info');
   }
   return $conditions;
 }
@@ -67,9 +67,9 @@ function _election_condition_get_code_conditions() {
  */
 function election_condition_modules_enabled($modules = array()) {
   // If any of the enabled modules contains an implementation of
-  // hook_condition_info, run _election_condition_install_code_conditions().
+  // hook_election_condition_info, run _election_condition_install_code_conditions().
   foreach ($modules as $module) {
-    if (function_exists($module . '_condition_info')) {
+    if (function_exists($module . '_election_condition_info')) {
       _election_condition_install_code_conditions();
       break;
 
@@ -82,9 +82,9 @@ function election_condition_modules_enabled($modules = array()) {
  */
 function election_condition_modules_disabled($modules = array()) {
   // If any of the enabled modules contains an implementation of
-  // hook_condition_info, run _election_condition_uninstall_code_conditions().
+  // hook_election_condition_info, run _election_condition_uninstall_code_conditions().
   foreach ($modules as $module) {
-    if (function_exists($module . '_condition_info')) {
+    if (function_exists($module . '_election_condition_info')) {
       _election_condition_uninstall_code_conditions();
       break;
 

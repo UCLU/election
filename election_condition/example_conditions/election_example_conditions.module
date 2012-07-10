@@ -5,9 +5,9 @@
  */
 
 /**
- * Define the example conditions. Implements hook_condition_info().
+ * Define the example conditions. Implements hook_election_condition_info().
  */
-function election_example_conditions_condition_info() {
+function election_example_conditions_election_condition_info() {
   $conditions = array();
   $conditions['gmail'] = array(
     'name' => t('Have a Gmail account'),
