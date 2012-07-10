@@ -183,8 +183,6 @@ function election_page_nomination_form(stdClass $election) {
  */
 function election_candidate_nomination_form($form, &$form_state, stdClass $election, array $previous_nominations, array $available_posts) {
 
-  global $user;
-
   $candidate = entity_get_controller('election_candidate')->create(array('election_id' => $election->election_id));
   $candidate->is_new = TRUE;
 
@@ -249,7 +247,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
     '#title' => t('Email address'),
     '#size' => 30,
     '#required' => TRUE,
-    '#default_value' => empty($user->mail) ? NULL: $user->mail,
+    '#default_value' => empty($GLOBALS['user']->mail) ? NULL: $GLOBALS['user']->mail,
   );
 
   $form['phone'] = array(
@@ -352,19 +350,13 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
 
   field_attach_submit('election_candidate', $candidate, $form, $form_state);
 
-  global $user;
-  if (!empty($user->uid)) {
-    $candidate->uid = $user->uid;
-    $candidate->username = $user->name;
+  if (!empty($GLOBALS['user']->uid)) {
+    $candidate->uid = $GLOBALS['user']->uid;
+    $candidate->username = $GLOBALS['user']->name;
   }
 
   // Save the nomination.
   election_candidate_save($candidate);
-
-  // Trigger a Rules action.
-  if (function_exists('rules_invoke_event')) {
-    rules_invoke_event('election_candidate_nomination_submitted', $candidate, $post, $election);
-  }
 
   // Notify the user that the nomination was saved.
   drupal_set_message(t(
@@ -376,6 +368,11 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
       '%last_name' => $candidate->last_name,
     )
   ));
+
+  // Invoke rules for "After submitting a nomination".
+  if (module_exists('rules')) {
+    rules_invoke_event('election_candidate_nomination_submitted', $GLOBALS['user'], $candidate, $post, $election);
+  }
 
   if (empty($_GET['destination'])) {
     $form_state['redirect'] = election_uri_path($election);
@@ -600,6 +597,8 @@ function election_candidate_edit_form_submit($form, &$form_state) {
 
   $candidate = &$form_state['candidate'];
 
+  $initial_cstatus = $candidate->cstatus;
+
   foreach ($candidate as $property => $value) {
     if (isset($form_state['values'][$property])) {
       $candidate->$property = $form_state['values'][$property];
@@ -628,6 +627,15 @@ function election_candidate_edit_form_submit($form, &$form_state) {
       )
     )
   );
+
+  if ($initial_cstatus === ELECTION_CANDIDATE_PENDING && $candidate->cstatus === ELECTION_CANDIDATE_APPROVED) {
+    // Invoke rules for "After a candidate is approved".
+    if (module_exists('rules')) {
+      $post = election_post_load($candidate->post_id);
+      $election = $post->election;
+      rules_invoke_event('election_candidate_approved', $candidate, $post, $election);
+    }
+  }
 
 }
 

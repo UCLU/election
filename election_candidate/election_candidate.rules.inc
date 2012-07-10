@@ -10,8 +10,35 @@
 function election_candidate_rules_event_info() {
   $events = array();
   $events['election_candidate_nomination_submitted'] = array(
-    'label' => t('Candidate nomination submitted'),
-    'module' => 'election',
+    'group' => t('Election candidate'),
+    'access callback' => 'election_candidate_rules_config_access',
+    'label' => t('After submitting a nomination'),
+    'module' => 'election_candidate',
+    'arguments' => array(
+      'account' => array(
+        'type' => 'user',
+        'label' => t('The user who submitted the nomination'),
+        'skip save' => TRUE,
+      ),
+      'candidate' => array(
+        'type' => 'election_candidate',
+        'label' => t('The candidate.'),
+      ),
+      'post' => array(
+        'type' => 'election_post',
+        'label' => t('The post for which the nomination was submitted'),
+      ),
+      'election' => array(
+        'type' => 'election',
+        'label' => t('The election to which the post belongs'),
+      ),
+    ),
+  );
+  $events['election_candidate_approved'] = array(
+    'group' => t('Election candidate'),
+    'access callback' => 'election_candidate_rules_config_access',
+    'label' => t('After a candidate is approved'),
+    'module' => 'election_candidate',
     'arguments' => array(
       'candidate' => array(
         'type' => 'election_candidate',
@@ -19,13 +46,24 @@ function election_candidate_rules_event_info() {
       ),
       'post' => array(
         'type' => 'election_post',
-        'label' => t('The position for which the nomination was submitted.'),
+        'label' => t('The post for which the candidate is standing'),
       ),
       'election' => array(
         'type' => 'election',
-        'label' => t('The election to which the position belongs.'),
+        'label' => t('The election to which the post belongs'),
       ),
     ),
   );
   return $events;
+}
+
+/**
+ * Access callback for configuring Rules related to candidates.
+ *
+ * @see election_candidate_rules_event_info()
+ */
+function election_candidate_rules_config_access($type, $name) {
+  if ($type == 'event' || $type == 'condition') {
+    return election_access('edit') && entity_access('view', 'user');
+  }
 }
