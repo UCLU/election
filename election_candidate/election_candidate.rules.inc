@@ -8,13 +8,15 @@
  * Implements hook_rules_event_info().
  */
 function election_candidate_rules_event_info() {
-  $events = array();
-  $events['election_candidate_nomination_submitted'] = array(
+  $defaults = array(
     'group' => t('Election candidate'),
-    'access callback' => 'election_candidate_rules_config_access',
-    'label' => t('After submitting a nomination'),
     'module' => 'election_candidate',
-    'arguments' => array(
+    'access callback' => 'election_candidate_rules_config_access',
+  );
+  $events = array();
+  $events['election_candidate_nomination_submitted'] = $defaults + array(
+    'label' => t('After submitting a nomination'),
+    'variables' => array(
       'account' => array(
         'type' => 'user',
         'label' => t('The user who submitted the nomination'),
@@ -22,7 +24,7 @@ function election_candidate_rules_event_info() {
       ),
       'candidate' => array(
         'type' => 'election_candidate',
-        'label' => t('The candidate.'),
+        'label' => t('The candidate'),
       ),
       'post' => array(
         'type' => 'election_post',
@@ -34,15 +36,12 @@ function election_candidate_rules_event_info() {
       ),
     ),
   );
-  $events['election_candidate_approved'] = array(
-    'group' => t('Election candidate'),
-    'access callback' => 'election_candidate_rules_config_access',
+  $events['election_candidate_approved'] = $defaults + array(
     'label' => t('After a candidate is approved'),
-    'module' => 'election_candidate',
-    'arguments' => array(
+    'variables' => array(
       'candidate' => array(
         'type' => 'election_candidate',
-        'label' => t('The candidate.'),
+        'label' => t('The candidate'),
       ),
       'post' => array(
         'type' => 'election_post',
