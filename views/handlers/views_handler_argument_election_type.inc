@@ -13,8 +13,6 @@ class views_handler_argument_election_type extends views_handler_argument_numeri
    * Overrides views_handler_title_query().
    *
    * Get the name of the election type.
-   *
-   * @return array
    */
   public function title_query() {
     $names = array();
@@ -28,4 +26,3 @@ class views_handler_argument_election_type extends views_handler_argument_numeri
   }
 
 }
-

@@ -81,7 +81,7 @@ function election_post_pathauto_bulk_update_batch_process(&$context) {
  */
 function election_post_path_alias_types() {
   $objects = array(
-    'election-post/' => t('Election posts')
+    'election-post/' => t('Election posts'),
   );
   return $objects;
 }

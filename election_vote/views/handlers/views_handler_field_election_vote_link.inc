@@ -24,17 +24,17 @@ class views_handler_field_election_vote_link extends views_handler_field_electio
     $small_post->post_id = $post_id;
     $small_post->settings = $this->get_value($values, 'settings');
 
-    // ensure there are actually some candidates to vote for
+    // Ensure there are actually some candidates to vote for.
     if (!_election_vote_post_has_approved_candidates($small_post)) {
       return;
     }
 
-    // ensure the user has not already voted
+    // Ensure the user has not already voted.
     if (election_vote_check_user_previously_voted($small_post)) {
       return;
     }
 
-    // ensure user has access to vote for this post
+    // Ensure user has access to vote for this post.
     $post = election_post_load($post_id);
     if (!election_post_access('vote', $post)) {
       return;

@@ -5,6 +5,9 @@
  */
 
 class views_handler_field_election_link_edit extends views_handler_field_election_link {
+  /**
+   * Overrides parent::construct().
+   */
   public function construct() {
     parent::construct();
     $this->additional_fields['type'] = 'type';
@@ -15,7 +18,7 @@ class views_handler_field_election_link_edit extends views_handler_field_electio
    * Overrides parent::render_link().
    */
   public function render_link($data, $values) {
-    // ensure user has access to edit this election.
+    // Ensure user has access to edit this election.
     $election = new stdClass();
     $election->election_id = $this->get_value($values, 'election_id');
     $election->type = $this->get_value($values, 'type');

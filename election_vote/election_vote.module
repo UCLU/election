@@ -104,7 +104,7 @@ function election_vote_access($op, stdClass $post, $account = NULL) {
 
 
 /**
- * Form builder function for election-post/%election_post/vote
+ * Form builder function for election-post/%election_post/vote.
  */
 function election_vote_form($form, &$form_state, stdClass $post) {
 
@@ -128,7 +128,12 @@ function election_vote_form($form, &$form_state, stdClass $post) {
   $form_state['post'] = $post;
 
   $title = election_post_page_title($post);
-  drupal_set_title(t('Vote: %title_trim', array('%title_trim' => truncate_utf8($post->title, 50, TRUE, TRUE))), PASS_THROUGH);
+  drupal_set_title(
+    t('Vote: %title_trim', array(
+      '%title_trim' => truncate_utf8($post->title, 50, TRUE, TRUE),
+    )),
+    PASS_THROUGH
+  );
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, l($post->title, election_post_uri_path($post)))
   );
@@ -166,7 +171,7 @@ function election_vote_form($form, &$form_state, stdClass $post) {
 
 
 /**
- * Form modifying function for election-post/%election_post/vote
+ * Form modifying function for election-post/%election_post/vote.
  */
 function election_vote_referendum_vote_form($form, &$form_state, $post, $election) {
 
@@ -193,11 +198,11 @@ function election_vote_referendum_vote_form($form, &$form_state, $post, $electio
 }
 
 /**
- * Form modifying function for election-post/%election_post/vote
+ * Form modifying function for election-post/%election_post/vote.
  */
 function election_vote_stv_vote_form($form, &$form_state, $post, $election) {
 
-  // Load candidates
+  // Load candidates.
   $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED), 'RAND()');
   $form_state['candidates'] = $candidates;
 
@@ -403,7 +408,6 @@ function election_vote_stv_vote_form_validate($form, &$form_state) {
 function election_vote_referendum_vote_form_validate($form, &$form_state) {
 
   // Add 'answer' to $form_state (so it's available for later).
-  // @todo review this flow
   $form_state['answer'] = $form_state['values']['answer'];
 
 }
@@ -605,7 +609,12 @@ function election_vote_form_abstain($form, &$form_state) {
 
   if ($success) {
     $post_name = _election_get_posts_name($election->type);
-    drupal_set_message(t('You have abstained from voting for the @post_name !post_link.', array('@post_name' => $post_name, '!post_link' => l($post->title, election_post_uri_path($post)))));
+    drupal_set_message(
+      t('You have abstained from voting for the @post_name !post_link.', array(
+        '@post_name' => $post_name,
+        '!post_link' => l($post->title, election_post_uri_path($post)),
+      ))
+    );
     $form_state['redirect'] = url(election_uri_path($election));
     // Invoke "After abstaining" rules.
     if (module_exists('rules')) {
@@ -668,7 +677,12 @@ function election_vote_form_vote($form, &$form_state) {
 
   if ($success) {
     $post_name = _election_get_posts_name($election->type);
-    drupal_set_message(t('Thank you for voting for the @post_name !post_link.', array('@post_name' => $post_name, '!post_link' => l($post->title, election_post_uri_path($post)))));
+    drupal_set_message(
+      t('Thank you for voting for the @post_name !post_link.', array(
+        '@post_name' => $post_name,
+        '!post_link' => l($post->title, election_post_uri_path($post)),
+      ))
+    );
     $form_state['redirect'] = url(election_uri_path($election));
     // Invoke "After casting a vote" rules.
     if (module_exists('rules')) {
@@ -837,10 +851,10 @@ function _election_vote_session_hash() {
 function _election_vote_get_ordinal($num) {
   $ends = array('th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th');
   if ($num % 100 >= 11 && $num % 100 <= 13) {
-    $ord = $num. 'th';
+    $ord = $num . 'th';
   }
   else {
-    $ord = $num. $ends[$num % 10];
+    $ord = $num . $ends[$num % 10];
   }
   return $ord;
 }
@@ -868,8 +882,6 @@ function election_vote_html_head_alter(&$head_elements) {
 
 /**
  * Check whether a post has approved candidates (e.g. to see whether voting is possible).
- *
- * @param stdClass $post
  *
  * @return bool
  *   TRUE if:

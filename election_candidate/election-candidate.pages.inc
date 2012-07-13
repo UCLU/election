@@ -6,7 +6,7 @@
  */
 
 /**
- * Page callback for election/%election/candidates/list
+ * Page callback for election/%election/candidates/list.
  */
 function election_candidate_list_page(stdClass $election) {
 
@@ -22,9 +22,7 @@ function election_candidate_list_page(stdClass $election) {
 }
 
 /**
- * Page callback for election-candidate/%election_candidate
- *
- * @param stdClass $candidate
+ * Page callback for election-candidate/%election_candidate.
  */
 function election_candidate_page_view(stdClass $candidate, $view_mode = 'full') {
 
@@ -50,9 +48,7 @@ function election_candidate_page_view(stdClass $candidate, $view_mode = 'full') 
 }
 
 /**
- * Page callback for election-candidate/%election_candidate/details
- *
- * @param stdClass $candidate
+ * Page callback for election-candidate/%election_candidate/details.
  */
 function election_candidate_details_page_view(stdClass $candidate) {
 
@@ -91,6 +87,7 @@ function election_candidate_details_page_view(stdClass $candidate) {
  * @param stdClass $election
  *   An election object.
  * @param array $previous_nominations
+ *   An array of candidate objects, representing the user's previous nominations.
  */
 function election_candidate_display_previous_nominations(stdClass $election, array $previous_nominations) {
   if (empty($previous_nominations)) {
@@ -123,7 +120,7 @@ function election_candidate_display_previous_nominations(stdClass $election, arr
 }
 
 /**
- * Page callback for election/%election/nomination-form
+ * Page callback for election/%election/nomination-form.
  */
 function election_page_nomination_form(stdClass $election) {
 
@@ -247,7 +244,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
     '#title' => t('Email address'),
     '#size' => 30,
     '#required' => TRUE,
-    '#default_value' => empty($GLOBALS['user']->mail) ? NULL: $GLOBALS['user']->mail,
+    '#default_value' => empty($GLOBALS['user']->mail) ? NULL : $GLOBALS['user']->mail,
   );
 
   $form['phone'] = array(
@@ -387,10 +384,10 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
  *   An election candidate object.
  * @param stdClass $election
  *   The election to which the candidate belongs (optional).
- * @param $view_mode
+ * @param string $view_mode
  *   View mode, e.g. 'full', 'teaser'...
  *
- * @return
+ * @return array
  *   An array as expected by drupal_render().
  */
 function election_candidate_view($candidate, $election = NULL, $view_mode = 'full') {
@@ -580,7 +577,7 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
     '#value' => t('Delete'),
     '#submit' => array('election_candidate_edit_form_delete_submit'),
     '#access' => entity_access('delete', 'election_candidate', $candidate),
-    '#limit_validation_errors' => array(), // No need to validate on deletion.
+    '#limit_validation_errors' => array(),
   );
 
   $form['#validate'][] = 'election_candidate_form_validate';

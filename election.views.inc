@@ -11,14 +11,8 @@ function election_views_data() {
 
   $data = array();
 
-  // ----------------------------------------------------------------
-  // election table -- basic table information.
-
-  // Define the base group of this table. Fields that don't
-  // have a group defined will go into this field by default.
   $data['election']['table']['group']  = t('Election');
 
-  // Advertise this table as a possible base table.
   $data['election']['table']['base'] = array(
     'field' => 'election_id',
     'title' => t('Election'),
@@ -29,40 +23,30 @@ function election_views_data() {
     ),
   );
 
-  // ----------------------------------------------------------------
-  // election table -- fields
-
-  // election_id
   $data['election']['election_id'] = array(
     'title' => t('Election ID'),
     'help' => t('The unique ID of the election.'),
-    // Information for displaying the election_id.
     'field' => array(
       'handler' => 'views_handler_field_election',
       'click sortable' => TRUE,
     ),
-    // Information for accepting an election_id as an argument.
     'argument' => array(
       'handler' => 'views_handler_argument_election_electionid',
-      'name field' => 'title', // the field to display in the summary.
+      'name field' => 'title',
       'numeric' => TRUE,
       'validate type' => 'election_id',
     ),
-    // Information for accepting an election_id as a filter.
     'filter' => array(
       'handler' => 'views_handler_filter_numeric',
     ),
-    // Information for sorting on an election_id.
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),
   );
 
-  // title
   $data['election']['title'] = array(
     'title' => t('Title'),
     'help' => t('The title of the election.'),
-     // Information for displaying a title as a field.
     'field' => array(
       'handler' => 'views_handler_field_election',
       'click sortable' => TRUE,
@@ -71,7 +55,6 @@ function election_views_data() {
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),
-    // Information for accepting a title as a filter.
     'filter' => array(
       'handler' => 'views_handler_filter_string',
     ),
@@ -80,7 +63,6 @@ function election_views_data() {
     ),
   );
 
-  // published status
   $data['election']['published'] = array(
     'title' => t('Published'),
     'help' => t('Whether or not the election is published.'),
@@ -95,14 +77,13 @@ function election_views_data() {
       'handler' => 'views_handler_filter_boolean_operator',
       'label' => t('Published'),
       'type' => 'yes-no',
-      'use equal' => TRUE, // Use status = 1 instead of status <> 0 in WHERE statment
+      'use equal' => TRUE,
     ),
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),
   );
 
-  // published status or admin
   $data['election']['published_or_admin'] = array(
     'title' => t('Published or admin'),
     'help' => t('Filters out unpublished content if the current user cannot view it.'),
@@ -113,7 +94,6 @@ function election_views_data() {
     ),
   );
 
-  // voting status
   $data['election']['vstatus'] = array(
     'title' => t('Voting status'),
     'help' => t('The voting status for this election.'),
@@ -131,7 +111,6 @@ function election_views_data() {
     ),
   );
 
-  // nominations status
   $data['election']['nstatus'] = array(
     'title' => t('Nominations status'),
     'help' => t('Whether nominations are open for this election (not relevant for referendums).'),
@@ -149,7 +128,6 @@ function election_views_data() {
     ),
   );
 
-  // type
   $data['election']['type'] = array(
     'title' => t('Type'),
     'help' => t('The election type (for example, "STV Election" or "Referendum").'),
@@ -168,7 +146,6 @@ function election_views_data() {
     ),
   );
 
-  // created
   $data['election']['created'] = array(
     'title' => t('Created date'),
     'help' => t('The date when the election was created.'),
@@ -184,7 +161,6 @@ function election_views_data() {
     ),
   );
 
-  // changed
   $data['election']['changed'] = array(
     'title' => t('Updated date'),
     'help' => t('The date when the election settings were last updated.'),
@@ -200,7 +176,6 @@ function election_views_data() {
     ),
   );
 
-  // vopen_time
   $data['election']['vopen_time'] = array(
     'title' => t('Voting opening date'),
     'help' => t('The date when voting opens for this election.'),
@@ -216,7 +191,6 @@ function election_views_data() {
     ),
   );
 
-  // vclose_time
   $data['election']['vclose_time'] = array(
     'title' => t('Voting closing date'),
     'help' => t('The date when voting closes for this election.'),
@@ -232,7 +206,6 @@ function election_views_data() {
     ),
   );
 
-  // nopen_time
   $data['election']['nopen_time'] = array(
     'title' => t('Nominations opening date'),
     'help' => t('The date when nominations open for this election (not relevant for referendums).'),
@@ -248,7 +221,6 @@ function election_views_data() {
     ),
   );
 
-  // nclose_time
   $data['election']['nclose_time'] = array(
     'title' => t('Nominations closing date'),
     'help' => t('The date when nominations close for this election (not relevant for referendums).'),
@@ -264,7 +236,6 @@ function election_views_data() {
     ),
   );
 
-  // election links
   $data['election']['view_election'] = array(
     'field' => array(
       'title' => t('Link'),

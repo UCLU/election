@@ -44,11 +44,12 @@ function election_condition_conditions($post = NULL) {
 }
 
 /**
- * Return information about code conditions in a structured array, keyed by each
- * condition's machine name. Each element is also a structured array defining at
- * least 'name' and 'callbacks'. The element keyed by 'callbacks' is an array of
- * function names, for functions that each take one argument (the Drupal $user
- * object) and return TRUE or FALSE.
+ * Get information about code conditions.
+ *
+ * This returns a structured array, keyed by each condition's machine name. Each
+ * element is also a structured array defining at least 'name' and 'callbacks'.
+ * The element keyed by 'callbacks' is an array of function names, for functions
+ * that each take one argument (the Drupal $user object) and return TRUE or FALSE.
  *
  * This function uses hook_election_condition_info() to allow other modules to
  * define conditions.
@@ -93,8 +94,10 @@ function election_condition_modules_disabled($modules = array()) {
 }
 
 /**
- * Delete conditions from the DB only if they are not assigned to any posts AND
- * they do not (or no longer) exist in code.
+ * Uninstall redundant conditions from the database.
+ *
+ * This deletes conditions from the DB only if they are not assigned to any
+ * posts AND they do not (or no longer) exist in code.
  */
 function _election_condition_uninstall_code_conditions() {
   $code_conditions = _election_condition_get_code_conditions();
@@ -138,11 +141,10 @@ function _election_condition_uninstall_code_conditions() {
 }
 
 /**
- * Find conditions in code and write them (identified by 'machine name') to the
- * {election_condition} table. This uses a Merge Query, see:
- * http://drupal.org/node/310085
- * and:
- * http://api.drupal.org/api/drupal/includes--database--query.inc/class/MergeQuery/7
+ * Install conditions defined in code to the database.
+ *
+ * This finds conditions in code and writes them (identified by 'machine name')
+ * to the {election_condition} table.
  */
 function _election_condition_install_code_conditions() {
   foreach (_election_condition_get_code_conditions() as $condition_mn => $condition) {
@@ -314,7 +316,6 @@ function election_condition_election_vote_access($op, $post = NULL, $account = N
   switch ($op) {
 
     case 'vote':
-
       // Get the conditions associated with this post.
       $conditions = election_condition_get_conditions($post);
       if (!count($conditions)) {

@@ -5,6 +5,9 @@
  */
 
 class views_handler_field_election_link extends views_handler_field {
+  /**
+   * Overrides parent::construct().
+   */
   public function construct() {
     parent::construct();
     $this->additional_fields['election_id'] = 'election_id';

@@ -18,13 +18,13 @@
     <span class="label">Your eligibility: </span><span class="item"><?php print $eligibility; ?></span>
   </div>
 
-  <?php if ($view_mode == 'full' && isset($settings['vacancy_count'])) { ?>
+  <?php if ($view_mode == 'full' && isset($settings['vacancy_count'])): ?>
 
     <div class="pseudo-field vacancy_count">
       <span class="label">Number of vacancies: </span><span class="item"><?php print $settings['vacancy_count']; ?></span>
     </div>
 
-  <?php } ?>
+  <?php endif; ?>
 
   <div class="content"<?php print $content_attributes; ?>>
     <?php print render($content); ?>

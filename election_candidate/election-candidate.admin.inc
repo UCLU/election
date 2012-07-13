@@ -141,11 +141,29 @@ function election_candidate_totals_page(stdClass $election) {
       )
     );
     $totals = $result->fetchAll();
-    $header = array(t('Position'), t('Pending'), t('Approved'), t('Rejected'), t('Withdrawn'));
+    $header = array(
+      t('Position'),
+      t('Pending'),
+      t('Approved'),
+      t('Rejected'),
+      t('Withdrawn')
+    );
     $rows = array();
-    $rows[] = array(t('TOTAL'), $total_all->num_pending, $total_all->num_approved, $total_all->num_rejected, $total_all->num_withdrawn);
+    $rows[] = array(
+      t('TOTAL'),
+      $total_all->num_pending,
+      $total_all->num_approved,
+      $total_all->num_rejected,
+      $total_all->num_withdrawn,
+    );
     foreach ($totals as $total) {
-      $rows[] = array(check_plain($total->title), $total->num_pending, $total->num_approved, $total->num_rejected, $total->num_withdrawn);
+      $rows[] = array(
+        check_plain($total->title),
+        $total->num_pending,
+        $total->num_approved,
+        $total->num_rejected,
+        $total->num_withdrawn,
+      );
     }
     $output['by_position'] = array(
       '#theme' => 'table',
@@ -328,9 +346,7 @@ function election_candidate_download_form_submit($form, &$form_state) {
 }
 
 /**
- * Format a candidate property.
- *
- * @param stdClass $candidate
+ * Format a candidate 'property', for the CSV candidate data download.
  */
 function _election_candidate_download_format_property(stdClass $candidate, $property_key, $property) {
   $value = isset($candidate->{$property_key}) ? $candidate->{$property_key} : NULL;

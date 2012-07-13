@@ -7,11 +7,11 @@
 /**
  * Checks if the election is of a certain type.
  *
- * @param $variables
+ * @param array $variables
  *   An array containing each of the variables saved in the database necessary
  *   to evaluate this condition of the rule.
  *
- * @return
+ * @return bool
  *   TRUE if condition applies successfully. Otherwise FALSE.
  */
 function election_menu_position_condition_election($variables) {
@@ -29,15 +29,18 @@ function election_menu_position_condition_election($variables) {
 /**
  * Adds form elements for the "election" plugin to the rule configuration form.
  *
- * @param $form
+ * @param array $form
  *   A reference to the "add/edit rule" form array. New form elements should be
  *   added directly to this array.
- * @param $form_state
+ * @param array $form_state
  *   A reference to the current form state.
  */
 function election_menu_position_rule_election_form(&$form, &$form_state) {
+  $variables = array();
   // If this is an existing rule, load the variables stored in the rule for this plugin.
-  $variables = !empty($form_state['#menu-position-rule']['conditions']['election']) ? $form_state['#menu-position-rule']['conditions']['election'] : array();
+  if (!empty($form_state['#menu-position-rule']['conditions']['election'])) {
+    $form_state['#menu-position-rule']['conditions']['election'];
+  }
 
   $form['conditions']['election'] = array(
     '#type' => 'fieldset',
@@ -62,9 +65,9 @@ function election_menu_position_rule_election_form(&$form, &$form_state) {
 /**
  * Prepares the "election_type" variables to be stored in the rule.
  *
- * @param $form
+ * @param array $form
  *   A reference to the "add/edit rule" form array.
- * @param $form_state
+ * @param array $form_state
  *   A reference to the current form state, including submitted values.
  */
 function election_menu_position_rule_election_form_submit(&$form, &$form_state) {

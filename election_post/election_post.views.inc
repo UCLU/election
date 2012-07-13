@@ -11,14 +11,8 @@ function election_post_views_data() {
 
   $data = array();
 
-  // ----------------------------------------------------------------
-  // election posts table -- basic table information.
-
-  // Define the base group of this table. Fields that don't
-  // have a group defined will go into this field by default.
   $data['election_post']['table']['group']  = t('Election post');
 
-  // Advertise this table as a possible base table
   $data['election_post']['table']['base'] = array(
     'field' => 'post_id',
     'title' => t('Election post'),
@@ -29,43 +23,36 @@ function election_post_views_data() {
     ),
   );
 
-  // Join posts to elections
+  // Join posts to elections.
   $data['election']['table']['join']['election_post'] = array(
     'left_field' => 'election_id',
     'field' => 'election_id',
   );
 
-  // post_id
   $data['election_post']['post_id'] = array(
     'title' => t('Post ID'),
     'help' => t('The unique ID of the election post.'),
-    // Information for displaying the post_id
     'field' => array(
       'handler' => 'views_handler_field_numeric',
       'click sortable' => TRUE,
     ),
-    // Information for accepting a post_id as an argument
     'argument' => array(
       'handler' => 'views_handler_argument_election_post_postid',
-      'name field' => 'title', // the field to display in the summary.
+      'name field' => 'title',
       'numeric' => TRUE,
       'validate type' => 'post_id',
     ),
-    // Information for accepting a post_id as a filter
     'filter' => array(
       'handler' => 'views_handler_filter_numeric',
     ),
-    // Information for sorting on a post_id.
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),
   );
 
-  // title
   $data['election_post']['title'] = array(
-    'title' => t('Title'), // The item as it appears as on the UI,
+    'title' => t('Title'),
     'help' => t('The title of the election post.'),
-     // Information for displaying a title as a field
     'field' => array(
       'handler' => 'views_handler_field_election_post',
       'click sortable' => TRUE,
@@ -74,13 +61,11 @@ function election_post_views_data() {
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),
-    // Information for accepting a title as a filter
     'filter' => array(
       'handler' => 'views_handler_filter_string',
     ),
   );
 
-  // post links
   $data['election_post']['view_link'] = array(
     'field' => array(
       'title' => t('Link'),

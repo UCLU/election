@@ -35,7 +35,7 @@ class views_handler_field_election_candidate_fullname extends views_handler_fiel
   }
 
   /**
-   * Provide 'link to candidate' option
+   * Provide 'link to candidate' option.
    */
   public function options_form(&$form, &$form_state) {
     $form['link_to_candidate'] = array(

@@ -49,8 +49,6 @@ function election_list_form($form, &$form_state) {
     'type' => array('data' => t('Type'), 'field' => 'e.type'),
     'nstatus' => array('data' => t('Nominations status'), 'field' => 'e.nstatus'),
     'vstatus' => array('data' => t('Voting status'), 'field' => 'e.vstatus'),
-    // 'vopen' => array('data' => t('Voting opens'), 'field' => 'e.vopen_time'),
-    // 'vclose' => array('data' => t('Voting closes'), 'field' => 'e.vclose_time'),
     'changed' => array('data' => t('Last updated'), 'field' => 'e.changed', 'sort' => 'desc'),
     'operations' => array('data' => t('Operations')),
   );

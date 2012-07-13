@@ -579,7 +579,7 @@ function election_entity_insert($entity, $type) {
  * Title callback for election/%election/view.
  */
 function election_page_title(stdClass $election) {
-   // Output should not be escaped here: it will be escaped in the menu system.
+  // Output should not be escaped here: it will be escaped in the menu system.
   return $election->title;
 }
 
@@ -645,7 +645,7 @@ function election_view(stdClass $election, $view_mode = 'full') {
 }
 
 /**
- * Process variables for election.tpl.php
+ * Process variables for election.tpl.php.
  *
  * The $variables['elements'] array contains the following arguments:
  * - #election
@@ -689,8 +689,7 @@ function template_preprocess_election(&$variables) {
 }
 
 /**
- * Internal function that determines whether voting/nominating in an election is 'open',
- * based on the status, opening time and closing time.
+ * Determine whether voting or nominating in an election is 'open'.
  *
  * @param int $status
  *   The vstatus/nstatus of the election (see election.install).
@@ -713,8 +712,7 @@ function _election_is_open($status, $open_time, $close_time) {
 }
 
 /**
- * Internal function to format the voting/nominating status (vstatus/nstatus)
- * field of an election for display.
+ * Format the voting/nominating status of an election for display.
  *
  * @todo make this themeable
  *
@@ -747,10 +745,11 @@ function _election_format_status(stdClass $election, $status_prefix = 'v') {
 }
 
 /**
- * General function for creating breadcrumbs. Accepts any number of parameters,
- * each corresponding to the breadcrumb link. The first parameter, if given,
- * must be an election object. Output must be sanitized before passing to this
- * function.
+ * General function for creating elections' breadcrumbs.
+ *
+ * Accepts any number of parameters, each corresponding to the breadcrumb link.
+ * The first parameter, if given, must be an election object. Output must be
+ * sanitized before passing to this function.
  *
  * @param stdClass $election
  *   An election object (optional).

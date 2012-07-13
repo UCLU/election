@@ -23,14 +23,7 @@ function election_example_conditions_election_condition_info() {
 }
 
 /**
- * Access callback function to authorise users whose registered email addresses
- * end with either "gmail.com" or "googlemail.com".
- *
- * @see election_conditions_condition_info()
- *
- * @param stdClass $account
- *
- * @return bool
+ * Authorise users whose registered email addresses end with either "gmail.com" or "googlemail.com".
  */
 function election_example_conditions_access_gmail(stdClass $account) {
   if ($account->uid == 0) {
@@ -40,14 +33,7 @@ function election_example_conditions_access_gmail(stdClass $account) {
 }
 
 /**
- * Access callback function to authorise users whose registered email addresses
- * end with either "hotmail.com" or "hotmail.co.uk".
- *
- * @see election_conditions_condition_info()
- *
- * @param stdClass $account
- *
- * @return bool
+ * Authorise users whose registered email addresses end with either "hotmail.com" or "hotmail.co.uk".
  */
 function election_example_conditions_access_hotmail(stdClass $account) {
   if ($account->uid == 0) {

@@ -26,12 +26,12 @@ class views_handler_field_election_link_posts extends views_handler_field_electi
     $election->type = $this->get_value($values, 'type');
     $election->uid = $this->get_value($values, 'uid');
 
-    // exit if the election_post module is not enabled.
+    // Exit if the election_post module is not enabled.
     if (!module_exists('election_post')) {
       return;
     }
 
-    // ensure user has access to edit this election.
+    // Ensure user has access to edit this election.
     if (!entity_access('edit', 'election', $election)) {
       return;
     }

@@ -5,7 +5,7 @@
  */
 
 /**
- * Implements hook_default_rules_configuration()
+ * Implements hook_default_rules_configuration().
  */
 function election_vote_default_rules_configuration() {
 
@@ -57,4 +57,3 @@ function election_vote_default_rules_configuration() {
 
   return $items;
 }
-

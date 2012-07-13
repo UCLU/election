@@ -132,7 +132,7 @@ function election_install() {
  * Add the 'published' column to the election table.
  */
 function election_update_7101() {
-    db_add_field('election', 'published', array(
+  db_add_field('election', 'published', array(
     'description' => 'Allows view access to all those with the "view published elections" permission.',
     'type' => 'int',
     'size' => 'tiny',

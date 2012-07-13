@@ -26,7 +26,7 @@ class views_handler_field_election_candidate_cstatus extends views_handler_field
    * Overrides parent::render().
    */
   public function render($values) {
-    // Create dummy election object
+    // Create dummy candidate object.
     $candidate = new stdClass();
     foreach ($values as $key => $value) {
       $candidate->{str_replace('election_candidate_', '', $key)} = $value;

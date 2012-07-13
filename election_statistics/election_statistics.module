@@ -128,7 +128,7 @@ function election_statistics_preprocess_election_statistics(&$variables) {
     $rows = array();
     foreach ($posts as $post_id => $post) {
 
-      $post_totals = isset($posts_totals[$post_id])? $posts_totals[$post_id] : FALSE;
+      $post_totals = isset($posts_totals[$post_id]) ? $posts_totals[$post_id] : FALSE;
 
       $rows[] = array(
         'post' => l($post->title, election_post_uri_path($post)),

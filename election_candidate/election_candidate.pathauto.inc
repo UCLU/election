@@ -19,7 +19,6 @@ function election_candidate_pathauto($op) {
       $settings['batch_update_callback'] = 'election_candidate_pathauto_bulk_update_batch_process';
       $settings['batch_file'] = drupal_get_path('module', 'election_candidate') . '/election_candidate.pathauto.inc';
       return (object) $settings;
-    default:
       break;
 
   }

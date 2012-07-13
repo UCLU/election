@@ -10,7 +10,6 @@
 class views_plugin_row_election_candidate_view extends views_plugin_row {
 
   // Basic properties that let the row style follow relationships.
-  // from Views module
   public $base_table = 'election_candidate';
   public $base_field = 'candidate_id';
 

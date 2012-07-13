@@ -193,7 +193,8 @@ function election_post_entity_info() {
           'bundle argument' => 4,
           'access arguments' => array('administer elections'),
         ),
-        'metatags' => FALSE, // for the Metatags module
+        // Prevent the Metatags module adding elements.
+        'metatags' => FALSE,
       );
     }
   }
@@ -262,9 +263,9 @@ function election_post_uri($post) {
 }
 
 /**
- * Return the path part of the election post URI callback as a string.
+ * Get the path part of the election post URI callback as a string.
  *
- * @return string.
+ * @see election_post_uri()
  */
 function election_post_uri_path($post) {
   $uri = election_post_uri($post);
@@ -444,27 +445,18 @@ function election_post_page_add_title($election) {
 }
 
 /**
- * Title callback for election/%election/posts/manage (output should not
- * be escaped here as it is done later).
- *
- * @param stdClass $election
+ * Title callback for election/%election/posts/manage.
  */
 function election_post_manage_page_title($election) {
+  // Output should not be escaped here; it is done later in the menu system.
   return t('Manage @posts_name', array('@posts_name' => _election_get_posts_name($election->type, TRUE)));
 }
 
 /**
- * Title callback for 'election-post/%election_post'.
- *
- * Output should not be escaped here as it is done later.
- *
- * @param stdClass $post
- *   The election post object.
- *
- * @return string
- *   The title of the post.
+ * Title callback for election-post/%election_post.
  */
 function election_post_page_title($post) {
+  // Output should not be escaped here; it is done later in the menu system.
   return $post->title;
 }
 
@@ -485,10 +477,10 @@ function election_post_theme() {
  *
  * @param stdClass $post
  *   An election post object.
- * @param $view_mode
+ * @param string $view_mode
  *   View mode, e.g. 'full', 'teaser'...
  *
- * @return
+ * @return array
  *   An array as expected by drupal_render().
  */
 function election_post_view($post, $view_mode = 'full') {
@@ -533,7 +525,7 @@ function election_post_view($post, $view_mode = 'full') {
   }
 
   // Allow modules to modify the structured post.
-  $type = 'election_post'; // $type is passed by reference to drupal_alter() so it must be a variable.
+  $type = 'election_post';
   drupal_alter(array('election_post_view', 'entity_view'), $build, $type);
 
   return $build;
@@ -541,7 +533,7 @@ function election_post_view($post, $view_mode = 'full') {
 }
 
 /**
- * Process variables for election-post.tpl.php
+ * Process variables for election-post.tpl.php.
  *
  * The $variables array contains the following arguments:
  * - $election
@@ -598,7 +590,8 @@ function template_preprocess_election_post(&$variables) {
 }
 
 /**
- * Internal function to format the status field of an election post for display.
+ * Format the status field of an election post for display.
+ *
  * Election posts can either inherit the election's status, or they can be
  * closed. This applies to both voting and nominations.
  *
@@ -614,13 +607,12 @@ function template_preprocess_election_post(&$variables) {
 function _election_post_format_status(stdClass $election, stdClass $post, $status_prefix = 'v') {
   $status = $post->{$status_prefix . 'status'};
   if ($status == ELECTION_POST_STATUS_INHERIT) {
-    return t('!status (inherited)', array('!status' => _election_format_status($election, $status_prefix)));
+    return t(
+      '!status (inherited)',
+      array('!status' => _election_format_status($election, $status_prefix))
+    );
   }
-  $is_open = FALSE; // only two options for now are inherited or closed.
-  $open_status = t('<span class="election-post-status-open">Open</span>');
-  $closed_status = t('<span class="election-post-status-closed">Closed</span>');
-  $status_formatted = $is_open ? $open_status : $closed_status;
-  return t('!status_formatted (overridden)', array('!status_formatted' => $status_formatted));
+  return t('<span class="election-post-status-closed">Closed</span> (overridden)');
 }
 
 /**
@@ -721,7 +713,7 @@ function _election_post_pathauto_update_alias(stdClass $post, $op, array $option
   if (!pathauto_pattern_load_by_entity('election_post', $post->type)) {
     return;
   }
-  $election = empty($post->election)? election_load($post->election_id) : $post->election;
+  $election = empty($post->election) ? election_load($post->election_id) : $post->election;
   module_load_include('inc', 'pathauto');
   pathauto_create_alias(
     'election_post',
@@ -735,7 +727,7 @@ function _election_post_pathauto_update_alias(stdClass $post, $op, array $option
 /**
  * Update the URL aliases for multiple election posts.
  *
- * @param $post_ids
+ * @param array $post_ids
  *   An array of election post IDs.
  * @param string $op
  *   Operation being performed on the posts ('insert', 'update' or

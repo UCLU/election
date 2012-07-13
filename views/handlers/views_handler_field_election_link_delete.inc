@@ -5,6 +5,9 @@
  */
 
 class views_handler_field_election_link_delete extends views_handler_field_election_link {
+  /**
+   * Overrides parent::construct().
+   */
   public function construct() {
     parent::construct();
     $this->additional_fields['type'] = 'type';
@@ -14,7 +17,7 @@ class views_handler_field_election_link_delete extends views_handler_field_elect
    * Overrides parent::render_link().
    */
   public function render_link($data, $values) {
-    // ensure user has access to delete this election.
+    // Ensure user has access to delete this election.
     $election = new stdClass();
     $election = election_load($this->get_value($values, 'election_id'));
     $election->election_id = $this->get_value($values, 'election_id');

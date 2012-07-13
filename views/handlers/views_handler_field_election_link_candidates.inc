@@ -31,12 +31,12 @@ class views_handler_field_election_link_candidates extends views_handler_field_e
       return;
     }
 
-    // exit if the election_candidate module is not enabled.
+    // Exit if the election_candidate module is not enabled.
     if (!module_exists('election_candidate')) {
       return;
     }
 
-    // ensure user has access to view this election.
+    // Ensure user has access to view this election.
     if (!entity_access('view', 'election', $election)) {
       return;
     }

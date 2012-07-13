@@ -13,8 +13,6 @@ class views_handler_argument_election_post_postid extends views_handler_argument
    * Overrides views_handler_title_query().
    *
    * Get the title of the post.
-   *
-   * @return array
    */
   public function title_query() {
     $titles = array();
@@ -26,4 +24,3 @@ class views_handler_argument_election_post_postid extends views_handler_argument
   }
 
 }
-

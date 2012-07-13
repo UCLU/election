@@ -24,7 +24,8 @@ function election_candidate_entity_info() {
     'label callback' => 'election_candidate_label',
     'entity keys' => array(
       'id' => 'candidate_id',
-      'bundle' => 'election_id', // Candidates are bundled per election.
+      // Candidates are bundled per election.
+      'bundle' => 'election_id',
     ),
     'static cache' => TRUE,
     'fieldable' => TRUE,
@@ -41,7 +42,8 @@ function election_candidate_entity_info() {
         'label' => t('Teaser'),
       ),
     ),
-    'redirect' => FALSE, // Disable fields added by the Redirect module.
+    // Disable fields added by the Redirect module.
+    'redirect' => FALSE,
   );
 
   return $entities;
@@ -106,7 +108,7 @@ function election_candidate_permission() {
  * @param string $op
  *   The operation being performed. One of 'view', 'update', 'create', 'delete'
  *   or just 'edit' (being the same as 'create' or 'update').
- * @param $candidate
+ * @param stdClass $candidate
  *   Optionally a candidate to check access for. If nothing is
  *   given, access for all candidates is determined.
  * @param stdClass $account
@@ -429,13 +431,13 @@ function election_candidate_field_extra_fields() {
 
 
 /**
- * Title callback for election/%election_candidate/view (output should not be escaped here
- * as it is done later).
+ * Title callback for election/%election_candidate/view.
  *
  * @param stdClass $candidate
  *   The election candidate object.
  */
 function election_candidate_page_title($candidate) {
+  // Output should not be escaped here; it is escaped later in the menu system.
   return $candidate->first_name . ' ' . $candidate->last_name;
 }
 
@@ -473,15 +475,14 @@ function election_candidate_delete($candidate_id) {
 
 
 /**
- * Find the nominations (election_candidate entities) for a specified election
- * and user.
+ * Find the nominations (election_candidate entities) for a specified election and user.
  *
  * @param stdClass $election
  *   Election object.
  * @param stdClass $account
  *   Optional $user object.
  *
- * @return
+ * @return mixed
  *   FALSE if the account is anonymous, or a SelectQuery object.
  */
 function election_candidate_get_user_nominations(stdClass $election, $account = NULL) {
@@ -512,7 +513,7 @@ function election_candidate_get_user_nominations(stdClass $election, $account = 
  * @param stdClass $account
  *   User object.
  *
- * @return
+ * @return array
  *   Array of post IDs.
  */
 function election_candidate_get_available_posts(stdClass $election, $nominations = NULL, $account = NULL) {
@@ -557,9 +558,9 @@ function election_candidate_uri($candidate) {
 }
 
 /**
- * Return the path part of the election candidate URI callback as a string.
+ * Get the path part of the election candidate URI callback as a string.
  *
- * @return string.
+ * @see election_candidate_uri()
  */
 function election_candidate_uri_path($candidate) {
   $uri = election_candidate_uri($candidate);
@@ -567,10 +568,7 @@ function election_candidate_uri_path($candidate) {
 }
 
 /**
- * Label callback for an election_candidate, returning the candidate's name.
- *
- * @param stdClass $entity
- * @param string $entity_type
+ * Entity label callback for an election_candidate, returning the candidate's name.
  */
 function election_candidate_label(stdClass $entity, $entity_type) {
   return $entity->first_name . ' ' . $entity->last_name;
@@ -634,7 +632,7 @@ function election_candidate_theme() {
 
 
 /**
- * Process variables for election-candidate.tpl.php
+ * Process variables for election-candidate.tpl.php.
  *
  * The $variables array contains the following arguments:
  * - $candidate
@@ -647,11 +645,8 @@ function election_candidate_theme() {
 function template_preprocess_election_candidate(&$variables) {
   $variables['view_mode'] = $variables['elements']['#view_mode'];
 
-  // $teaser boolean
   $variables['teaser'] = $variables['view_mode'] == 'teaser';
-  // $details boolean
   $variables['details'] = $variables['view_mode'] == 'details';
-  // $page boolean
   $variables['page'] = ($variables['view_mode'] == 'full' || $variables['view_mode'] == 'details');
 
   $variables['election'] = $variables['elements']['#election'];
@@ -704,7 +699,7 @@ function template_preprocess_election_candidate(&$variables) {
 }
 
 /**
- * Process variables for election-candidate-details.tpl.php
+ * Process variables for election-candidate-details.tpl.php.
  *
  * The $variables array contains the following arguments:
  * - $candidate
@@ -750,7 +745,7 @@ function template_preprocess_election_candidate_details(&$variables) {
       'class' => array('pseudo-field', 'candidate-election'),
     ),
     '#markup' => '<span class="label">' . t('Election:') . '</span>'
-               . ' <span class="item">' . $variables['election_link'] . '</span>',
+    . ' <span class="item">' . $variables['election_link'] . '</span>',
   );
 
   $variables['content']['post'] = array(
@@ -759,7 +754,7 @@ function template_preprocess_election_candidate_details(&$variables) {
       'class' => array('pseudo-field', 'candidate-post'),
     ),
     '#markup' => '<span class="label">' . drupal_ucfirst($election_type['post name'] . ':') . '</span>'
-               . ' <span class="item">' . $variables['post_link'] . '</span>',
+    . ' <span class="item">' . $variables['post_link'] . '</span>',
   );
 
   $variables['content']['full-name'] = array(
@@ -768,7 +763,7 @@ function template_preprocess_election_candidate_details(&$variables) {
       'class' => array('pseudo-field', 'candidate-full-name'),
     ),
     '#markup' => '<span class="label">' . t('Name:') . '</span>'
-               . ' <span class="item">' . $variables['full_name'] . '</span>',
+    . ' <span class="item">' . $variables['full_name'] . '</span>',
   );
 
   $variables['username'] = theme('username', array('#account' => $candidate->uid ? user_load($candidate->uid) : NULL));
@@ -781,7 +776,7 @@ function template_preprocess_election_candidate_details(&$variables) {
       'class' => array('pseudo-field', 'candidate-email-address'),
     ),
     '#markup' => '<span class="label">' . t('Email address:') . '</span>'
-               . ' <span class="item">' . $variables['mail'] . '</span>',
+    . ' <span class="item">' . $variables['mail'] . '</span>',
   );
 
   $variables['content']['phone'] = array(
@@ -790,7 +785,7 @@ function template_preprocess_election_candidate_details(&$variables) {
       'class' => array('pseudo-field', 'candidate-phone'),
     ),
     '#markup' => '<span class="label">' . t('Phone number:') . '</span>'
-               . ' <span class="item">' . $variables['phone'] . '</span>',
+    . ' <span class="item">' . $variables['phone'] . '</span>',
   );
 
   $variables['content']['candidate-username'] = array(
@@ -799,7 +794,7 @@ function template_preprocess_election_candidate_details(&$variables) {
       'class' => array('pseudo-field', 'candidate-username'),
     ),
     '#markup' => '<span class="label">' . t('Username:') . '</span>'
-               . ' <span class="item">' . $variables['username'] . '</span>',
+    . ' <span class="item">' . $variables['username'] . '</span>',
   );
 
   $variables += array('content' => array());
@@ -831,10 +826,6 @@ function theme_election_candidate_ballot_item($variables) {
 
 /**
  * Internal function to format the status field of an election candidate for display.
- *
- * @todo make this themeable
- *
- * @param stdClass $candidate
  */
 function _election_candidate_format_status(stdClass $candidate) {
   switch ($candidate->cstatus) {
@@ -925,11 +916,7 @@ function election_candidate_entity_insert($entity, $type) {
  * Implements hook_file_download_access().
  *
  * Allow private files to be downloaded when they are attached to a candidate
- * entity via a file field.
- *
- * @param string $field
- * @param string $entity_type
- * @param stdClass $entity
+ * entity, if the user has permission to view the candidate.
  */
 function election_candidate_file_download_access($field, $entity_type, $entity) {
   if ($entity_type == 'election_candidate') {
@@ -940,7 +927,7 @@ function election_candidate_file_download_access($field, $entity_type, $entity) 
 /**
  * Update the URL aliases for an individual election candidate.
  *
- * @param $candidate
+ * @param stdClass $candidate
  *   An election candidate object.
  * @param string $op
  *   Operation being performed on the candidate ('insert', 'update' or 'bulkupdate').
@@ -970,7 +957,7 @@ function _election_candidate_pathauto_update_alias(stdClass $candidate, $op, arr
 /**
  * Update the URL aliases for multiple election candidates.
  *
- * @param $candidate_ids
+ * @param array $candidate_ids
  *   An array of election candidate IDs.
  * @param string $op
  *   Operation being performed on the candidates ('insert', 'update' or
