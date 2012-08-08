@@ -12,20 +12,18 @@ function election_post_menu() {
   $items = array();
 
   foreach (election_types() as $type_machine_name => $type) {
-    if (!empty($type['post machine name'])) {
-      $post_machine_name = $type['post machine name'];
-      $post_name = _election_get_posts_name($type_machine_name);
-      $post_name_plural = _election_get_posts_name($type_machine_name, TRUE);
-      $items['admin/config/election/' . $type_machine_name . '/' . $post_machine_name] = array(
-        'title' => '@post settings',
-        'title arguments' => array('@post' => drupal_ucfirst($post_name)),
-        'page callback' => 'system_admin_menu_block_page',
-        'access arguments' => array('administer elections'),
-        'file' => 'system.admin.inc',
-        'file path' => drupal_get_path('module', 'system'),
-        'description' => t('Manage fields and display settings for @posts.', array('@posts' => $post_name_plural)),
-      );
-    }
+    $post_machine_name = $type['post machine name'];
+    $post_name = _election_get_posts_name($type_machine_name);
+    $post_name_plural = _election_get_posts_name($type_machine_name, TRUE);
+    $items['admin/config/election/' . $type_machine_name . '/' . $post_machine_name] = array(
+      'title' => '@post settings',
+      'title arguments' => array('@post' => drupal_ucfirst($post_name)),
+      'page callback' => 'system_admin_menu_block_page',
+      'access arguments' => array('administer elections'),
+      'file' => 'system.admin.inc',
+      'file path' => drupal_get_path('module', 'system'),
+      'description' => t('Manage fields and display settings for @posts.', array('@posts' => $post_name_plural)),
+    );
   }
 
   $items['election/%election/posts'] = array(
@@ -120,29 +118,27 @@ function election_post_menu_alter(&$items) {
   $election_types = election_types();
   foreach (election_types() as $type_machine_name => $type) {
     $path = 'admin/config/election/' . $type_machine_name;
-    if (!empty($type['post machine name'])) {
-      $post_machine_name = $type['post machine name'];
-      $post_name_plural = _election_get_posts_name($type_machine_name, TRUE);
-      $items[$path . '/' . $post_machine_name]['type'] = MENU_NORMAL_ITEM;
-      $items[$path . '/' . $post_machine_name . '/fields']['type'] = MENU_NORMAL_ITEM;
-      $items[$path . '/' . $post_machine_name . '/fields']['description'] = t(
-        'Manage fields for %type @posts_name_plural.',
-        array(
-          '%type' => $type['name'],
-          '@posts_name_plural' => $post_name_plural,
-        )
-      );
-      $items[$path . '/' . $post_machine_name . '/display']['type'] = MENU_NORMAL_ITEM;
-      $items[$path . '/' . $post_machine_name . '/display/full']['type'] = MENU_NORMAL_ITEM;
-      $items[$path . '/' . $post_machine_name . '/display/teaser']['type'] = MENU_NORMAL_ITEM;
-      $items[$path . '/' . $post_machine_name . '/display']['description'] = t(
-        'Manage display for %type @posts_name_plural.',
-        array(
-          '%type' => $type['name'],
-          '@posts_name_plural' => $post_name_plural,
-        )
-      );
-    }
+    $post_machine_name = $type['post machine name'];
+    $post_name_plural = _election_get_posts_name($type_machine_name, TRUE);
+    $items[$path . '/' . $post_machine_name]['type'] = MENU_NORMAL_ITEM;
+    $items[$path . '/' . $post_machine_name . '/fields']['type'] = MENU_NORMAL_ITEM;
+    $items[$path . '/' . $post_machine_name . '/fields']['description'] = t(
+      'Manage fields for %type @posts_name_plural.',
+      array(
+        '%type' => $type['name'],
+        '@posts_name_plural' => $post_name_plural,
+      )
+    );
+    $items[$path . '/' . $post_machine_name . '/display']['type'] = MENU_NORMAL_ITEM;
+    $items[$path . '/' . $post_machine_name . '/display/full']['type'] = MENU_NORMAL_ITEM;
+    $items[$path . '/' . $post_machine_name . '/display/teaser']['type'] = MENU_NORMAL_ITEM;
+    $items[$path . '/' . $post_machine_name . '/display']['description'] = t(
+      'Manage display for %type @posts_name_plural.',
+      array(
+        '%type' => $type['name'],
+        '@posts_name_plural' => $post_name_plural,
+      )
+    );
   }
 }
 
@@ -182,21 +178,19 @@ function election_post_entity_info() {
   );
 
   foreach (election_types() as $type_machine_name => $type) {
-    if (!empty($type['post machine name'])) {
-      $post_machine_name = $type['post machine name'];
-      $post_name = _election_get_posts_name($type_machine_name);
-      $entities['election_post']['bundles'][$post_machine_name] = array(
-        'label' => drupal_ucfirst($post_name),
-        'admin' => array(
-          'path' => 'admin/config/election/' . $type_machine_name . '/' . $post_machine_name,
-          'real path' => 'admin/config/election/' . $type_machine_name . '/' . $post_machine_name,
-          'bundle argument' => 4,
-          'access arguments' => array('administer elections'),
-        ),
-        // Prevent the Metatags module adding elements.
-        'metatags' => FALSE,
-      );
-    }
+    $post_machine_name = $type['post machine name'];
+    $post_name = _election_get_posts_name($type_machine_name);
+    $entities['election_post']['bundles'][$post_machine_name] = array(
+      'label' => drupal_ucfirst($post_name),
+      'admin' => array(
+        'path' => 'admin/config/election/' . $type_machine_name . '/' . $post_machine_name,
+        'real path' => 'admin/config/election/' . $type_machine_name . '/' . $post_machine_name,
+        'bundle argument' => 4,
+        'access arguments' => array('administer elections'),
+      ),
+      // Prevent the Metatags module adding elements.
+      'metatags' => FALSE,
+    );
   }
 
   return $entities;

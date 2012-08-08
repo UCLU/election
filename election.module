@@ -65,13 +65,18 @@ function election_entity_info() {
  *
  * @return array
  *   An array of election types, keyed by the type's machine name. Each element
- * is also a structured array, defining at least 'name' and 'post machine name'.
+ *   is also a structured array, defining at least 'name'.
  */
 function election_types() {
   $types = &drupal_static(__FUNCTION__);
   if (!is_array($types)) {
     $types = array();
     $types += module_invoke_all('election_type_info');
+    foreach ($types as $type_machine_name => &$type) {
+      if (!isset($type['post machine name'])) {
+        $type['post machine name'] = $type_machine_name . '_post';
+      }
+    }
   }
   return $types;
 }
@@ -83,11 +88,8 @@ function election_election_type_info() {
   $types = array();
   $types['referendum'] = array(
     'name' => t('referendum'),
-    'description' => t('A simple referendum, where people can vote once (yes, no, or abstain) in response to a motion.'),
+    'description' => t('A simple referendum where people can vote in response to one or more motions.'),
     'post name' => t('motion'),
-    'post name plural' => t('motions'),
-    'post machine name' => 'motion',
-    'weight' => 0,
     'post settings form' => 'election_post_referendum_settings_form',
     'vote form' => 'election_vote_referendum_vote_form',
     'save votes' => 'election_vote_referendum_save_votes',
@@ -95,11 +97,8 @@ function election_election_type_info() {
   );
   $types['stv'] = array(
     'name' => t('STV election'),
-    'description' => t('A Single Transferable Vote election (ranked voting).'),
+    'description' => t('A Single Transferable Vote election where people can rank candidates in order of preference, for one or more positions.'),
     'post name' => t('position'),
-    'post name plural' => t('positions'),
-    'post machine name' => 'position',
-    'weight' => 1,
     'has candidates' => TRUE,
     'post settings form' => 'election_post_stv_settings_form',
     'vote form' => 'election_vote_stv_vote_form',
@@ -108,21 +107,6 @@ function election_election_type_info() {
     'results download form' => 'election_results_download_form_stv',
   );
   return $types;
-}
-
-/**
- * Return an array of election type names, keyed by machine name.
- *
- * @param bool $ucfirst
- *   Whether to apply drupal_ucfirst() to each election type name.
- */
-function election_type_get_names($ucfirst = TRUE) {
-  $names = array();
-  $types = election_types();
-  foreach ($types as $mn => $type) {
-    $names[$mn] = $ucfirst ? drupal_ucfirst($type['name']) : $type['name'];
-  }
-  return $names;
 }
 
 /**
@@ -796,17 +780,8 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
  *   A stdClass election type object, or FALSE on failure.
  */
 function _election_type_get_info($type_machine_name) {
-  $type = array(
-    'name' => t('Unknown type'),
-    'post machine name' => 'post',
-    'post name' => t('post'),
-    'post name plural' => t('posts'),
-  );
   $types = election_types();
-  if (isset($types[$type_machine_name])) {
-    $type = $types[$type_machine_name];
-  }
-  return $type;
+  return isset($types[$type_machine_name])? $types[$type_machine_name] : FALSE;
 }
 
 /**
@@ -823,8 +798,8 @@ function _election_get_posts_name($type_machine_name, $plural = FALSE) {
     if (!empty($type['post name'])) {
       $name = $type['post name'];
     }
-    if ($plural && !empty($type['post name plural'])) {
-      $name = $type['post name plural'];
+    if ($plural) {
+      $name = !empty($type['post name plural'])? $type['post name plural'] : $name . 's';
     }
   }
   return $name;

@@ -661,7 +661,7 @@ function template_preprocess_election_candidate(&$variables) {
   if (empty($post)) {
     // Handle gracefully when the candidate's post is deleted prematurely.
     $post = entity_get_controller('election_post')->create(array(
-      'type' => $election_type['post key'],
+      'type' => $election_type['post machine name'],
     ));
   }
 
@@ -722,7 +722,7 @@ function template_preprocess_election_candidate_details(&$variables) {
   if (empty($post)) {
     // Handle gracefully when the candidate's post is deleted prematurely.
     $post = entity_get_controller('election_post')->create(array(
-      'type' => $election_type['post key'],
+      'type' => $election_type['post machine name'],
     ));
   }
 

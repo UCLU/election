@@ -564,7 +564,7 @@ function election_post_page_add($election) {
   $values = array();
   $values['election_id'] = $election->election_id;
   $type = _election_type_get_info($election->type);
-  $values['type'] = $type['post key'];
+  $values['type'] = $type['post machine name'];
 
   $post = entity_get_controller('election_post')->create($values);
 

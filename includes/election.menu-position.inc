@@ -49,11 +49,17 @@ function election_menu_position_rule_election_form(&$form, &$form_state) {
     '#collapsed' => TRUE,
   );
 
+  $type_options = array();
+  $types = election_types();
+  foreach ($types as $type_machine_name => $type) {
+    $type_options[$type_machine_name] = drupal_ucfirst($type['name']);
+  }
+
   $form['conditions']['election']['election_type'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Election types'),
     '#default_value' => !empty($variables['election_type']) ? $variables['election_type'] : array(),
-    '#options' => election_type_get_names(),
+    '#options' => $type_options,
     '#description' => t('Apply this rule only for elections of the given type(s).'),
     '#weight' => -20,
   );

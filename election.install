@@ -153,3 +153,19 @@ function election_update_7101() {
     ->execute();
 
 }
+
+/**
+ * Update existing posts with new bundle names.
+ */
+function election_update_7102() {
+  drupal_static_reset('election_types');
+  foreach (election_types() as $type_machine_name => $type) {
+    $post_ids = db_query('SELECT post_id FROM {election_post} ep LEFT JOIN {election} e USING (election_id) WHERE e.type = :type', array(':type' => $type_machine_name))->fetchCol();
+    if (!empty($post_ids)) {
+      db_update('election_post')
+        ->fields(array('type' => $type['post machine name']))
+        ->condition('post_id', $post_ids, 'IN')
+        ->execute();
+    }
+  }
+}

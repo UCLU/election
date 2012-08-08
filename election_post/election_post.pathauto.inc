@@ -19,11 +19,9 @@ function election_post_pathauto($op) {
       $settings['batch_update_callback'] = 'election_post_pathauto_bulk_update_batch_process';
       $settings['batch_file'] = drupal_get_path('module', 'election_post') . '/election_post.pathauto.inc';
       foreach (election_types() as $type_machine_name => $type) {
-        if (!empty($type['post machine name'])) {
-          $post_machine_name = $type['post machine name'];
-          $post_name = _election_get_posts_name($type_machine_name);
-          $settings['patternitems'][$post_machine_name] = t('Pattern for all %post_name paths', array('%post_name' => $post_name));
-        }
+        $post_machine_name = $type['post machine name'];
+        $post_name = _election_get_posts_name($type_machine_name);
+        $settings['patternitems'][$post_machine_name] = t('Pattern for all %post_name paths', array('%post_name' => $post_name));
       }
       return (object) $settings;
     default:
