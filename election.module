@@ -42,12 +42,12 @@ function election_entity_info() {
     ),
   );
 
-  foreach (election_types() as $type_mn => $type) {
-    $entities['election']['bundles'][$type_mn] = array(
+  foreach (election_types() as $type_machine_name => $type) {
+    $entities['election']['bundles'][$type_machine_name] = array(
       'label' => drupal_ucfirst($type['name']),
       'admin' => array(
-        'path' => 'admin/config/election/' . $type_mn,
-        'real path' => 'admin/config/election/' . $type_mn,
+        'path' => 'admin/config/election/' . $type_machine_name,
+        'real path' => 'admin/config/election/' . $type_machine_name,
         'bundle argument' => 3,
         'access arguments' => array('administer elections'),
       ),
@@ -65,7 +65,7 @@ function election_entity_info() {
  *
  * @return array
  *   An array of election types, keyed by the type's machine name. Each element
- * is also a structured array, defining at least 'name' and 'post key'.
+ * is also a structured array, defining at least 'name' and 'post machine name'.
  */
 function election_types() {
   $types = &drupal_static(__FUNCTION__);
@@ -86,7 +86,7 @@ function election_election_type_info() {
     'description' => t('A simple referendum, where people can vote once (yes, no, or abstain) in response to a motion.'),
     'post name' => t('motion'),
     'post name plural' => t('motions'),
-    'post key' => 'motion',
+    'post machine name' => 'motion',
     'weight' => 0,
     'post settings form' => 'election_post_referendum_settings_form',
     'vote form' => 'election_vote_referendum_vote_form',
@@ -98,7 +98,7 @@ function election_election_type_info() {
     'description' => t('A Single Transferable Vote election (ranked voting).'),
     'post name' => t('position'),
     'post name plural' => t('positions'),
-    'post key' => 'position',
+    'post machine name' => 'position',
     'weight' => 1,
     'has candidates' => TRUE,
     'post settings form' => 'election_post_stv_settings_form',
@@ -336,10 +336,10 @@ function election_menu() {
     'weight' => -10,
   );
 
-  foreach (election_types() as $type_mn => $type) {
-    $items['elections/add/' . $type_mn] = array(
-      'title' => 'Add new ' . $type['name'],
-      'title callback' => 'check_plain',
+  foreach (election_types() as $type_machine_name => $type) {
+    $items['elections/add/' . $type_machine_name] = array(
+      'title' => 'Add new @type',
+      'title arguments' => array('@type' => $type['name']),
       'page callback' => 'election_page_add',
       'page arguments' => array(2),
       'access arguments' => array('administer elections'),
@@ -348,9 +348,9 @@ function election_menu() {
       'type' => MENU_LOCAL_ACTION,
       'weight' => isset($type['weight']) ? $type['weight'] : 0,
     );
-    $items['admin/config/election/list/add/' . $type_mn] = array(
-      'title' => 'Add new ' . $type['name'],
-      'title callback' => 'check_plain',
+    $items['admin/config/election/list/add/' . $type_machine_name] = array(
+      'title' => 'Add new @type',
+      'title arguments' => array('@type' => $type['name']),
       'page callback' => 'election_page_add',
       'page arguments' => array(4),
       'access arguments' => array('administer elections'),
@@ -359,9 +359,9 @@ function election_menu() {
       'type' => MENU_LOCAL_ACTION,
       'weight' => isset($type['weight']) ? $type['weight'] : 0,
     );
-    $items['admin/config/election/' . $type_mn] = array(
-      'title' => drupal_ucfirst($type['name']) . ' settings',
-      'title callback' => 'check_plain',
+    $items['admin/config/election/' . $type_machine_name] = array(
+      'title' => '@type settings',
+      'title arguments' => array('@type' => drupal_ucfirst($type['name'])),
       'page callback' => 'system_admin_menu_block_page',
       'access arguments' => array('administer elections'),
       'file' => 'system.admin.inc',
@@ -369,20 +369,6 @@ function election_menu() {
       'description' => empty($type['description']) ? '' : $type['description'],
       'weight' => isset($type['weight']) ? $type['weight'] : 0,
     );
-    if (!empty($type['post key'])) {
-      $post_key = $type['post key'];
-      $post_name = _election_get_posts_name($type_mn);
-      $post_name_plural = _election_get_posts_name($type_mn, TRUE);
-      $items['admin/config/election/' . $type_mn . '/' . $post_key] = array(
-        'title' => drupal_ucfirst($post_name) . ' settings',
-        'title callback' => 'check_plain',
-        'page callback' => 'system_admin_menu_block_page',
-        'access arguments' => array('administer elections'),
-        'file' => 'system.admin.inc',
-        'file path' => drupal_get_path('module', 'system'),
-        'description' => 'Manage fields and display settings for ' . $post_name_plural . '.',
-      );
-    }
   }
 
   $items['election/%election'] = array(
@@ -433,8 +419,8 @@ function election_menu() {
  * Implements hook_menu_alter().
  */
 function election_menu_alter(&$items) {
-  foreach (election_types() as $type_mn => $type) {
-    $path = 'admin/config/election/' . $type_mn;
+  foreach (election_types() as $type_machine_name => $type) {
+    $path = 'admin/config/election/' . $type_machine_name;
     unset($items[$path . '/settings']);
     $items[$path . '/fields']['weight'] = -2;
     $items[$path . '/fields']['type'] = MENU_NORMAL_ITEM;
@@ -803,45 +789,43 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
 /**
  * Internal function: load election type information by its machine name.
  *
- * @param string $type_mn
+ * @param string $type_machine_name
  *   The machine name of the type.
  *
  * @return mixed
  *   A stdClass election type object, or FALSE on failure.
  */
-function _election_type_get_info($type_mn) {
+function _election_type_get_info($type_machine_name) {
   $type = array(
     'name' => t('Unknown type'),
-    'post key' => 'post',
+    'post machine name' => 'post',
     'post name' => t('post'),
     'post name plural' => t('posts'),
   );
   $types = election_types();
-  if (isset($types[$type_mn])) {
-    $type = $types[$type_mn];
+  if (isset($types[$type_machine_name])) {
+    $type = $types[$type_machine_name];
   }
   return $type;
 }
 
 /**
- * Get the post name (i.e. 'motion' or 'position') for an election type.
+ * Get the human-readable post name (e.g. 'position') for an election type.
  *
- * @param string $type_mn
+ * @param string $type_machine_name
  *   The machine name of the type.
  * @param bool $plural
  *   Whether to return a plural name (e.g. 'motions' or 'positions').
  */
-function _election_get_posts_name($type_mn, $plural = FALSE) {
+function _election_get_posts_name($type_machine_name, $plural = FALSE) {
   $name = 'post';
-  $type = _election_type_get_info($type_mn);
-  if (!$type) {
-    return $name;
-  }
-  if (!empty($type['post name'])) {
-    $name = $type['post name'];
-  }
-  if ($plural && !empty($type['post name plural'])) {
-    $name = $type['post name plural'];
+  if ($type = _election_type_get_info($type_machine_name)) {
+    if (!empty($type['post name'])) {
+      $name = $type['post name'];
+    }
+    if ($plural && !empty($type['post name plural'])) {
+      $name = $type['post name plural'];
+    }
   }
   return $name;
 }
