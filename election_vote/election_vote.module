@@ -318,7 +318,7 @@ function election_vote_form_validate($form, &$form_state) {
 
   $post = $form_state['post'];
 
-  // Last minute check to see whether a vote has already been entered.
+  // Safety check to see whether a vote has already been entered.
   if (election_vote_check_user_previously_voted($post)) {
     $form_state['rebuild'] = TRUE;
   }
@@ -646,6 +646,11 @@ function election_vote_form_vote($form, &$form_state) {
   $transaction = db_transaction();
 
   try {
+
+    // Final last-minute check to see whether the user has previously voted.
+    if (election_vote_check_user_previously_voted($post)) {
+      throw new Exception('The user has previously voted.');
+    }
 
     $ballot = array(
       'election_id' => $election->election_id,
