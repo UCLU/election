@@ -14,9 +14,11 @@
     <span class="label">Election: </span><span class="item"><?php print $election_link; ?></span>
   </div>
 
-  <div class="pseudo-field post-eligibility">
-    <span class="label">Your eligibility: </span><span class="item"><?php print $eligibility; ?></span>
-  </div>
+  <?php if ($eligibility): ?>
+    <div class="pseudo-field post-eligibility">
+      <span class="label">Your eligibility: </span><span class="item"><?php print $eligibility; ?></span>
+    </div>
+  <?php endif; ?>
 
   <?php if ($view_mode == 'full' && isset($settings['vacancy_count'])): ?>
 
