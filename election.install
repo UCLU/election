@@ -169,3 +169,11 @@ function election_update_7102() {
     }
   }
 }
+
+/**
+ * Rename election_post bundles for default election types.
+ */
+function election_update_7103() {
+  field_attach_rename_bundle('election_post', 'motion', 'referendum_post');
+  field_attach_rename_bundle('election_post', 'position', 'stv_post');
+}
