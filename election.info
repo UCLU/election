@@ -4,6 +4,7 @@ package = Election
 core = 7.x
 dependencies[] = entity
 dependencies[] = views
+dependencies[] = date
 dependencies[] = date_popup
 stylesheets[all][] = election.css
 files[] = includes/election-default.controller.inc
