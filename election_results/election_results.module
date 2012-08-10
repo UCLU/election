@@ -466,7 +466,13 @@ function election_results_stv_count_page(stdClass $post, $totals) {
 
   // For STV elections, use the DrooPHP library.
   if (!file_exists($droophp_path = libraries_get_path('DrooPHP'))) {
-    drupal_set_message(t('The <a href="https://github.com/pjcdawkins/DrooPHP/" target="_blank">DrooPHP</a> library (required for counting votes in STV elections) is not installed.'), 'warning');
+    drupal_set_message(
+      t(
+        'The !DrooPHP library (required for counting votes in STV elections) is not installed.',
+        array('!DrooPHP' => '<a href="https://github.com/pjcdawkins/DrooPHP/" target="_blank">DrooPHP</a>')
+      ),
+      'warning'
+    );
     return $output;
   }
 
@@ -486,9 +492,12 @@ function election_results_stv_count_page(stdClass $post, $totals) {
 
   $output['explanation'] = array(
     '#markup' => t(
-      '<p>This is a very basic STV count of the position\'s results, using !DrooPHP. A more accurate count can be obtained by downloading the ballot file (see <a href="@download_url">Download</a>), and counting results using software such as !droop or !OpenSTV.</p>',
+      '<p>This is a very basic STV count of the position\'s results, using !DrooPHP. A more accurate count can be obtained by downloading the ballot file (see !Download), and counting results using software such as !droop or !OpenSTV.</p>',
       array(
-        '@download_url' => url(election_post_uri_path($post) . '/results/download'),
+        '!Download' => l(
+          'Download',
+          election_post_uri_path($post) . '/results/download'
+        ),
         '!DrooPHP' => l(
           'DrooPHP',
           'https://github.com/pjcdawkins/DrooPHP/',
