@@ -895,12 +895,16 @@ function election_candidate_preprocess_election_post(&$vars) {
 function _election_candidate_get_bundles() {
   $bundles = &drupal_static(__FUNCTION__);
   if (!is_array($bundles)) {
+    $bundles = array();
     $election_types = election_types();
     $types_with_candidates = array();
     foreach ($election_types as $type => $info) {
       if (!empty($info['has candidates'])) {
         $types_with_candidates[] = $type;
       }
+    }
+    if (empty($types_with_candidates)) {
+      return $bundles;
     }
     $bundles = db_query('SELECT election_id FROM {election} WHERE type IN(:types)', array(':types' => $types_with_candidates))->fetchCol();
   }

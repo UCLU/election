@@ -6,17 +6,17 @@
 
 $view = new view;
 $view->name = 'elections';
-$view->description = 'A publicly viewable list of elections and referendums';
+$view->description = 'A publicly viewable list of elections';
 $view->tag = 'default';
 $view->base_table = 'election';
-$view->human_name = 'Elections and Referendums';
+$view->human_name = 'Elections';
 $view->core = 7;
 $view->api_version = '3.0';
 $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
 /* Display: Master */
 $handler = $view->new_display('default', 'Master', 'default');
-$handler->display->display_options['title'] = 'Elections and Referendums';
+$handler->display->display_options['title'] = 'Elections';
 $handler->display->display_options['access']['type'] = 'perm';
 $handler->display->display_options['access']['perm'] = 'view published elections';
 $handler->display->display_options['cache']['type'] = 'none';
@@ -329,6 +329,6 @@ $handler->display->display_options['filters']['published_or_admin']['field'] = '
 $handler = $view->new_display('page', 'Page', 'page');
 $handler->display->display_options['path'] = 'elections';
 $handler->display->display_options['menu']['type'] = 'normal';
-$handler->display->display_options['menu']['title'] = 'Elections and Referendums';
+$handler->display->display_options['menu']['title'] = 'Elections';
 
 $views[$view->name] = $view;

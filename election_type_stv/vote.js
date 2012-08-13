@@ -1,6 +1,6 @@
 /**
  * @file
- * JavaScript for the ballot paper form in the Election Post module.
+ * JavaScript for the ballot paper form in the election_stv module.
  */
 (function ($) {
 

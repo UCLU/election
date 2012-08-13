@@ -82,34 +82,6 @@ function election_types() {
 }
 
 /**
- * Implements hook_election_type_info().
- */
-function election_election_type_info() {
-  $types = array();
-  $types['referendum'] = array(
-    'name' => t('referendum'),
-    'description' => t('A simple referendum where people can vote in response to one or more motions.'),
-    'post name' => t('motion'),
-    'post settings form' => 'election_post_referendum_settings_form',
-    'vote form' => 'election_vote_referendum_vote_form',
-    'save votes' => 'election_vote_referendum_save_votes',
-    'results page' => 'election_results_referendum_count_page',
-  );
-  $types['stv'] = array(
-    'name' => t('STV election'),
-    'description' => t('A Single Transferable Vote election where people can rank candidates in order of preference, for one or more positions.'),
-    'post name' => t('position'),
-    'has candidates' => TRUE,
-    'post settings form' => 'election_post_stv_settings_form',
-    'vote form' => 'election_vote_stv_vote_form',
-    'save votes' => 'election_vote_stv_save_votes',
-    'results page' => 'election_results_stv_count_page',
-    'results download form' => 'election_results_download_form_stv',
-  );
-  return $types;
-}
-
-/**
  * Implements entity_uri(). URI callback for a single election.
  *
  * See: http://api.drupal.org/api/drupal/includes--common.inc/function/entity_uri/7.
@@ -302,7 +274,7 @@ function election_menu() {
 
   $items['admin/config/election'] = array(
     'title' => 'Elections',
-    'description' => 'Administer elections and referendums.',
+    'description' => 'Administer elections.',
     'page callback' => 'system_admin_menu_block_page',
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
@@ -429,37 +401,11 @@ function election_menu_alter(&$items) {
  */
 function election_field_extra_fields() {
   $extra = array();
-  $extra['election']['referendum'] = array(
-    'form' => array(
+  foreach (election_types() as $bundle_name => $type) {
+    $extra['election'][$bundle_name]['form'] = array(
       'title' => array(
         'label' => t('Title'),
-        'description' => t('The referendum title.'),
         'weight' => 0,
-      ),
-      'vstatus' => array(
-        'label' => t('Voting status'),
-        'weight' => 1,
-      ),
-      'vschedule' => array(
-        'label' => t('Voting schedule'),
-        'weight' => 2,
-      ),
-    ),
-  );
-  $extra['election']['stv'] = array(
-    'form' => array(
-      'title' => array(
-        'label' => t('Title'),
-        'description' => t('The election title.'),
-        'weight' => 0,
-      ),
-      'nstatus' => array(
-        'label' => t('Nominations status'),
-        'weight' => 1,
-      ),
-      'nschedule' => array(
-        'label' => t('Nominations schedule'),
-        'weight' => 2,
       ),
       'vstatus' => array(
         'label' => t('Voting status'),
@@ -469,10 +415,11 @@ function election_field_extra_fields() {
         'label' => t('Voting schedule'),
         'weight' => 4,
       ),
-    ),
-  );
+    );
+  }
   return $extra;
 }
+
 
 /**
  * Wrapper function to allow deleting multiple elections.
@@ -739,7 +686,15 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
  */
 function _election_type_get_info($type_machine_name) {
   $types = election_types();
-  return isset($types[$type_machine_name])? $types[$type_machine_name] : FALSE;
+  if (!isset($types[$type_machine_name])) {
+    drupal_set_message(
+      t("The election type %machine_name could not be found.", array('%machine_name' => $type_machine_name)),
+      'error',
+      FALSE
+    );
+    return FALSE;
+  }
+  return $types[$type_machine_name];
 }
 
 /**
@@ -751,7 +706,7 @@ function _election_type_get_info($type_machine_name) {
  *   Whether to return a plural name (e.g. 'motions' or 'positions').
  */
 function _election_get_posts_name($type_machine_name, $plural = FALSE) {
-  $name = 'post';
+  $name = $plural? 'posts' : 'post';
   if ($type = _election_type_get_info($type_machine_name)) {
     if (!empty($type['post name'])) {
       $name = $type['post name'];

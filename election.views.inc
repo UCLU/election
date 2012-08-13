@@ -113,7 +113,7 @@ function election_views_data() {
 
   $data['election']['nstatus'] = array(
     'title' => t('Nominations status'),
-    'help' => t('Whether nominations are open for this election (not relevant for referendums).'),
+    'help' => t('Whether nominations are open for this election.'),
     'field' => array(
       'handler' => 'views_handler_field_election_nstatus',
       'click sortable' => FALSE,
@@ -208,7 +208,7 @@ function election_views_data() {
 
   $data['election']['nopen_time'] = array(
     'title' => t('Nominations opening date'),
-    'help' => t('The date when nominations open for this election (not relevant for referendums).'),
+    'help' => t('The date when nominations open for this election.'),
     'field' => array(
       'handler' => 'views_handler_field_date',
       'click sortable' => TRUE,
@@ -223,7 +223,7 @@ function election_views_data() {
 
   $data['election']['nclose_time'] = array(
     'title' => t('Nominations closing date'),
-    'help' => t('The date when nominations close for this election (not relevant for referendums).'),
+    'help' => t('The date when nominations close for this election.'),
     'field' => array(
       'handler' => 'views_handler_field_date',
       'click sortable' => TRUE,

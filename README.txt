@@ -1,6 +1,6 @@
 Election
 ========
-Election is a module for Drupal 7 providing online voting in STV elections and referendums.
+Election is a module for Drupal 7 providing online voting.
 
 
 Dependencies
@@ -13,13 +13,15 @@ Dependencies
 
 Installation
 ------------
-1. Enable the Election and Election Vote modules, and all of their dependencies.
+1. Enable at least one election type module (election_stv and/or
+   election_referendum), and all dependencies.
 2. Visit /elections to view the list (a default View) of elections.
 3. Visit /admin/people/permissions to configure permissions.
 4. Visit /admin/config/election to configure fields and display settings.
 
-There are several optional sub-modules you can also enable, providing further functionality,
-including Election Condition, Election Statistics, and Election Results.
+There are several optional sub-modules you can also enable, providing further
+functionality, including Election Condition, Election Statistics, and Election
+Results.
 
 
 Author

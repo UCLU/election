@@ -6,7 +6,7 @@
  * @todo add equal rankings
  */
 
-class election_results_droophp_count extends DrooPHP_Count {
+class election_stv_droophp_count extends DrooPHP_Count {
 
   /**
    * Overrides parent::__construct().

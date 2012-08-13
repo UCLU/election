@@ -1,0 +1,821 @@
+<?php
+/**
+ * @file
+ * Primary module file for the election_stv module.
+ */
+
+/**
+ * Implements hook_election_type_info().
+ */
+function election_stv_election_type_info() {
+  $types = array();
+  $types['stv'] = array(
+    'name' => t('STV election'),
+    'description' => t('A Single Transferable Vote election where people can rank candidates in order of preference, for one or more positions.'),
+    'post name' => t('position'),
+    'has candidates' => TRUE,
+    'post settings form' => 'election_stv_post_settings_form',
+    'vote form' => 'election_stv_vote_form',
+    'save votes' => 'election_stv_save_votes',
+    'results page' => 'election_stv_results_count_page',
+    'results download form' => 'election_stv_results_download_form',
+  );
+  return $types;
+}
+
+/**
+ * Implements hook_field_extra_fields_alter().
+ */
+function election_stv_field_extra_fields_alter(&$info) {
+  if (isset($info['election']['stv']['form'])) {
+    $info['election']['stv']['form'] += array(
+      'nstatus' => array(
+        'label' => t('Nominations status'),
+        'weight' => 1,
+      ),
+      'nschedule' => array(
+        'label' => t('Nominations schedule'),
+        'weight' => 2,
+      ),
+    );
+  }
+}
+
+/**
+ * Settings form for positions in STV elections.
+ *
+ * This adds to the form 'election_post_form'.
+ *
+ * @see election_post_form()
+ *
+ * @param array $form
+ *   The Drupal Form API form definition.
+ * @param array &$form_state
+ *   The form state array.
+ * @param stdClass $post
+ *   An election post object.
+ * @param stdClass $election
+ *   The election the post belongs to.
+ *
+ * @return array
+ *   Form API render array.
+ */
+function election_stv_post_settings_form($form, &$form_state, stdClass $post, stdClass $election) {
+
+  $form['settings_exclusive'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Exclusive'),
+    '#description' => t('A candidate can only stand for one exclusive position per election.<br /><strong>N.B. if anonymous users are given permission to submit nominations, exclusivity cannot be enforced.</strong>'),
+    '#default_value' => isset($post->settings['exclusive']) ? $post->settings['exclusive'] : 1,
+    '#weight' => -30,
+  );
+
+  $form['settings_vacancy_count'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of vacancies'),
+    '#default_value' => isset($post->settings['vacancy_count']) ? $post->settings['vacancy_count'] : 1,
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#required' => TRUE,
+    '#weight' => -20,
+  );
+
+  $form['settings_use_ron'] = array(
+    '#type' => 'select',
+    '#title' => t('RON (Re-Open Nominations)'),
+    '#default_value' => isset($post->settings['use_ron']) ? $post->settings['use_ron'] : 1,
+    '#options' => array(
+      1 => t('Include RON as a candidate'),
+      0 => t('Do not include RON'),
+    ),
+    '#weight' => -10,
+  );
+
+  $form['voting']['settings_allow_equal'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow equal rankings'),
+    '#default_value' => isset($post->settings['allow_equal']) ? $post->settings['allow_equal'] : 0,
+    '#description' => t('Used (rarely) in STV elections, this allows the voter to select more than one candidate as the same preference.'),
+  );
+
+  // @todo Implement an election-level settings form, to allow RON in multi-vacancy positions.
+  if (!variable_get('election_allow_multi_vacancy_ron', TRUE)) {
+    $form['use_ron']['#states'] = array(
+      'visible' => array(
+        ':input[name=settings_vacancy_count]' => array('value' => '1'),
+      ),
+    );
+    $form['use_ron']['#description'] = t('RON can only be included for single-vacancy positions.');
+  }
+
+  $form['nominations'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Nominations'),
+    '#collapsible' => TRUE,
+    '#weight' => 97,
+  );
+
+  $form['nominations']['nstatus_inheritance'] = array(
+    '#type' => 'radios',
+    '#title' => t('Nominations status'),
+    '#default_value' => isset($post->nstatus_inheritance) ? $post->nstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
+    '#options' => array(
+      ELECTION_POST_STATUS_INHERIT => t('Inherited (currently: %status)', array('%status' => strip_tags(_election_format_status($election, 'n')))),
+      ELECTION_POST_STATUS_CLOSED => t('Closed'),
+    ),
+  );
+
+  $form['#validate'][] = 'election_stv_post_settings_form_validate';
+
+  return $form;
+}
+
+/**
+ * Form validate function for the STV position settings form.
+ *
+ * @see election_post_stv_settings_form()
+ */
+function election_stv_post_settings_form_validate($form, &$form_state) {
+
+  $post = $form_state['post'];
+  if ($form_state['values']['settings_use_ron'] == 1 && $form_state['values']['settings_vacancy_count'] > 1 && !variable_get('election_allow_multi_vacancy_ron', TRUE)) {
+    form_set_error('use_ron', t('RON can only be included for single-vacancy positions.'));
+  }
+
+}
+
+/**
+ * Implements template_preprocess_election().
+ */
+function election_stv_preprocess_election(&$vars) {
+  $election = $vars['election'];
+  $posts_name = _election_get_posts_name($election->type, TRUE);
+  if ($election->type == 'stv') {
+    $vars['content']['posts'] = array(
+      '#markup' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'
+      . views_embed_view('election_posts', 'block_stv', $election->election_id)
+      . '</div>',
+      '#weight' => 100,
+    );
+  }
+}
+
+/**
+ * Implements hook_views_default_views_alter()
+ */
+function election_stv_views_default_views_alter(&$views) {
+  $view = $views['election_posts'];
+  if (!isset($view->display['block_stv'])) {
+    require_once 'election_stv.block_stv.view_display.inc';
+  }
+}
+
+
+/**
+ * Download form for STV election results.
+ */
+function election_stv_results_download_form($form, &$form_state, $post) {
+
+  $form['#post'] = $post;
+  $form['#election'] = $post->election;
+
+  $default_filename = $post->election->title . '-' . $post->election_id . '_' . $post->title . '-' . $post->post_id;
+  $default_filename = truncate_utf8(preg_replace('/[^A-Z0-9\-_]+/i', '-', $default_filename), 60, FALSE, FALSE);
+  $default_filename .= '_' . date('YmdHis', REQUEST_TIME) . '.blt';
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Download options'),
+  );
+  $form['options']['filename'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Filename'),
+    '#size' => strlen($default_filename),
+    '#default_value' => $default_filename,
+  );
+  $form['options']['include_ids'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Include ballot IDs'),
+    '#description' => t('This enables you to identify ballots uniquely.'),
+    '#default_value' => TRUE,
+  );
+
+  $form['buttons'] = array(
+    '#type' => 'actions',
+  );
+  $form['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Download'),
+    '#submit' => array('_election_stv_download_blt'),
+  );
+
+  return $form;
+
+}
+
+
+/**
+ * Download a ballot file.
+ *
+ * @todo generate files with Batch API
+ */
+function _election_stv_download_blt($form, &$form_state) {
+
+  $post = $form['#post'];
+  $election = $post->election;
+
+  $filename = $form_state['values']['filename'];
+  $include_ids = $form_state['values']['include_ids'];
+
+  $start_time = microtime(TRUE);
+
+  header('Content-Type:text/plain;charset=UTF-8');
+  header('Content-Disposition:attachment;filename=' . $filename);
+  header('Cache-Control:max-age=0; must-revalidate');
+
+  $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED, ELECTION_CANDIDATE_WITHDRAWN), FALSE);
+
+  $candidate_map = array();
+  $i = 1;
+  $candidate_lines = '';
+  $withdrawn = array();
+  foreach ($candidates as $candidate) {
+    $candidate_map[$candidate->candidate_id] = $i;
+    if ($candidate->cstatus == ELECTION_CANDIDATE_WITHDRAWN) {
+      $withdrawn[] = $i;
+    }
+    $name = addcslashes($candidate->first_name . ' ' . $candidate->last_name, '"');
+    $candidate_lines .= "\"$name\" # Candidate keyed by $i\n";
+    $i++;
+  }
+  if ($post->settings['use_ron']) {
+    $candidate_map['ron'] = $i;
+    $candidate_lines .= '"' . t('RON (Re-Open Nominations)') . '"' . " # Candidate keyed by $i\n";
+  }
+
+  $total_candidates = (int) count($candidates) + ($post->settings['use_ron']);
+  $total_vacancies = (int) $post->settings['vacancy_count'];
+
+  $votes_fields = array('ballot_id', 'candidate_id', 'ron', 'rank', 'abstain');
+
+  $votes_query = db_select('election_vote', 'ev')
+    ->fields('ev', $votes_fields)
+    ->condition('ev.post_id', $post->post_id)
+    ->orderBy('ballot_id')
+    ->orderBy('rank');
+
+  $votes = $votes_query->execute();
+
+  $allow_equal = $post->settings['allow_equal'];
+  $allow_abstention = $post->allow_abstention;
+
+  $ballots = array();
+  $ballot_errors = array();
+  $last_rank = NULL;
+  foreach ($votes as $vote) {
+
+    $ballot_id = $vote->ballot_id;
+
+    if (!isset($ballots[$ballot_id])) {
+      $ballots[$ballot_id] = '';
+      if ($vote->abstain) {
+        if (!$allow_abstention) {
+          $ballot_errors[$ballot_id] = 'Abstention found, but abstention is not allowed!';
+        }
+        continue;
+      }
+    }
+    elseif (isset($last_rank) && $last_rank === $vote->rank) {
+      if (!$allow_equal) {
+        $ballot_errors[$ballot_id] = 'Equal ranking found, but equal ranking is not allowed!';
+      }
+      $ballots[$ballot_id] .= '=';
+    }
+    else {
+      $ballots[$ballot_id] .= ' ';
+    }
+    $candidate_id = $vote->ron ? 'ron' : $vote->candidate_id;
+    $ballots[$ballot_id] .= $candidate_map[$candidate_id];
+    $last_rank = $vote->rank;
+  }
+
+  echo "################################################\n";
+
+  echo '# ' . t(
+    'Ballot file generated on !date',
+    array(
+      '!date' => format_date(REQUEST_TIME, 'custom', 'Y-m-d H:i:s')
+    )
+  ) . " #\n";
+
+  echo "################################################\n";
+
+  echo '# ' . t(
+    '!candidates standing for !vacancies:',
+    array(
+      '!candidates' => format_plural($total_candidates, 'One candidate is', '@count candidates are'),
+      '!vacancies' => format_plural($total_vacancies, 'one vacancy', '@count vacancies'),
+    )
+  ) . "\n";
+
+  echo "$total_candidates $total_vacancies\n";
+
+  if (!empty($withdrawn)) {
+    echo '# ' . format_plural(
+      count($withdrawn),
+      "One candidate has withdrawn:",
+      "@count candidates have withdrawn:"
+    ) . "\n";
+    echo '-' . implode(' -', $withdrawn) . "\n";
+  }
+
+  echo "# Votes are below, each line is in the format:\n#    ";
+  if ($include_ids) {
+    echo "(BALLOT_ID) ";
+  }
+  echo "MULTIPLIER [CANDIDATE CANDIDATE ...] 0\n";
+  echo "# where candidates are represented by keys in order of preference.\n";
+  echo "# Candidate keys are each separated by a space, or by = for equal rankings.\n";
+
+  // Print the ballot lines.
+  foreach ($ballots as $ballot_id => $ballot) {
+    if ($include_ids) {
+      echo '(' . $ballot_id . ') ';
+    }
+    // Each line begins with a multiplier (always 1) and ends with 0.
+    if (empty($ballot)) {
+      // This is an abstention.
+      echo '1 0';
+    }
+    else {
+      echo '1 ' . $ballot . ' 0';
+    }
+    // Add any error messages for this ballot in a comment at the end.
+    if (isset($ballot_errors[$ballot_id])) {
+      echo ' # ' . $ballot_errors[$ballot_id];
+    }
+    echo "\n";
+  }
+
+  echo "0 # This marks the end of ballots.\n";
+
+  echo $candidate_lines;
+
+  echo '"' . addcslashes($post->title, '"') . '" # Position title' . "\n";
+  echo '"' . addcslashes($election->title, '"') . '" # Election title' . "\n";
+
+  $time = microtime(TRUE) - $start_time;
+  echo '# Time to generate file: ' . number_format($time * 1000, 2) . 'ms';
+
+  drupal_exit();
+
+}
+
+
+/**
+ * Page callback function for the position's results counting page.
+ */
+function election_stv_results_count_page(stdClass $post, $totals) {
+
+  $election = $post->election;
+
+  $output = array();
+
+  if (empty($post->ballot_count)) {
+    return $output;
+  }
+
+  // For STV elections, use the DrooPHP library.
+  if (!file_exists($droophp_path = libraries_get_path('DrooPHP'))) {
+    drupal_set_message(t('The <a href="https://github.com/pjcdawkins/DrooPHP/" target="_blank">DrooPHP</a> library (required for counting votes in STV elections) is not installed.'), 'warning');
+    return $output;
+  }
+
+  // Run the count.
+  require_once $droophp_path . '/library.php';
+  $count = new election_stv_droophp_count($post);
+  $options = array(
+    'allow_equal' => $post->settings['allow_equal'],
+  );
+  $method = new DrooPHP_Method_Wikipedia($count, $options);
+  $method->run();
+
+  // Format the results.
+  $output['droophp_title'] = array(
+    '#markup' => '<h2>' . t('STV count') . '</h2>',
+  );
+
+  $output['explanation'] = array(
+    '#markup' => t(
+      '<p>This is a very basic STV count of the position\'s results, using !DrooPHP. A more accurate count can be obtained by downloading the ballot file (see <a href="@download_url">Download</a>), and counting results using software such as !droop or !OpenSTV.</p>',
+      array(
+        '@download_url' => url(election_post_uri_path($post) . '/results/download'),
+        '!DrooPHP' => l(
+          'DrooPHP',
+          'https://github.com/pjcdawkins/DrooPHP/',
+          array('attributes' => array('target' => '_blank'))
+        ),
+        '!droop' => l(
+          'droop',
+          'http://code.google.com/p/droop/',
+          array('attributes' => array('target' => '_blank'))
+        ),
+        '!OpenSTV' => l(
+          'OpenSTV',
+          'http://www.openstv.org/',
+          array('attributes' => array('target' => '_blank'))
+        ),
+      )
+    ),
+  );
+
+  $output['quota'] = array(
+    '#markup' => '<p>' . t('Quota: @quota', array('@quota' => number_format($method->quota))) . '</p>',
+  );
+
+  $candidates = $count->election->candidates;
+  $stages = $method->stages;
+
+  $header = array(
+    'candidates' => t('Candidates'),
+  );
+
+  foreach (array_keys($stages) as $stage_id) {
+    $header[$stage_id] = t('Stage %stage', array('%stage' => $stage_id));
+  }
+
+  $rows = array();
+
+  foreach ($candidates as $candidate) {
+    $row = array();
+    $row['name'] = check_plain(truncate_utf8($candidate->name, 30, TRUE, TRUE));
+    foreach ($stages as $stage_id => $stage) {
+      $data = '<div class="droophp-votes">' . number_format($stage['votes'][$candidate->cid]) . '</div>';
+      if (!empty($stage['changes'][$candidate->cid])) {
+        $data .= theme('item_list', array(
+          'items' => array_map('check_plain', $stage['changes'][$candidate->cid]),
+          'attributes' => array(
+            'classes' => array('droophp-changes'),
+          ),
+        ));
+      }
+      $row[$stage_id] = array(
+        'data' => $data,
+      );
+    }
+    $rows[] = $row;
+  }
+
+  $output['results'] = array(
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
+  );
+
+  return $output;
+
+}
+
+/**
+ * Form modifying function for election-post/%election_post/vote.
+ */
+function election_stv_vote_form($form, &$form_state, $post, $election) {
+
+  // Load candidates.
+  $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED), 'RAND()');
+  $form_state['candidates'] = $candidates;
+
+  $num_candidates = count($candidates);
+  $form_state['num_candidates'] = $num_candidates;
+
+  if ($num_candidates == 0) {
+    drupal_set_message(t('Voting is currently closed: there are no approved candidates standing for this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'warning', FALSE);
+    $form['#disabled'] = TRUE;
+    drupal_goto(election_post_uri_path($post));
+  }
+
+  $rank_options = array();
+
+  if ($post->settings['allow_equal']) {
+    $form['#attributes']['class'][] = 'allow-equal';
+  }
+
+  // For each candidate the user should be able to select a 'No preference' option instead of a rank.
+  $rank_options['NONE'] = t('No preference');
+
+  // Find all the other possible preference levels (number of (candidates + ron)).
+  $pref_limit = $num_candidates;
+  if ($post->settings['use_ron']) {
+    $pref_limit++;
+  }
+  for ($i = 0; $i < $pref_limit; $i++) {
+    $rank_options[$i + 1] = _election_stv_get_ordinal($i + 1);
+  }
+
+  $post_name = _election_get_posts_name($election->type);
+
+  $form['post_help'] = array('#type' => 'container');
+
+  $form['post_help']['nums'] = array(
+    '#markup' => t(
+      'The following candidates are standing for the @post_name <a href="@post_url">%post_title</a> (!vacancies).',
+      array(
+        '@post_name' => $post_name,
+        '%post_title' => $post->title,
+        '@post_url' => url(election_post_uri_path($post)),
+        '!vacancies' => format_plural($post->settings['vacancy_count'], '1 vacancy', '@count vacancies'),
+      )
+    ),
+  );
+
+  $form['ballot_paper'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Your ballot paper'),
+    '#attributes' => array('class' => array('election-ballot-paper')),
+    '#description' => t('Please rank the candidates according to your preference.'),
+  );
+
+  if (count($candidates) > 1 || $post->settings['use_ron']) {
+    $form['ballot_paper']['#description'] .= ' ' . t('Candidates are displayed in a random order.');
+  }
+
+  $form['ballot_paper']['start'] = array(
+    '#markup' => '<table class="election-ballot-table"><tr><th>' . t('Name') . '</th><th>' . t('Preference') . '</th></tr>',
+  );
+
+  foreach ($candidates as $candidate) {
+    $form['ballot_paper']['candidate_' . $candidate->candidate_id] = array(
+      '#type' => 'select',
+      '#prefix' => '<tr class="election-ballot-row"><td>'
+      . theme('election_candidate_ballot_item', array('candidate' => $candidate))
+      . '</td><td>',
+      '#suffix' => '</td></tr>',
+      '#title' => t('Your rank for %candidate', array('%candidate' => $candidate->first_name . ' ' . $candidate->last_name)),
+      '#title_display' => 'invisible',
+      '#options' => $rank_options,
+      '#required' => FALSE,
+      '#default_value' => 'NONE',
+      '#attributes' => array('class' => array('election-candidate-preference-select')),
+    );
+  }
+
+  if ($post->settings['use_ron']) {
+    $form['ballot_paper']['candidate_RON'] = array(
+      '#type' => 'select',
+      '#prefix' => '<tr class="election-ballot-row ballot-item-ron"><td>' . t('RON (Re-Open Nominations)') . '</td><td>',
+      '#suffix' => '</td></tr>',
+      '#title' => t('Your rank for %candidate', array('%candidate' => t('RON (Re-Open Nominations)'))),
+      '#title_display' => 'invisible',
+      '#options' => $rank_options,
+      '#required' => FALSE,
+      '#default_value' => 'NONE',
+      '#attributes' => array('class' => array('election-candidate-preference-select')),
+    );
+  }
+
+  $form['ballot_paper']['end'] = array(
+    '#markup' => '</table>',
+  );
+
+  $form['#attached']['js'][] = drupal_get_path('module', 'election_stv') . '/vote.js';
+  $form['#validate'][] = 'election_stv_vote_form_validate';
+
+  $form['buttons']['clear_form'] = array(
+    '#type' => 'link',
+    '#title' => 'Clear form',
+    '#href' => $_GET['q'],
+  );
+
+  return $form;
+
+}
+
+/**
+ * Validate the voting form (for STV elections).
+ */
+function election_stv_vote_form_validate($form, &$form_state) {
+
+  $post = $form_state['post'];
+  $num_candidates = $form_state['num_candidates'];
+
+  $error = FALSE;
+
+  $candidate_rankings = array();
+  $already_used = array();
+  $someone_ranked = FALSE;
+
+  // Add each selected preference to $candidate_rankings.
+  foreach ($form_state['values'] as $key => $value) {
+    // The form values are keyed by candidate ID, prefixed with 'candidate_'.
+    if (substr($key, 0, 10) == 'candidate_') {
+      $candidate_id = substr($key, 10);
+      $candidate_rankings[$candidate_id] = $value;
+      if (isset($already_used[$value]) && !$post->settings['allow_equal']) {
+        form_set_error('', t('You have specified more than one candidate as your %ordinal preference. Candidates cannot be ranked equally.', array('%ordinal' => _election_stv_get_ordinal($value))));
+        $error = TRUE;
+        break;
+
+      }
+      if ($value != 'NONE' && $value !== NULL) {
+        $someone_ranked = TRUE;
+        $already_used[$value] = $key;
+      }
+    }
+  }
+
+  if (!$someone_ranked) {
+    form_set_error('', t('You must rank at least one candidate in order to vote.'));
+    $error = TRUE;
+  }
+
+  // Skip the rest of this function if the input was invalid.
+  if ($error) {
+    return;
+  }
+
+  // Assemble the ranks in order (1st, 2nd, 5th, 8th, etc.)
+  asort($candidate_rankings);
+
+  // Force the ranks to be consecutive.
+  $original_rankings = $candidate_rankings;
+  $consecutive_rank = 0;
+  $rank_changes = array(); // Keep a log of changes for later.
+  $previous_rank = NULL;
+  foreach ($candidate_rankings as $candidate_id => &$rank) {
+    // Allow for 'No preference'.
+    if ($rank == 'NONE') {
+      continue;
+    }
+    // Increment $consecutive_rank, if equal rankings are not allowed.
+    if (!$post->settings['allow_equal'] || !isset($previous_rank) || $rank != $previous_rank) {
+      $consecutive_rank++;
+    }
+    // Save the rank as $previous_rank for the next iteration.
+    $previous_rank = $rank;
+    // Make changes if needed and log them to the $rank_changes array.
+    if ($rank != $consecutive_rank) {
+      $rank_changes[$candidate_id] = array($rank, $consecutive_rank);
+      $rank = $consecutive_rank;
+    }
+  }
+
+  // Save all this to $form_state so it can be used when confirming/saving votes.
+  $form_state['candidate_rankings'] = $candidate_rankings;
+  $form_state['original_rankings'] = $original_rankings;
+  $form_state['rank_changes'] = $rank_changes;
+
+}
+
+/**
+ * Save votes for an STV election.
+ */
+function election_stv_save_votes($form, &$form_state, $post, $election, $ballot_id) {
+
+  $candidate_rankings = $form_state['candidate_rankings'];
+
+  foreach ($candidate_rankings as $cid => $candidate_ranking) {
+
+    if ($candidate_ranking == 'NONE') {
+      // Don't save anything if the user did not rank this candidate.
+      continue;
+    }
+
+    $vote_entry = array(
+      'ballot_id' => $ballot_id,
+      'election_id' => $election->election_id,
+      'post_id' => $post->post_id,
+      'rank' => $candidate_ranking,
+    );
+
+    if ($cid == 'RON') {
+      $vote_entry['ron'] = 1;
+    }
+    else {
+      $vote_entry['candidate_id'] = $cid;
+    }
+
+    // Note the whole of this function is inside a DB transaction.
+    db_insert('election_vote')
+      ->fields($vote_entry)
+      ->execute();
+
+  }
+
+  return TRUE;
+
+}
+
+/**
+ * Find the ordinal of a number.
+ */
+function _election_stv_get_ordinal($num) {
+  $ends = array('th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th');
+  if ($num % 100 >= 11 && $num % 100 <= 13) {
+    $ord = $num . 'th';
+  }
+  else {
+    $ord = $num . $ends[$num % 10];
+  }
+  return $ord;
+}
+
+/**
+ * Preprocess function for the voting confirmation page.
+ */
+function election_stv_preprocess_election_vote_confirm(&$variables) {
+
+  $form_state = $variables['form_state'];
+  $election = $form_state['election'];
+
+  if ($election->type == 'stv') {
+    $candidate_rankings = $form_state['candidate_rankings'];
+    $original_rankings = $form_state['original_rankings'];
+
+    $rank_changes = $form_state['rank_changes'];
+    $ranking_changed = count($rank_changes) ? TRUE : FALSE;
+    $variables['ranking_changed'] = $ranking_changed;
+
+    $header = array(t('Candidate'));
+    foreach ($candidate_rankings as $candidate_id => $rank) {
+      if ($candidate_id == 'RON') {
+        $candidate_item = t('RON (Re-Open Nominations)');
+      }
+      else {
+        $candidate = $form_state['candidates'][$candidate_id];
+        $candidate_item = theme('election_candidate_full_name', array('candidate' => $candidate));
+      }
+      $rows[$candidate_id][] = $candidate_item;
+    }
+
+    // Add an intermediate column if the user's input had to be changed to produce a consecutive ranking.
+    if ($ranking_changed) {
+      $header[] = t('Your input');
+      foreach ($original_rankings as $candidate_id => $rank) {
+        $rows[$candidate_id][] = $rank == 'NONE' ? t('-') : _election_stv_get_ordinal($rank);
+      }
+    }
+
+    $header[] = t('Your vote') . ($ranking_changed ? '<sup>*</sup>' : '');
+    foreach ($candidate_rankings as $candidate_id => $rank) {
+      if ($candidate_id == 'RON') {
+        $candidate_item = t('RON (Re-Open Nominations)');
+      }
+      else {
+        $candidate = $form_state['candidates'][$candidate_id];
+        $candidate_item = theme('election_candidate_full_name', array('candidate' => $candidate));
+      }
+      $rows[$candidate_id][] = $rank == 'NONE' ? t('-') : _election_stv_get_ordinal($rank);
+    }
+
+    $variables['rankings'] = array(
+      '#theme' => 'table',
+      '#header' => $header,
+      '#rows' => $rows,
+    );
+
+    if ($ranking_changed) {
+      $variables['rankings'] = array(
+        'table' => $variables['rankings'],
+        'warning' => array(
+          '#prefix' => '<p><sup>*</sup>',
+          '#markup' => t('Your input is converted so that the candidates are ranked consecutively.'),
+          '#suffix' => '</p>',
+        ),
+      );
+    }
+
+    $variables['confirm'] = $variables['rankings'];
+
+  }
+
+}
+
+/**
+ * Implements hook_default_rules_configuration().
+ */
+function election_stv_default_rules_configuration() {
+
+  $items = array();
+
+  // Email the voter after voting in an STV election.
+  $items['election_stv_email_voter'] = entity_import('rules_config', '{ "election_stv_email_voter" : {
+    "LABEL" : "Email user after voting (STV elections)",
+    "PLUGIN" : "reaction rule",
+    "ACTIVE" : false,
+    "TAGS" : [ "election" ],
+    "REQUIRES" : [ "rules", "election_vote" ],
+    "ON" : [ "election_vote_vote" ],
+    "IF" : [ { "data_is" : { "data" : [ "election:type" ], "value" : "stv" } } ],
+    "DO" : [
+      { "mail" : {
+          "to" : "[account:name] \u003C[account:mail]\u003E",
+          "subject" : "Thank you for voting",
+          "message" : "You successfully cast a vote, using the online elections system at: [site:url]\r\n\r\n    Election: [election:title]\r\n    Position: [post:title]\r\n\r\n(for security reasons further details are not displayed)\r\n\r\nIf you have any queries relating to this information, please contact us.",
+          "language" : [ "" ]
+        }
+      }
+    ]
+  }
+}');
+
+}

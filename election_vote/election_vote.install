@@ -56,7 +56,7 @@ function election_vote_schema() {
         'not null' => FALSE,
       ),
       'candidate_id' => array(
-        'description' => 'For STV elections: the candidate being ranked.'
+        'description' => 'For ranked elections: the candidate being ranked.'
                       . ' Relates to {election_candidate}.candidate_id.'
                       . ' Ignored if {election_vote}.ron = 1.',
         'type' => 'int',

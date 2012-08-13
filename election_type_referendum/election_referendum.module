@@ -1,0 +1,227 @@
+<?php
+/**
+ * @file
+ * Primary module file for the election_referendum module.
+ */
+
+/**
+ * Implements hook_election_type_info().
+ */
+function election_referendum_election_type_info() {
+  $types = array();
+  $types['referendum'] = array(
+    'name' => t('referendum'),
+    'description' => t('A simple referendum where people can vote in response to one or more motions.'),
+    'post name' => t('motion'),
+    'post settings form' => 'election_referendum_settings_form',
+    'vote form' => 'election_referendum_vote_form',
+    'save votes' => 'election_referendum_save_votes',
+    'results page' => 'election_referendum_count_page',
+  );
+  return $types;
+}
+
+/**
+ * Implements template_preprocess_election().
+ */
+function election_referendum_preprocess_election(&$vars) {
+  $election = $vars['election'];
+  $posts_name = _election_get_posts_name($election->type, TRUE);
+  if ($election->type == 'referendum') {
+    $vars['content']['posts'] = array(
+      '#markup' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'
+      . views_embed_view('election_posts', 'block_referendum', $election->election_id)
+      . '</div>',
+      '#weight' => 100,
+    );
+  }
+}
+
+/**
+ * Implements hook_views_default_views_alter()
+ */
+function election_referendum_views_default_views_alter(&$views) {
+  $view = $views['election_posts'];
+  if (!isset($view->display['block_referendum'])) {
+    require_once 'election_referendum.block_referendum.view_display.inc';
+  }
+}
+
+/**
+ * Preprocess function for the voting confirmation page.
+ */
+function election_referendum_preprocess_election_vote_confirm(&$variables) {
+
+  $form_state = $variables['form_state'];
+  $election = $form_state['election'];
+  $post = $form_state['post'];
+
+  if ($election->type == 'referendum') {
+
+    $answer = $form_state['values']['answer'];
+
+    $variables['confirm'] = array(
+      '#prefix' => '<dl><dt>' . check_plain($post->title) . '</dt><dd>',
+      '#markup' => t(
+        'Your answer: %answer',
+        array(
+          '%answer' => _election_referendum_get_answer_text($post, $answer),
+        )
+      ),
+      '#suffix' => '</dd></dl>',
+    );
+
+  }
+
+}
+
+/**
+ * Page callback function for the referendum results counting page.
+ */
+function election_referendum_count_page(stdClass $post, $totals) {
+
+  $election = $post->election;
+
+  $votes = db_query(
+    'SELECT COUNT(IF(answer = :yes, vote_id, NULL)) AS yes, COUNT(IF(answer = :no, vote_id, NULL)) AS no FROM {election_vote} WHERE post_id = :pid AND abstain <> 1',
+    array(
+      ':pid' => $post->post_id,
+      ':yes' => ELECTION_ANSWER_YES,
+      ':no' => ELECTION_ANSWER_NO,
+    )
+  )->fetch();
+
+  $header = array(
+    t('Yes'),
+    t('No'),
+  );
+  $rows = array(
+    array(
+      number_format($votes->yes) . ' (' . number_format(($votes->yes / $totals->votes) * 100, 2) . '%)',
+      number_format($votes->no) . ' (' . number_format(($votes->no / $totals->votes) * 100, 2) . '%)',
+    ),
+  );
+
+  $output['answers'] = array(
+    '#theme' => 'table',
+    '#caption' => t('Answers'),
+    '#header' => $header,
+    '#rows' => $rows,
+  );
+
+  return $output;
+
+}
+
+/**
+ * Implements hook_default_rules_configuration().
+ */
+function election_referendum_default_rules_configuration() {
+
+  $items = array();
+
+  // Email the voter after voting in a referendum.
+  $items['election_referendum_email_voter'] = entity_import('rules_config', '{ "election_referendum_email_voter" : {
+    "LABEL" : "Email user after voting (Referendums)",
+    "PLUGIN" : "reaction rule",
+    "ACTIVE" : false,
+    "TAGS" : [ "election" ],
+    "REQUIRES" : [ "rules", "election_vote" ],
+    "ON" : [ "election_vote_vote" ],
+    "IF" : [
+      { "data_is" : { "data" : [ "election:type" ], "value" : "referendum" } }
+    ],
+    "DO" : [
+      { "mail" : {
+          "to" : "[account:name] \u003C[account:mail]\u003E",
+          "subject" : "Thank you for voting",
+          "message" : "You successfully cast a referendum vote, using the system at: [site:url]\r\n\r\n    Referendum: [election:title]\r\n    Motion: [post:title]\r\n\r\n(for security reasons further details are not displayed)\r\n\r\nIf you have any queries relating to this information, please contact us.",
+          "language" : [ "" ]
+        }
+      }
+    ]
+  }
+}');
+
+  return $items;
+}
+
+
+/**
+ * Form modifying function for the vote form (election-post/%election_post/vote).
+ */
+function election_referendum_vote_form($form, &$form_state, $post, $election) {
+
+  $form['motion_preview'] = array(
+    '#type' => 'item',
+    '#title' => t('Motion'),
+    '#markup' => check_plain($post->title),
+  );
+
+  $form['answer'] = array(
+    '#type' => 'radios',
+    '#title' => t('Your answer'),
+    '#options' => array(
+      ELECTION_ANSWER_YES => check_plain(_election_referendum_get_answer_text($post, ELECTION_ANSWER_YES)),
+      ELECTION_ANSWER_NO => check_plain(_election_referendum_get_answer_text($post, ELECTION_ANSWER_NO)),
+    ),
+    '#required' => TRUE,
+  );
+
+  $form['#validate'][] = 'election_referendum_vote_form_validate';
+
+  return $form;
+
+}
+
+/**
+ * Validate the voting form.
+ */
+function election_referendum_vote_form_validate($form, &$form_state) {
+
+  // Add 'answer' to $form_state (so it's available for later).
+  $form_state['answer'] = $form_state['values']['answer'];
+
+}
+
+/**
+ * Save answer to a motion in a referendum.
+ */
+function election_referendum_save_votes($form, &$form_state, $post, $election, $ballot_id) {
+
+  $vote = array(
+    'election_id' => $election->election_id,
+    'ballot_id' => $ballot_id,
+    'post_id' => $post->post_id,
+    'answer' => $form_state['answer'],
+  );
+
+  db_insert('election_vote')
+    ->fields($vote)
+    ->execute();
+
+  return TRUE;
+
+}
+
+/**
+ * Extract the answer text (Yes/No, Agree/Disagree etc.) for a motion.
+ */
+function _election_referendum_get_answer_text($post, $answer) {
+  switch ($answer) {
+    case ELECTION_ANSWER_YES:
+      if (!empty($post->settings['answer_pos'])) {
+        return $post->settings['answer_pos'];
+      }
+      return t('Yes');
+      break;
+
+    case ELECTION_ANSWER_NO:
+      if (!empty($post->settings['answer_neg'])) {
+        return $post->settings['answer_neg'];
+      }
+      return t('No');
+      break;
+
+  }
+}
