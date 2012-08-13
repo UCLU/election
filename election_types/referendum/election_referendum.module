@@ -43,7 +43,7 @@ function election_referendum_preprocess_election(&$vars) {
 function election_referendum_views_default_views_alter(&$views) {
   $view = $views['election_posts'];
   if (!isset($view->display['block_referendum'])) {
-    require_once 'election_referendum.block_referendum.view_display.inc';
+    require_once 'block_referendum_view_display.inc';
   }
 }
 
