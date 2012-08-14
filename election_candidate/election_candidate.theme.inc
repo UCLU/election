@@ -196,4 +196,3 @@ function theme_election_candidate_ballot_item($variables) {
   $candidate = $variables['candidate'];
   return '<span class="election-candidate-ballot-item">' . l($candidate->first_name . ' ' . $candidate->last_name, election_candidate_uri_path($candidate)) . '</span>';
 }
-

@@ -25,4 +25,3 @@ function theme_election_vote_confirm($variables) {
   return render($confirm);
 
 }
-

@@ -48,4 +48,3 @@ http://uclu.org/
 Author
 -----
 Patrick Dawkins (drupal.org username: pjcdawkins)
-

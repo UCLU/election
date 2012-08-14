@@ -146,7 +146,7 @@ function election_candidate_totals_page(stdClass $election) {
       t('Pending'),
       t('Approved'),
       t('Rejected'),
-      t('Withdrawn')
+      t('Withdrawn'),
     );
     $rows = array();
     $rows[] = array(
@@ -176,7 +176,7 @@ function election_candidate_totals_page(stdClass $election) {
 }
 
 /**
- * Form builder function for the form at "election/%election/candidates/download".
+ * Form builder function for "election/%election/candidates/download".
  */
 function election_candidate_download_form($form, &$form_state, stdClass $election) {
 

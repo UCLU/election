@@ -201,5 +201,3 @@ $handler->display->display_options['filters']['type']['table'] = 'election';
 $handler->display->display_options['filters']['type']['field'] = 'type';
 $handler->display->display_options['filters']['type']['value'] = 'stv';
 $handler->display->display_options['filters']['type']['group'] = 1;
-
-

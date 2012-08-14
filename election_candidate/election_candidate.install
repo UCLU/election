@@ -151,7 +151,7 @@ function election_candidate_install() {
 }
 
 /**
- * Copy field instances from old default candidate bundle to new per-election bundles.
+ * Copy field instances from old single bundle to new per-election bundles.
  */
 function election_candidate_update_7001() {
   $instances = field_info_instances('election_candidate', 'election_candidate');
