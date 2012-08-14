@@ -678,10 +678,15 @@ function election_candidate_entity_update($entity, $type) {
  */
 function election_candidate_entity_delete($entity, $type) {
   switch ($type) {
-    // Delete associated candidates when an election is deleted.
+
     case 'election':
-      $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE election_id = :eid', array(':eid' => $entity->election_id))->fetchCol();
+      $election_id = $entity->election_id;
+      // Delete associated candidates when an election is deleted.
+      $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE election_id = :eid', array(':eid' => $election_id))->fetchCol();
       election_candidate_delete_multiple($candidate_ids);
+
+      // Notify the Field module that this candidate bundle no longer exists.
+      field_attach_delete_bundle('election_candidate', $election_id);
       break;
 
     // Clear the post_id property of associated candidates when a post is deleted.
