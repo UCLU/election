@@ -163,4 +163,3 @@ function template_preprocess_election_statistics(&$variables) {
 
 
 }
-

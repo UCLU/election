@@ -71,7 +71,7 @@ function election_vote_access($op, stdClass $post, $account = NULL) {
   if (empty($account)) {
     $account = $GLOBALS['user'];;
   }
-  // Allow other modules to block access (by implementing hook_election_vote_access() and returning FALSE).
+  // Allow other modules to block access using hook_election_vote_access().
   $hook_results = module_invoke_all('election_vote_access', $op, $post, $account);
   foreach ($hook_results as $hook_result) {
     if ($hook_result === FALSE) {

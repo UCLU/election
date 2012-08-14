@@ -374,13 +374,24 @@ function election_post_manage_form($form, &$form_state, stdClass $election) {
  * Page callback for editing an election post, at election-post/%election_post/edit.
  */
 function election_post_page_edit($post) {
+
   $title = election_post_page_title($post);
-  drupal_set_title(t('Edit: %title', array('%title' => truncate_utf8($title, 20, TRUE, TRUE))), PASS_THROUGH);
+  drupal_set_title(
+    t(
+      'Edit: %title',
+      array('%title' => truncate_utf8($title, 20, TRUE, TRUE))
+    ),
+    PASS_THROUGH
+  );
 
   $election = $post->election;
 
   drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_MANAGE_POSTS_', l($post->title, election_post_uri_path($post)))
+    _election_build_breadcrumb(
+      $election,
+      '_MANAGE_POSTS_',
+      l($post->title, election_post_uri_path($post))
+    )
   );
 
   return drupal_get_form('election_post_form', $post, $election);

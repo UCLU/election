@@ -304,7 +304,7 @@ function election_condition_entity_delete($entity, $type) {
 /**
  * Implements hook_election_vote_access().
  *
- * @return
+ * @return mixed
  *   FALSE on permission denied, NULL otherwise.
  */
 function election_condition_election_vote_access($op, $post = NULL, $account = NULL) {

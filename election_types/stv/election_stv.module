@@ -161,7 +161,7 @@ function election_stv_preprocess_election(&$vars) {
 }
 
 /**
- * Implements hook_views_default_views_alter()
+ * Implements hook_views_default_views_alter().
  */
 function election_stv_views_default_views_alter(&$views) {
   $view = $views['election_posts'];
@@ -303,9 +303,7 @@ function _election_stv_download_blt($form, &$form_state) {
 
   echo '# ' . t(
     'Ballot file generated on !date',
-    array(
-      '!date' => format_date(REQUEST_TIME, 'custom', 'Y-m-d H:i:s')
-    )
+    array('!date' => format_date(REQUEST_TIME, 'custom', 'Y-m-d H:i:s'))
   ) . " #\n";
 
   echo "################################################\n";
@@ -747,7 +745,7 @@ function election_stv_preprocess_election_vote_confirm(&$variables) {
       $rows[$candidate_id][] = $candidate_item;
     }
 
-    // Add an intermediate column if the user's input had to be changed to produce a consecutive ranking.
+    // Add an intermediate column, if the user's input had to be reinterpreted.
     if ($ranking_changed) {
       $header[] = t('Your input');
       foreach ($original_rankings as $candidate_id => $rank) {

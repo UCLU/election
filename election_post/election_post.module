@@ -22,7 +22,7 @@ function election_post_menu() {
       'access arguments' => array('administer elections'),
       'file' => 'system.admin.inc',
       'file path' => drupal_get_path('module', 'system'),
-      'description' => t('Manage fields and display settings for @posts.', array('@posts' => $post_name_plural)),
+      'description' => 'Manage fields and display settings for ' . $post_name_plural . '.',
     );
   }
 
@@ -215,13 +215,6 @@ function election_post_access($op, $post = NULL, $account = NULL) {
   if (empty($account)) {
     global $user;
     $account = $user;
-  }
-  // Allow other modules to block access (by implementing hook_election_post_access() and returning FALSE).
-  $hook_results = module_invoke_all('election_post_access', $op, $post, $account);
-  foreach ($hook_results as $hook_result) {
-    if ($hook_result === FALSE) {
-      return FALSE;
-    }
   }
   $election = empty($post) ? NULL : election_load($post->election_id);
   switch ($op) {

@@ -14,6 +14,11 @@ class views_handler_filter_election_published extends views_handler_filter {
     return;
   }
 
+  /**
+   * Overrides parent::can_expose().
+   *
+   * It makes no sense to expose this filter.
+   */
   public function can_expose() {
     return FALSE;
   }

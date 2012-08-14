@@ -38,7 +38,7 @@ function election_referendum_preprocess_election(&$vars) {
 }
 
 /**
- * Implements hook_views_default_views_alter()
+ * Implements hook_views_default_views_alter().
  */
 function election_referendum_views_default_views_alter(&$views) {
   $view = $views['election_posts'];
@@ -148,7 +148,7 @@ function election_referendum_default_rules_configuration() {
 
 
 /**
- * Form modifying function for the vote form (election-post/%election_post/vote).
+ * Form modifying function - voting form (election-post/%election_post/vote).
  */
 function election_referendum_vote_form($form, &$form_state, $post, $election) {
 
@@ -162,8 +162,12 @@ function election_referendum_vote_form($form, &$form_state, $post, $election) {
     '#type' => 'radios',
     '#title' => t('Your answer'),
     '#options' => array(
-      ELECTION_ANSWER_YES => check_plain(_election_referendum_get_answer_text($post, ELECTION_ANSWER_YES)),
-      ELECTION_ANSWER_NO => check_plain(_election_referendum_get_answer_text($post, ELECTION_ANSWER_NO)),
+      ELECTION_ANSWER_YES => check_plain(
+        _election_referendum_get_answer_text($post, ELECTION_ANSWER_YES)
+      ),
+      ELECTION_ANSWER_NO => check_plain(
+        _election_referendum_get_answer_text($post, ELECTION_ANSWER_NO)
+      ),
     ),
     '#required' => TRUE,
   );
