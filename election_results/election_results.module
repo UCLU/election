@@ -140,7 +140,7 @@ function election_results_page(stdClass $post) {
     )
   )->fetch();
 
-  if ($totals->votes == 0) {
+  if ($totals->votes == 0 && $totals->abstentions == 0) {
     return $output;
   }
 

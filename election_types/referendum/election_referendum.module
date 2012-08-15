@@ -95,10 +95,14 @@ function election_referendum_count_page(stdClass $post, $totals) {
     t('Yes'),
     t('No'),
   );
+
+  $percentage_yes = $totals->votes == 0? 0 : ($votes->yes / $totals->votes) * 100;
+  $percentage_no = $totals->votes == 0? 0 : ($votes->no / $totals->votes) * 100;
+
   $rows = array(
     array(
-      number_format($votes->yes) . ' (' . number_format(($votes->yes / $totals->votes) * 100, 2) . '%)',
-      number_format($votes->no) . ' (' . number_format(($votes->no / $totals->votes) * 100, 2) . '%)',
+      number_format($votes->yes) . ' (' . number_format($percentage_yes, 2) . '%)',
+      number_format($votes->no) . ' (' . number_format($percentage_no, 2) . '%)',
     ),
   );
 
