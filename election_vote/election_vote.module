@@ -124,6 +124,11 @@ function election_vote_form($form, &$form_state, stdClass $post) {
     $form['#disabled'] = TRUE;
     drupal_goto(election_post_uri_path($post));
   }
+  else {
+    // At this stage it's safe to assume the user has not voted.
+    // The session-based check can therefore be cleared if it exists.
+    $_SESSION['election_vote_voted_' . $post->post_id] = FALSE;
+  }
 
   $form_state['election'] = $election;
   $form_state['post'] = $post;
@@ -317,14 +322,14 @@ function election_vote_form_vote($form, &$form_state) {
 
   $success = FALSE;
 
+  // Check to prevent duplicate form submissions.
+  if (!empty($_SESSION['election_vote_voted_' . $post->post_id])) {
+    return;
+  }
+
   $transaction = db_transaction();
 
   try {
-
-    // Final last-minute check to see whether the user has previously voted.
-    if (election_vote_check_user_previously_voted($post)) {
-      throw new Exception('The user has previously voted.');
-    }
 
     $ballot = array(
       'election_id' => $election->election_id,
@@ -355,6 +360,11 @@ function election_vote_form_vote($form, &$form_state) {
   }
 
   if ($success) {
+
+    // On voting, save a session variable to prevent duplicate form submissions.
+    $_SESSION['election_vote_voted_' . $post->post_id] = TRUE;
+
+    // Display a success message to the user.
     $post_name = _election_get_posts_name($election->type);
     drupal_set_message(
       t('Thank you for voting for the @post_name !post_link.', array(
@@ -362,11 +372,14 @@ function election_vote_form_vote($form, &$form_state) {
         '!post_link' => l($post->title, election_post_uri_path($post)),
       ))
     );
+
     $form_state['redirect'] = url(election_uri_path($election));
+
     // Invoke "After casting a vote" rules.
     if (module_exists('rules')) {
       rules_invoke_event('election_vote_vote', $GLOBALS['user'], $post, $election);
     }
+
   }
   else {
     $form_state['rebuild'] = TRUE;
