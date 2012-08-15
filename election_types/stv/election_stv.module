@@ -816,4 +816,6 @@ function election_stv_default_rules_configuration() {
   }
 }');
 
+  return $items;
+
 }
