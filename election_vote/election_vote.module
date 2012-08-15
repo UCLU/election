@@ -127,7 +127,7 @@ function election_vote_form($form, &$form_state, stdClass $post) {
   else {
     // At this stage it's safe to assume the user has not voted.
     // The session-based check can therefore be cleared if it exists.
-    $_SESSION['election_vote_voted_' . $post->post_id] = FALSE;
+    $_SESSION['election_vote_cast_' . $post->post_id] = FALSE;
   }
 
   $form_state['election'] = $election;
@@ -248,6 +248,12 @@ function election_vote_form_abstain($form, &$form_state) {
   $post = $form_state['post'];
   $election = $form_state['election'];
 
+  // Check to prevent duplicate form submissions.
+  if (!empty($_SESSION['election_vote_cast_' . $post->post_id])) {
+    $form_state['redirect'] = url(election_uri_path($election));
+    return;
+  }
+
   $success = FALSE;
 
   $transaction = db_transaction();
@@ -287,6 +293,14 @@ function election_vote_form_abstain($form, &$form_state) {
   }
 
   if ($success) {
+
+    // On abstaining, save a session variable to prevent duplicate form submissions.
+    $_SESSION['election_vote_cast_' . $post->post_id] = TRUE;
+
+    // Commit, by destroying the transaction object.
+    // This is so the message below can can be set outside the transaction.
+    $transaction = NULL;
+
     $post_name = _election_get_posts_name($election->type);
     drupal_set_message(
       t('You have abstained from voting for the @post_name !post_link.', array(
@@ -294,11 +308,14 @@ function election_vote_form_abstain($form, &$form_state) {
         '!post_link' => l($post->title, election_post_uri_path($post)),
       ))
     );
+
     $form_state['redirect'] = url(election_uri_path($election));
+
     // Invoke "After abstaining" rules.
     if (module_exists('rules')) {
       rules_invoke_event('election_vote_abstain', $GLOBALS['user'], $post, $election);
     }
+
   }
   else {
     $form_state['rebuild'] = TRUE;
@@ -323,7 +340,8 @@ function election_vote_form_vote($form, &$form_state) {
   $success = FALSE;
 
   // Check to prevent duplicate form submissions.
-  if (!empty($_SESSION['election_vote_voted_' . $post->post_id])) {
+  if (!empty($_SESSION['election_vote_cast_' . $post->post_id])) {
+    $form_state['redirect'] = url(election_uri_path($election));
     return;
   }
 
@@ -362,7 +380,11 @@ function election_vote_form_vote($form, &$form_state) {
   if ($success) {
 
     // On voting, save a session variable to prevent duplicate form submissions.
-    $_SESSION['election_vote_voted_' . $post->post_id] = TRUE;
+    $_SESSION['election_vote_cast_' . $post->post_id] = TRUE;
+
+    // Commit, by destroying the transaction object.
+    // This is so the message below can can be set outside the transaction.
+    $transaction = NULL;
 
     // Display a success message to the user.
     $post_name = _election_get_posts_name($election->type);
