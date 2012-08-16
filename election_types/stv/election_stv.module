@@ -575,7 +575,7 @@ function election_stv_vote_form($form, &$form_state, $post, $election) {
     '#markup' => '</table>',
   );
 
-  $form['#attached']['js'][] = drupal_get_path('module', 'election_stv') . '/vote.js';
+  $form['#attached']['js'][] = drupal_get_path('module', 'election_stv') . '/ballot-paper.min.js';
   $form['#validate'][] = 'election_stv_vote_form_validate';
 
   $form['buttons']['clear_form'] = array(

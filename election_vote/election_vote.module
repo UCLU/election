@@ -163,6 +163,8 @@ function election_vote_form($form, &$form_state, stdClass $post) {
     );
   }
 
+  $form['#attached']['js'][] = drupal_get_path('module', 'election') . '/submit-single.min.js';
+
   $form['#validate'][] = 'election_vote_form_validate';
 
   $type = $election->type_info;
@@ -201,6 +203,8 @@ function election_vote_form_vote_confirm($form, &$form_state) {
 
   $form['#submit'] = array('election_vote_form_vote');
 
+  $form['#attached']['js'][] = drupal_get_path('module', 'election') . '/submit-single.min.js';
+
   // confirm_form() ignores its third argument ($path) if $_GET['destination'] is set.
   unset($_GET['destination']);
 
@@ -226,6 +230,8 @@ function election_vote_form_abstain_confirm($form, &$form_state) {
   );
 
   $form['#submit'] = array('election_vote_form_abstain');
+
+  $form['#attached']['js'][] = drupal_get_path('module', 'election') . '/submit-single.min.js';
 
   // confirm_form() ignores its third argument ($path) if $_GET['destination'] is set.
   unset($_GET['destination']);
@@ -296,10 +302,6 @@ function election_vote_form_abstain($form, &$form_state) {
 
     // On abstaining, save a session variable to prevent duplicate form submissions.
     $_SESSION['election_vote_cast_' . $post->post_id] = TRUE;
-
-    // Commit, by destroying the transaction object.
-    // This is so the message below can can be set outside the transaction.
-    $transaction = NULL;
 
     $post_name = _election_get_posts_name($election->type);
     drupal_set_message(
@@ -381,10 +383,6 @@ function election_vote_form_vote($form, &$form_state) {
 
     // On voting, save a session variable to prevent duplicate form submissions.
     $_SESSION['election_vote_cast_' . $post->post_id] = TRUE;
-
-    // Commit, by destroying the transaction object.
-    // This is so the message below can can be set outside the transaction.
-    $transaction = NULL;
 
     // Display a success message to the user.
     $post_name = _election_get_posts_name($election->type);
