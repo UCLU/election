@@ -238,7 +238,7 @@ function election_post_form_delete_confirm($form, &$form_state, stdClass $post) 
       )
     ),
     election_post_uri_path($post),
-    t('This action cannot be undone.'),
+    t('This action cannot be undone. Associated data (for example votes) will also be deleted.'),
     t('Delete'),
     t('Cancel')
   );

@@ -103,6 +103,19 @@ function election_vote_access($op, stdClass $post, $account = NULL) {
   return FALSE;
 }
 
+/**
+ * Implements hook_entity_delete().
+ */
+function election_vote_entity_delete($entity, $type) {
+  switch ($type) {
+    // Delete associated votes when a post is deleted.
+    case 'election_post':
+      db_query('DELETE FROM {election_vote} WHERE post_id = :pid', array(':pid' => $entity->post_id));
+      db_query('DELETE FROM {election_ballot} WHERE post_id = :pid', array(':pid' => $entity->post_id));
+      break;
+
+  }
+}
 
 /**
  * Form builder function for election-post/%election_post/vote.
