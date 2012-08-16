@@ -34,7 +34,7 @@ class views_handler_field_election_nstatus extends views_handler_field {
     foreach ($values as $key => $value) {
       $election->{str_replace('election_', '', $key)} = $value;
     }
-    return _election_format_status($election, 'n');
+    return theme('election_status', array('election' => $election, 'status_prefix' => 'n'));
   }
 
 }

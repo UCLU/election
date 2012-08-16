@@ -76,8 +76,8 @@ function election_list_form($form, &$form_state) {
     $options[$election->election_id] = array(
       'title' => l($election->title, election_uri_path($election)),
       'type' => drupal_ucfirst($type['name']),
-      'nstatus' => _election_format_status($election, 'n'),
-      'vstatus' => _election_format_status($election, 'v'),
+      'nstatus' => theme('election_status', array('election' => $election, 'status_prefix' => 'n')),
+      'vstatus' => theme('election_status', array('election' => $election)),
       'changed' => format_date($election->changed, 'short'),
       'operations' => array(),
     );

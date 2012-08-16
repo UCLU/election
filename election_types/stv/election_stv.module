@@ -120,7 +120,14 @@ function election_stv_post_settings_form($form, &$form_state, stdClass $post, st
     '#title' => t('Nominations status'),
     '#default_value' => isset($post->nstatus_inheritance) ? $post->nstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
     '#options' => array(
-      ELECTION_POST_STATUS_INHERIT => t('Inherited (currently: %status)', array('%status' => strip_tags(_election_format_status($election, 'n')))),
+      ELECTION_POST_STATUS_INHERIT => t(
+        'Inherited (currently: %status)',
+        array(
+          '%status' => strip_tags(
+            theme('election_status', array('election' => $election, 'status_prefix' => 'n'))
+          ),
+        )
+      ),
       ELECTION_POST_STATUS_CLOSED => t('Closed'),
     ),
   );

@@ -92,7 +92,14 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
     '#title' => t('Voting status'),
     '#default_value' => isset($post->vstatus_inheritance) ? $post->vstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
     '#options' => array(
-      ELECTION_POST_STATUS_INHERIT => t('Inherited (currently: %status)', array('%status' => strip_tags(_election_format_status($election, 'v')))),
+      ELECTION_POST_STATUS_INHERIT => t(
+        'Inherited (currently: %status)',
+        array(
+          '%status' => strip_tags(
+            theme('election_status', array('election' => $election))
+          ),
+        )
+      ),
       ELECTION_POST_STATUS_CLOSED => t('Closed'),
     ),
   );

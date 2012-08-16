@@ -521,32 +521,6 @@ function election_post_view($post, $view_mode = 'full') {
 }
 
 /**
- * Format the status field of an election post for display.
- *
- * Election posts can either inherit the election's status, or they can be
- * closed. This applies to both voting and nominations.
- *
- * @todo make this themeable
- *
- * @param stdClass $election
- *   An election object.
- * @param stdClass $post
- *   An election post object.
- * @param string $status_prefix
- *   The type of status ('v' for voting, 'n' for nominations).
- */
-function _election_post_format_status(stdClass $election, stdClass $post, $status_prefix = 'v') {
-  $status = $post->{$status_prefix . 'status'};
-  if ($status == ELECTION_POST_STATUS_INHERIT) {
-    return t(
-      '!status (inherited)',
-      array('!status' => _election_format_status($election, $status_prefix))
-    );
-  }
-  return t('<span class="election-post-status-closed">Closed</span> (overridden)');
-}
-
-/**
  * Find out if a post is open.
  *
  * @param stdClass $post
