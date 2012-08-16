@@ -30,13 +30,13 @@ class views_handler_field_election_vote_link extends views_handler_field_electio
     }
 
     // Ensure the user has not already voted.
-    if (election_vote_check_user_previously_voted($small_post)) {
+    if (election_vote_check_account_previously_voted($small_post)) {
       return;
     }
 
     // Ensure user has access to vote for this post.
     $post = election_post_load($post_id);
-    if (!election_post_access('vote', $post)) {
+    if (!election_vote_access('vote', $post)) {
       return;
     }
 

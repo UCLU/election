@@ -56,6 +56,13 @@ function election_vote_theme() {
       ),
       'file' => 'election_vote.theme.inc',
     ),
+    'election_vote_eligibility' => array(
+      'variables' => array(
+        'post' => NULL,
+        'account' => NULL,
+      ),
+      'file' => 'election_vote.theme.inc',
+    ),
   );
 }
 
@@ -119,8 +126,8 @@ function election_vote_form($form, &$form_state, stdClass $post) {
 
   $election = $post->election;
 
-  if ($previously_voted = election_vote_check_user_previously_voted($post)) {
-    drupal_set_message(t('You have already voted for (or abstained from) this @post_name.', array('@post_name' => _election_get_posts_name($election->type))), 'status', FALSE);
+  if ($previously_voted = election_vote_check_account_previously_voted($post)) {
+    drupal_set_message(t('You have already voted for (or abstained from) this @post_name.', array('@post_name' => election_get_post_name($election->type))), 'status', FALSE);
     $form['#disabled'] = TRUE;
     drupal_goto(election_post_uri_path($post));
   }
@@ -185,7 +192,7 @@ function election_vote_form_validate($form, &$form_state) {
   $post = $form_state['post'];
 
   // Safety check to see whether a vote has already been entered.
-  if (election_vote_check_user_previously_voted($post)) {
+  if (election_vote_check_account_previously_voted($post)) {
     $form_state['rebuild'] = TRUE;
   }
 
@@ -303,7 +310,7 @@ function election_vote_form_abstain($form, &$form_state) {
     // On abstaining, save a session variable to prevent duplicate form submissions.
     $_SESSION['election_vote_cast_' . $post->post_id] = TRUE;
 
-    $post_name = _election_get_posts_name($election->type);
+    $post_name = election_get_post_name($election->type);
     drupal_set_message(
       t('You have abstained from voting for the @post_name !post_link.', array(
         '@post_name' => $post_name,
@@ -385,7 +392,7 @@ function election_vote_form_vote($form, &$form_state) {
     $_SESSION['election_vote_cast_' . $post->post_id] = TRUE;
 
     // Display a success message to the user.
-    $post_name = _election_get_posts_name($election->type);
+    $post_name = election_get_post_name($election->type);
     drupal_set_message(
       t('Thank you for voting for the @post_name !post_link.', array(
         '@post_name' => $post_name,
@@ -408,66 +415,26 @@ function election_vote_form_vote($form, &$form_state) {
 }
 
 /**
- * Describe the user's eligibility to vote for a particular post.
- *
- * @param stdClass $post
- *   An election post object.
- */
-function _election_vote_format_eligibility(stdClass $post) {
-
-  $election = $post->election;
-
-  $post_name = _election_get_posts_name($election->type);
-
-  if ($post->vstatus_inheritance == ELECTION_POST_STATUS_CLOSED) {
-    return t('Voting is currently closed for this @post_name.', array('@post_name' => $post_name));
-  }
-  elseif (!_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
-    if ($election->vstatus == ELECTION_STATUS_SCHEDULED) {
-      if ($election->vopen_time > REQUEST_TIME) {
-        return t('Voting will open in %interval.', array('%interval' => format_interval($election->vopen_time - REQUEST_TIME, 2)));
-      }
-      elseif ($election->vclose_time < REQUEST_TIME) {
-        return t('Voting closed %interval ago.', array('%interval' => format_interval(REQUEST_TIME - $election->vclose_time, 1)));
-      }
-    }
-    return t('Voting is currently closed.');
-  }
-  if (!empty($election->type_info['has candidates']) && !_election_vote_post_has_approved_candidates($post)) {
-    return t('Voting is currently closed (not enough candidates).');
-  }
-  elseif (election_vote_access('vote', $post)) {
-    if (election_vote_check_user_previously_voted($post)) {
-      if ($post->allow_abstention) {
-        return t('You have already voted (or abstained).');
-      }
-      else {
-        return t('You have already voted.');
-      }
-    }
-    return t('<a href="@vote_link">You can vote</a> for this @post_name.', array('@post_name' => $post_name, '@vote_link' => url(election_post_uri_path($post) . '/vote')));
-  }
-  elseif (!user_is_logged_in()) {
-    return t('<a href="@login_uri">Log in</a> to vote.', array('@login_uri' => url('user/login', array('query' => array('destination' => $_GET['q'])))));
-  }
-
-  return t('You are not eligible to vote for this @post_name.', array('@post_name' => $post_name));
-}
-
-
-/**
- * Find out whether the logged-in user has previously voted for the $post.
+ * Find out whether the $account has previously voted for the $post.
  *
  * @param stdClass $post
  *   The election post object.
+ * @param stdClass $account
+ *   Optional user account object (leave blank for the logged-in user).
  *
  * @return bool
  *   TRUE if previously voted, FALSE otherwise.
  */
-function election_vote_check_user_previously_voted($post) {
+function election_vote_check_account_previously_voted($post, $account = NULL) {
+
+  global $user;
+  if (empty($account)) {
+    $account = $user;
+  }
+  $account_is_user = ($account->uid == $user->uid);
 
   // For anonymous users (who should rarely be allowed to vote), try checking on session hash.
-  if (!user_is_logged_in()) {
+  if ($account_is_user && !user_is_logged_in()) {
     $result = db_query_range('SELECT ballot_id FROM {election_ballot} WHERE (sid_hash = :sh OR (ip = :ip AND agent = :agent)) AND post_id = :pid', 0, 1, array(
       ':sh' => _election_vote_session_hash(),
       ':ip' => ip_address(),
@@ -477,14 +444,13 @@ function election_vote_check_user_previously_voted($post) {
     return (!empty($result));
   }
 
-  // Otherwise, check based on the $user->uid.
-  $vote_count = db_query('SELECT COUNT(ballot_id) FROM {election_ballot} WHERE uid = :uid AND post_id = :pid', array(':uid' => $GLOBALS['user']->uid, ':pid' => $post->post_id))->fetchField(0);
+  // Otherwise, check based on the $account->uid.
+  $vote_count = db_query(
+    'SELECT COUNT(ballot_id) FROM {election_ballot} WHERE uid = :uid AND post_id = :pid',
+    array(':uid' => $account->uid, ':pid' => $post->post_id)
+  )->fetchField(0);
 
-  if ($vote_count > 1) {
-    watchdog('election', 'User @uid has cast more than one ballot for post @pid!', array('@uid' => $GLOBALS['user']->uid, '@pid' => $post->post_id), WATCHDOG_WARNING);
-  }
-
-  return ($vote_count > 0);
+  return (bool) $vote_count;
 
 }
 
@@ -538,6 +504,6 @@ function election_vote_preprocess_election_post(&$variables) {
 
   $post = $variables['elements']['#post'];
 
-  $variables['eligibility'] = _election_vote_format_eligibility($post);
+  $variables['eligibility'] = theme('election_vote_eligibility', array('post' => $post));
 
 }

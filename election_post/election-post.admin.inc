@@ -43,7 +43,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
 
   drupal_set_breadcrumb($breadcrumb);
 
-  $post_name = _election_get_posts_name($election->type);
+  $post_name = election_get_post_name($election->type);
 
   // Warn if voting is open.
   if (!$post->is_new && _election_post_is_open($post, $election, 'v')) {
@@ -197,7 +197,7 @@ function election_post_form_submit($form, &$form_state) {
 
   // Notify the user that the post was saved.
   drupal_set_message(
-    t('The @post_name "@title" was saved.', array('@post_name' => _election_get_posts_name($election->type), '@title' => $post->title))
+    t('The @post_name "@title" was saved.', array('@post_name' => election_get_post_name($election->type), '@title' => $post->title))
   );
 
   if (empty($_GET['destination'])) {
@@ -233,7 +233,7 @@ function election_post_form_delete_confirm($form, &$form_state, stdClass $post) 
     t(
       'Are you sure you want to delete the @post_name %post_title?',
       array(
-        '@post_name' => _election_get_posts_name($election->type),
+        '@post_name' => election_get_post_name($election->type),
         '%post_title' => $post->title,
       )
     ),
@@ -257,7 +257,7 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
     // Delete the post.
     $delete = election_post_delete($post->post_id);
 
-    $post_name = _election_get_posts_name($election->type);
+    $post_name = election_get_post_name($election->type);
 
     if ($delete) {
       watchdog('election_post', 'Deleted @post_name %title', array('@post_name' => $post_name, '%title' => $post->title));
@@ -360,7 +360,7 @@ function election_post_manage_form($form, &$form_state, stdClass $election) {
     '#theme' => 'table',
     '#header' => $header,
     '#rows' => $rows,
-    '#empty' => t('No @posts_name available.', array('@posts_name' => _election_get_posts_name($election->type, TRUE))),
+    '#empty' => t('No @posts_name available.', array('@posts_name' => election_get_post_name($election->type, TRUE))),
   );
 
   $form['pager'] = array('#markup' => theme('pager'));

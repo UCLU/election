@@ -82,8 +82,8 @@ function election_list_form($form, &$form_state) {
       'operations' => array(),
     );
 
-    $post_name = _election_get_posts_name($election->type);
-    $post_name_plural = _election_get_posts_name($election->type, TRUE);
+    $post_name = election_get_post_name($election->type);
+    $post_name_plural = election_get_post_name($election->type, TRUE);
 
     $election_uri_path = election_uri_path($election);
 

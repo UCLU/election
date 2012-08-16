@@ -15,7 +15,7 @@ function election_candidate_manage_form($form, $form_state, stdClass $election) 
     _election_build_breadcrumb($election)
   );
 
-  $post_name = _election_get_posts_name($election->type);
+  $post_name = election_get_post_name($election->type);
 
   // Build the sortable table header.
   $header = array(
@@ -184,7 +184,7 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
 
   $candidate_field_instances = field_info_instances('election_candidate', 'election_candidate');
 
-  $post_name = _election_get_posts_name($election->type);
+  $post_name = election_get_post_name($election->type);
 
   $properties = array(
     'election_id' => t('Election ID'),

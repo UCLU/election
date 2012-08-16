@@ -26,7 +26,7 @@ function election_referendum_election_type_info() {
  */
 function election_referendum_preprocess_election(&$vars) {
   $election = $vars['election'];
-  $posts_name = _election_get_posts_name($election->type, TRUE);
+  $posts_name = election_get_post_name($election->type, TRUE);
   if ($election->type == 'referendum') {
     $vars['content']['posts'] = array(
       '#markup' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'

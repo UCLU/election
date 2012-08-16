@@ -564,6 +564,29 @@ function election_view(stdClass $election, $view_mode = 'full') {
 }
 
 /**
+ * Get the human-readable post name (e.g. 'position') for an election type.
+ *
+ * See the README.txt, which explains what a 'post' is.
+ *
+ * @param string $type_machine_name
+ *   The machine name of the election type.
+ * @param bool $plural
+ *   Whether to return a plural name (e.g. 'motions' or 'positions').
+ */
+function election_get_post_name($type_machine_name, $plural = FALSE) {
+  $name = $plural? 'posts' : 'post';
+  if ($type = _election_type_get_info($type_machine_name)) {
+    if (!empty($type['post name'])) {
+      $name = $type['post name'];
+    }
+    if ($plural) {
+      $name = !empty($type['post name plural'])? $type['post name plural'] : $name . 's';
+    }
+  }
+  return $name;
+}
+
+/**
  * Determine whether voting or nominating in an election is 'open'.
  *
  * @param int $status
@@ -657,7 +680,7 @@ function _election_build_breadcrumb(stdClass $election = NULL) {
   foreach ($args as $key => $arg) {
     switch ($arg) {
       case '_MANAGE_POSTS_':
-        $posts_name = _election_get_posts_name($election->type, TRUE);
+        $posts_name = election_get_post_name($election->type, TRUE);
         $link = l(drupal_ucfirst($posts_name), $election_uri_path . '/posts');
         break;
 
@@ -698,27 +721,6 @@ function _election_type_get_info($type_machine_name) {
 }
 
 /**
- * Get the human-readable post name (e.g. 'position') for an election type.
- *
- * @param string $type_machine_name
- *   The machine name of the type.
- * @param bool $plural
- *   Whether to return a plural name (e.g. 'motions' or 'positions').
- */
-function _election_get_posts_name($type_machine_name, $plural = FALSE) {
-  $name = $plural? 'posts' : 'post';
-  if ($type = _election_type_get_info($type_machine_name)) {
-    if (!empty($type['post name'])) {
-      $name = $type['post name'];
-    }
-    if ($plural) {
-      $name = !empty($type['post name plural'])? $type['post name plural'] : $name . 's';
-    }
-  }
-  return $name;
-}
-
-/**
  * Implements hook_file_download_access().
  *
  * Allow private files to be downloaded when they are attached to an election
@@ -740,22 +742,9 @@ function election_views_api() {
 }
 
 /**
- * Implements hook_views_default_views().
- */
-function election_views_default_views() {
-  $views_dir = drupal_get_path('module', 'election') . '/views';
-  $views_files = scandir($views_dir);
-  $views = array();
-  foreach ($views_files as $filename) {
-    if (substr($filename, -4) == '.inc') {
-      include_once $views_dir . '/' . $filename;
-    }
-  }
-  return $views;
-}
-
-/**
  * Implements hook_menu_position_rule_plugins().
+ *
+ * This is for integration with the Menu Position module.
  */
 function election_menu_position_rule_plugins() {
   return array(
@@ -770,12 +759,16 @@ function election_menu_position_rule_plugins() {
 /**
  * Update the URL aliases for an individual election.
  *
+ * This is for integration with the Pathauto module.
+ *
  * @param stdClass $election
  *   A election object.
  * @param string $op
  *   Operation being performed on the election ('insert', 'update' or 'bulkupdate').
  * @param array $options
  *   An optional array of additional options.
+ *
+ * @see election.pathauto.inc
  */
 function _election_pathauto_update_alias(stdClass $election, $op, array $options = array()) {
   // Skip processing if the election has no pattern.
@@ -795,6 +788,8 @@ function _election_pathauto_update_alias(stdClass $election, $op, array $options
 /**
  * Update the URL aliases for multiple elections.
  *
+ * This is for integration with the Pathauto module.
+ *
  * @param array $election_ids
  *   An array of election IDs.
  * @param string $op
@@ -802,6 +797,8 @@ function _election_pathauto_update_alias(stdClass $election, $op, array $options
  *   'bulkupdate').
  * @param array $options
  *   An optional array of additional options.
+ *
+ * @see election.pathauto.inc
  */
 function _election_pathauto_update_alias_multiple(array $election_ids, $op, array $options = array()) {
   $options += array('message' => FALSE);
@@ -812,12 +809,4 @@ function _election_pathauto_update_alias_multiple(array $election_ids, $op, arra
   if (!empty($options['message'])) {
     drupal_set_message(format_plural(count($election_ids), 'Updated URL alias for 1 election.', 'Updated URL aliases for @count elections.'));
   }
-}
-/**
- * Implements hook_views_query_substitutions().
- */
-function election_views_query_substitutions() {
-  return array(
-    '***EDIT_ANY_ELECTION***' => intval(user_access('edit any election')),
-  );
 }

@@ -26,7 +26,7 @@ function template_preprocess_election_statistics(&$variables) {
   $totals = db_query('SELECT COUNT(DISTINCT ballot_id) AS ballots, COUNT(DISTINCT IF(abstain=0,ballot_id,NULL)) AS votes, COUNT(DISTINCT IF(abstain=1, ballot_id, NULL)) AS abstentions FROM {election_vote} WHERE election_id = :eid', array(':eid' => $election->election_id))->fetch();
   $totals->voters = db_query('SELECT COUNT(DISTINCT IF(uid = 0, sid_hash, uid)) AS voters FROM {election_ballot} WHERE election_id = :eid', array(':eid' => $election->election_id))->fetchField();
 
-  $post_name = _election_get_posts_name($election->type);
+  $post_name = election_get_post_name($election->type);
 
   $header = array(
     'voters' => t('Voters'),

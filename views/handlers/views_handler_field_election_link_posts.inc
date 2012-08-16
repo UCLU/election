@@ -36,7 +36,7 @@ class views_handler_field_election_link_posts extends views_handler_field_electi
       return;
     }
 
-    $posts_name = _election_get_posts_name($election->type, TRUE);
+    $posts_name = election_get_post_name($election->type, TRUE);
     $posts_count = _election_post_count_by_election($election);
 
     $this->options['alter']['make_link'] = TRUE;

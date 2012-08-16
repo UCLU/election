@@ -96,7 +96,7 @@ function election_candidate_display_previous_nominations(stdClass $election, arr
   $caption = t('Your previous nominations in this election');
   $header = array(
     t('Nomination date'),
-    drupal_ucfirst(_election_get_posts_name($election->type)),
+    drupal_ucfirst(election_get_post_name($election->type)),
     t('Candidate name'),
     t('Status'),
   );
@@ -144,7 +144,7 @@ function election_page_nomination_form(stdClass $election) {
 
   // End with an error message if there are no available posts.
   if (empty($available_post_ids)) {
-    $posts_name = _election_get_posts_name($election->type, TRUE);
+    $posts_name = election_get_post_name($election->type, TRUE);
     return array(
       election_candidate_display_previous_nominations($election, $previous_nominations),
       array(
@@ -214,7 +214,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
     }
   }
   drupal_alter('election_candidate_post_options', $post_options);
-  $post_name = _election_get_posts_name($election->type);
+  $post_name = election_get_post_name($election->type);
   $form['post_id'] = array(
     '#type' => 'select',
     '#options' => $post_options,
@@ -359,7 +359,7 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
   drupal_set_message(t(
     'The nomination for the @posts_name %title (name %first_name %last_name) was successfully submitted.',
     array(
-      '@posts_name' => _election_get_posts_name($election->type),
+      '@posts_name' => election_get_post_name($election->type),
       '%title' => $post->title,
       '%first_name' => $candidate->first_name,
       '%last_name' => $candidate->last_name,
@@ -511,7 +511,7 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
   foreach ($available_posts as $post) {
     $post_options[$post->post_id] = truncate_utf8($post->title, 100, TRUE, TRUE, 80);
   }
-  $post_name = _election_get_posts_name($election->type);
+  $post_name = election_get_post_name($election->type);
   $form['post'] = array(
     '#type' => 'select',
     '#options' => $post_options,

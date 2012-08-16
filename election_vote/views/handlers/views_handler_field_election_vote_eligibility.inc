@@ -25,7 +25,7 @@ class views_handler_field_election_vote_eligibility extends views_handler_field 
    */
   public function render($values) {
     $post = election_post_load($this->get_value($values, 'post_id'));
-    return _election_vote_format_eligibility($post);
+    return theme('election_vote_eligibility', array('post' => $post));
   }
 
 }
