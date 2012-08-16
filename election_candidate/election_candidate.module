@@ -915,3 +915,27 @@ function _election_candidate_get_bundles() {
   }
   return $bundles;
 }
+
+/**
+ * Implements hook_action_info().
+ */
+function election_candidate_action_info() {
+  return array(
+    'election_candidate_approve_action' => array(
+      'type' => 'election_candidate',
+      'label' => t('Approve candidate'),
+      'configurable' => FALSE,
+      'behavior' => array('changes_property'),
+      'triggers' => array('election_candidate_presave'),
+    ),
+  );
+}
+
+/**
+ * Sets the status of a candidate to ELECTION_CANDIDATE_APPROVED.
+ *
+ * @ingroup actions
+ */
+function election_candidate_approve_action($candidate, $context = array()) {
+  $candidate->cstatus = ELECTION_CANDIDATE_APPROVED;
+}
