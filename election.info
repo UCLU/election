@@ -5,7 +5,6 @@ core = 7.x
 dependencies[] = entity
 dependencies[] = views
 dependencies[] = date
-dependencies[] = date_popup
 recommends[] = pathauto
 recommends[] = rules
 configure = admin/config/election

@@ -2,9 +2,6 @@
 /**
  * @file
  * Administration page callbacks for the Election module.
- *
- * @todo
- * Theming and Views
  */
 
 /**
@@ -192,11 +189,10 @@ function election_form($form, &$form_state, stdClass $election) {
   );
 
   $date_format = variable_get('date_format_short', 'Y-m-d H:i');
-  $date_widget = 'textfield';
   if (module_exists('date_popup')) {
     $date_widget = 'date_popup';
   }
-  elseif (module_exists('date')) {
+  else {
     $date_widget = 'date_text';
   }
 
@@ -322,8 +318,6 @@ function election_form($form, &$form_state, stdClass $election) {
 
 /**
  * Form validate function for the form election_form.
- *
- * @todo allow other widgets not depending on Date module.
  */
 function election_form_validate($form, &$form_state) {
 
