@@ -58,7 +58,6 @@ function election_post_tokens($type, array $tokens, array $data = array(), array
           break;
 
         case 'election':
-          $election = $post->election;
           $replacements[$original] = $sanitize ? check_plain($election->title) : $election->title;
           break;
 

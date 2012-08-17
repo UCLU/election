@@ -23,7 +23,7 @@ function election_vote_default_rules_configuration() {
       { "mail" : {
           "to" : "[account:name] \u003C[account:mail]\u003E",
           "subject" : "Thank you for voting",
-          "message" : "You successfully cast a vote, using the system at: [site:url]\r\n\r\n    Election: [election:title]\r\n    Post: [post:title]\r\n\r\n(for security reasons further details are not displayed)\r\n\r\nIf you have any queries relating to this information, please contact us.",
+          "message" : "You successfully cast a vote, using the system at: [site:url]\r\n\r\n    [election:type:name-ucfirst]: [election:title]\r\n    [election:type:post-name-ucfirst]: [post:title]\r\n    Time of vote: [site:current-date:long]\r\n\r\n(for security reasons further details are not displayed)\r\n\r\nIf you have any queries relating to this information, please contact us.",
           "language" : [ "" ]
         }
       }

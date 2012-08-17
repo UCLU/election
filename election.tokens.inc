@@ -17,6 +17,11 @@ function election_token_info() {
       'description' => t('Tokens related to elections.'),
       'needs-data' => 'election',
     ),
+    'election_type' => array(
+      'name' => t('Election types'),
+      'description' => t('Tokens related to election types.'),
+      'needs-data' => 'election_type_mn',
+    ),
   );
   $info['tokens'] = array(
     'election' => array(
@@ -26,11 +31,7 @@ function election_token_info() {
       ),
       'type' => array(
         'name' => t('Election type'),
-        'description' => t('The machine-readable name of the election type.'),
-      ),
-      'type_name' => array(
-        'name' => t('Election type name'),
-        'description' => t('The human-readable name of the election type.'),
+        'description' => t('The type of the election.'),
       ),
       'title' => array(
         'name' => t('Title'),
@@ -40,6 +41,28 @@ function election_token_info() {
         'name' => t('Date created'),
         'description' => t('The date the election was created.'),
         'type' => 'date',
+      ),
+    ),
+    'election_type' => array(
+      'name' => array(
+        'name' => t('Name'),
+        'description' => t('The human-readable name of the election type.'),
+      ),
+      'name-ucfirst' => array(
+        'name' => t('Post name (ucfirst)'),
+        'description' => t('The election type name run through drupal_ucfirst().'),
+      ),
+      'machine-name' => array(
+        'name' => t('Machine name'),
+        'description' => t('The machine name of the election type.'),
+      ),
+      'post-name' => array(
+        'name' => t('Post name'),
+        'description' => t('The human-readable name of the election type\'s posts.'),
+      ),
+      'post-name-ucfirst' => array(
+        'name' => t('Post name (ucfirst)'),
+        'description' => t('The post name run through drupal_ucfirst().'),
       ),
     ),
   );
@@ -64,18 +87,45 @@ function election_tokens($type, array $tokens, array $data = array(), array $opt
           $replacements[$original] = $sanitize ? check_plain($election->type) : $election->type;
           break;
 
-        case 'type_name':
-          $type = _election_type_get_info($election->type);
-          $type_name = $type['name'];
-          $replacements[$original] = $sanitize ? check_plain($type_name) : $type_name;
-          break;
-
         case 'title':
           $replacements[$original] = $sanitize ? check_plain($election->title) : $election->title;
           break;
 
         case 'created':
           $replacements[$original] = format_date($election->created, 'medium');
+          break;
+
+      }
+    }
+    if ($election_tokens = token_find_with_prefix($tokens, 'type')) {
+      $replacements += token_generate('election_type', $election_tokens, array('election_type_mn' => $election->type), $options);
+    }
+  }
+  elseif ($type == 'election_type' && !empty($data['election_type_mn'])) {
+    $type_machine_name = $data['election_type_mn'];
+    $type = _election_type_get_info($type_machine_name);
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+        case 'name':
+          $replacements[$original] = $sanitize ? check_plain($type['name']) : $type['name'];
+          break;
+
+        case 'name-ucfirst':
+          $replacements[$original] = $sanitize ? check_plain(drupal_ucfirst($type['name'])) : drupal_ucfirst($type['name']);
+          break;
+
+        case 'machine-name':
+          $replacements[$original] = $sanitize ? check_plain($type_machine_name) : $type_machine_name;
+          break;
+
+        case 'post-name':
+          $post_name = election_get_post_name($type_machine_name);
+          $replacements[$original] = $sanitize ? check_plain($post_name) : $post_name;
+          break;
+
+        case 'post-name-ucfirst':
+          $post_name = election_get_post_name($type_machine_name);
+          $replacements[$original] = $sanitize ? check_plain(drupal_ucfirst($post_name)) : drupal_ucfirst($post_name);
           break;
 
       }
