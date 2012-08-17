@@ -9,7 +9,11 @@
     attach: function (context, settings) {
 
       $('form', context).submit(function () {
-        $(this).find(':submit').attr('disabled', 'disabled');
+
+        $(this).find(':submit').click(function () {
+          return false;
+        });
+
       });
 
     }
