@@ -62,7 +62,7 @@ function election_post_pathauto_bulk_update_batch_process(&$context) {
   }
   $query->range(0, 25);
   $ids = $query->execute()->fetchCol();
-  pathauto_election_post_update_alias_multiple($ids, 'bulkupdate');
+  _election_post_pathauto_update_alias_multiple($ids, 'bulkupdate');
   $context['sandbox']['count'] += count($ids);
   $context['sandbox']['current'] = max($ids);
   $context['message'] = t('Updated alias for election post @id.', array('@id' => end($ids)));
