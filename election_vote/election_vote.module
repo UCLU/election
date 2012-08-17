@@ -183,7 +183,8 @@ function election_vote_form($form, &$form_state, stdClass $post) {
     );
   }
 
-  $form['#attached']['js'][] = drupal_get_path('module', 'election') . '/submit-single.min.js';
+  // Removed because it appears to prevent abstention.
+  //$form['#attached']['js'][] = drupal_get_path('module', 'election') . '/submit-single.min.js';
 
   $form['#validate'][] = 'election_vote_form_validate';
 
