@@ -44,21 +44,21 @@ function election_token_info() {
       ),
     ),
     'election_type' => array(
+      'machine-name' => array(
+        'name' => t('Machine name'),
+        'description' => t('The machine name of the election type (default).'),
+      ),
       'name' => array(
         'name' => t('Name'),
         'description' => t('The human-readable name of the election type.'),
       ),
       'name-ucfirst' => array(
-        'name' => t('Post name (ucfirst)'),
+        'name' => t('Name (ucfirst)'),
         'description' => t('The election type name run through drupal_ucfirst().'),
-      ),
-      'machine-name' => array(
-        'name' => t('Machine name'),
-        'description' => t('The machine name of the election type.'),
       ),
       'post-name' => array(
         'name' => t('Post name'),
-        'description' => t('The human-readable name of the election type\'s posts.'),
+        'description' => t('The human-readable post name for the election type.'),
       ),
       'post-name-ucfirst' => array(
         'name' => t('Post name (ucfirst)'),
