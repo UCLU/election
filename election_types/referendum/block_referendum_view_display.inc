@@ -1,9 +1,11 @@
 <?php
 /**
  * @file
- * File containing settings to alter the 'election_posts' default View, provided by the Election Post module.
+ * Referendum-specific alterations to the 'election_posts' default View (provided by the Election Post module).
  *
- * The original default View is passed to this file as the object $view.
+ * This is part of an implementation of hook_views_default_views_alter().
+ *
+ * @see election_referendum_views_default_views_alter()
  */
 
 /* Display: Referendum motions */

@@ -1,9 +1,11 @@
 <?php
 /**
  * @file
- * File containing settings to alter the 'election_posts' default View, provided by the Election Post module.
+ * STV-specific alterations to the 'election_posts' default View (provided by the Election Post module).
  *
- * The original default View is passed to this file as the object $view.
+ * This is part of an implementation of hook_views_default_views_alter().
+ *
+ * @see election_stv_views_default_views_alter()
  */
 
 /* Display: STV election positions */
