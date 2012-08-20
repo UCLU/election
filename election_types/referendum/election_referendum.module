@@ -92,8 +92,8 @@ function election_referendum_count_page(stdClass $post, $totals) {
   )->fetch();
 
   $header = array(
-    t('Yes'),
-    t('No'),
+    check_plain(_election_referendum_get_answer_text($post, ELECTION_ANSWER_YES)),
+    check_plain(_election_referendum_get_answer_text($post, ELECTION_ANSWER_NO)),
   );
 
   $percentage_yes = $totals->votes == 0? 0 : ($votes->yes / $totals->votes) * 100;
