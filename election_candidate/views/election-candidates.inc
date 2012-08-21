@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * View listing the candidates standing in an election, per election or per post.
+ * View listing candidates standing in an election, per election or per post.
  */
 
 $view = new view;

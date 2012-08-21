@@ -225,7 +225,7 @@ function election_vote_form_vote_confirm($form, &$form_state) {
 
   $form['#attached']['js'][] = drupal_get_path('module', 'election') . '/submit-single.min.js';
 
-  // confirm_form() ignores its third argument ($path) if $_GET['destination'] is set.
+  // confirm_form() ignores its third argument when $_GET['destination'] is set.
   unset($_GET['destination']);
 
   return confirm_form(
@@ -253,7 +253,7 @@ function election_vote_form_abstain_confirm($form, &$form_state) {
 
   $form['#attached']['js'][] = drupal_get_path('module', 'election') . '/submit-single.min.js';
 
-  // confirm_form() ignores its third argument ($path) if $_GET['destination'] is set.
+  // confirm_form() ignores its third argument when $_GET['destination'] is set.
   unset($_GET['destination']);
 
   return confirm_form($form, t('Are you sure you want to abstain?'), current_path());
@@ -320,7 +320,7 @@ function election_vote_form_abstain($form, &$form_state) {
 
   if ($success) {
 
-    // On abstaining, save a session variable to prevent duplicate form submissions.
+    // Save a session variable to prevent duplicate form submissions.
     $_SESSION['election_vote_cast_' . $post->post_id] = TRUE;
 
     $post_name = election_get_post_name($election->type);
@@ -401,7 +401,7 @@ function election_vote_form_vote($form, &$form_state) {
 
   if ($success) {
 
-    // On voting, save a session variable to prevent duplicate form submissions.
+    // Save a session variable to prevent duplicate form submissions.
     $_SESSION['election_vote_cast_' . $post->post_id] = TRUE;
 
     // Display a success message to the user.
@@ -446,7 +446,9 @@ function election_vote_check_account_previously_voted($post, $account = NULL) {
   }
   $account_is_user = ($account->uid == $user->uid);
 
-  // For anonymous users (who should rarely be allowed to vote), try checking on session hash.
+  // For anonymous users, check the session ID.
+  // Of course this is not a 100% reliable identifier of a user.
+  // The session ID is hashed, to improve anonymity.
   if ($account_is_user && !user_is_logged_in()) {
     $result = db_query_range('SELECT ballot_id FROM {election_ballot} WHERE (sid_hash = :sh OR (ip = :ip AND agent = :agent)) AND post_id = :pid', 0, 1, array(
       ':sh' => _election_vote_session_hash(),
@@ -497,7 +499,10 @@ function election_vote_html_head_alter(&$head_elements) {
 }
 
 /**
- * Check whether a post has approved candidates (e.g. to see whether voting is possible).
+ * Check whether a post has approved candidates.
+ *
+ * A post needs to have at least 2 approved candidates (inc. RON) in order for
+ * voting to be possible. Otherwise the candidate is unopposed.
  *
  * @return bool
  *   TRUE if:

@@ -5,9 +5,7 @@
  */
 
 /**
- * Field handler to provide simple renderer that allows linking to a election post.
- * Definition terms:
- * - link_to_post default: Should this field have the checkbox "link to post" enabled by default.
+ * Field handler simply to allow linking to a election post.
  */
 class views_handler_field_election_post extends views_handler_field {
 

@@ -35,8 +35,6 @@ function election_page_edit($election) {
 
 /**
  * Form builder function for the main administrative election list.
- *
- * See http://api.drupal.org/api/drupal/includes--form.inc/group/form_api/7.
  */
 function election_list_form($form, &$form_state) {
 
@@ -171,8 +169,6 @@ function election_page_add($type_machine_name) {
 
 /**
  * Form builder function for adding or editing an election.
- *
- * See http://api.drupal.org/api/drupal/includes--form.inc/group/form_api/7.
  */
 function election_form($form, &$form_state, stdClass $election) {
 
@@ -357,7 +353,7 @@ function election_form_validate($form, &$form_state) {
     if ($nstatus == ELECTION_STATUS_OPEN && $vstatus == ELECTION_STATUS_OPEN) {
       form_set_error('vstatus', t('Voting should not be open at the same time as nominations.'));
     }
-    // Check that the opening and closing times are set if nominations are scheduled.
+    // Check that the opening and closing times are set, if relevant.
     elseif ($nstatus == ELECTION_STATUS_SCHEDULED
         && (empty($nopen_time) || empty($nclose_time))) {
       form_set_error('nschedule', t('You must set the opening and closing times when the nominations status is Scheduled.'));
@@ -434,7 +430,7 @@ function election_form_delete_submit($form, &$form_state) {
 /**
  * Form builder function to confirm the delete action for an election.
  *
- * See http://api.drupal.org/api/drupal/modules--system--system.module/function/confirm_form.
+ * @see confirm_form()
  */
 function election_form_delete_confirm($form, &$form_state, stdClass $election) {
 
@@ -459,7 +455,7 @@ function election_form_delete_confirm($form, &$form_state, stdClass $election) {
 }
 
 /**
- * Form submit function for the Delete button in the form election_form_delete_confirm.
+ * Submit callback, called after confirming delete for an election.
  */
 function election_form_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {

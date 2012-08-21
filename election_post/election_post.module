@@ -227,10 +227,12 @@ function election_post_access($op, $post = NULL, $account = NULL) {
     case 'update':
     case 'edit':
     case 'delete':
-      // Creating, editing or deleting a post has the same access as editing an election.
+      // These actions are denied while voting is open for this post.
+      // Use the 'bypass running election lock' permission to allow them again.
       if ($post && isset($post->vstatus_inheritance) && _election_post_is_open($post, $election, 'v')) {
         return user_access('bypass running election lock');
       }
+      // All these actions on posts have the same access as editing elections.
       return election_access('edit', $election, $account);
       break;
 
@@ -423,7 +425,9 @@ function election_post_list_page_title($election) {
 }
 
 /**
- * Title callback for election/%election/add-post and election/%election/posts/manage/add.
+ * Title callback for adding an election post.
+ *
+ * Paths: election/%election/add-post and election/%election/posts/manage/add.
  *
  * Output should not be escaped here as it is done by the menu system.
  */

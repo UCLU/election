@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Contains a field handler for displaying the user's eligibility to vote for a specified election_post.
+ * Views field handler for displaying the current user's eligibility to vote.
  */
 
 class views_handler_field_election_vote_eligibility extends views_handler_field {

@@ -1,8 +1,9 @@
 <?php
 /**
  * @file
- * Field handler to present a link to manage an election's posts. This depends on
- * the election_post module.
+ * Field handler to present a link to manage an election's posts.
+ *
+ * This works with the election_post module.
  */
 
 class views_handler_field_election_link_posts extends views_handler_field_election_link {

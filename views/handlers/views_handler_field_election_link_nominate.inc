@@ -1,8 +1,9 @@
 <?php
 /**
  * @file
- * Field handler to present a link to an election's nomination form. This depends on
- * the election_candidate module.
+ * Field handler to present a link to an election's nomination form.
+ *
+ * This works with the election_candidate module.
  */
 
 class views_handler_field_election_link_nominate extends views_handler_field_election_link {

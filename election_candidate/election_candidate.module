@@ -131,7 +131,7 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
       if (election_access('edit', $election, $account)) {
         return TRUE;
       }
-      // Users who can view the election can also view the candidates (if approved).
+      // Users who can view the election can also view approved candidates.
       if (election_access('view', $election, $account) && (empty($candidate) || $candidate->cstatus == ELECTION_CANDIDATE_APPROVED)) {
         return TRUE;
       }
@@ -146,7 +146,7 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
       break;
 
     case 'view details':
-      // 'Details' include personal contact information. Only editors can view details.
+      // 'Details' include personal contact information. Only editors can view.
       if (election_access('edit', $election, $account)) {
         return TRUE;
       }
@@ -157,7 +157,7 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
       break;
 
   }
-  // Deal with candidates that were nominated by the user (only for authenticated users).
+  // Deal with candidates that belong to the current user.
   $own = ($account->uid != 0 && !empty($candidate) && $candidate->uid == $account->uid);
   if ($own) {
     switch ($op) {
@@ -169,7 +169,6 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
 
       case 'edit':
       case 'update':
-        // Users with the 'edit own nominations' permission may edit their own nominations.
         return (bool) user_access('edit own nominations', $account);
         break;
 
@@ -179,7 +178,7 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
 }
 
 /**
- * Helper function to allow access callbacks to work per election, rather than per candidate.
+ * Helper function to allow determining candidate access per election.
  */
 function election_candidate_access_per_election($op, stdClass $election, $account = NULL) {
   if (empty($account)) {
@@ -475,17 +474,17 @@ function election_candidate_delete($candidate_id) {
 
 
 /**
- * Find the nominations (election_candidate entities) for a specified election and user.
+ * Find the nominations (election_candidate entities) for a specified account.
  *
  * @param stdClass $election
  *   Election object.
  * @param stdClass $account
- *   Optional $user object.
+ *   Optional user account object (default: current user).
  *
  * @return mixed
- *   FALSE if the account is anonymous, or a SelectQuery object.
+ *   A SelectQuery object. Empty array if the $account is anonymous.
  */
-function election_candidate_get_user_nominations(stdClass $election, $account = NULL) {
+function election_candidate_get_nominations(stdClass $election, $account = NULL) {
   if (!$account) {
     global $user;
     $account = $user;
@@ -522,7 +521,7 @@ function election_candidate_get_available_posts(stdClass $election, $nominations
     $account = $user;
   }
   if ($nominations === NULL) {
-    $nominations = election_candidate_get_user_nominations($election, $account);
+    $nominations = election_candidate_get_nominations($election, $account);
   }
   $has_exclusive = FALSE;
   $prev_post_ids = array();
@@ -568,7 +567,7 @@ function election_candidate_uri_path($candidate) {
 }
 
 /**
- * Entity label callback for an election_candidate, returning the candidate's name.
+ * Entity label callback for an election_candidate.
  */
 function election_candidate_label(stdClass $entity, $entity_type) {
   return $entity->first_name . ' ' . $entity->last_name;
@@ -635,7 +634,7 @@ function election_candidate_theme() {
 }
 
 /**
- * Internal function to format the status field of an election candidate for display.
+ * Format the 'cstatus' property of an election_candidate for display.
  */
 function _election_candidate_format_status(stdClass $candidate) {
   switch ($candidate->cstatus) {
@@ -689,7 +688,7 @@ function election_candidate_entity_delete($entity, $type) {
       field_attach_delete_bundle('election_candidate', $election_id);
       break;
 
-    // Clear the post_id property of associated candidates when a post is deleted.
+    // Clear the post_id property of candidates when their post is deleted.
     case 'election_post':
       $update = db_update('election_candidate')
         ->fields(array('post_id' => NULL))
@@ -719,8 +718,8 @@ function election_candidate_entity_insert($entity, $type) {
       break;
 
     case 'election':
-      // Clear the entity info cache, because creating an election also creates candidate bundles.
-      // @todo review for performance.
+      // Clear the entity info cache.
+      // Needed because creating an election also creates candidate bundles.
       entity_info_cache_clear();
       break;
 
@@ -745,7 +744,7 @@ function election_candidate_file_download_access($field, $entity_type, $entity) 
  * @param stdClass $candidate
  *   An election candidate object.
  * @param string $op
- *   Operation being performed on the candidate ('insert', 'update' or 'bulkupdate').
+ *   Operation being performed ('insert', 'update' or 'bulkupdate').
  * @param array $options
  *   An optional array of additional options.
  */
@@ -816,14 +815,15 @@ function election_candidate_views_default_views() {
 }
 
 /**
- * Load candidates who are standing for the given post, and (optionally) who have the given statuses.
+ * Load candidates who are standing for the given post.
  *
  * @param stdClass $post
  *   An election post object.
  * @param array $statuses
  *   An array of candidate statuses, by which to filter results (optional).
  * @param string $order_by
- *   A database column to order candidates by. Default is random (MySQL RAND()). Set FALSE for no ordering.
+ *   A database column to order candidates by. Default is random (MySQL RAND()).
+ *   Set FALSE for no ordering.
  *
  * @return array
  *   An array of candidate objects keyed by candidate ID.
@@ -844,10 +844,10 @@ function election_candidate_load_by_post(stdClass $post, array $statuses = NULL,
 }
 
 /**
- * Count the candidates for a given post, who (optionally) have the given statuses.
+ * Count the candidates for a given post.
  *
  * @param string $by
- *   The entity type to filter candidates by (either 'election' or 'election_post').
+ *   The entity type to filter candidates by ('election' or 'election_post').
  * @param stdClass $entity
  *   Either an election object or an election post object.
  * @param array $statuses

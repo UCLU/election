@@ -12,7 +12,7 @@
 class ElectionDefaultController extends EntityAPIControllerExportable {
 
   /**
-   * Overrides EntityAPIController::save(), dealing with timestamp fields properly.
+   * Overrides EntityAPIController::save().
    */
   public function save($entity, DatabaseTransaction $transaction = NULL) {
 

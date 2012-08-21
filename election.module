@@ -83,8 +83,6 @@ function election_types() {
 
 /**
  * Implements entity_uri(). URI callback for a single election.
- *
- * See: http://api.drupal.org/api/drupal/includes--common.inc/function/entity_uri/7.
  */
 function election_uri($election) {
   $path = 'election/' . $election->election_id;
@@ -203,8 +201,8 @@ function election_permission() {
  *   The operation being performed. One of 'view', 'update', 'create', 'delete'
  *   or just 'edit' (being the same as 'create' or 'update').
  * @param stdClass $election
- *   Optionally an election or an election type to check access for. If nothing is
- *   given, access for all elections is determined.
+ *   Optionally an election or an election type to check access for. By default,
+ *   access for all elections is determined.
  * @param stdClass $account
  *   The user to check for. Leave it to NULL to check for the global user.
  *
@@ -216,7 +214,7 @@ function election_access($op, $election = NULL, $account = NULL) {
   if (empty($account)) {
     $account = $GLOBALS['user'];
   }
-  // If checking a specific election, find out whether it belongs to the $account.
+  // If checking a specific election, find out whether it belongs to $account.
   $election_belongs_to_account = ($election && $election->uid == $account->uid);
   switch ($op) {
     case 'view':
@@ -225,11 +223,11 @@ function election_access($op, $election = NULL, $account = NULL) {
         return TRUE;
       }
       elseif (empty($election) || empty($election->published)) {
-        // If the election is unpublished, limit viewing to those with edit access.
+        // If the election is unpublished, limit viewing to editors.
         return election_access('edit', $election, $account);
       }
       elseif (user_access('view published elections', $account)) {
-        // Otherwise, allow viewing to anyone with the permission 'view published elections'.
+        // Otherwise, allow viewing to those who can 'view published elections'.
         return TRUE;
       }
       break;
@@ -250,7 +248,8 @@ function election_access($op, $election = NULL, $account = NULL) {
 
     case 'delete':
       if ($election && isset($election->vstatus) && _election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time) && !user_access('bypass running election lock')) {
-        // Deny deleting running elections, unless the account has the permission 'bypass running election lock'.
+        // Deny deleting running elections.
+        // Use the permission 'bypass running election lock' to bypass this.
         return FALSE;
       }
       elseif ($election_belongs_to_account && user_access('delete own elections', $account)) {
@@ -554,10 +553,10 @@ function election_view(stdClass $election, $view_mode = 'full') {
     '#view_mode' => $view_mode,
   );
 
-  // Add contextual links for this election, except when the election is already being
-  // displayed on its own page. Modules may alter this behavior (for example,
-  // to restrict contextual links to certain view modes) by implementing
-  // hook_election_view_alter().
+  // Add contextual links for this election, except when the election is already
+  // being displayed on its own page. Modules may alter this behavior (for
+  // example, to restrict contextual links to certain view modes) by
+  // implementing hook_election_view_alter().
   if (!empty($election->election_id) && $view_mode != 'full') {
     $build['#contextual_links']['election'] = array('election', array($election->election_id));
   }
@@ -581,13 +580,13 @@ function election_view(stdClass $election, $view_mode = 'full') {
  *   Whether to return a plural name (e.g. 'motions' or 'positions').
  */
 function election_get_post_name($type_machine_name, $plural = FALSE) {
-  $name = $plural? 'posts' : 'post';
+  $name = $plural ? 'posts' : 'post';
   if ($type = _election_type_get_info($type_machine_name)) {
     if (!empty($type['post name'])) {
       $name = $type['post name'];
     }
     if ($plural) {
-      $name = !empty($type['post name plural'])? $type['post name plural'] : $name . 's';
+      $name = !empty($type['post name plural']) ? $type['post name plural'] : $name . 's';
     }
   }
   return $name;
@@ -627,7 +626,7 @@ function _election_is_open($status, $open_time, $close_time) {
  *   An election object (optional).
  *
  * @return array
- *   An array of breadcrumb parts that can be provided to drupal_set_breadcrumb().
+ *   An array of breadcrumb parts to be provided to drupal_set_breadcrumb().
  */
 function _election_build_breadcrumb(stdClass $election = NULL) {
   $args = func_get_args();
@@ -738,7 +737,7 @@ function election_menu_position_rule_plugins() {
  * @param stdClass $election
  *   A election object.
  * @param string $op
- *   Operation being performed on the election ('insert', 'update' or 'bulkupdate').
+ *   Operation being performed ('insert', 'update' or 'bulkupdate').
  * @param array $options
  *   An optional array of additional options.
  *

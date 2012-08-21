@@ -87,7 +87,7 @@ function election_candidate_details_page_view(stdClass $candidate) {
  * @param stdClass $election
  *   An election object.
  * @param array $previous_nominations
- *   An array of candidate objects, representing the user's previous nominations.
+ *   An array of candidate objects representing the user's previous nominations.
  */
 function election_candidate_display_previous_nominations(stdClass $election, array $previous_nominations) {
   if (empty($previous_nominations)) {
@@ -138,7 +138,7 @@ function election_page_nomination_form(stdClass $election) {
     );
   }
 
-  $previous_nominations = (array) election_candidate_get_user_nominations($election);
+  $previous_nominations = (array) election_candidate_get_nominations($election);
 
   $available_post_ids = (array) election_candidate_get_available_posts($election, $previous_nominations);
 
@@ -430,10 +430,8 @@ function election_candidate_view($candidate, $election = NULL, $view_mode = 'ful
     '#view_mode' => $view_mode,
   );
 
-  // Add contextual links for this election, except when the election is already being
-  // displayed on its own page. Modules may alter this behavior (for example,
-  // to restrict contextual links to certain view modes) by implementing
-  // hook_election_candidate_view_alter().
+  // Add contextual links for this candidate, except when the candidate is
+  // already being displayed on its own page.
   if (!empty($candidate->candidate_id) && $view_mode != 'full') {
     $build['#contextual_links']['election_candidate'] = array('election_candidate', array($candidate->candidate_id));
   }
@@ -588,7 +586,7 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
 }
 
 /**
- * Form submit function for the Save button in the form election_candidate_edit_form().
+ * Form submit function for the Save button in election_candidate_edit_form.
  */
 function election_candidate_edit_form_submit($form, &$form_state) {
 
@@ -637,7 +635,7 @@ function election_candidate_edit_form_submit($form, &$form_state) {
 }
 
 /**
- * Form submit function for the Delete button in the form election_candidate_edit_form.
+ * Form submit function for the Delete button in election_candidate_edit_form.
  */
 function election_candidate_edit_form_delete_submit($form, &$form_state) {
   $destination = array();
@@ -654,8 +652,6 @@ function election_candidate_edit_form_delete_submit($form, &$form_state) {
 
 /**
  * Form builder function to confirm the delete action for a candidate.
- *
- * See http://api.drupal.org/api/drupal/modules--system--system.module/function/confirm_form.
  */
 function election_candidate_edit_form_delete_confirm($form, &$form_state, stdClass $candidate) {
 
@@ -681,7 +677,7 @@ function election_candidate_edit_form_delete_confirm($form, &$form_state, stdCla
 }
 
 /**
- * Form submit function for the Delete button in the form election_candidate_edit_form_delete_confirm.
+ * Form submit function for confirming delete for an election candidate.
  */
 function election_candidate_edit_form_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {

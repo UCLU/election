@@ -102,9 +102,7 @@ function election_vote_schema() {
   );
 
   $schema['election_ballot'] = array(
-    'description' => 'The ballots table for the election module. This'
-                  . ' records the act of voting, but not the voting'
-                  . ' preferences (see the {election_vote} table).',
+    'description' => 'The ballots table for the election module. This records the act of voting, but the voting preferences themselves are in the table {election_vote}.',
     'fields' => array(
       'ballot_id' => array(
         'description' => 'Primary key: identifier for a ballot.',

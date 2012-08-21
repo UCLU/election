@@ -5,9 +5,7 @@
  */
 
 /**
- * Field handler to provide simple renderer that allows linking to a election.
- * Definition terms:
- * - link_to_election default: Should this field have the checkbox "link to election" enabled by default.
+ * Field handler simply to allow linking to a election.
  */
 class views_handler_field_election extends views_handler_field {
 
@@ -31,7 +29,7 @@ class views_handler_field_election extends views_handler_field {
   }
 
   /**
-   * Provide link to election option
+   * Provide 'Link this field to the election' option.
    */
   public function options_form(&$form, &$form_state) {
     $form['link_to_election'] = array(

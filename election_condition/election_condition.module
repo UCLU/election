@@ -32,7 +32,8 @@ function election_condition_conditions($post = NULL) {
       }
     }
     else {
-      // @todo this is envisioned to allow conditions to be configured dynamically.
+
+      // This is envisioned to allow conditions to be configured dynamically.
       // @todo look into ctools exportables.
       $condition['callbacks'] = (array) unserialize($condition['callbacks']);
     }
@@ -48,8 +49,9 @@ function election_condition_conditions($post = NULL) {
  *
  * This returns a structured array, keyed by each condition's machine name. Each
  * element is also a structured array defining at least 'name' and 'callbacks'.
+ *
  * The element keyed by 'callbacks' is an array of function names, for functions
- * that each take one argument (the Drupal $user object) and return TRUE or FALSE.
+ * that each take one argument (an $account object) and return TRUE or FALSE.
  *
  * This function uses hook_election_condition_info() to allow other modules to
  * define conditions.
@@ -68,7 +70,8 @@ function _election_condition_get_code_conditions() {
  */
 function election_condition_modules_enabled($modules = array()) {
   // If any of the enabled modules contains an implementation of
-  // hook_election_condition_info, run _election_condition_install_code_conditions().
+  // hook_election_condition_info,
+  // run _election_condition_install_code_conditions().
   foreach ($modules as $module) {
     if (function_exists($module . '_election_condition_info')) {
       _election_condition_install_code_conditions();
@@ -83,7 +86,8 @@ function election_condition_modules_enabled($modules = array()) {
  */
 function election_condition_modules_disabled($modules = array()) {
   // If any of the enabled modules contains an implementation of
-  // hook_election_condition_info, run _election_condition_uninstall_code_conditions().
+  // hook_election_condition_info,
+  // run _election_condition_uninstall_code_conditions().
   foreach ($modules as $module) {
     if (function_exists($module . '_election_condition_info')) {
       _election_condition_uninstall_code_conditions();
@@ -253,7 +257,9 @@ function election_condition_form_election_post_form_alter(&$form, &$form_state) 
 }
 
 /**
- * Additional submit callback for the Submit button on the form election_post_form.
+ * Additional callback for the Submit button on the form election_post_form.
+ *
+ * Save the conditions for the post.
  *
  * @see election_post_form()
  */
@@ -322,9 +328,8 @@ function election_condition_election_vote_access($op, $post = NULL, $account = N
         return NULL;
       }
 
-      // If any condition fails, return FALSE.
+      // If any condition does not exist or return TRUE, return FALSE.
       foreach ($conditions as $condition) {
-        // Run each callback function. Each must exist and return TRUE to succeed.
         foreach ($condition->callbacks as $callback) {
           if (!function_exists($callback) || $callback($account) !== TRUE) {
             return FALSE;

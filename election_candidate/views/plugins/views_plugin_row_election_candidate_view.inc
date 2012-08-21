@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Row style plugin for running election_candidate_view() on a candidate in a View.
+ * Views row style plugin for running election_candidate_view() on a candidate.
  */
 
 /**

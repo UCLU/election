@@ -98,7 +98,7 @@ function election_stv_post_settings_form($form, &$form_state, stdClass $post, st
     '#description' => t('Used (rarely) in STV elections, this allows the voter to select more than one candidate as the same preference.'),
   );
 
-  // @todo Implement an election-level settings form, to allow RON in multi-vacancy positions.
+  // @todo Implement a settings form for this variable.
   if (!variable_get('election_allow_multi_vacancy_ron', TRUE)) {
     $form['use_ron']['#states'] = array(
       'visible' => array(
@@ -505,10 +505,12 @@ function election_stv_vote_form($form, &$form_state, $post, $election) {
     $form['#attributes']['class'][] = 'allow-equal';
   }
 
-  // For each candidate the user should be able to select a 'No preference' option instead of a rank.
+  // Add a 'No preference' option which means the candidate would not be ranked.
   $rank_options['NONE'] = t('No preference');
 
-  // Find all the other possible preference levels (number of (candidates + ron)).
+  // Find all the other possible rank options.
+  // This provides n levels (n = number of (candidates + ron)) described as
+  // ordinals (e.g. First, Second, Third).
   $pref_limit = $num_candidates;
   if ($post->settings['use_ron']) {
     $pref_limit++;
@@ -664,7 +666,7 @@ function election_stv_vote_form_validate($form, &$form_state) {
     }
   }
 
-  // Save all this to $form_state so it can be used when confirming/saving votes.
+  // Save this to $form_state so it can be used when confirming/saving votes.
   $form_state['candidate_rankings'] = $candidate_rankings;
   $form_state['original_rankings'] = $original_rankings;
   $form_state['rank_changes'] = $rank_changes;

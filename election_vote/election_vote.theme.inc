@@ -19,7 +19,7 @@ function theme_election_vote_confirm($variables) {
 }
 
 /**
- * Add the default mesage "This action cannot be undone" on the vote confirm form.
+ * Add the default message "This action cannot be undone" on the confirm form.
  */
 function template_preprocess_election_vote_confirm(&$variables) {
 
@@ -114,9 +114,9 @@ function theme_election_vote_eligibility($variables) {
   // The account is eligible. Check whether the user has already voted.
   if (election_vote_check_account_previously_voted($post, $account)) {
     if ($post->allow_abstention) {
-      return $account_is_user? t('You have already voted or abstained.') : t('Already voted or abstained');
+      return $account_is_user ? t('You have already voted or abstained.') : t('Already voted or abstained');
     }
-    return $account_is_user? t('You have already voted.') : t('Already voted');
+    return $account_is_user ? t('You have already voted.') : t('Already voted');
   }
 
   // The user may vote. Provide a link to the voting form.

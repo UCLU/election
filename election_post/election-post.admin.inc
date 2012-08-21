@@ -130,7 +130,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
 
   $form['#validate'][] = 'election_post_form_validate';
 
-  // Modify the form with the function $type['post settings form'], if it exists.
+  // Modify the form with the function $type['post settings form'], if set.
   $type = $election->type_info;
   if (!empty($type['post settings form']) && function_exists($type['post settings form'])) {
     $settings_form_function = $type['post settings form'];
@@ -216,7 +216,7 @@ function election_post_form_submit($form, &$form_state) {
 /**
  * Form builder function to confirm the delete action for an election post.
  *
- * See http://api.drupal.org/api/drupal/modules--system--system.module/function/confirm_form.
+ * @see confirm_form()
  */
 function election_post_form_delete_confirm($form, &$form_state, stdClass $post) {
 
@@ -252,7 +252,7 @@ function election_post_form_delete_confirm($form, &$form_state, stdClass $post) 
 }
 
 /**
- * Form submit function for the Delete button in the form election_post_form_delete_confirm.
+ * Submit function, called after confirming delete for a post.
  */
 function election_post_form_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {
@@ -291,7 +291,7 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
 }
 
 /**
- * Form builder function for the administrative list of election posts at election/%election/posts/manage.
+ * Form builder function for the administrative list of election posts.
  */
 function election_post_manage_form($form, &$form_state, stdClass $election) {
 
@@ -378,7 +378,9 @@ function election_post_manage_form($form, &$form_state, stdClass $election) {
 
 
 /**
- * Page callback for editing an election post, at election-post/%election_post/edit.
+ * Page callback for editing an election post.
+ *
+ * Path: election-post/%election_post/edit.
  */
 function election_post_page_edit($post) {
 
@@ -405,7 +407,9 @@ function election_post_page_edit($post) {
 }
 
 /**
- * Page callback for adding an election post, path: election/%election/posts/add.
+ * Page callback for adding an election post.
+ *
+ * Path: election/%election/posts/add.
  */
 function election_post_page_add($election) {
 

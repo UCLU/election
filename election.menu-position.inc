@@ -37,7 +37,7 @@ function election_menu_position_condition_election($variables) {
  */
 function election_menu_position_rule_election_form(&$form, &$form_state) {
   $variables = array();
-  // If this is an existing rule, load the variables stored in the rule for this plugin.
+
   if (!empty($form_state['#menu-position-rule']['conditions']['election'])) {
     $form_state['#menu-position-rule']['conditions']['election'];
   }
