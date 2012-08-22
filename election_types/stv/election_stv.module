@@ -41,23 +41,9 @@ function election_stv_field_extra_fields_alter(&$info) {
 }
 
 /**
- * Settings form for positions in STV elections.
+ * Implements hook_form_FORM_ID_alter().
  *
- * This adds to the form 'election_post_form'.
- *
- * @see election_post_form()
- *
- * @param array $form
- *   The Drupal Form API form definition.
- * @param array &$form_state
- *   The form state array.
- * @param stdClass $post
- *   An election post object.
- * @param stdClass $election
- *   The election the post belongs to.
- *
- * @return array
- *   Form API render array.
+ * Add STV-specific settings to the election post (position) edit form.
  */
 function election_stv_form_election_post_form_alter(&$form, &$form_state) {
 
