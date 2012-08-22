@@ -15,7 +15,7 @@
  *   TRUE if condition applies successfully. Otherwise FALSE.
  */
 function election_menu_position_condition_election($variables) {
-  $args = explode('/', $_GET['q'], 3);
+  $args = arg();
   if ($args[0] == 'election' && !empty($args[1]) && is_numeric($args[1])) {
     $election = election_load($args[1]);
     $type = $election->type;
