@@ -116,6 +116,17 @@ function election_vote_access($op, stdClass $post, $account = NULL) {
 }
 
 /**
+ * Implements hook_hook_info().
+ */
+function election_vote_hook_info() {
+  return array(
+    'election_vote_access' => array(
+      'group' => 'election',
+    ),
+  );
+}
+
+/**
  * Implements hook_entity_delete().
  */
 function election_vote_entity_delete($entity, $type) {

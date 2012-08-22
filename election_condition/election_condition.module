@@ -59,6 +59,17 @@ function _election_condition_get_code_conditions() {
 }
 
 /**
+ * Implements hook_hook_info().
+ */
+function election_condition_hook_info() {
+  return array(
+    'election_condition_info' => array(
+      'group' => 'election',
+    ),
+  );
+}
+
+/**
  * Implements hook_modules_enabled().
  */
 function election_condition_modules_enabled($modules = array()) {

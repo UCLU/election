@@ -82,6 +82,17 @@ function election_types() {
 }
 
 /**
+ * Implements hook_hook_info().
+ */
+function election_hook_info() {
+  return array(
+    'election_type_info' => array(
+      'group' => 'election',
+    ),
+  );
+}
+
+/**
  * Implements entity_uri(). URI callback for a single election.
  */
 function election_uri($election) {
