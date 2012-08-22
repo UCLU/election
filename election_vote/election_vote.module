@@ -16,8 +16,7 @@ function election_vote_menu() {
     'page arguments' => array('election_vote_form', 1),
     'access callback' => 'election_vote_access',
     'access arguments' => array('vote', 1),
-    'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'type' => MENU_CALLBACK,
     'weight' => 3,
   );
 
@@ -60,6 +59,12 @@ function election_vote_theme() {
       'variables' => array(
         'post' => NULL,
         'account' => NULL,
+      ),
+      'file' => 'election_vote.theme.inc',
+    ),
+    'election_vote_button' => array(
+      'variables' => array(
+        'post' => NULL,
       ),
       'file' => 'election_vote.theme.inc',
     ),
@@ -522,6 +527,16 @@ function election_vote_preprocess_election_post(&$variables) {
 
   $post = $variables['elements']['#post'];
 
-  $variables['eligibility'] = theme('election_vote_eligibility', array('post' => $post));
+  $variables['content']['vote_button'] = array(
+    '#theme' => 'election_vote_button',
+    '#post' => $post,
+    '#weight' => -50,
+  );
+
+  $variables['content']['eligibility'] = array(
+    '#theme' => 'election_vote_eligibility',
+    '#post' => $post,
+    '#weight' => 10,
+  );
 
 }

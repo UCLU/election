@@ -40,3 +40,25 @@
 .election-candidates {
   clear: both;
 }
+
+/* Election vote button */
+.election-vote-button {
+  float: right;
+}
+.election-vote-button a {
+  background-color: #56ff56;
+  border: 1px solid #CCCCCC;
+  border-radius: 5px;
+  color: #222222;
+  font-family: sans-serif;
+  font-size: 1.2em;
+  padding: 0.5em 0.8em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.election-vote-button a:hover,
+.election-vote-button a:active {
+  border-color: #555555;
+  color: #222222;
+  text-decoration: none;
+}

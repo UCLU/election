@@ -130,3 +130,47 @@ function theme_election_vote_eligibility($variables) {
   return t('Eligible');
 
 }
+
+/**
+ * Generate variables for theme_election_vote_button().
+ *
+ * @see theme_election_vote_button()
+ */
+function template_preprocess_election_vote_button(&$variables) {
+
+  $post = $variables['post'];
+
+  $variables['path'] = election_post_uri_path($post) . '/vote';
+  $variables['eligibility'] = theme(
+    'election_vote_eligibility',
+    array('post' => $post)
+  );
+  $variables['can_vote'] = (election_vote_access('vote', $post) && !election_vote_check_account_previously_voted($post));
+
+}
+
+/**
+ * Display a button linking to the voting form.
+ *
+ * Variables:
+ *   $post        - The election post object.
+ *   $can_vote    - A Boolean indicating whether the user may vote.
+ *   $path        - The path to the voting page.
+ *   $eligibility - The current user's voting eligibility.
+ */
+function theme_election_vote_button($variables) {
+
+  $output = '';
+
+  if ($variables['can_vote']) {
+    $output .= '<div class="election-vote-button">';
+    $output .= l(
+      t('Vote'),
+      $variables['path']
+    );
+    $output .= '</div>';
+  }
+
+  return $output;
+
+}
