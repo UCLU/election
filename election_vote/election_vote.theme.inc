@@ -30,13 +30,9 @@ function template_preprocess_election_vote_confirm(&$variables) {
 }
 
 /**
- * Display a user's voting eligibility for a given post.
- *
- * Variables are:
- *   $post     - The election_post entity.
- *   $account  - The user account to check (default: the logged-in user).
+ * Determine the user's eligibility for a given post.
  */
-function theme_election_vote_eligibility($variables) {
+function template_preprocess_election_vote_eligibility(&$variables) {
 
   $account = $variables['account'];
 
@@ -46,6 +42,8 @@ function theme_election_vote_eligibility($variables) {
     $account = $user;
   }
   $account_is_user = ($account->uid == $user->uid);
+
+  $variables['eligibility'] = NULL;
 
   $post = $variables['post'];
   if (empty($post)) {
@@ -57,77 +55,89 @@ function theme_election_vote_eligibility($variables) {
 
   // Check whether the post is closed individually.
   if ($post->vstatus_inheritance == ELECTION_POST_STATUS_CLOSED) {
-    return t('Voting is currently closed for this @post_name.', array('@post_name' => $post_name));
+    $eligibility = t('Voting is currently closed for this @post_name.', array('@post_name' => $post_name));
   }
-
   // Check whether the whole election is closed.
-  if (!_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
-
+  elseif (!_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
     // If scheduled, explain when voting will open (or when it closed).
     if ($election->vstatus == ELECTION_STATUS_SCHEDULED) {
       if ($election->vopen_time > REQUEST_TIME) {
-        return t('Voting will open in %interval.', array(
+        $eligibility = t('Voting will open in %interval.', array(
           '%interval' => format_interval($election->vopen_time - REQUEST_TIME, 2),
         ));
       }
-      if ($election->vclose_time < REQUEST_TIME) {
-        return t('Voting closed %interval ago.', array(
+      elseif ($election->vclose_time < REQUEST_TIME) {
+        $eligibility = t('Voting closed %interval ago.', array(
           '%interval' => format_interval(REQUEST_TIME - $election->vclose_time, 1),
         ));
       }
     }
-
-    return t('Voting is currently closed.');
-
+    else {
+      $eligibility = t('Voting is currently closed.');
+    }
   }
-
   // Check if there are enough candidates to vote for.
-  if (!empty($election->type_info['has candidates']) && !_election_vote_post_has_approved_candidates($post)) {
-    return t('Voting is currently closed (not enough candidates).');
+  elseif (!empty($election->type_info['has candidates']) && !_election_vote_post_has_approved_candidates($post)) {
+    $eligibility = t('Voting is currently closed (not enough candidates).');
   }
-
   // Check voting access.
-  if (!election_vote_access('vote', $post)) {
-
+  elseif (!election_vote_access('vote', $post)) {
     // Access denied. If the user is not logged in, provide a link.
     if ($account_is_user && !user_is_logged_in()) {
-      return t('<a href="@login_uri">Log in</a> to vote.', array(
+      $eligibility = t('<a href="@login_uri">Log in</a> to vote.', array(
           '@login_uri' => url(
             'user/login',
             array('query' => array('destination' => $_GET['q']))
           ),
       ));
     }
-
     // The account is not eligible.
-    if ($account_is_user) {
-      return t(
+    elseif ($account_is_user) {
+      $eligibility = t(
         'You are not eligible to vote for this @post_name.',
         array('@post_name' => $post_name)
       );
+      return;
     }
-
-    return t('Not eligible');
-
+    else {
+      $eligibility = t('Not eligible');
+    }
   }
-
   // The account is eligible. Check whether the user has already voted.
-  if (election_vote_check_account_previously_voted($post, $account)) {
+  elseif (election_vote_check_account_previously_voted($post, $account)) {
     if ($post->allow_abstention) {
-      return $account_is_user ? t('You have already voted or abstained.') : t('Already voted or abstained');
+      $eligibility = $account_is_user ? t('You have already voted or abstained.') : t('Already voted or abstained');
     }
-    return $account_is_user ? t('You have already voted.') : t('Already voted');
+    else {
+      $eligibility = $account_is_user ? t('You have already voted.') : t('Already voted');
+    }
   }
-
   // The user may vote. Provide a link to the voting form.
-  if ($account_is_user) {
-    return t('<a href="@vote_link">You can vote</a> for this @post_name.', array(
+  elseif ($account_is_user) {
+    $eligibility = t('<a href="@vote_link">You can vote</a> for this @post_name.', array(
       '@post_name' => $post_name,
       '@vote_link' => url(election_post_uri_path($post) . '/vote'),
     ));
   }
+  else {
+    $eligibility = t('Eligible');
+  }
 
-  return t('Eligible');
+  $variables['eligibility'] = $eligibility;
+
+}
+
+/**
+ * Display a user's voting eligibility for a given post.
+ *
+ * Variables are:
+ *   $post         - The election_post entity.
+ *   $account      - The user account to check (default: the logged-in user).
+ *   $eligibility  - A string showing the user's eligibility.
+ */
+function theme_election_vote_eligibility($variables) {
+
+  return '<div class="election-vote-eligibility">' . $variables['eligibility'] . '</div>';
 
 }
 

@@ -5,37 +5,67 @@
  */
 
 /**
+ * Determine the election's status, for theme_election_status().
+ */
+function template_preprocess_election_status(&$variables) {
+
+  $election = $variables['election'];
+  $status_prefix = $variables['status_prefix'];
+
+  $status = $election->{$status_prefix . 'status'};
+  $open_time = $election->{$status_prefix . 'open_time'};
+  $close_time = $election->{$status_prefix . 'close_time'};
+
+  $variables['open'] = _election_is_open($status, $open_time, $close_time);
+  $variables['scheduled'] = ($status == ELECTION_STATUS_SCHEDULED);
+
+  $type = (empty($election->type_info)) ? _election_type_get_info($election->type) : $election->type_info;
+  // Nominations aren't relevant to elections that don't have candidates.
+  if ($status_prefix == 'n' && empty($type['has candidates'])) {
+    $variables['status'] = t('N/A');
+  }
+  elseif ($variables['scheduled'] && REQUEST_TIME < $open_time) {
+    $variables['status'] = t('Open from: %date', array('%date' => date('g.ia, j M Y', $open_time)));
+  }
+  elseif ($variables['scheduled'] && REQUEST_TIME < $close_time) {
+    $variables['status'] = t('Scheduled (now open)');
+  }
+  elseif ($variables['open']) {
+    $variables['status'] = t('Open');
+  }
+  else {
+    $variables['status' ] = t('Closed');
+  }
+
+}
+
+/**
  * Display an election's voting or nominating status.
  *
  * Variables:
  *   $election      - An election object.
  *   $status_prefix - Type of status: 'v' = voting (default), 'n' = nominations.
+ *   $status        - A string describing the status (sanitized).
+ *   $open          - A Boolean indicating whether the status is open.
+ *   $scheduled     - A Boolean indicating whether the status is scheduled.
  */
 function theme_election_status($variables) {
-  $election = $variables['election'];
-  $status_prefix = $variables['status_prefix'];
-  $type = (empty($election->type_info)) ? _election_type_get_info($election->type) : $election->type_info;
-  // Nominations aren't relevant to elections that don't have candidates.
-  if ($status_prefix == 'n' && empty($type['has candidates'])) {
-    return t('N/A');
+
+  $classes = array(
+    'election-status-' . ($variables['open'] ? 'open' : 'closed'),
+  );
+
+  if ($variables['scheduled']) {
+    $classes[] = 'election-status-scheduled';
   }
-  $status = $election->{$status_prefix . 'status'};
-  $open_time = $election->{$status_prefix . 'open_time'};
-  $close_time = $election->{$status_prefix . 'close_time'};
-  $open_status = t('<span class="election-status-open">Open</span>');
-  $closed_status = t('<span class="election-status-closed">Closed</span>');
-  if ($status == ELECTION_STATUS_SCHEDULED) {
-    if (REQUEST_TIME < $open_time) {
-      return t('Open from: %date', array('%date' => date('g.ia, j M Y', $open_time)));
-    }
-    if (REQUEST_TIME < $close_time) {
-      return t('Scheduled (now open)');
-    }
-  }
-  if (_election_is_open($status, $open_time, $close_time)) {
-    return $open_status;
-  }
-  return $closed_status;
+
+  return theme('container', array(
+    'element' => array(
+      '#children' => $variables['status'],
+      '#attributes' => array('class' => $classes),
+    ),
+  ));
+
 }
 
 /**
