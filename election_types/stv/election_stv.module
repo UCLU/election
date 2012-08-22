@@ -14,7 +14,6 @@ function election_stv_election_type_info() {
     'description' => t('A Single Transferable Vote election where people can rank candidates in order of preference, for one or more positions.'),
     'post name' => t('position'),
     'has candidates' => TRUE,
-    'post settings form' => 'election_stv_post_settings_form',
     'vote form' => 'election_stv_vote_form',
     'save votes' => 'election_stv_save_votes',
     'results page' => 'election_stv_results_count_page',
@@ -60,7 +59,14 @@ function election_stv_field_extra_fields_alter(&$info) {
  * @return array
  *   Form API render array.
  */
-function election_stv_post_settings_form($form, &$form_state, stdClass $post, stdClass $election) {
+function election_stv_form_election_post_form_alter(&$form, &$form_state) {
+
+  $post = $form_state['post'];
+
+  $election = $form_state['election'];
+  if ($election->type != 'stv') {
+    return;
+  }
 
   $form['settings_exclusive'] = array(
     '#type' => 'checkbox',
@@ -132,17 +138,16 @@ function election_stv_post_settings_form($form, &$form_state, stdClass $post, st
     ),
   );
 
-  $form['#validate'][] = 'election_stv_post_settings_form_validate';
+  $form['#validate'][] = 'election_stv_post_settings_validate';
 
-  return $form;
 }
 
 /**
- * Form validate function for the STV position settings form.
+ * Form validate function for the STV position settings.
  *
- * @see election_post_stv_settings_form()
+ * @see election_stv_form_election_post_form_alter()
  */
-function election_stv_post_settings_form_validate($form, &$form_state) {
+function election_stv_post_settings_validate($form, &$form_state) {
 
   $post = $form_state['post'];
   if ($form_state['values']['settings_use_ron'] == 1 && $form_state['values']['settings_vacancy_count'] > 1 && !variable_get('election_allow_multi_vacancy_ron', TRUE)) {
