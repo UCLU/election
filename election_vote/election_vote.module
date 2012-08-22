@@ -395,7 +395,7 @@ function election_vote_form_vote($form, &$form_state) {
     $type = $election->type_info;
     if (!empty($type['save votes']) && function_exists($type['save votes'])) {
       $function = $type['save votes'];
-      $success = $function($form, $form_state, $post, $election, $ballot_id);
+      $success = $function($form, $form_state, $post, $ballot_id);
     }
 
   }

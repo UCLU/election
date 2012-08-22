@@ -161,10 +161,10 @@ function election_referendum_vote_form_validate($form, &$form_state) {
 /**
  * Save answer to a motion in a referendum.
  */
-function election_referendum_save_votes($form, &$form_state, $post, $election, $ballot_id) {
+function election_referendum_save_votes($form, &$form_state, $post, $ballot_id) {
 
   $vote = array(
-    'election_id' => $election->election_id,
+    'election_id' => $post->election_id,
     'ballot_id' => $ballot_id,
     'post_id' => $post->post_id,
     'answer' => $form_state['answer'],

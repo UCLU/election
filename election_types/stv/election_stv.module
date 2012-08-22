@@ -676,7 +676,7 @@ function election_stv_vote_form_validate($form, &$form_state) {
 /**
  * Save votes for an STV election.
  */
-function election_stv_save_votes($form, &$form_state, $post, $election, $ballot_id) {
+function election_stv_save_votes($form, &$form_state, $post, $ballot_id) {
 
   $candidate_rankings = $form_state['candidate_rankings'];
 
@@ -689,7 +689,7 @@ function election_stv_save_votes($form, &$form_state, $post, $election, $ballot_
 
     $vote_entry = array(
       'ballot_id' => $ballot_id,
-      'election_id' => $election->election_id,
+      'election_id' => $post->election_id,
       'post_id' => $post->post_id,
       'rank' => $candidate_ranking,
     );
