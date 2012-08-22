@@ -10,24 +10,6 @@
     <h2<?php print $title_attributes; ?>><a href="<?php print $election_post_url; ?>"><?php print render($content['title']); ?></a></h2>
   <?php endif; ?>
 
-  <div class="pseudo-field post-election">
-    <span class="label">Election: </span><span class="item"><?php print $election_link; ?></span>
-  </div>
-
-  <?php if ($eligibility): ?>
-    <div class="pseudo-field post-eligibility">
-      <span class="label">Your eligibility: </span><span class="item"><?php print $eligibility; ?></span>
-    </div>
-  <?php endif; ?>
-
-  <?php if ($view_mode == 'full' && isset($settings['vacancy_count'])): ?>
-
-    <div class="pseudo-field vacancy_count">
-      <span class="label">Number of vacancies: </span><span class="item"><?php print $settings['vacancy_count']; ?></span>
-    </div>
-
-  <?php endif; ?>
-
   <div class="content"<?php print $content_attributes; ?>>
     <?php print render($content); ?>
   </div>

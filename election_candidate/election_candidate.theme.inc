@@ -56,6 +56,19 @@ function template_preprocess_election_candidate(&$variables) {
   $variables['full_name'] = t('@first_name @last_name', array('@first_name' => $candidate->first_name, '@last_name' => $candidate->last_name));
 
   $variables += array('content' => array());
+
+  $variables['content']['election'] = array(
+    '#type' => 'item',
+    '#title' => t('In election'),
+    '#markup' => $variables['election_link'],
+  );
+
+  $variables['content']['post'] = array(
+    '#type' => 'item',
+    '#title' => t('Standing for'),
+    '#markup' => $variables['post_link'],
+  );
+
   foreach (element_children($variables['elements']) as $key) {
     $variables['content'][$key] = $variables['elements'][$key];
   }

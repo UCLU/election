@@ -40,14 +40,18 @@ function template_preprocess_election_post(&$variables) {
   $variables['election_type'] = check_plain($election_type['name']);
   $variables['election_type_has_candidates'] = (!empty($election_type['has candidates']));
 
-  // Provide an $eligibility variable for the election_vote module to populate.
-  $variables['eligibility'] = FALSE;
-
   // Flatten the post object's member fields.
   $variables = array_merge((array) $post, $variables);
 
   // Helpful $content variable for templates.
   $variables += array('content' => array());
+
+  $variables['content']['election'] = array(
+    '#type' => 'item',
+    '#title' => t('In election'),
+    '#markup' => $variables['election_link'],
+  );
+
   foreach (element_children($variables['elements']) as $key) {
     $variables['content'][$key] = $variables['elements'][$key];
   }
