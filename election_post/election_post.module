@@ -115,7 +115,7 @@ function election_post_menu() {
  * Implements hook_menu_alter().
  */
 function election_post_menu_alter(&$items) {
-  $election_types = election_types();
+  // Change the types of automatic Field UI menu items for a clearer admin UI.
   foreach (election_types() as $type_machine_name => $type) {
     $path = 'admin/config/election/' . $type_machine_name;
     $post_machine_name = $type['post machine name'];
