@@ -42,12 +42,12 @@ function election_results_menu() {
 function election_results_permission() {
   return array(
     'view any election results' => array(
-      'title' => t('View any election results'),
-      'description' => t('This allows the user to view the results of any elections.'),
+      'title' => t('View or download any election results'),
+      'description' => t('This allows the user to view or download the results of any elections.'),
     ),
     'view own election results' => array(
-      'title' => t('View own election results'),
-      'description' => t('This allows the user to view the results of their own elections (those to which they have editing access).'),
+      'title' => t('View or download own election results'),
+      'description' => t('This allows the user to view or download the results of their own elections (those to which they have editing access).'),
     ),
   );
 }
@@ -65,28 +65,23 @@ function election_results_access($op, stdClass $post, $account = NULL) {
       if (empty($election->type_info['results page']) || !function_exists($election->type_info['results page'])) {
         return FALSE;
       }
-      if (_election_post_is_open($post, NULL, 'v') && !user_access('bypass running election lock', $account)) {
-        return FALSE;
-      }
-      if (election_post_access('edit', $post, $account) && user_access('view own election results', $account)) {
-        return TRUE;
-      }
-      if (user_access('view any election results', $account)) {
-        return TRUE;
-      }
-      return FALSE;
       break;
 
     case 'download':
       if (empty($election->type_info['results download form']) || !function_exists($election->type_info['results download form'])) {
         return FALSE;
       }
-      if (_election_post_is_open($post, NULL, 'v') && !user_access('bypass running election lock', $account)) {
-        return FALSE;
-      }
-      return election_post_access('edit', $post);
       break;
 
+  }
+  if (_election_post_is_open($post, NULL, 'v') && !user_access('bypass running election lock', $account)) {
+    return FALSE;
+  }
+  if (election_post_access('edit', $post, $account) && user_access('view own election results', $account)) {
+    return TRUE;
+  }
+  if (user_access('view any election results', $account)) {
+    return TRUE;
   }
   return FALSE;
 }
