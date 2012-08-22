@@ -47,6 +47,7 @@
  * @see election_types()
  */
 function hook_election_type_info() {
+  // @todo remove post settings form, just use hook_form_FORM_ID_alter()
   // @todo remove vote form and save votes, just use hook_form_FORM_ID_alter()
   return array(
     'fptp' => array(
