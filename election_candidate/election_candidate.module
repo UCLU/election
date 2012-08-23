@@ -356,7 +356,7 @@ function election_candidate_menu_local_tasks_alter(&$data, $router_item, $root_p
   if (substr($root_path, 0, 10) == 'election/%' && $router_item['map'][0] == 'election') {
     $election = $router_item['map'][1];
     if ($election) {
-      $nominations_open = (_election_is_open($election->nstatus, $election->nopen_time, $election->nclose_time) || user_access('bypass  nomination schedule'));
+      $nominations_open = (_election_is_open($election->nstatus, $election->nopen_time, $election->nclose_time) || user_access('bypass nomination schedule'));
       if (!$nominations_open) {
         // @todo can this be simpler or quicker?
         foreach ($data['tabs'][0]['output'] as $key => $tab) {
