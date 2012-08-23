@@ -466,7 +466,7 @@ function election_vote_check_account_previously_voted($post, $account = NULL) {
   // Of course this is not a 100% reliable identifier of a user.
   // The session ID is hashed, to improve anonymity.
   if ($account_is_user && !user_is_logged_in()) {
-    $result = db_query_range('SELECT ballot_id FROM {election_ballot} WHERE (sid_hash = :sh OR (ip = :ip AND agent = :agent)) AND post_id = :pid', 0, 1, array(
+    $result = db_query_range('SELECT ballot_id FROM {election_ballot} WHERE uid = 0 AND post_id = :pid AND (sid_hash = :sh OR (ip = :ip AND agent = :agent))', 0, 1, array(
       ':sh' => _election_vote_session_hash(),
       ':ip' => ip_address(),
       ':agent' => $_SERVER['HTTP_USER_AGENT'],
