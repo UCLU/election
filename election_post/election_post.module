@@ -175,6 +175,7 @@ function election_post_entity_info() {
         'label' => t('Teaser'),
       ),
     ),
+    'view callback' => 'entity_metadata_view_single',
   );
 
   foreach (election_types() as $type_machine_name => $type) {
@@ -659,7 +660,7 @@ function _election_post_pathauto_update_alias_multiple(array $post_ids, $op, arr
  * Implements template_preprocess_election().
  */
 function election_post_preprocess_election(&$vars) {
-  if (!isset($vars['content']['posts'])) {
+  if (!isset($vars['content']['posts']) && $vars['view_mode'] == 'full') {
     $election = $vars['election'];
     $posts_name = election_get_post_name($election->type, TRUE);
     $vars['content']['posts'] = array(

@@ -37,10 +37,11 @@ function election_views_data() {
 
   $data['election']['table']['group']  = t('Election');
 
+  $data['election']['table']['entity type'] = 'election';
+
   $data['election']['table']['base'] = array(
     'field' => 'election_id',
     'title' => t('Election'),
-    'entity type' => 'election',
     'weight' => -10,
     'defaults' => array(
       'field' => 'title',

@@ -13,10 +13,11 @@ function election_candidate_views_data() {
 
   $data['election_candidate']['table']['group']  = t('Election candidate');
 
+  $data['election_candidate']['table']['entity type'] = 'election_candidate';
+
   $data['election_candidate']['table']['base'] = array(
     'field' => 'candidate_id',
     'title' => t('Election candidate'),
-    'entity type' => 'election_candidate',
     'weight' => -8,
     'defaults' => array(
       'field' => 'fullname',
@@ -85,24 +86,4 @@ function election_candidate_views_data() {
 
   return $data;
 
-}
-
-
-/**
- * Implements hook_views_plugins().
- */
-function election_candidate_views_plugins() {
-  return array(
-    'module' => 'election_candidate',
-    'row' => array(
-      'election_candidate' => array(
-        'title' => t('Candidate'),
-        'help' => t('Display the candidate with the standard view.'),
-        'handler' => 'views_plugin_row_election_candidate_view',
-        'base' => array('election_candidate'),
-        'uses options' => TRUE,
-        'type' => 'normal',
-      ),
-    ),
-  );
 }

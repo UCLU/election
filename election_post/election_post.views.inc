@@ -13,10 +13,11 @@ function election_post_views_data() {
 
   $data['election_post']['table']['group']  = t('Election post');
 
+  $data['election_post']['table']['entity type'] = 'election_post';
+
   $data['election_post']['table']['base'] = array(
     'field' => 'post_id',
     'title' => t('Election post'),
-    'entity type' => 'election_post',
     'weight' => -9,
     'defaults' => array(
       'field' => 'title',

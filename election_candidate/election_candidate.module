@@ -42,6 +42,7 @@ function election_candidate_entity_info() {
         'label' => t('Teaser'),
       ),
     ),
+    'view callback' => 'entity_metadata_view_single',
     // Disable fields added by the Redirect module.
     'redirect' => FALSE,
   );
@@ -880,7 +881,7 @@ function _election_candidate_count($by, stdClass $entity, $statuses = NULL) {
 function election_candidate_preprocess_election_post(&$vars) {
   $post = $vars['elements']['#post'];
   $election = $post->election;
-  if (!empty($election->type_info['has candidates'])) {
+  if (!empty($election->type_info['has candidates']) && $vars['view_mode'] == 'full') {
     $candidates_view = views_embed_view('election_candidates', 'candidates_per_post', $post->post_id);
     if (!empty($candidates_view)) {
       $vars['content']['candidates'] = array(

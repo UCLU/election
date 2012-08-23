@@ -40,6 +40,7 @@ function election_entity_info() {
         'label' => t('Teaser'),
       ),
     ),
+    'view callback' => 'entity_metadata_view_single',
   );
 
   foreach (election_types() as $type_machine_name => $type) {
