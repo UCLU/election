@@ -19,13 +19,20 @@ function theme_election_vote_confirm($variables) {
 }
 
 /**
- * Add the default message "This action cannot be undone" on the confirm form.
+ * Add the default message for the confirm form.
  */
 function template_preprocess_election_vote_confirm(&$variables) {
 
   $variables['confirm'] = array(
     '#markup' => t('This action cannot be undone.'),
   );
+
+  $post = $variables['form_state']['post'];
+
+  // Remove warning if the action can be undone.
+  if (election_vote_access('undo', $post)) {
+    $variables['confirm'] = NULL;
+  }
 
 }
 
@@ -109,6 +116,9 @@ function template_preprocess_election_vote_eligibility(&$variables) {
     }
     else {
       $eligibility = $account_is_user ? t('You have already voted.') : t('Already voted');
+    }
+    if ($account_is_user && election_vote_access('undo', $post)) {
+      $eligibility .= ' ' . l(t('Undo'), election_post_uri_path($post) . '/vote/undo');
     }
   }
   // The user may vote. Provide a link to the voting form.

@@ -17,7 +17,15 @@ function election_vote_menu() {
     'access callback' => 'election_vote_access',
     'access arguments' => array('vote', 1),
     'type' => MENU_CALLBACK,
-    'weight' => 3,
+  );
+
+  $items['election-post/%election_post/vote/undo'] = array(
+    'title' => 'Undo',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_vote_undo_form', 1),
+    'access callback' => 'election_vote_access',
+    'access arguments' => array('undo', 1),
+    'type' => MENU_CALLBACK,
   );
 
   return $items;
@@ -31,6 +39,10 @@ function election_vote_permission() {
     'vote in elections' => array(
       'title' => t('Vote in elections'),
       'description' => t('Users must have this permission in order to vote.'),
+    ),
+    'undo own vote' => array(
+      'title' => t('Undo own vote'),
+      'description' => t('This allows users to undo their own vote.'),
     ),
   );
 }
@@ -111,6 +123,15 @@ function election_vote_access($op, stdClass $post, $account = NULL) {
       }
       return TRUE;
       break;
+
+    case 'undo':
+      // Don't allow undo if the user can no longer vote at all.
+      if (!election_vote_access('vote', $post, $account)) {
+        return FALSE;
+      }
+      return user_access('undo own vote');
+      break;
+
   }
   return FALSE;
 }
@@ -155,20 +176,6 @@ function election_vote_form($form, &$form_state, stdClass $post) {
 
   $election = $post->election;
 
-  if ($previously_voted = election_vote_check_account_previously_voted($post)) {
-    drupal_set_message(t('You have already voted for (or abstained from) this @post_name.', array('@post_name' => election_get_post_name($election->type))), 'status', FALSE);
-    $form['#disabled'] = TRUE;
-    drupal_goto(election_post_uri_path($post));
-  }
-  else {
-    // At this stage it's safe to assume the user has not voted.
-    // The session-based check can therefore be cleared if it exists.
-    $_SESSION['election_vote_cast_' . $post->post_id] = FALSE;
-  }
-
-  $form_state['election'] = $election;
-  $form_state['post'] = $post;
-
   $title = election_post_page_title($post);
   drupal_set_title(
     t('Vote: %title_trim', array(
@@ -179,6 +186,31 @@ function election_vote_form($form, &$form_state, stdClass $post) {
   drupal_set_breadcrumb(
     _election_build_breadcrumb($election, l($post->title, election_post_uri_path($post)))
   );
+
+  $form_state['election'] = $election;
+  $form_state['post'] = $post;
+
+  if ($previously_voted = election_vote_check_account_previously_voted($post)) {
+    if (election_vote_access('undo', $post)) {
+      drupal_goto(election_post_uri_path($post) . '/vote/undo');
+      return;
+    }
+    else {
+      drupal_set_message(t(
+        'You have already voted (or abstained from) this @post_name.',
+        array('@post_name' => election_get_post_name($election->type)),
+        'status',
+        FALSE
+      ));
+      drupal_goto(election_post_uri_path($post));
+      return;
+    }
+  }
+  else {
+    // At this stage it's safe to assume the user has not voted.
+    // The session-based check can therefore be cleared if it exists.
+    $_SESSION['election_vote_cast_' . $post->post_id] = FALSE;
+  }
 
   $form['buttons'] = array(
     '#type' => 'actions',
@@ -201,8 +233,6 @@ function election_vote_form($form, &$form_state, stdClass $post) {
 
   $form['#attached']['js'][] = drupal_get_path('module', 'election') . '/submit-single.min.js';
 
-  $form['#validate'][] = 'election_vote_form_validate';
-
   $type = $election->type_info;
   if (!empty($type['vote form']) && function_exists($type['vote form'])) {
     $function = $type['vote form'];
@@ -210,20 +240,6 @@ function election_vote_form($form, &$form_state, stdClass $post) {
   }
 
   return $form;
-
-}
-
-/**
- * Validate the voting form (general).
- */
-function election_vote_form_validate($form, &$form_state) {
-
-  $post = $form_state['post'];
-
-  // Safety check to see whether a vote has already been entered.
-  if (election_vote_check_account_previously_voted($post)) {
-    $form_state['rebuild'] = TRUE;
-  }
 
 }
 
@@ -256,6 +272,170 @@ function election_vote_form_vote_confirm($form, &$form_state) {
 }
 
 /**
+ * Form for undoing a vote (or abstention).
+ */
+function election_vote_undo_form($form, &$form_state, $post) {
+
+  $election = $post->election;
+  $post_name = election_get_post_name($election->type);
+
+  $form_state['post'] = $post;
+  $form_state['election'] = $election;
+
+  drupal_set_breadcrumb(
+    _election_build_breadcrumb(
+      $election,
+      l($post->title, election_post_uri_path($post))
+    )
+  );
+
+  if (isset($form_state['undo_require_confirm'])) {
+    return election_vote_undo_confirm($form, $form_state);
+  }
+
+  $form['post'] = array(
+    '#type' => 'item',
+    '#title' => drupal_ucfirst($post_name),
+    '#markup' => check_plain($post->title),
+  );
+  $form['warning'] = array(
+    '#type' => 'item',
+    '#markup' => t(
+      'You have already voted !or_abstained.',
+      array(
+        '@post_name' => $post_name,
+        '!or_abstained' => $post->allow_abstention ? t('or abstained') : '',
+      )
+    ),
+  );
+  $form['undo'] = array(
+    '#type' => 'item',
+    '#markup' => t(
+      'If you wish, you can \'undo\' this action. This means you could vote !or_abstain again.',
+      array(
+        '!or_abstention' => $post->allow_abstention ? t('or abstention') : '',
+        '!or_abstain' => $post->allow_abstention ? t('(or abstain)') : '',
+      )
+    ),
+  );
+  $form['actions'] = array(
+    '#type' => 'actions',
+  );
+  $form['actions']['undo'] = array(
+    '#type' => 'submit',
+    '#value' => t('Undo…'),
+    '#submit' => array('election_vote_undo'),
+    '#limit_validation_errors' => array(),
+  );
+  $form['actions']['return_election'] = array(
+    '#type' => 'link',
+    '#title' => t('Return to %election', array('%election' => $election->title)),
+    '#href' => election_uri_path($election),
+    '#options' => array('html' => TRUE),
+  );
+  return $form;
+}
+
+/**
+ * Confirm the 'Undo vote' button on the Undo vote form.
+ */
+function election_vote_undo_confirm($form, &$form_state) {
+
+  $form['undo_confirmed'] = array(
+    '#type' => 'hidden',
+    '#value' => TRUE,
+  );
+
+  $form['#submit'] = array('election_vote_undo');
+
+  $form['#attached']['js'][] = drupal_get_path('module', 'election') . '/submit-single.min.js';
+
+  // confirm_form() ignores its third argument when $_GET['destination'] is set.
+  unset($_GET['destination']);
+
+  $post = $form_state['post'];
+  $election = $form_state['election'];
+
+  return confirm_form(
+    $form,
+    t('Undo: are you sure?'),
+    current_path(),
+    t('This will undo your vote !or_abstention for the @post_name %post.', array(
+      '@post_name' => election_get_post_name($election->type),
+      '%post' => $post->title,
+      '!or_abstention' => $post->allow_abstention ? t('or abstention') : '',
+    )),
+    t('Confirm'),
+    t('Cancel')
+  );
+
+}
+
+/**
+ * Submit callback for confirming undo on an election vote.
+ */
+function election_vote_undo($form, &$form_state) {
+
+  if (empty($form_state['values']['undo_confirmed'])) {
+    $form_state['undo_require_confirm'] = TRUE;
+    $form_state['rebuild'] = TRUE;
+    return;
+  }
+
+  $post = $form_state['post'];
+  $election = $form_state['election'];
+
+  $success = FALSE;
+
+  $transaction = db_transaction();
+
+  try {
+
+    $ballot_ids = db_select('election_ballot', 'eb')
+      ->fields('eb', array('ballot_id'))
+      ->condition('uid', $GLOBALS['user']->uid)
+      ->condition('post_id', $post->post_id)
+      ->execute()
+      ->fetchCol();
+
+    if (!count($ballot_ids)) {
+      throw new Exception(t('No votes found.'));
+    }
+
+    db_delete('election_vote')
+      ->condition('ballot_id', $ballot_ids, 'IN')
+      ->execute();
+
+    db_delete('election_ballot')
+      ->condition('ballot_id', $ballot_ids, 'IN')
+      ->execute();
+
+    $success = TRUE;
+
+  }
+  catch (Exception $e) {
+    $transaction->rollback();
+    watchdog_exception('election_vote', $e, NULL, WATCHDOG_ERROR);
+  }
+
+  if ($success) {
+
+    $post_name = election_get_post_name($election->type);
+    drupal_set_message(
+      t('You have undone your vote !or_abstention for the @post_name !post_link.', array(
+        '@post_name' => $post_name,
+        '!post_link' => l($post->title, election_post_uri_path($post)),
+        '!or_abstention' => $post->allow_abstention ? t('or abstention') : '',
+      ))
+    );
+
+    $form_state['redirect'] = url(election_post_uri_path($post));
+
+  }
+
+}
+
+/**
  * Confirm the 'Abstain' button on the vote form.
  */
 function election_vote_form_abstain_confirm($form, &$form_state) {
@@ -272,7 +452,20 @@ function election_vote_form_abstain_confirm($form, &$form_state) {
   // confirm_form() ignores its third argument when $_GET['destination'] is set.
   unset($_GET['destination']);
 
-  return confirm_form($form, t('Are you sure you want to abstain?'), current_path());
+  $post = $form_state['post'];
+
+  // @todo Make this confirmation page themeable.
+  $warning = t('This action cannot be undone.');
+  if (election_vote_access('undo', $post)) {
+    $warning = '';
+  }
+
+  return confirm_form(
+    $form,
+    t('Are you sure you want to abstain?'),
+    current_path(),
+    $warning
+  );
 
 }
 
@@ -331,7 +524,7 @@ function election_vote_form_abstain($form, &$form_state) {
   }
   catch (Exception $e) {
     $transaction->rollback();
-    watchdog_exception('election_post', $e, NULL, WATCHDOG_ERROR);
+    watchdog_exception('election_vote', $e, NULL, WATCHDOG_ERROR);
   }
 
   if ($success) {
@@ -354,9 +547,6 @@ function election_vote_form_abstain($form, &$form_state) {
       rules_invoke_event('election_vote_abstain', $GLOBALS['user'], $post, $election);
     }
 
-  }
-  else {
-    $form_state['rebuild'] = TRUE;
   }
 
 }
@@ -412,7 +602,7 @@ function election_vote_form_vote($form, &$form_state) {
   }
   catch (Exception $e) {
     $transaction->rollback();
-    watchdog_exception('election_post', $e, NULL, WATCHDOG_ERROR);
+    watchdog_exception('election_vote', $e, NULL, WATCHDOG_ERROR);
   }
 
   if ($success) {
@@ -436,9 +626,6 @@ function election_vote_form_vote($form, &$form_state) {
       rules_invoke_event('election_vote_vote', $GLOBALS['user'], $post, $election);
     }
 
-  }
-  else {
-    $form_state['rebuild'] = TRUE;
   }
 
 }

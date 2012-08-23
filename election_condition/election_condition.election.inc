@@ -37,6 +37,4 @@ function election_condition_election_vote_access($op, $post = NULL, $account = N
 
   }
 
-  return FALSE;
-
 }
