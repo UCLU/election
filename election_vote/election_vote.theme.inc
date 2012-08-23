@@ -84,7 +84,7 @@ function template_preprocess_election_vote_eligibility(&$variables) {
     }
   }
   // Check if there are enough candidates to vote for.
-  elseif (!empty($election->type_info['has candidates']) && !_election_vote_post_has_approved_candidates($post)) {
+  elseif (!_election_vote_post_has_enough_candidates($post)) {
     $eligibility = t('Voting is currently closed (not enough candidates).');
   }
   // Check voting access.
@@ -160,11 +160,12 @@ function template_preprocess_election_vote_button(&$variables) {
   $post = $variables['post'];
 
   $variables['path'] = election_post_uri_path($post) . '/vote';
-  $variables['eligibility'] = theme(
-    'election_vote_eligibility',
-    array('post' => $post)
+
+  $variables['can_vote'] = (
+    election_vote_access('vote', $post)
+    && _election_vote_post_has_enough_candidates($post)
+    && !election_vote_check_account_previously_voted($post)
   );
-  $variables['can_vote'] = (election_vote_access('vote', $post) && !election_vote_check_account_previously_voted($post));
 
 }
 
@@ -175,7 +176,6 @@ function template_preprocess_election_vote_button(&$variables) {
  *   $post        - The election post object.
  *   $can_vote    - A Boolean indicating whether the user may vote.
  *   $path        - The path to the voting page.
- *   $eligibility - The current user's voting eligibility.
  */
 function theme_election_vote_button($variables) {
 
