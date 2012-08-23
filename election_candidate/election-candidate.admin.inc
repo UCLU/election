@@ -391,18 +391,18 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
 
     case 'file':
     case 'image':
-      if (is_array($value) && isset($value['und'][0]['uri'])) {
-        return file_create_url($value['und'][0]['uri']);
+      if (is_array($value) && isset($value[LANGUAGE_NONE][0]['uri'])) {
+        return file_create_url($value[LANGUAGE_NONE][0]['uri']);
       }
       break;
 
     default:
       if (is_array($value)) {
-        if (isset($value['und'][0]['safe_value'])) {
-          return $value['und'][0]['safe_value'];
+        if (isset($value[LANGUAGE_NONE][0]['safe_value'])) {
+          return $value[LANGUAGE_NONE][0]['safe_value'];
         }
-        elseif (isset($value['und'][0]['value'])) {
-          return check_plain($value['und'][0]['value']);
+        elseif (isset($value[LANGUAGE_NONE][0]['value'])) {
+          return check_plain($value[LANGUAGE_NONE][0]['value']);
         }
       }
   }
