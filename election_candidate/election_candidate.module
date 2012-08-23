@@ -54,6 +54,9 @@ function election_candidate_entity_info() {
  * Implements hook_entity_info_alter().
  */
 function election_candidate_entity_info_alter(&$entity_info) {
+  // Define candidate bundles.
+  // This uses an _alter hook because new elections (and thus new bundles) can
+  // be added at any time.
   $election_ids = _election_candidate_get_bundles();
   foreach ($election_ids as $election_id) {
     $entity_info['election_candidate']['bundles'][$election_id] = array(
@@ -338,13 +341,11 @@ function election_candidate_menu() {
  * Implements hook_menu_alter().
  */
 function election_candidate_menu_alter(&$items) {
-  $items['election/%election/candidates/fields']['type'] = MENU_LOCAL_TASK;
+  // Alter the default Field UI menu items (Manage Fields, Manage Display) to
+  // suit being displayed under the election's Candidates tab.
   $items['election/%election/candidates/fields']['title'] = t('Fields');
-  $items['election/%election/candidates/fields']['context'] = MENU_CONTEXT_PAGE;
   $items['election/%election/candidates/fields']['weight'] = 2;
-  $items['election/%election/candidates/display']['type'] = MENU_LOCAL_TASK;
   $items['election/%election/candidates/display']['title'] = t('Display');
-  $items['election/%election/candidates/display']['context'] = MENU_CONTEXT_PAGE;
   $items['election/%election/candidates/display']['weight'] = 3;
 }
 
