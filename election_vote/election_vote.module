@@ -429,6 +429,18 @@ function election_vote_undo($form, &$form_state) {
       ))
     );
 
+    watchdog(
+      'election_vote',
+      'User @uid has undone a vote for %post_title (@pid) in %election_title (@eid).',
+      array(
+        '@uid' => $GLOBALS['user']->uid,
+        '%post_title' => $post->title,
+        '%election_title' => $election->title,
+        '@pid' => $post->post_id,
+        '@eid' => $election->election_id,
+      )
+    );
+
     $form_state['redirect'] = url(election_post_uri_path($post));
 
   }
