@@ -60,14 +60,18 @@ function election_referendum_preprocess_election_vote_confirm(&$variables) {
     $answer = $form_state['values']['answer'];
 
     $variables['confirm'] = array(
-      '#prefix' => '<dl><dt>' . check_plain($post->title) . '</dt><dd>',
-      '#markup' => t(
-        'Your answer: %answer',
-        array(
-          '%answer' => _election_referendum_get_answer_text($post, $answer),
-        )
+      array(
+        '#type' => 'item',
+        '#title' => t('Motion'),
+        '#markup' => check_plain($post->title),
       ),
-      '#suffix' => '</dd></dl>',
+      array(
+        '#type' => 'item',
+        '#title' => t('Your answer'),
+        '#markup' => drupal_placeholder(
+          _election_referendum_get_answer_text($post, $answer)
+        ),
+      ),
     );
 
   }
@@ -124,7 +128,10 @@ function election_referendum_vote_form($form, &$form_state, $post, $election) {
   $form['motion_preview'] = array(
     '#type' => 'item',
     '#title' => t('Motion'),
-    '#markup' => check_plain($post->title),
+    '#markup' => t('@motion (<a href="@motion_url">view details</a>)', array(
+      '@motion' => $post->title,
+      '@motion_url' => url(election_post_uri_path($post)),
+    )),
   );
 
   $form['answer'] = array(
