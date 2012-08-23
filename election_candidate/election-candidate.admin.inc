@@ -341,7 +341,7 @@ function election_candidate_download_form_submit($form, &$form_state) {
   fpassthru($outstream);
   fclose($outstream);
 
-  exit();
+  drupal_exit();
 
 }
 
