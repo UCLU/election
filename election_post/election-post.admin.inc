@@ -130,13 +130,6 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
 
   $form['#validate'][] = 'election_post_form_validate';
 
-  // Modify the form with the function $type['post settings form'], if set.
-  $type = $election->type_info;
-  if (!empty($type['post settings form']) && function_exists($type['post settings form'])) {
-    $settings_form_function = $type['post settings form'];
-    $form = $settings_form_function($form, $form_state, $post, $election);
-  }
-
   // Add custom fields from the Field system.
   field_attach_form('election_post', $post, $form, $form_state);
 
