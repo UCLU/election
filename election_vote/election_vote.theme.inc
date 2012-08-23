@@ -97,7 +97,6 @@ function template_preprocess_election_vote_eligibility(&$variables) {
         'You are not eligible to vote for this @post_name.',
         array('@post_name' => $post_name)
       );
-      return;
     }
     else {
       $eligibility = t('Not eligible');
