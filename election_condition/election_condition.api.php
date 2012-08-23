@@ -9,7 +9,7 @@
 /**
  * Define available voting conditions.
  *
- * @return
+ * @return array
  *   A structured election condition array, keyed by a unique machine name. Each
  *   election condition array can contain:
  *   - name: (Required) The name of the condition.

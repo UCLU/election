@@ -34,7 +34,7 @@ function template_preprocess_election_status(&$variables) {
     $variables['status'] = t('Open');
   }
   else {
-    $variables['status' ] = t('Closed');
+    $variables['status'] = t('Closed');
   }
 
 }

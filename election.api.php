@@ -14,7 +14,7 @@
  * Information about existing election types is loaded via the election_types()
  * function.
  *
- * @return
+ * @return array
  *   An array of election type arrays, keyed by a unique machine name. Election
  *   type arrays can include:
  *   - name: (Required) The human-readable name of the election type, sanitized.

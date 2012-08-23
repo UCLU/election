@@ -19,7 +19,7 @@
  * @param stdClass $account
  *   A Drupal user account object.
  *
- * @return
+ * @return mixed
  *   Return FALSE to deny access; other return values have no effect.
  */
 function hook_election_vote_access($op, $post, $account) {
