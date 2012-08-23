@@ -41,6 +41,10 @@ function election_candidate_entity_info() {
       'teaser' => array(
         'label' => t('Teaser'),
       ),
+      'details' => array(
+        'label' => t('Details'),
+        'custom settings' => TRUE,
+      ),
     ),
     'view callback' => 'entity_metadata_view_single',
     // Disable fields added by the Redirect module.
@@ -301,8 +305,8 @@ function election_candidate_menu() {
 
   $items['election-candidate/%election_candidate/details'] = array(
     'title' => 'Details',
-    'page callback' => 'election_candidate_details_page_view',
-    'page arguments' => array(1),
+    'page callback' => 'election_candidate_page_view',
+    'page arguments' => array(1, 'details'),
     'file' => 'election-candidate.pages.inc',
     'access callback' => 'election_candidate_access',
     'access arguments' => array('view details', 1),
@@ -613,11 +617,6 @@ function election_candidate_theme() {
     'election_candidate' => array(
       'render element' => 'elements',
       'template' => 'election-candidate',
-      'file' => 'election_candidate.theme.inc',
-    ),
-    'election_candidate_details' => array(
-      'render element' => 'elements',
-      'template' => 'election-candidate-details',
       'file' => 'election_candidate.theme.inc',
     ),
     'election_candidate_full_name' => array(

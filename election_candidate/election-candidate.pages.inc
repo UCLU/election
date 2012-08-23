@@ -28,58 +28,25 @@ function election_candidate_page_view(stdClass $candidate, $view_mode = 'full') 
 
   $election = election_load($candidate->election_id);
 
-  drupal_set_title(
-    t(
-      'Candidate: @first-name @last-name',
-      array(
-        '@first-name' => $candidate->first_name,
-        '@last-name' => $candidate->last_name,
-      )
-    ),
-    PASS_THROUGH
-  );
-
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_CANDIDATES_')
-  );
+  if ($view_mode == 'full' || $view_mode == 'details') {
+    drupal_set_title(
+      t(
+        'Candidate: @first-name @last-name',
+        array(
+          '@first-name' => $candidate->first_name,
+          '@last-name' => $candidate->last_name,
+        )
+      ),
+      PASS_THROUGH
+    );
+    drupal_set_breadcrumb(
+      _election_build_breadcrumb($election, '_CANDIDATES_')
+    );
+  }
 
   return election_candidate_view($candidate, $election, $view_mode);
 
 }
-
-/**
- * Page callback for election-candidate/%election_candidate/details.
- */
-function election_candidate_details_page_view(stdClass $candidate) {
-
-  $election = election_load($candidate->election_id);
-
-  drupal_set_title(
-    t(
-      'Candidate: @first-name @last-name',
-      array(
-        '@first-name' => $candidate->first_name,
-        '@last-name' => $candidate->last_name,
-      )
-    ),
-    PASS_THROUGH
-  );
-
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_CANDIDATES_')
-  );
-
-  $post = election_post_load($candidate->post_id);
-
-  return array(
-    '#theme' => 'election_candidate_details',
-    '#candidate' => $candidate,
-    '#election' => $election,
-    '#post' => $post,
-  );
-
-}
-
 
 /**
  * Generate a table of a user's previous nominations in an election.
