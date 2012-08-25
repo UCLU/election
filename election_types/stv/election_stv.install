@@ -1,0 +1,39 @@
+<?php
+/**
+ * @file
+ * Install functions for the election_stv module.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function election_stv_requirements($phase) {
+  // Report on the existence of DrooPHP, if election_results is enabled.
+  if (!module_exists('election_results')) {
+    return;
+  }
+  $t = get_t();
+  $output = array(
+    'title' => $t('DrooPHP library for STV vote counting'),
+  );
+  if (file_exists($droophp_path = libraries_get_path('DrooPHP'))) {
+    $output += array(
+      'value' => $t('Installed'),
+      'severity' => REQUIREMENT_OK,
+    );
+  }
+  else {
+    $output += array(
+      'value' => $t('Not installed'),
+      'description' => $t(
+        'You can download DrooPHP from <a href="@github">Github</a> and install it to the directory <code>@libraries_path</code>.',
+        array(
+          '@libraries_path' => libraries_get_path(''),
+          '@github' => 'https://github.com/pjcdawkins/DrooPHP/',
+        )
+      ),
+      'severity' => REQUIREMENT_INFO,
+    );
+  }
+  return array('election_stv' => $output);
+}

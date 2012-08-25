@@ -367,7 +367,13 @@ function election_stv_results_count_page(stdClass $post, $totals) {
 
   // For STV elections, use the DrooPHP library.
   if (!file_exists($droophp_path = libraries_get_path('DrooPHP'))) {
-    drupal_set_message(t('The <a href="https://github.com/pjcdawkins/DrooPHP/" target="_blank">DrooPHP</a> library (required for counting votes in STV elections) is not installed.'), 'warning');
+    drupal_set_message(t(
+      'The DrooPHP library (required for counting votes in STV elections) is not installed. Download it from <a href="@github">Github</a> and install it to the directory <code>@libraries_path</code>.',
+      array(
+        '@libraries_path' => libraries_get_path(''),
+        '@github' => 'https://github.com/pjcdawkins/DrooPHP/',
+      )
+    ), 'warning');
     return $output;
   }
 
