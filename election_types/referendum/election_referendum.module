@@ -24,7 +24,7 @@ function election_referendum_preprocess_election(&$vars) {
  * Implements template_preprocess_election_post().
  */
 function election_referendum_preprocess_election_post(&$vars) {
-  if (isset($vars['content']['election'])) {
+  if ($vars['election']->type == 'referendum' && isset($vars['content']['election'])) {
     $vars['content']['election']['#title'] = t('In referendum');
   }
 }
