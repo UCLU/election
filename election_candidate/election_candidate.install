@@ -105,7 +105,8 @@ function election_candidate_schema() {
     'indexes' => array(
       'post_id' => array('post_id'),
       'uid' => array('uid'),
-      'name' => array('first_name', 'last_name'),
+      'first_name' => array('first_name'),
+      'last_name' => array('last_name'),
       'mail' => array('mail'),
       'created' => array('created'),
       'cstatus' => array('cstatus'),
