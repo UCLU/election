@@ -117,8 +117,10 @@ function election_stv_form_election_post_form_alter(&$form, &$form_state) {
  */
 function election_stv_post_settings_validate($form, &$form_state) {
 
-  $post = $form_state['post'];
-  if ($form_state['values']['settings_use_ron'] == 1 && $form_state['values']['settings_vacancy_count'] > 1 && !variable_get('election_allow_multi_vacancy_ron', TRUE)) {
+  if (!is_numeric($form_state['values']['settings_vacancy_count'])) {
+    form_set_error('settings_vacancy_count', t('Please specify the number of vacancies.'));
+  }
+  elseif ($form_state['values']['settings_use_ron'] == 1 && $form_state['values']['settings_vacancy_count'] > 1 && !variable_get('election_allow_multi_vacancy_ron', TRUE)) {
     form_set_error('use_ron', t('RON can only be included for single-vacancy positions.'));
   }
 
