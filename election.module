@@ -94,6 +94,35 @@ function election_hook_info() {
 }
 
 /**
+ * Implements hook_modules_enabled().
+ */
+function election_modules_enabled($modules) {
+  _election_modules_changed($modules);
+}
+
+/**
+ * Implements hook_modules_disabled().
+ */
+function election_modules_disabled($modules) {
+  _election_modules_changed($modules);
+}
+
+/**
+ * Act on enabling or disabling modules.
+ */
+function _election_modules_changed($modules) {
+  // If any of the enabled modules contains an implementation of
+  // hook_election_type_info(), clear the static cache of election types.
+  foreach ($modules as $module) {
+    if (function_exists($module . '_election_type_info')) {
+      drupal_static_reset('election_types');
+      break;
+
+    }
+  }
+}
+
+/**
  * Implements entity_uri(). URI callback for a single election.
  */
 function election_uri($election) {
