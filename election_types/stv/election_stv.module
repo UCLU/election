@@ -146,9 +146,11 @@ function election_stv_preprocess_election(&$vars) {
  * Implements hook_views_default_views_alter().
  */
 function election_stv_views_default_views_alter(&$views) {
-  $view = $views['election_posts'];
-  if (!isset($view->display['block_stv'])) {
-    require_once 'block_stv_view_display.inc';
+  if (isset($views['election_posts'])) {
+    $view = $views['election_posts'];
+    if (!isset($view->display['block_stv'])) {
+      require_once 'block_stv_view_display.inc';
+    }
   }
 }
 

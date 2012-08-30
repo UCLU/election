@@ -33,9 +33,11 @@ function election_referendum_preprocess_election_post(&$vars) {
  * Implements hook_views_default_views_alter().
  */
 function election_referendum_views_default_views_alter(&$views) {
-  $view = $views['election_posts'];
-  if (!isset($view->display['block_referendum'])) {
-    require_once 'block_referendum_view_display.inc';
+  if (isset($views['election_posts'])) {
+    $view = $views['election_posts'];
+    if (!isset($view->display['block_referendum'])) {
+      require_once 'block_referendum_view_display.inc';
+    }
   }
 }
 
