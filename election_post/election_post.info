@@ -7,3 +7,4 @@ files[] = election-post.controller.inc
 files[] = views/handlers/views_handler_argument_election_post_postid.inc
 files[] = views/handlers/views_handler_field_election_post.inc
 files[] = views/handlers/views_handler_field_election_post_link.inc
+files[] = views/handlers/views_handler_field_election_post_link_nominate.inc

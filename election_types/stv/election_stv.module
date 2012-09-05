@@ -36,14 +36,6 @@ function election_stv_form_election_post_form_alter(&$form, &$form_state) {
     return;
   }
 
-  $form['settings_exclusive'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Exclusive'),
-    '#description' => t('A candidate can only stand for one exclusive position per election.<br /><strong>N.B. if anonymous users are given permission to submit nominations, exclusivity cannot be enforced.</strong>'),
-    '#default_value' => isset($post->settings['exclusive']) ? $post->settings['exclusive'] : 1,
-    '#weight' => -30,
-  );
-
   $form['settings_vacancy_count'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of vacancies'),
@@ -81,30 +73,6 @@ function election_stv_form_election_post_form_alter(&$form, &$form_state) {
     );
     $form['use_ron']['#description'] = t('RON can only be included for single-vacancy positions.');
   }
-
-  $form['nominations'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Nominations'),
-    '#collapsible' => TRUE,
-    '#weight' => 97,
-  );
-
-  $form['nominations']['nstatus_inheritance'] = array(
-    '#type' => 'radios',
-    '#title' => t('Nominations status'),
-    '#default_value' => isset($post->nstatus_inheritance) ? $post->nstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
-    '#options' => array(
-      ELECTION_POST_STATUS_INHERIT => t(
-        'Inherited (currently: %status)',
-        array(
-          '%status' => strip_tags(
-            theme('election_status', array('election' => $election, 'status_prefix' => 'n'))
-          ),
-        )
-      ),
-      ELECTION_POST_STATUS_CLOSED => t('Closed'),
-    ),
-  );
 
   $form['#validate'][] = 'election_stv_post_settings_validate';
 

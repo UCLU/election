@@ -37,7 +37,6 @@ $handler->display->display_options['style_options']['columns'] = array(
   'vclose_time' => 'vclose_time',
   'view_election' => 'view_election',
   'candidates_link' => 'view_election',
-  'nominate_link' => 'view_election',
   'posts_link' => 'view_election',
   'edit_election' => 'view_election',
   'delete_election' => 'view_election',
@@ -88,11 +87,6 @@ $handler->display->display_options['style_options']['info'] = array(
     'empty_column' => 1,
   ),
   'candidates_link' => array(
-    'align' => '',
-    'separator' => '',
-    'empty_column' => 0,
-  ),
-  'nominate_link' => array(
     'align' => '',
     'separator' => '',
     'empty_column' => 0,
@@ -222,29 +216,6 @@ $handler->display->display_options['fields']['candidates_link']['element_default
 $handler->display->display_options['fields']['candidates_link']['hide_empty'] = 1;
 $handler->display->display_options['fields']['candidates_link']['empty_zero'] = 0;
 $handler->display->display_options['fields']['candidates_link']['hide_alter_empty'] = 1;
-/* Field: Election: Nomination form link */
-$handler->display->display_options['fields']['nominate_link']['id'] = 'nominate_link';
-$handler->display->display_options['fields']['nominate_link']['table'] = 'election';
-$handler->display->display_options['fields']['nominate_link']['field'] = 'nominate_link';
-$handler->display->display_options['fields']['nominate_link']['label'] = '';
-$handler->display->display_options['fields']['nominate_link']['alter']['alter_text'] = 0;
-$handler->display->display_options['fields']['nominate_link']['alter']['make_link'] = 0;
-$handler->display->display_options['fields']['nominate_link']['alter']['absolute'] = 0;
-$handler->display->display_options['fields']['nominate_link']['alter']['external'] = 0;
-$handler->display->display_options['fields']['nominate_link']['alter']['replace_spaces'] = 0;
-$handler->display->display_options['fields']['nominate_link']['alter']['trim_whitespace'] = 0;
-$handler->display->display_options['fields']['nominate_link']['alter']['nl2br'] = 0;
-$handler->display->display_options['fields']['nominate_link']['alter']['word_boundary'] = 1;
-$handler->display->display_options['fields']['nominate_link']['alter']['ellipsis'] = 1;
-$handler->display->display_options['fields']['nominate_link']['alter']['more_link'] = 0;
-$handler->display->display_options['fields']['nominate_link']['alter']['strip_tags'] = 0;
-$handler->display->display_options['fields']['nominate_link']['alter']['trim'] = 0;
-$handler->display->display_options['fields']['nominate_link']['alter']['html'] = 0;
-$handler->display->display_options['fields']['nominate_link']['element_label_colon'] = FALSE;
-$handler->display->display_options['fields']['nominate_link']['element_default_classes'] = 1;
-$handler->display->display_options['fields']['nominate_link']['hide_empty'] = 1;
-$handler->display->display_options['fields']['nominate_link']['empty_zero'] = 0;
-$handler->display->display_options['fields']['nominate_link']['hide_alter_empty'] = 1;
 /* Field: Election: Posts link */
 $handler->display->display_options['fields']['posts_link']['id'] = 'posts_link';
 $handler->display->display_options['fields']['posts_link']['table'] = 'election';

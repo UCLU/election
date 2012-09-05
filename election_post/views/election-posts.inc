@@ -34,6 +34,7 @@ $handler->display->display_options['style_options']['columns'] = array(
   'eligibility' => 'eligibility',
   'view_link' => 'view_link',
   'vote_link' => 'view_link',
+  'nominate_link' => 'view_link',
 );
 $handler->display->display_options['style_options']['default'] = 'title';
 $handler->display->display_options['style_options']['info'] = array(
@@ -55,6 +56,11 @@ $handler->display->display_options['style_options']['info'] = array(
     'empty_column' => 0,
   ),
   'vote_link' => array(
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'nominate_link' => array(
     'align' => '',
     'separator' => '',
     'empty_column' => 0,
@@ -170,6 +176,12 @@ $handler->display->display_options['fields']['vote_link']['hide_empty'] = 1;
 $handler->display->display_options['fields']['vote_link']['empty_zero'] = 0;
 $handler->display->display_options['fields']['vote_link']['hide_alter_empty'] = 1;
 $handler->display->display_options['fields']['vote_link']['text'] = 'Vote';
+/* Field: Election post: Nomination form link */
+$handler->display->display_options['fields']['nominate_link']['id'] = 'nominate_link';
+$handler->display->display_options['fields']['nominate_link']['table'] = 'election_post';
+$handler->display->display_options['fields']['nominate_link']['field'] = 'nominate_link';
+$handler->display->display_options['fields']['nominate_link']['label'] = '';
+$handler->display->display_options['fields']['nominate_link']['element_label_colon'] = FALSE;
 /* Sort criterion: Election post: Title */
 $handler->display->display_options['sorts']['title']['id'] = 'title';
 $handler->display->display_options['sorts']['title']['table'] = 'election_post';

@@ -34,6 +34,13 @@ function election_candidate_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'type' => array(
+        'description' => 'The {election_candidate_type}.type of this candidate.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
       // Using 'status' as a column name would cause Entity API confusion.
       'cstatus' => array(
         'description' => sprintf(
@@ -120,6 +127,65 @@ function election_candidate_schema() {
         'table' => 'users',
         'columns' => array('uid' => 'uid'),
       ),
+      'type' => array(
+        'table' => 'election_candidate_type',
+        'columns' => array('type' => 'type'),
+      ),
+    ),
+  );
+
+  $schema['election_candidate_type'] = array(
+    'description' => 'Stores information about defined candidate types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique candidate type identifier.',
+      ),
+      'type' => array(
+        'description' => 'The machine-readable name of this type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this type in relation to others.',
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => ENTITY_CUSTOM,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this candidate type.',
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'type' => array('type'),
     ),
   );
 
@@ -132,23 +198,12 @@ function election_candidate_schema() {
  */
 function election_candidate_schema_alter(&$schema) {
 
+  // Add candidate_id as a foreign key on the ballot table.
   $schema['election_ballot']['foreign keys']['candidate'] = array(
     'table' => 'election_candidate',
     'columns' => array('candidate_id' => 'candidate_id'),
   );
 
-  $schema['election_endorser']['foreign keys']['candidate'] = array(
-    'table' => 'election_candidate',
-    'columns' => array('candidate_id' => 'candidate_id'),
-  );
-
-}
-
-/**
- * Implements hook_install().
- */
-function election_candidate_install() {
-  menu_rebuild();
 }
 
 /**
@@ -168,5 +223,137 @@ function election_candidate_update_7001() {
         watchdog('election_candidate', 'Created instance of the field @field_name for the bundle @bundle_name.', array('@field_name' => $field_name, '@bundle_name' => $bundle_name));
       }
     }
+  }
+}
+
+/**
+ * Add the new candidate types schema.
+ */
+function election_candidate_update_7002() {
+  $schema['election_candidate_type'] = array(
+    'description' => 'Stores information about defined candidate types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique candidate type identifier.',
+      ),
+      'type' => array(
+        'description' => 'The machine-readable name of this type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this type in relation to others.',
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => ENTITY_CUSTOM,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this candidate type.',
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'type' => array('type'),
+    ),
+  );
+  db_create_table('election_candidate_type', $schema['election_candidate_type']);
+}
+
+/**
+ * Add the 'type' column to the election_candidate table.
+ */
+function election_candidate_update_7003() {
+  db_add_field('election_candidate', 'type', array(
+    'description' => 'The {election_candidate_type}.type of this candidate.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => '',
+  ));
+}
+
+/**
+ * Bundle candidates by type rather than by election.
+ */
+function election_candidate_update_7004() {
+
+  // Select old candidate bundles. These will be any for which a candidate
+  // exists with an empty 'type' column. The election ID was the old bundle.
+  $election_ids = db_query(
+    'SELECT DISTINCT election_id FROM {election_candidate} WHERE LENGTH(type) = 0'
+  )->fetchCol();
+
+  if (empty($election_ids)) {
+    // Nothing to do.
+    return;
+  }
+
+  // Load elections so that we can grab the titles later.
+  $election_titles = db_query(
+    'SELECT election_id, title FROM {election} WHERE election_id IN (:ids)',
+    array(':ids' => $election_ids)
+  )->fetchAllKeyed();
+
+  foreach ($election_ids as $eid) {
+
+    // Name bundles as 'election_%' where % is the election ID.
+    $new_bundle = 'election_' . $eid;
+    db_update('election_candidate')
+      ->fields(array('type' => $new_bundle))
+      ->condition('election_id', $eid)
+      ->condition('type', '')
+      ->execute();
+    field_attach_rename_bundle('election_candidate', $eid, $new_bundle);
+
+    // Create the new candidate type. Name it after the election it came from.
+    $type_settings = array(
+      'type' => $new_bundle,
+      'label' => t('Type for "@election"', array(
+        '@election' => !empty($election_titles[$eid]) ? truncate_utf8($election_titles[$eid], 80) : $eid,
+      )),
+      'module' => 'election_candidate',
+    );
+    $candidate_type = entity_get_controller('election_candidate_type')->create($type_settings);
+    $candidate_type->save();
+
+    // Update post settings so that they attach to this candidate bundle.
+    $post_ids = db_query('SELECT DISTINCT post_id FROM {election_candidate} WHERE type = :bundle', array(':bundle' => $new_bundle))->fetchCol();
+    if (!empty($post_ids)) {
+      $posts = election_post_load_multiple($post_ids);
+      foreach ($posts as $post) {
+        $post->settings['candidate_type'] = $new_bundle;
+        election_post_save($post);
+      }
+    }
+
+    watchdog('election_candidate', 'Created new candidate type: @new.', array('@new' => $new_bundle));
   }
 }

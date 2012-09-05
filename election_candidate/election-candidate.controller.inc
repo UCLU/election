@@ -31,6 +31,7 @@ class ElectionCandidateController extends ElectionDefaultController {
       'photo' => '',
       'proposer' => new stdClass(),
       'seconders' => array(),
+      'type' => '',
       'created' => 0,
       'changed' => 0,
     );

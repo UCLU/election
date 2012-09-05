@@ -144,7 +144,7 @@ $handler->display->display_options['fields']['view_link']['hide_alter_empty'] = 
 $handler->display->display_options['fields']['view_link']['text'] = 'View details';
 /* Field: Election: Nomination form link */
 $handler->display->display_options['fields']['nominate_link']['id'] = 'nominate_link';
-$handler->display->display_options['fields']['nominate_link']['table'] = 'election';
+$handler->display->display_options['fields']['nominate_link']['table'] = 'election_post';
 $handler->display->display_options['fields']['nominate_link']['field'] = 'nominate_link';
 $handler->display->display_options['fields']['nominate_link']['label'] = '';
 $handler->display->display_options['fields']['nominate_link']['alter']['alter_text'] = 0;

@@ -1,0 +1,6 @@
+Election 7.x-1.x-dev, 2012-09-05
+-----------------------
+- Added a 'candidate types' admin system. You will need to run database updates
+  (API change).
+- The above means that nomination forms are now per post, not per election (UI
+  change).

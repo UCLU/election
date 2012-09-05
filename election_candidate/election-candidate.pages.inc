@@ -87,68 +87,35 @@ function election_candidate_display_previous_nominations(stdClass $election, arr
 }
 
 /**
- * Page callback for election/%election/nomination-form.
- */
-function election_page_nomination_form(stdClass $election) {
-
-  drupal_set_title(t('Nomination form'), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($election));
-
-  if (empty($election->type_info['has candidates'])) {
-    return MENU_NOT_FOUND;
-  }
-
-  $nopen = _election_is_open($election->nstatus, $election->nopen_time, $election->nclose_time);
-  if (!$nopen && !user_access('bypass nomination schedule')) {
-    return array(
-      '#markup' => t('Nominations are currently closed.'),
-    );
-  }
-
-  $previous_nominations = (array) election_candidate_get_nominations($election);
-
-  $available_post_ids = (array) election_candidate_get_available_posts($election, $previous_nominations);
-
-  // End with an error message if there are no available posts.
-  if (empty($available_post_ids)) {
-    $posts_name = election_get_post_name($election->type, TRUE);
-    return array(
-      election_candidate_display_previous_nominations($election, $previous_nominations),
-      array(
-        '#markup' => t(
-          'There are no more @posts-name available for nomination in this election.',
-          array('@posts-name' => $posts_name)
-        ),
-      ),
-    );
-  }
-  $available_posts = (array) election_post_load_multiple($available_post_ids);
-
-  return drupal_get_form('election_candidate_nomination_form', $election, $previous_nominations, $available_posts);
-
-}
-
-/**
  * Election nominations form function. This creates election_candidate entities.
  *
  * @param array $form
  *   The Drupal Form API form definition.
  * @param array $form_state
  *   The Form API state array.
- * @param stdClass $election
- *   The election object.
- * @param array $previous_nominations
- *   An array of previous nominations for the user.
- * @param array $available_posts
- *   An array of posts available for nomination.
+ * @param stdClass $post
+ *   The election post object.
  *
  * @return array
  *   Form API definition.
  */
-function election_candidate_nomination_form($form, &$form_state, stdClass $election, array $previous_nominations, array $available_posts) {
+function election_candidate_nomination_form($form, &$form_state, stdClass $post) {
 
-  $candidate = entity_get_controller('election_candidate')->create(array('election_id' => $election->election_id));
-  $candidate->is_new = TRUE;
+  $election = $post->election;
+
+  drupal_set_title(t('Nomination form: %post', array(
+    '%post' => truncate_utf8($post->title, 50, TRUE, TRUE, 30),
+  )), PASS_THROUGH);
+  drupal_set_breadcrumb(_election_build_breadcrumb(
+    $election,
+    l($post->title, election_post_uri_path($post))
+  ));
+
+  $candidate_type = !empty($post->settings['candidate_type']) ? $post->settings['candidate_type'] : 'candidate';
+  $candidate = entity_get_controller('election_candidate')->create(array(
+    'type' => $candidate_type,
+    'is_new' => TRUE,
+  ));
 
   $form['#id'] = 'election-nomination-form';
 
@@ -158,7 +125,9 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
 
   $form_state['candidate'] = $candidate;
   $form_state['election'] = $election;
+  $form_state['post'] = $post;
 
+  $previous_nominations = (array) election_candidate_get_nominations($election);
   if (count($previous_nominations)) {
     $form['previous_nominations'] = array(
       '#type' => 'fieldset',
@@ -172,22 +141,10 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $elect
     $form['previous_nominations']['display'] = $previous_nominations_display;
   }
 
-  $bypass = user_access('bypass nomination schedule');
-  $post_options = array();
-  foreach ($available_posts as $post) {
-    if ($bypass || $post->nstatus_inheritance == ELECTION_POST_STATUS_INHERIT) {
-      // @todo make this alterable
-      $post_options[$post->post_id] = truncate_utf8($post->title, 100, TRUE, TRUE, 80);
-    }
-  }
-  drupal_alter('election_candidate_post_options', $post_options);
-  $post_name = election_get_post_name($election->type);
-  $form['post_id'] = array(
-    '#type' => 'select',
-    '#options' => $post_options,
-    '#title' => check_plain(drupal_ucfirst($post_name)),
-    '#empty_option' => t('- Select @post_name -', array('@post_name' => $post_name)),
-    '#required' => TRUE,
+  $form['post'] = array(
+    '#type' => 'item',
+    '#title' => check_plain(drupal_ucfirst(election_get_post_name($election->type))),
+    '#markup' => check_plain($post->title),
   );
 
   $form['first_name'] = array(
@@ -296,11 +253,10 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
   $values = $form_state['values'];
 
   $election = $form_state['election'];
-  $post = election_post_load($values['post_id']);
+  $post = $form_state['post'];
 
   $candidate->election_id = $election->election_id;
-
-  $candidate->post_id = $values['post_id'];
+  $candidate->post_id = $post->post_id;
 
   $candidate->first_name = $values['first_name'];
   $candidate->last_name = $values['last_name'];
@@ -470,20 +426,12 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
     $form['user_info']['current_user']['#description'] = t('The account that submitted the nomination.');
   }
 
-  $post_ids = election_candidate_get_available_posts($election, NULL, FALSE);
-  $available_posts = election_post_load_multiple($post_ids);
-  $post_options = array();
-  foreach ($available_posts as $post) {
-    $post_options[$post->post_id] = truncate_utf8($post->title, 100, TRUE, TRUE, 80);
-  }
+  $post = election_post_load($candidate->post_id);
   $post_name = election_get_post_name($election->type);
   $form['post'] = array(
-    '#type' => 'select',
-    '#options' => $post_options,
+    '#type' => 'item',
     '#title' => check_plain(drupal_ucfirst($post_name)),
-    '#empty_option' => t('- Select @post_name -', array('@post_name' => $post_name)),
-    '#required' => TRUE,
-    '#default_value' => $candidate->post_id,
+    '#markup' => check_plain($post->title),
   );
 
   $form['first_name'] = array(
@@ -566,8 +514,6 @@ function election_candidate_edit_form_submit($form, &$form_state) {
       $candidate->$property = $form_state['values'][$property];
     }
   }
-
-  $candidate->post_id = $form_state['values']['post'];
 
   if (!empty($form_state['values']['new_user'])) {
     if ($account = user_load_by_name($form_state['values']['new_user'])) {
