@@ -494,8 +494,6 @@ function election_candidate_form_election_post_form_alter(&$form, &$form_state) 
     '#weight' => 20,
   );
 
-  $form['#validate'][] = 'election_candidate_election_post_settings_validate';
-
 }
 
 /**
