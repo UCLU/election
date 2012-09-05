@@ -350,76 +350,76 @@ function election_candidate_update_7004() {
 /**
  * Migrate phone number column to a Field.
  */
-function election_candidate_update_7005() {
-  field_info_cache_clear();
-  $phone_field = field_info_field('field_phone_number');
-  $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE LENGTH(phone) > 0')->fetchCol();
-  $types_with_phone_fields = array();
-  if (isset($phone_field['bundles']['election_candidate'])) {
-    foreach ($phone_field['bundles']['election_candidate'] as $bundle) {
-      $types_with_phone_fields[] = $bundle;
-    }
-  }
-  $candidates = election_candidate_load_multiple($candidate_ids);
-  foreach ($candidates as $candidate_id => $candidate) {
-    // Create field instances if they don't already exist.
-    if (!in_array($candidate->type, $types_with_phone_fields)) {
-      field_create_instance(array(
-        'bundle' => $candidate->type,
-        'default_value' => NULL,
-        'deleted' => '0',
-        'description' => t('Please enter a contact telephone number.'),
-        'display' => array(
-          // Phone numbers are private: hide by default but display in Details.
-          'default' => array(
-            'label' => 'inline',
-            'settings' => array(),
-            'type' => 'hidden',
-            'weight' => '2',
-          ),
-          'details' => array(
-            'label' => 'inline',
-            'module' => 'text',
-            'settings' => array(),
-            'type' => 'text_plain',
-            'weight' => '4',
-          ),
-        ),
-        'entity_type' => 'election_candidate',
-        'field_name' => 'field_phone_number',
-        'label' => t('Phone number'),
-        'required' => 1,
-        'settings' => array(
-          'text_processing' => '0',
-          'user_register_form' => FALSE,
-        ),
-        'widget' => array(
-          'active' => 1,
-          'module' => 'text',
-          'settings' => array(
-            'size' => '12',
-          ),
-        ),
-        'type' => 'text_textfield',
-        'weight' => '8',
-      ));
-      $types_with_phone_fields[] = $candidate->type;
-    }
-    $candidate->field_phone_number = array(LANGUAGE_NONE => array(
-      array(
-        'value' => $candidate->phone,
-        'format' => 'plain_text',
-      ),
-    ));
-    election_candidate_save($candidate);
-  }
-}
+//~ function election_candidate_update_7005() {
+  //~ field_info_cache_clear();
+  //~ $phone_field = field_info_field('field_phone_number');
+  //~ $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE LENGTH(phone) > 0')->fetchCol();
+  //~ $types_with_phone_fields = array();
+  //~ if (isset($phone_field['bundles']['election_candidate'])) {
+    //~ foreach ($phone_field['bundles']['election_candidate'] as $bundle) {
+      //~ $types_with_phone_fields[] = $bundle;
+    //~ }
+  //~ }
+  //~ $candidates = election_candidate_load_multiple($candidate_ids);
+  //~ foreach ($candidates as $candidate_id => $candidate) {
+    //~ // Create field instances if they don't already exist.
+    //~ if (!in_array($candidate->type, $types_with_phone_fields)) {
+      //~ field_create_instance(array(
+        //~ 'bundle' => $candidate->type,
+        //~ 'default_value' => NULL,
+        //~ 'deleted' => '0',
+        //~ 'description' => t('Please enter a contact telephone number.'),
+        //~ 'display' => array(
+          //~ // Phone numbers are private: hide by default but display in Details.
+          //~ 'default' => array(
+            //~ 'label' => 'inline',
+            //~ 'settings' => array(),
+            //~ 'type' => 'hidden',
+            //~ 'weight' => '2',
+          //~ ),
+          //~ 'details' => array(
+            //~ 'label' => 'inline',
+            //~ 'module' => 'text',
+            //~ 'settings' => array(),
+            //~ 'type' => 'text_plain',
+            //~ 'weight' => '4',
+          //~ ),
+        //~ ),
+        //~ 'entity_type' => 'election_candidate',
+        //~ 'field_name' => 'field_phone_number',
+        //~ 'label' => t('Phone number'),
+        //~ 'required' => 1,
+        //~ 'settings' => array(
+          //~ 'text_processing' => '0',
+          //~ 'user_register_form' => FALSE,
+        //~ ),
+        //~ 'widget' => array(
+          //~ 'active' => 1,
+          //~ 'module' => 'text',
+          //~ 'settings' => array(
+            //~ 'size' => '12',
+          //~ ),
+        //~ ),
+        //~ 'type' => 'text_textfield',
+        //~ 'weight' => '8',
+      //~ ));
+      //~ $types_with_phone_fields[] = $candidate->type;
+    //~ }
+    //~ $candidate->field_phone_number = array(LANGUAGE_NONE => array(
+      //~ array(
+        //~ 'value' => $candidate->phone,
+        //~ 'format' => 'plain_text',
+      //~ ),
+    //~ ));
+    //~ election_candidate_save($candidate);
+  //~ }
+//~ }
 
 /**
  * Remove the phone and summary columns.
  */
-function election_candidate_update_7006() {
-  db_drop_field('election_candidate', 'phone');
-  db_drop_field('election_candidate', 'summary');
-  entity_info_cache_clear();
-}
+//~ function election_candidate_update_7006() {
+  //~ db_drop_field('election_candidate', 'phone');
+  //~ db_drop_field('election_candidate', 'summary');
+  //~ entity_info_cache_clear();
+//~ }
