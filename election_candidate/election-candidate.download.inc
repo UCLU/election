@@ -43,10 +43,6 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
       'label' => t('Email address'),
       'default' => TRUE,
     ),
-    'phone' => array(
-      'label' => t('Phone number'),
-      'default' => TRUE,
-    ),
     'uid' => t('User ID'),
     'username' => array(
       'label' => t('Username'),

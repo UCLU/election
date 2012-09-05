@@ -171,13 +171,6 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $post)
     '#default_value' => empty($GLOBALS['user']->mail) ? NULL : $GLOBALS['user']->mail,
   );
 
-  $form['phone'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Contact telephone number'),
-    '#size' => 12,
-    '#required' => TRUE,
-  );
-
   // Add custom fields from the Field system.
   field_attach_form('election_candidate', $candidate, $form, $form_state);
 
@@ -214,10 +207,6 @@ function election_candidate_form_validate($form, &$form_state) {
 
   if (!empty($form_state['values']['mail']) && !filter_var($form_state['values']['mail'], FILTER_VALIDATE_EMAIL)) {
     form_set_error('mail', t('Please enter a valid email address'));
-  }
-
-  if (!empty($form_state['values']['phone']) && !preg_match('/\b\+?([0-9]+[\s-\+]?)+\b/', $form_state['values']['phone'])) {
-    form_set_error('phone', t('Please enter a valid phone number.'));
   }
 
   field_attach_form_validate('election_candidate', $form_state['candidate'], $form, $form_state);
@@ -458,14 +447,6 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
     '#size' => 30,
     '#required' => FALSE,
     '#default_value' => $candidate->mail,
-  );
-
-  $form['phone'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Contact telephone number'),
-    '#size' => 12,
-    '#required' => FALSE,
-    '#default_value' => $candidate->phone,
   );
 
   field_attach_form('election_candidate', $candidate, $form, $form_state);

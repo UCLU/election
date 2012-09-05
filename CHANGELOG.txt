@@ -4,3 +4,5 @@ Election 7.x-1.x-dev, 2012-09-05
   (API change).
 - The above means that nomination forms are now per post, not per election (UI
   change).
+- Removed the 'phone' column from the election_candidate table, adding a default
+  Field instead.

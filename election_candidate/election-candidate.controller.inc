@@ -24,7 +24,6 @@ class ElectionCandidateController extends ElectionDefaultController {
       'username' => '',
       'first_name' => '',
       'last_name' => '',
-      'phone' => '',
       'mail' => '',
       'summary' => '',
       'manifesto' => '',

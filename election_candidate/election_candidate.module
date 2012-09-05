@@ -382,11 +382,6 @@ function election_candidate_field_extra_fields() {
         'description' => t("The candidate's email address."),
         'weight' => 3,
       ),
-      'phone' => array(
-        'label' => t('Phone number'),
-        'description' => t("The candidate's phone number."),
-        'weight' => 4,
-      ),
     ),
     'display' => array(
       'election' => array(
