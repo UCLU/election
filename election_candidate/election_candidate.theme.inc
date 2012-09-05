@@ -78,14 +78,16 @@ function template_preprocess_election_candidate(&$variables) {
 
     $variables['content']['mail'] = array(
       '#theme' => 'election_info_item',
-      '#label' => t('Email address:'),
+      '#label' => t('Email address'),
       '#value' => $variables['mail'],
+      '#html' => TRUE,
     );
 
     $variables['content']['candidate-username'] = array(
       '#theme' => 'election_info_item',
-      '#label' => t('Username:'),
+      '#label' => t('Username'),
       '#value' => $variables['username'],
+      '#html' => TRUE,
     );
 
   }
