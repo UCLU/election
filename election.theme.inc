@@ -5,6 +5,30 @@
  */
 
 /**
+ * Theme function for displaying a piece of information which isn't a field.
+ */
+function theme_election_info_item($variables) {
+  $label = $variables['label'];
+  $value = $variables['value'];
+  $html = $variables['html'];
+  $classes = array('election-info');
+  if (!empty($label)) {
+    $classes[] = 'election-info-' . strtolower(preg_replace('/[^A-Z0-9]+/i', '-', $label));
+  }
+  $container = array(
+    '#theme' => 'container',
+    '#attributes' => array('class' => $classes),
+  );
+  if (!empty($variables['classes'])) {
+    $container['#attributes']['class'] += (array) $variables['classes'];
+  }
+  $label = '<span class="label">' . check_plain($label) . ':</span>';
+  $value = '<span class="value">' . ($html ? $value : check_plain($value)) . '</span>';
+  $container['#children'] = $label . ' ' . $value;
+  return drupal_render($container);
+}
+
+/**
  * Determine the election's status, for theme_election_status().
  */
 function template_preprocess_election_status(&$variables) {

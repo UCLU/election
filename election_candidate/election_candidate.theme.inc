@@ -58,15 +58,17 @@ function template_preprocess_election_candidate(&$variables) {
   $variables += array('content' => array());
 
   $variables['content']['election'] = array(
-    '#type' => 'item',
-    '#title' => t('In election'),
-    '#markup' => $variables['election_link'],
+    '#theme' => 'election_info_item',
+    '#label' => t('Election'),
+    '#value' => $variables['election_link'],
+    '#html' => TRUE,
   );
 
   $variables['content']['post'] = array(
-    '#type' => 'item',
-    '#title' => t('Standing for'),
-    '#markup' => $variables['post_link'],
+    '#theme' => 'election_info_item',
+    '#label' => t('Standing for'),
+    '#value' => $variables['post_link'],
+    '#html' => TRUE,
   );
 
   if ($variables['view_mode'] == 'details') {
@@ -75,21 +77,15 @@ function template_preprocess_election_candidate(&$variables) {
     $variables['mail'] = l($candidate->mail, 'mailto:' . $candidate->mail, array('absolute' => TRUE));
 
     $variables['content']['mail'] = array(
-      '#theme' => 'container',
-      '#attributes' => array(
-        'class' => array('pseudo-field', 'candidate-email-address'),
-      ),
-      '#markup' => '<span class="label">' . t('Email address:') . '</span>'
-      . ' <span class="item">' . $variables['mail'] . '</span>',
+      '#theme' => 'election_info_item',
+      '#label' => t('Email address:'),
+      '#value' => $variables['mail'],
     );
 
     $variables['content']['candidate-username'] = array(
-      '#theme' => 'container',
-      '#attributes' => array(
-        'class' => array('pseudo-field', 'candidate-username'),
-      ),
-      '#markup' => '<span class="label">' . t('Username:') . '</span>'
-      . ' <span class="item">' . $variables['username'] . '</span>',
+      '#theme' => 'election_info_item',
+      '#label' => t('Username:'),
+      '#value' => $variables['username'],
     );
 
   }

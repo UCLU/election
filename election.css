@@ -41,24 +41,46 @@
   clear: both;
 }
 
+/* Item of information */
+.election-info .label {
+  font-weight: bold;
+}
+
 /* Election vote button */
+.election-post {
+  position: relative;
+}
 .election-vote-button {
-  float: right;
+  position: absolute;
+  right: 0;
+  bottom: 2em;
 }
 .election-vote-button a {
-  background-color: #56ff56;
-  border: 1px solid #cccccc;
-  border-radius: 5px;
+  border: 1px solid #eeeeee;
+  border-radius: 1.3em;
   color: #222222;
   font-family: sans-serif;
-  font-size: 1.2em;
+  font-size: 1.3em;
   padding: 0.5em 0.8em;
   text-decoration: none;
-  text-transform: uppercase;
+  background: rgb(254,252,234); /* Old browsers */
+  background: -moz-linear-gradient(top, rgba(254,252,234,1) 0%, rgba(241,218,54,1) 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(254,252,234,1)), color-stop(100%,rgba(241,218,54,1))); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top, rgba(254,252,234,1) 0%,rgba(241,218,54,1) 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top, rgba(254,252,234,1) 0%,rgba(241,218,54,1) 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top, rgba(254,252,234,1) 0%,rgba(241,218,54,1) 100%); /* IE10+ */
+  background: linear-gradient(to bottom, rgba(254,252,234,1) 0%,rgba(241,218,54,1) 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fefcea', endColorstr='#f1da36',GradientType=0 ); /* IE6-9 */
 }
 .election-vote-button a:hover,
-.election-vote-button a:active {
-  border-color: #555555;
-  color: #222222;
+.election-vote-button a:active,
+.election-vote-button a:focus {
+  border-color: #cccccc;
+  color: #000000;
   text-decoration: none;
+}
+.election-vote-button a:active {
+  position: relative;
+  top: 1px;
+  left: 1px;
 }

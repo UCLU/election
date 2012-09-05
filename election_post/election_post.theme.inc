@@ -47,9 +47,10 @@ function template_preprocess_election_post(&$variables) {
   $variables += array('content' => array());
 
   $variables['content']['election'] = array(
-    '#type' => 'item',
-    '#title' => t('In election'),
-    '#markup' => $variables['election_link'],
+    '#theme' => 'election_info_item',
+    '#label' => t('Election'),
+    '#value' => $variables['election_link'],
+    '#html' => TRUE,
   );
 
   foreach (element_children($variables['elements']) as $key) {

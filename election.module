@@ -559,6 +559,15 @@ function election_theme() {
       ),
       'file' => 'election.theme.inc',
     ),
+    'election_info_item' => array(
+      'variables' => array(
+        'label' => NULL,
+        'value' => NULL,
+        'classes' => array(),
+        'html' => FALSE,
+      ),
+      'file' => 'election.theme.inc',
+    ),
   );
 }
 
