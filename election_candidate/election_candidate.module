@@ -558,7 +558,7 @@ function election_candidate_form_election_post_form_alter(&$form, &$form_state) 
     '#weight' => -10,
     '#default_value' => isset($post->settings['candidate_type']) ? $post->settings['candidate_type'] : 'candidate',
     '#required' => TRUE,
-    '#description' => t('The candidate type determines which fields are available. This setting does not affect existing candidates.'),
+    '#description' => t('This determines which candidate fields are available (e.g. in the nomination form). This setting does not affect existing candidates.'),
     '#weight' => 10,
   );
 

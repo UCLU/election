@@ -55,6 +55,8 @@ function election_candidate_page_view(stdClass $candidate, $view_mode = 'full') 
  *   An election object.
  * @param array $previous_nominations
  *   An array of candidate objects representing the user's previous nominations.
+ *
+ * @todo make this themeable
  */
 function election_candidate_display_previous_nominations(stdClass $election, array $previous_nominations) {
   if (empty($previous_nominations)) {
@@ -68,14 +70,14 @@ function election_candidate_display_previous_nominations(stdClass $election, arr
     t('Status'),
   );
   $rows = array();
-  foreach ($previous_nominations as $nomination) {
-    $post = election_post_load($nomination->post_id);
+  foreach ($previous_nominations as $candidate) {
+    $post = election_post_load($candidate->post_id);
     $post_title = empty($post) ? '?' : check_plain($post->title);
     $rows[] = array(
-      format_date($nomination->created, 'short'),
+      format_date($candidate->created, 'short'),
       $post_title,
-      check_plain($nomination->first_name . ' ' . $nomination->last_name),
-      _election_candidate_format_status($nomination),
+      check_plain($candidate->first_name . ' ' . $candidate->last_name),
+      _election_candidate_format_status($candidate),
     );
   }
   return array(
@@ -194,7 +196,6 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $post)
   );
 
   $form['#validate'][] = 'election_candidate_form_validate';
-  $form['#validate'][] = 'election_candidate_nomination_form_validate';
 
   return $form;
 }
@@ -214,14 +215,7 @@ function election_candidate_form_validate($form, &$form_state) {
 }
 
 /**
- * Validation function for just the nomination form.
- */
-function election_candidate_nomination_form_validate($form, &$form_state) {
-  // @todo validate post again
-}
-
-/**
- * Validation function for just the edit form.
+ * Validation function for editing a candidate.
  */
 function election_candidate_edit_form_validate($form, &$form_state) {
   if (!empty($form_state['values']['new_user'])) {
