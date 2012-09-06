@@ -381,12 +381,7 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
 
   $form['cstatus'] = array(
     '#type' => 'select',
-    '#options' => array(
-      ELECTION_CANDIDATE_PENDING => t('Pending approval'),
-      ELECTION_CANDIDATE_APPROVED => t('Approved'),
-      ELECTION_CANDIDATE_WITHDRAWN => t('Withdrawn'),
-      ELECTION_CANDIDATE_REJECTED => t('Rejected'),
-    ),
+    '#options' => _election_candidate_get_status_options(),
     '#title' => t('Candidate status'),
     '#required' => TRUE,
     '#default_value' => $candidate->cstatus,

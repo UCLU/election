@@ -64,7 +64,7 @@ function election_post_schema() {
       ),
       'nstatus_inheritance' => array(
         'description' => sprintf(
-          'For an STV position: whether its nominations status is inherited (%d) or closed (%d).',
+          'The post\'s nominations status: inherited (%d) or closed (%d).',
           ELECTION_POST_STATUS_INHERIT,
           ELECTION_POST_STATUS_CLOSED
         ),
