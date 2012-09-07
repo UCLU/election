@@ -399,6 +399,7 @@ function election_candidate_entity_property_info() {
       'required' => TRUE,
     ),
     'uid' => array(
+      'label' => t('User'),
       'description' => t('The user associated with the candidate.'),
       'type' => 'user',
       'setter callback' => 'entity_property_verbatim_set',
