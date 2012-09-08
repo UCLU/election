@@ -24,3 +24,5 @@ files[] = views/handlers/views_handler_field_election_vstatus.inc
 files[] = views/handlers/views_handler_filter_election_nstatus.inc
 files[] = views/handlers/views_handler_filter_election_published.inc
 files[] = views/handlers/views_handler_filter_election_vstatus.inc
+files[] = tests/election_unit.test
+
