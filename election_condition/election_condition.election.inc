@@ -28,7 +28,7 @@ function election_condition_election_vote_access($op, $post = NULL, $account = N
       // If any condition does not exist or return TRUE, return FALSE.
       foreach ($conditions as $condition) {
         foreach ($condition->callbacks as $callback) {
-          if (!function_exists($callback) || $callback($account) !== TRUE) {
+          if (!function_exists($callback) || $callback($post, $account) !== TRUE) {
             return FALSE;
           }
         }
