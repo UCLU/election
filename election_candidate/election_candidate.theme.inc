@@ -73,7 +73,7 @@ function template_preprocess_election_candidate(&$variables) {
 
   if ($variables['view_mode'] == 'details') {
 
-    $variables['username'] = theme('username', array('#account' => $candidate->uid ? user_load($candidate->uid) : NULL));
+    $variables['username'] = theme('username', array('account' => $candidate->uid ? user_load($candidate->uid) : NULL));
     $variables['mail'] = l($candidate->mail, 'mailto:' . $candidate->mail, array('absolute' => TRUE));
 
     $variables['content']['mail'] = array(
