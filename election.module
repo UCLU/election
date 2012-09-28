@@ -349,7 +349,7 @@ function election_menu() {
       'title' => 'Add new @type',
       'title arguments' => array('@type' => $type['name']),
       'page callback' => 'election_page_add',
-      'page arguments' => array(4),
+      'page arguments' => array(5),
       'access arguments' => array('administer elections'),
       'file' => 'election.admin.inc',
       'description' => empty($type['description']) ? '' : $type['description'],
