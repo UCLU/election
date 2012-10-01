@@ -393,13 +393,13 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
     '#default_value' => empty($candidate_account) ? NULL : $candidate_account->name,
     '#weight' => 1,
   );
-  if (empty($account)) {
+  if (empty($candidate_account)) {
     $form['user_info']['current_user']['#markup'] = t('No user account associated.');
   }
   else {
     $form['user_info']['current_user']['#markup'] = theme(
       'username',
-      array('account' => $candidate_account, 'link_options' => array('target' => '_blank'))
+      array('account' => $candidate_account, 'link_options' => array('attributes' => array('target' => '_blank')))
     );
     $form['user_info']['current_user']['#description'] = t('The account that submitted the nomination.');
   }

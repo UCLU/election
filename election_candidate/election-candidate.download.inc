@@ -11,7 +11,7 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
 
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
 
-  $candidate_field_instances = field_info_instances('election_candidate', 'election_candidate');
+  $candidate_field_instances = field_info_instances('election_candidate');
 
   $post_name = election_get_post_name($election->type);
 
@@ -63,13 +63,17 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
       'default' => TRUE,
     ),
   );
-  foreach ($candidate_field_instances as $field_name => $cfi) {
-    $field = field_info_field($field_name);
-    $properties[$field_name] = array(
-      'label' => $cfi['label'],
-      'type' => $field['type'],
-      'default' => FALSE,
-    );
+  foreach ($candidate_field_instances as $bundle_name => $instances) {
+    foreach ($instances as $field_name => $instance) {
+      if (!isset($properties[$field_name])) {
+        $field = field_info_field($field_name);
+        $properties[$field_name] = array(
+          'label' => $instance['label'],
+          'type' => $field['type'],
+          'default' => FALSE,
+        );
+      }
+    }
   }
 
   $property_options = array();
@@ -218,6 +222,12 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
     case 'image':
       if (is_array($value) && isset($value[LANGUAGE_NONE][0]['uri'])) {
         return file_create_url($value[LANGUAGE_NONE][0]['uri']);
+      }
+      break;
+
+    case 'text_long':
+      if (is_array($value) && isset($value[LANGUAGE_NONE][0]['value'])) {
+        return html_entity_decode(strip_tags(check_markup($value[LANGUAGE_NONE][0]['value'], 'plain_text')));
       }
       break;
 
