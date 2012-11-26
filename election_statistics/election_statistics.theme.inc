@@ -35,9 +35,13 @@ function template_preprocess_election_statistics(&$variables) {
     'abstentions' => t('Abstentions'),
   );
   $rows = array();
+  $voter_avg = $totals->ballots / $totals->voters;
   $rows[0] = array(
     'voters' => number_format($totals->voters),
-    'ballots' => number_format($totals->ballots),
+    'ballots' => t(
+      '@ballots (@avg each)',
+      array('@ballots' => number_format($totals->ballots), '@avg' => number_format($voter_avg, 1))
+    ),
     'votes' => number_format($totals->votes),
     'abstentions' => number_format($totals->abstentions),
   );
