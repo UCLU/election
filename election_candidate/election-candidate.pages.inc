@@ -176,15 +176,6 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $post)
   // Add custom fields from the Field system.
   field_attach_form('election_candidate', $candidate, $form, $form_state);
 
-  if (election_access('edit', $election)) {
-    $form['auto_approve'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Automatically approve this candidate.'),
-      '#default_value' => TRUE,
-      '#weight' => 99,
-    );
-  }
-
   $form['buttons'] = array(
     '#type' => 'actions',
     '#weight' => 100,
@@ -246,10 +237,6 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
   $candidate->mail = $values['mail'];
   $candidate->phone = $values['phone'];
   $candidate->cstatus = ELECTION_CANDIDATE_PENDING;
-
-  if (!empty($form_state['values']['auto_approve'])) {
-    $candidate->cstatus = ELECTION_CANDIDATE_APPROVED;
-  }
 
   field_attach_submit('election_candidate', $candidate, $form, $form_state);
 
@@ -375,15 +362,11 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
 
   $form['cstatus'] = array(
     '#type' => 'select',
-    '#options' => _election_candidate_get_status_options(),
+    '#options' => _election_candidate_get_cstatus_options(),
     '#title' => t('Candidate status'),
     '#required' => TRUE,
     '#default_value' => $candidate->cstatus,
     '#empty_option' => t('- Select status -'),
-    '#description' => t(
-      'If the status is set to !approved, the candidate will be visible to all those who have permission to view the election.',
-      array('!approved' => t('Approved'))
-    ),
     '#weight' => 0,
   );
 
@@ -477,8 +460,6 @@ function election_candidate_edit_form_submit($form, &$form_state) {
 
   $candidate = &$form_state['candidate'];
 
-  $initial_cstatus = $candidate->cstatus;
-
   foreach ($candidate as $property => $value) {
     if (isset($form_state['values'][$property])) {
       $candidate->$property = $form_state['values'][$property];
@@ -505,15 +486,6 @@ function election_candidate_edit_form_submit($form, &$form_state) {
       )
     )
   );
-
-  if ($initial_cstatus === ELECTION_CANDIDATE_PENDING && $candidate->cstatus === ELECTION_CANDIDATE_APPROVED) {
-    // Invoke rules for "After a candidate is approved".
-    if (module_exists('rules')) {
-      $post = election_post_load($candidate->post_id);
-      $election = $post->election;
-      rules_invoke_event('election_candidate_approved', $candidate, $post, $election);
-    }
-  }
 
 }
 

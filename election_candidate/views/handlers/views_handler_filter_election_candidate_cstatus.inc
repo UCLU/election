@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Filter by candidate status (=approved)
+ * Filter by candidate status.
  */
 
 class views_handler_filter_election_candidate_cstatus extends views_handler_filter_in_operator {
@@ -10,12 +10,7 @@ class views_handler_filter_election_candidate_cstatus extends views_handler_filt
    * Overrides parent::get_value_options().
    */
   public function get_value_options() {
-    $this->value_options = array(
-      ELECTION_CANDIDATE_APPROVED => t('Approved'),
-      ELECTION_CANDIDATE_PENDING => t('Pending'),
-      ELECTION_CANDIDATE_WITHDRAWN => t('Withdrawn'),
-      ELECTION_CANDIDATE_REJECTED => t('Rejected'),
-    );
+    $this->value_options = _election_candidate_get_cstatus_options();
     return $this->value_options;
   }
 

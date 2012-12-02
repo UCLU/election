@@ -181,8 +181,8 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
       if (election_access('edit', $election, $account)) {
         return TRUE;
       }
-      // Users who can view the election can also view approved candidates.
-      if (election_access('view', $election, $account) && (empty($candidate) || $candidate->cstatus == ELECTION_CANDIDATE_APPROVED)) {
+      // Users who can view the election can also view published candidates.
+      if (election_access('view', $election, $account) && (empty($candidate) || $candidate->published)) {
         return TRUE;
       }
       break;
@@ -393,7 +393,7 @@ function election_candidate_entity_property_info() {
     'cstatus' => array(
       'label' => t('Status'),
       'type' => 'integer',
-      'options list' => '_election_candidate_get_status_options',
+      'options list' => '_election_candidate_get_cstatus_options',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'cstatus',
       'required' => TRUE,
@@ -445,12 +445,14 @@ function election_candidate_entity_property_info() {
 /**
  * Get an array of possible candidate statuses.
  */
-function _election_candidate_get_status_options() {
+function _election_candidate_get_cstatus_options() {
   return array(
-    ELECTION_CANDIDATE_PENDING => t('Pending approval'),
+    ELECTION_CANDIDATE_ELECTED => t('Elected'),
     ELECTION_CANDIDATE_APPROVED => t('Approved'),
+    ELECTION_CANDIDATE_PENDING => t('Pending approval'),
     ELECTION_CANDIDATE_WITHDRAWN => t('Withdrawn'),
     ELECTION_CANDIDATE_REJECTED => t('Rejected'),
+    ELECTION_CANDIDATE_DEFEATED => t('Defeated'),
   );
 }
 
@@ -825,25 +827,8 @@ function election_candidate_theme() {
  * Format the 'cstatus' property of an election_candidate for display.
  */
 function _election_candidate_format_status(stdClass $candidate) {
-  switch ($candidate->cstatus) {
-    case ELECTION_CANDIDATE_APPROVED:
-      return t('Approved');
-      break;
-
-    case ELECTION_CANDIDATE_REJECTED:
-      return t('Nomination rejected');
-      break;
-
-    case ELECTION_CANDIDATE_WITHDRAWN:
-      return t('Withdrawn');
-      break;
-
-    case ELECTION_CANDIDATE_PENDING:
-    default:
-      return t('Pending approval');
-      break;
-
-  }
+  $options = _election_candidate_get_cstatus_options();
+  return $options[$candidate->cstatus];
 }
 
 /**
@@ -1082,9 +1067,9 @@ function election_candidate_preprocess_election_post(&$vars) {
  */
 function election_candidate_action_info() {
   return array(
-    'election_candidate_approve_action' => array(
+    'election_candidate_publish_action' => array(
       'type' => 'election_candidate',
-      'label' => t('Approve candidate'),
+      'label' => t('Publish candidate'),
       'configurable' => FALSE,
       'behavior' => array('changes_property'),
       'triggers' => array('election_candidate_presave'),
@@ -1093,12 +1078,12 @@ function election_candidate_action_info() {
 }
 
 /**
- * Sets the status of a candidate to ELECTION_CANDIDATE_APPROVED.
+ * Publishes a candidate.
  *
  * @ingroup actions
  */
 function election_candidate_approve_action($candidate, $context = array()) {
-  $candidate->cstatus = ELECTION_CANDIDATE_APPROVED;
+  $candidate->published = 1;
 }
 
 /**

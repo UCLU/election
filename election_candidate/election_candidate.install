@@ -41,14 +41,23 @@ function election_candidate_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
+      'published' => array(
+        'description' => 'Allows anyone who can view the election to view this candidate.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
       // Using 'status' as a column name would cause Entity API confusion.
       'cstatus' => array(
         'description' => sprintf(
-          'The candidate\'s status: pending %d, approved %d, withdrawn %d, or rejected %d.',
+          'The candidate\'s status: pending %d, withdrawn %d, rejected %d, approved %d, defeated %d, or elected %d.',
           ELECTION_CANDIDATE_PENDING,
-          ELECTION_CANDIDATE_APPROVED,
           ELECTION_CANDIDATE_WITHDRAWN,
-          ELECTION_CANDIDATE_REJECTED
+          ELECTION_CANDIDATE_REJECTED,
+          ELECTION_CANDIDATE_APPROVED,
+          ELECTION_CANDIDATE_DEFEATED,
+          ELECTION_CANDIDATE_ELECTED
         ),
         'type' => 'int',
         'size' => 'tiny',

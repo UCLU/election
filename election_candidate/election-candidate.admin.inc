@@ -123,47 +123,44 @@ function election_candidate_totals_page(stdClass $election) {
 
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
 
-  $result = db_query('SELECT COUNT(DISTINCT candidate_id) AS num_candidates, COUNT(DISTINCT IF (cstatus=0, candidate_id, NULL)) AS num_pending, COUNT(DISTINCT IF (cstatus=1, candidate_id, NULL)) AS num_approved, COUNT(DISTINCT IF (cstatus=-1, candidate_id, NULL)) AS num_withdrawn, COUNT(DISTINCT IF (cstatus=-2, candidate_id, NULL)) AS num_rejected FROM {election_candidate} WHERE election_id = :election_id', array(
-  ':election_id' => $election->election_id));
-  $total_all = $result->fetch();
+  $totals = db_query("SELECT IFNULL(cstatus, 'all') AS cstatus, COUNT(DISTINCT candidate_id) FROM {election_candidate} WHERE election_id = :eid GROUP BY cstatus WITH ROLLUP", array(':eid' => $election->election_id))->fetchAllKeyed();
 
   $output = array(
     'total' => array(
-      '#markup' => '<p>' . t('Total number of candidates: !totalAll', array('!totalAll' => $total_all->num_candidates)) . '</p>',
+      '#markup' => '<p>' . t('Total number of candidates: !totalAll', array('!totalAll' => $totals['all'])) . '</p>',
     ),
   );
 
-  if ($total_all->num_candidates > 0) {
+  if ($totals['all'] > 0) {
     $result = db_query(
-      'SELECT ep.title, COUNT(DISTINCT ec.candidate_id) AS num_candidates, COUNT(DISTINCT IF (ec.cstatus=0, ec.candidate_id, NULL)) AS num_pending, COUNT(DISTINCT IF (ec.cstatus=1, ec.candidate_id, NULL)) AS num_approved, COUNT(DISTINCT IF (ec.cstatus=-1, ec.candidate_id, NULL)) AS num_withdrawn, COUNT(DISTINCT IF (ec.cstatus=-2, ec.candidate_id, NULL)) AS num_rejected FROM {election_post} ep LEFT JOIN {election_candidate} ec USING (post_id) WHERE ep.election_id = :election_id GROUP BY ep.post_id ORDER BY ep.title',
-      array(
-        ':election_id' => $election->election_id,
-      )
+      "SELECT ep.post_id, ep.title, cstatus, COUNT(DISTINCT candidate_id) AS num FROM {election_post} ep LEFT JOIN {election_candidate} ec USING (post_id) WHERE ep.election_id = :eid GROUP BY ep.post_id, ec.cstatus ORDER BY ep.title",
+      array(':eid' => $election->election_id)
     );
-    $totals = $result->fetchAll();
-    $header = array(
-      t('Position'),
-      t('Pending'),
-      t('Approved'),
-      t('Rejected'),
-      t('Withdrawn'),
+    $cstatuses = _election_candidate_get_cstatus_options();
+    $header = array_merge(
+      array(drupal_ucfirst(election_get_post_name($election->type))),
+      $cstatuses
     );
     $rows = array();
-    $rows[] = array(
-      t('TOTAL'),
-      $total_all->num_pending,
-      $total_all->num_approved,
-      $total_all->num_rejected,
-      $total_all->num_withdrawn,
-    );
-    foreach ($totals as $total) {
-      $rows[] = array(
-        check_plain($total->title),
-        $total->num_pending,
-        $total->num_approved,
-        $total->num_rejected,
-        $total->num_withdrawn,
-      );
+    $rows['total'] = array(t('TOTAL'));
+    foreach (array_keys($cstatuses) as $cstatus) {
+      $rows['total'][] = isset($totals[$cstatus]) ? $totals[$cstatus] : '0';
+    }
+    $counts = $result->fetchAll(PDO::FETCH_GROUP);
+    foreach ($counts as $post_id => $subtotals) {
+      $row = array();
+      $row[] = check_plain($subtotals[0]->title);
+      foreach (array_keys($cstatuses) as $cstatus) {
+        $num = 0;
+        foreach ($subtotals as $subtotal) {
+          if ($subtotal->cstatus == $cstatus) {
+            $num = $subtotal->num;
+            break;
+          }
+        }
+        $row[] = $num;
+      }
+      $rows[] = $row;
     }
     $output['by_position'] = array(
       '#theme' => 'table',

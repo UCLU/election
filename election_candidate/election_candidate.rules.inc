@@ -36,23 +36,6 @@ function election_candidate_rules_event_info() {
       ),
     ),
   );
-  $events['election_candidate_approved'] = $defaults + array(
-    'label' => t('After a candidate is approved'),
-    'variables' => array(
-      'candidate' => array(
-        'type' => 'election_candidate',
-        'label' => t('The candidate'),
-      ),
-      'post' => array(
-        'type' => 'election_post',
-        'label' => t('The post for which the candidate is standing'),
-      ),
-      'election' => array(
-        'type' => 'election',
-        'label' => t('The election to which the post belongs'),
-      ),
-    ),
-  );
   return $events;
 }
 
