@@ -12,7 +12,7 @@ function election_vote_default_rules_configuration() {
   $items = array();
 
   // Display a message to notify the user after abstaining.
-  $items['election_vote_notify_abstainer'] = entity_import('rules_config', '{ "rules_election_vote_notify_abstainer" : {
+  $items['election_vote_notify_abstainer'] = entity_import('rules_config', '{ "election_vote_notify_abstainer" : {
     "LABEL" : "Notify user after abstaining",
     "PLUGIN" : "reaction rule",
     "TAGS" : [ "election" ],
