@@ -11,10 +11,37 @@ function election_vote_default_rules_configuration() {
 
   $items = array();
 
-  // Email the voter after voting in an election.
+  // Display a message to notify the user after abstaining.
+  $items['election_vote_notify_abstainer'] = entity_import('rules_config', '{ "rules_election_vote_notify_abstainer" : {
+    "LABEL" : "Notify user after abstaining",
+    "PLUGIN" : "reaction rule",
+    "TAGS" : [ "election" ],
+    "REQUIRES" : [ "rules", "election_vote" ],
+    "ON" : [ "election_vote_abstain" ],
+    "DO" : [
+      { "drupal_message" : { "message" : "You have abstained from voting for the [election:type:post-name] \u003Ca href=\u0022[post:url]\u0022\u003E[post:title]\u003C\/a\u003E." } }
+    ]
+  }
+}');
+  
+  // Display a message to notify the user after voting.
+  $items['election_vote_notify_voter'] = entity_import('rules_config', '{ "election_vote_notify_voter" : {
+    "LABEL" : "Notify user after voting",
+    "PLUGIN" : "reaction rule",
+    "TAGS" : [ "election" ],
+    "REQUIRES" : [ "rules", "election_vote" ],
+    "ON" : [ "election_vote_vote" ],
+    "DO" : [
+      { "drupal_message" : { "message" : "Thank you for voting for the [election:type:post-name] \u003Ca href=\u0022[post:url]\u0022\u003E[post:title]\u003C\/a\u003E." } }
+    ]
+  }
+}');
+
+  // Email the user after voting.
   $items['election_vote_email_voter'] = entity_import('rules_config', '{ "election_vote_email_voter" : {
     "LABEL" : "Email user after voting",
     "PLUGIN" : "reaction rule",
+    "WEIGHT" : "1",
     "ACTIVE" : false,
     "TAGS" : [ "election" ],
     "REQUIRES" : [ "rules", "election_vote" ],
