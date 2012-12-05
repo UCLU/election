@@ -731,7 +731,7 @@ function election_view(stdClass $election, $view_mode = 'full') {
  * @param string $type_machine_name
  *   The machine name of the election type.
  * @param bool $plural
- *   Whether to return a plural name (e.g. 'motions' or 'positions').
+ *   Whether to return a plural name (e.g. 'questions' or 'positions').
  */
 function election_get_post_name($type_machine_name, $plural = FALSE) {
   $name = $plural ? 'posts' : 'post';

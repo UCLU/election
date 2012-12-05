@@ -6,7 +6,7 @@
 
 $view = new view;
 $view->name = 'election_posts';
-$view->description = 'A list of posts (positions / motions) per election.';
+$view->description = 'A list of posts (positions / questions) per election.';
 $view->tag = 'default';
 $view->base_table = 'election_post';
 $view->human_name = 'Election posts';

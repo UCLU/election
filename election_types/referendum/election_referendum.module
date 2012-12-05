@@ -57,7 +57,7 @@ function election_referendum_preprocess_election_vote_confirm(&$variables) {
     $variables['confirm'] = array(
       array(
         '#type' => 'item',
-        '#title' => t('Motion'),
+        '#title' => drupal_ucfirst(election_get_post_name('referendum')),
         '#markup' => check_plain($post->title),
       ),
       array(
@@ -120,12 +120,12 @@ function election_referendum_count_page(stdClass $post, $totals) {
  */
 function election_referendum_vote_form($form, &$form_state, $post, $election) {
 
-  $form['motion_preview'] = array(
+  $form['post_preview'] = array(
     '#type' => 'item',
-    '#title' => t('Motion'),
-    '#markup' => t('@motion (<a href="@motion_url">view details</a>)', array(
-      '@motion' => $post->title,
-      '@motion_url' => url(election_post_uri_path($post)),
+    '#title' => drupal_ucfirst(election_get_post_name($election->type)),
+    '#markup' => t('@post (<a href="@post_url">view details</a>)', array(
+      '@post' => $post->title,
+      '@post_url' => url(election_post_uri_path($post)),
     )),
   );
 
@@ -160,7 +160,7 @@ function election_referendum_vote_form_validate($form, &$form_state) {
 }
 
 /**
- * Save answer to a motion in a referendum.
+ * Save answer to a question in a referendum.
  */
 function election_referendum_save_votes($form, &$form_state, $post, $ballot_id) {
 
@@ -182,7 +182,7 @@ function election_referendum_save_votes($form, &$form_state, $post, $ballot_id) 
 /**
  * Implements hook_form_FORM_ID_alter().
  *
- * Add referendum-specific settings to the election post (motion) edit form.
+ * Add referendum-specific settings to the election_post edit form.
  */
 function election_referendum_form_election_post_form_alter(&$form, &$form_state) {
 
@@ -192,10 +192,13 @@ function election_referendum_form_election_post_form_alter(&$form, &$form_state)
     return;
   }
 
+  $form['title']['#title'] = t('Question');
+
   $form['answers'] = array(
     '#type' => 'fieldset',
     '#title' => t('Answers'),
-    '#description' => t('Define the valid positive and negative answers to this motion (e.g. Yes/No, Agree/Disagree, etc.).'),
+    '#description' => t('Define the valid positive and negative answers to this @post (e.g. Yes/No, Agree/Disagree, etc.).',
+      array('@post' => election_get_post_name($election->type))),
     '#weight' => -30,
     '#collapsible' => TRUE,
   );
@@ -217,7 +220,7 @@ function election_referendum_form_election_post_form_alter(&$form, &$form_state)
 }
 
 /**
- * Form validate function for the referendum motion settings.
+ * Form validate function for the referendum post settings.
  *
  * @see election_referendum_form_election_post_form_alter()
  */
@@ -228,7 +231,7 @@ function election_referendum_settings_validate($form, &$form_state) {
 }
 
 /**
- * Extract the answer text (Yes/No, Agree/Disagree etc.) for a motion.
+ * Extract the answer text (Yes/No, Agree/Disagree etc.) for a referendum post.
  */
 function _election_referendum_get_answer_text($post, $answer) {
   switch ($answer) {

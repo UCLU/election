@@ -20,7 +20,7 @@
  *   - name: (Required) The human-readable name of the election type, sanitized.
  *   - description: A description of the election type, sanitized.
  *   - post name: The name of the election's posts, as a singular noun. See
- *     README.txt. The name for a referendum's posts may be 'motion', while
+ *     README.txt. The name for a referendum's posts may be 'question', while
  *     another election's posts may be referred to as 'role', 'position', or
  *     'title', perhaps.
  *   - post name plural: The plural version of the post name (default: post name

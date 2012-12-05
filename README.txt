@@ -29,7 +29,7 @@ Note on terminology (for developers)
 ------------------------------------
 'Post' is a generic name for a single element of an election.
 
-For referendums, the post is a *motion*, e.g. "Should Britain join the Euro?",
+For referendums, the post is a *question*, e.g. "Should Britain join the Euro?",
 which voters answer. For STV elections, the post is an electoral *position*
 (e.g. "Prime Minister"), for which candidates stand, and for which voters cast
 ranked-choice votes.

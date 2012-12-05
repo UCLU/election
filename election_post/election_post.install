@@ -12,7 +12,7 @@ function election_post_schema() {
   $schema = array();
 
   $schema['election_post'] = array(
-    'description' => 'The posts table for the election module. Default post types are \'position\' and  \'motion\'.',
+    'description' => 'The posts table for the election module.',
     'fields' => array(
       'post_id' => array(
         'description' => 'Primary key: identifier for a post.',
