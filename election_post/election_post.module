@@ -198,6 +198,23 @@ function election_post_entity_info() {
 }
 
 /**
+ * Implements hook_field_extra_fields().
+ */
+function election_post_field_extra_fields() {
+  $info = array();
+  foreach (election_types() as $type) {
+    $bundle_name = $type['post machine name'];
+    $info['election_post'][$bundle_name]['display'] = array(
+      'election' => array(
+        'label' => t('Election'),
+        'weight' => 0,
+      ),
+    );
+  }
+  return $info;
+}
+
+/**
  * Implements hook_entity_property_info().
  */
 function election_post_entity_property_info() {

@@ -737,13 +737,28 @@ function election_vote_preprocess_election_post(&$variables) {
   $variables['content']['vote_button'] = array(
     '#theme' => 'election_vote_button',
     '#post' => $post,
-    '#weight' => -50,
   );
 
   $variables['content']['eligibility'] = array(
     '#theme' => 'election_vote_eligibility',
     '#post' => $post,
-    '#weight' => 10,
   );
 
+}
+
+/**
+ * Implements hook_field_extra_fields_alter().
+ */
+function election_vote_field_extra_fields_alter(&$info) {
+  foreach (election_types() as $type) {
+    $bundle_name = $type['post machine name'];
+    $info['election_post'][$bundle_name]['display']['vote_button'] = array(
+      'label' => t('Vote button'),
+      'weight' => -50,
+    );
+    $info['election_post'][$bundle_name]['display']['eligibility'] = array(
+      'label' => t('Eligibility'),
+      'weight' => 10,
+    );
+  }
 }
