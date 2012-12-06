@@ -47,7 +47,7 @@ function election_vote_default_rules_configuration() {
     "ON" : [ "election_vote_vote" ],
     "DO" : [
       { "drupal_message" : {
-          "message" : "You can share this [election:type:name] on \u003Ca href=\u0022http:\/\/www.facebook.com\/sharer/sharer.php?u=https:\/\/[site:url-brief][election:url]\u0022 target=\u0022_blank\u0022\u003EFacebook\u003C\/a\u003E or \u003Ca href=\u0022http:\/\/twitter.com\/share?text=I%20voted%20in%20[election:title]%20-%20https:\/\/[site:url-brief]%20([site:name])\u0022 target=\u0022_blank\u0022\u003ETwitter\u003C\/a\u003E.",
+          "message" : "You can share this [election:type:name] on \u003Ca href=\u0022http:\/\/www.facebook.com\/sharer\/sharer.php?u=https:\/\/[site:url-brief][election:url]\u0022 target=\u0022_blank\u0022\u003EFacebook\u003C\/a\u003E or \u003Ca href=\u0022http:\/\/twitter.com\/share?text=I%20voted%20in%20[election:title]%20-%20https:\/\/[site:url-brief]%20([site:name])\u0022 target=\u0022_blank\u0022\u003ETwitter\u003C\/a\u003E.",
           "repeat" : 0
         }
       }
