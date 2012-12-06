@@ -37,11 +37,29 @@ function election_vote_default_rules_configuration() {
   }
 }');
 
+  // Prompt the user to share the election on Facebook or Twitter after voting.
+  $items['election_vote_share'] = entity_import('rules_config', '{ "election_vote_share" : {
+    "LABEL" : "Prompt user to share the election on Facebook or Twitter after voting",
+    "PLUGIN" : "reaction rule",
+    "WEIGHT" : "1",
+    "ACTIVE" : false,
+    "REQUIRES" : [ "rules", "election_vote" ],
+    "ON" : [ "election_vote_vote" ],
+    "DO" : [
+      { "drupal_message" : {
+          "message" : "You can share this [election:type:name] on \u003Ca href=\u0022http:\/\/www.facebook.com\/sharer/sharer.php?u=https:\/\/[site:url-brief][election:url]\u0022 target=\u0022_blank\u0022\u003EFacebook\u003C\/a\u003E or \u003Ca href=\u0022http:\/\/twitter.com\/share?text=I%20voted%20in%20[election:title]%20-%20https:\/\/[site:url-brief]%20([site:name])\u0022 target=\u0022_blank\u0022\u003ETwitter\u003C\/a\u003E.",
+          "repeat" : 0
+        }
+      }
+    ]
+  }
+}');
+
   // Email the user after voting.
   $items['election_vote_email_voter'] = entity_import('rules_config', '{ "election_vote_email_voter" : {
     "LABEL" : "Email user after voting",
     "PLUGIN" : "reaction rule",
-    "WEIGHT" : "1",
+    "WEIGHT" : "2",
     "ACTIVE" : false,
     "TAGS" : [ "election" ],
     "REQUIRES" : [ "rules", "election_vote" ],
