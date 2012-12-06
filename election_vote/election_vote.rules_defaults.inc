@@ -41,6 +41,7 @@ function election_vote_default_rules_configuration() {
   $items['election_vote_share'] = entity_import('rules_config', '{ "election_vote_share" : {
     "LABEL" : "Prompt user to share the election on Facebook or Twitter after voting",
     "PLUGIN" : "reaction rule",
+    "TAGS" : [ "election" ],
     "WEIGHT" : "1",
     "ACTIVE" : false,
     "REQUIRES" : [ "rules", "election_vote" ],
