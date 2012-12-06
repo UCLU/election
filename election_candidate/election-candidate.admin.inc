@@ -25,6 +25,7 @@ function election_candidate_manage_form($form, $form_state, stdClass $election) 
     'last_name' => array('data' => t('Last name'), 'field' => 'ec.last_name'),
     'username' => array('data' => t('Username'), 'field' => 'ec.username'),
     'cstatus' => array('data' => t('Status'), 'field' => 'ec.cstatus'),
+    'published' => array('data' => t('Published'), 'field' => 'ec.published'),
     'operations' => array('data' => t('Operations')),
   );
 
@@ -59,11 +60,12 @@ function election_candidate_manage_form($form, $form_state, stdClass $election) 
 
     $options[$candidate->candidate_id] = array(
       'created' => format_date($candidate->created, 'short'),
-      'post_title' => $post_title,
+      'post_title' => truncate_utf8($post_title, 40, TRUE, TRUE),
       'first_name' => check_plain($candidate->first_name),
       'last_name' => check_plain($candidate->last_name),
       'username' => $account ? theme('username', array('account' => $account)) : t('Anonymous'),
       'cstatus' => _election_candidate_format_status($candidate),
+      'published' => $candidate->published ? t('Yes') : t('No'),
     );
 
     $operations = array();

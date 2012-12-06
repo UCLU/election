@@ -428,6 +428,13 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
       $field['#required'] = FALSE;
     }
   }
+  
+  $form['published'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Published'),
+    '#default_value' => isset($candidate->published) ? $candidate->published : 0,
+    '#weight' => 99,
+  );
 
   $form['buttons'] = array(
     '#type' => 'actions',

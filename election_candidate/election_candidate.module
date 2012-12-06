@@ -390,8 +390,14 @@ function election_candidate_entity_property_info() {
       'required' => TRUE,
       'schema field' => 'type',
     ),
+    'published' => array(
+      'label' => t('Published status'),
+      'type' => 'integer',
+      'schema field' => 'published',
+      'required' => TRUE,
+    ),
     'cstatus' => array(
-      'label' => t('Status'),
+      'label' => t('Candidate status'),
       'type' => 'integer',
       'options list' => '_election_candidate_get_cstatus_options',
       'setter callback' => 'entity_property_verbatim_set',
