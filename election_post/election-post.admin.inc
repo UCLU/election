@@ -47,7 +47,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
 
   // Warn if voting is open.
   if (!$post->is_new && _election_post_is_open($post, $election, 'v')) {
-    drupal_set_message(t('Voting is currently open: you should not make changes to this @post_name!', array('@post_name' => $post_name)), 'warning');
+    drupal_set_message(t('Voting is currently open: you should not make changes to this @post!', array('@post' => $post_name)), 'warning');
   }
 
   $form['#id'] = 'election-post-form';
@@ -197,7 +197,7 @@ function election_post_form_submit($form, &$form_state) {
 
   // Notify the user that the post was saved.
   drupal_set_message(
-    t('The @post_name "@title" was saved.', array('@post_name' => election_get_post_name($election->type), '@title' => $post->title))
+    t('The @post "@title" was saved.', array('@post' => election_get_post_name($election->type), '@title' => $post->title))
   );
 
   if (empty($_GET['destination'])) {
@@ -231,9 +231,9 @@ function election_post_form_delete_confirm($form, &$form_state, stdClass $post) 
   return confirm_form(
     $form,
     t(
-      'Are you sure you want to delete the @post_name %post_title?',
+      'Are you sure you want to delete the @post %post_title?',
       array(
-        '@post_name' => election_get_post_name($election->type),
+        '@post' => election_get_post_name($election->type),
         '%post_title' => $post->title,
       )
     ),
@@ -260,17 +260,17 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
     $post_name = election_get_post_name($election->type);
 
     if ($delete) {
-      watchdog('election_post', 'Deleted @post_name %title', array('@post_name' => $post_name, '%title' => $post->title));
+      watchdog('election_post', 'Deleted @post %post_title', array('@post' => $post_name, '%post_title' => $post->title));
     }
 
     if ($delete) {
       drupal_set_message(
-        t('The @post_name %title has been deleted.', array('@post_name' => $post_name, '%title' => $post->title))
+        t('The @post %post_title has been deleted.', array('@post' => $post_name, '%post_title' => $post->title))
       );
     }
     else {
       drupal_set_message(
-        t('Failed to delete the @post_name %title.', array('@post_name' => $post_name, '%title' => $post->title)),
+        t('Failed to delete the @post %post_title.', array('@post' => $post_name, '%post_title' => $post->title)),
         'error'
       );
     }
@@ -360,7 +360,7 @@ function election_post_manage_form($form, &$form_state, stdClass $election) {
     '#theme' => 'table',
     '#header' => $header,
     '#rows' => $rows,
-    '#empty' => t('No @posts_name available.', array('@posts_name' => election_get_post_name($election->type, TRUE))),
+    '#empty' => t('No @posts available.', array('@posts' => election_get_post_name($election->type, TRUE))),
   );
 
   $form['pager'] = array('#markup' => theme('pager'));
@@ -435,7 +435,7 @@ function election_post_page_add($election) {
   }
 
   drupal_set_title(
-    t('Add new @post_name to %election', array('%election' => $election->title, '@post_name' => $post_name)),
+    t('Add new @post to %election', array('%election' => $election->title, '@post' => $post_name)),
     PASS_THROUGH
   );
 

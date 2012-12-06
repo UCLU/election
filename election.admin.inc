@@ -85,7 +85,7 @@ function election_list_form($form, &$form_state) {
     $operations = array();
     if (entity_access('update', 'election', $election)) {
       $operations['posts_edit'] = l(
-        t('manage @post_name_plural', array('@post_name_plural' => $post_name_plural)),
+        t('manage @posts', array('@posts' => $post_name_plural)),
         $election_uri_path . '/posts'
       );
     }

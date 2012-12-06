@@ -30,9 +30,9 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
       'label' => t('Last name'),
       'default' => TRUE,
     ),
-    'post_id' => t('@post_name ID', array('@post_name' => drupal_ucfirst($post_name))),
+    'post_id' => t('@Post ID', array('@Post' => drupal_ucfirst($post_name))),
     'post_title' => array(
-      'label' => t('@post_name title', array('@post_name' => drupal_ucfirst($post_name))),
+      'label' => t('@Post title', array('@Post' => drupal_ucfirst($post_name))),
       'default' => TRUE,
     ),
     'cstatus' => array(

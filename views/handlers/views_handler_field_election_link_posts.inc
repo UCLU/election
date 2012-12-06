@@ -43,7 +43,7 @@ class views_handler_field_election_link_posts extends views_handler_field_electi
     $this->options['alter']['make_link'] = TRUE;
     $this->options['alter']['path'] = "election/{$election->election_id}/posts";
 
-    $text = !empty($this->options['text']) ? $this->options['text'] : t('Manage @posts_name (!count)', array('@posts_name' => $posts_name, '!count' => $posts_count));
+    $text = !empty($this->options['text']) ? $this->options['text'] : t('Manage @posts (!count)', array('@posts' => $posts_name, '!count' => $posts_count));
     return $text;
   }
 }

@@ -90,7 +90,7 @@ function template_preprocess_election_statistics(&$variables) {
     }
 
     $posts_table = array(
-      '#caption' => t('Totals per @post_name', array('@post_name' => $post_name)),
+      '#caption' => t('Totals per @post', array('@post' => $post_name)),
       '#theme' => 'table',
       '#header' => $header,
       '#rows' => $rows,

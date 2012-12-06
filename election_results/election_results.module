@@ -124,7 +124,7 @@ function election_results_page(stdClass $post) {
 
   if (empty($post->ballot_count)) {
     return array(
-      '#markup' => '<p>' . t('No ballots have been cast for this @post_name.', array('@post_name' => election_get_post_name($election->type))) . '</p>',
+      '#markup' => '<p>' . t('No ballots have been cast for this @post.', array('@post' => election_get_post_name($election->type))) . '</p>',
     );
   }
 

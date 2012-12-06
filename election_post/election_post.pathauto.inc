@@ -21,7 +21,7 @@ function election_post_pathauto($op) {
       foreach (election_types() as $type_machine_name => $type) {
         $post_machine_name = $type['post machine name'];
         $post_name = election_get_post_name($type_machine_name);
-        $settings['patternitems'][$post_machine_name] = t('Pattern for all %post_name paths', array('%post_name' => $post_name));
+        $settings['patternitems'][$post_machine_name] = t('Pattern for all %post paths', array('%post' => $post_name));
       }
       return (object) $settings;
     default:

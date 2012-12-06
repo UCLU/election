@@ -62,7 +62,7 @@ function template_preprocess_election_vote_eligibility(&$variables) {
 
   // Check whether the post is closed individually.
   if ($post->vstatus_inheritance == ELECTION_POST_STATUS_CLOSED) {
-    $eligibility = t('Voting is currently closed for this @post_name.', array('@post_name' => $post_name));
+    $eligibility = t('Voting is currently closed for this @post.', array('@post' => $post_name));
   }
   // Check whether the whole election is closed.
   elseif (!_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
@@ -101,8 +101,8 @@ function template_preprocess_election_vote_eligibility(&$variables) {
     // The account is not eligible.
     elseif ($account_is_user) {
       $eligibility = t(
-        'You are not eligible to vote for this @post_name.',
-        array('@post_name' => $post_name)
+        'You are not eligible to vote for this @post.',
+        array('@post' => $post_name)
       );
     }
     else {
@@ -123,8 +123,7 @@ function template_preprocess_election_vote_eligibility(&$variables) {
   }
   // The user may vote. Provide a link to the voting form.
   elseif ($account_is_user) {
-    $eligibility = t('<a href="@vote_link">You can vote</a> for this @post_name.', array(
-      '@post_name' => $post_name,
+    $eligibility = t('You can <a href="@vote_link">vote</a>.', array(
       '@vote_link' => url(election_post_uri_path($post) . '/vote'),
     ));
   }

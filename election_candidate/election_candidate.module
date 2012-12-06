@@ -580,9 +580,9 @@ function election_candidate_form_election_post_form_alter(&$form, &$form_state) 
     '#type' => 'checkbox',
     '#title' => t('Exclusive'),
     '#description' => t(
-      'A candidate can only stand for one exclusive @post_name per election.<br /><strong>N.B. if anonymous users are given permission to submit nominations, exclusivity cannot be enforced.</strong>',
+      'A candidate can only stand for one exclusive @post per election.<br /><strong>N.B. if anonymous users are given permission to submit nominations, exclusivity cannot be enforced.</strong>',
       array(
-        '@post_name' => election_get_post_name($election->type),
+        '@post' => election_get_post_name($election->type),
       )
     ),
     '#default_value' => isset($post->settings['exclusive']) ? $post->settings['exclusive'] : 1,

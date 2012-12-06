@@ -445,7 +445,7 @@ function election_stv_vote_form($form, &$form_state, $post, $election) {
   $form_state['num_candidates'] = $num_candidates;
 
   if ($num_candidates == 0) {
-    drupal_set_message(t('Voting is currently closed: there are no approved candidates standing for this @post_name.', array('@post_name' => election_get_post_name($election->type))), 'warning', FALSE);
+    drupal_set_message(t('Voting is currently closed: there are no approved candidates standing for this @post.', array('@post' => election_get_post_name($election->type))), 'warning', FALSE);
     $form['#disabled'] = TRUE;
     drupal_goto(election_post_uri_path($post));
   }
@@ -476,9 +476,9 @@ function election_stv_vote_form($form, &$form_state, $post, $election) {
 
   $form['post_help']['nums'] = array(
     '#markup' => t(
-      'The following candidates are standing for the @post_name <a href="@post_url">%post_title</a> (!vacancies).',
+      'The following candidates are standing for the @post <a href="@post_url">%post_title</a> (!vacancies).',
       array(
-        '@post_name' => $post_name,
+        '@post' => $post_name,
         '%post_title' => $post->title,
         '@post_url' => url(election_post_uri_path($post)),
         '!vacancies' => format_plural($post->settings['vacancy_count'], '1 vacancy', '@count vacancies'),

@@ -197,8 +197,8 @@ function election_vote_form($form, &$form_state, stdClass $post) {
     }
     else {
       drupal_set_message(t(
-        'You have already voted (or abstained from) this @post_name.',
-        array('@post_name' => election_get_post_name($election->type)),
+        'You have already voted (or abstained) for this @post.',
+        array('@post' => election_get_post_name($election->type)),
         'status',
         FALSE
       ));
@@ -303,7 +303,6 @@ function election_vote_undo_form($form, &$form_state, $post) {
     '#markup' => t(
       'You have already voted !or_abstained.',
       array(
-        '@post_name' => $post_name,
         '!or_abstained' => $post->allow_abstention ? t('or abstained') : '',
       )
     ),
@@ -360,9 +359,9 @@ function election_vote_undo_confirm($form, &$form_state) {
     $form,
     t('Undo: are you sure?'),
     current_path(),
-    t('This will undo your vote !or_abstention for the @post_name %post.', array(
-      '@post_name' => election_get_post_name($election->type),
-      '%post' => $post->title,
+    t("This will undo your vote !or_abstention (@post: '%post_title').", array(
+      '@post' => election_get_post_name($election->type),
+      '%post_title' => $post->title,
       '!or_abstention' => $post->allow_abstention ? t('or abstention') : '',
     )),
     t('Confirm'),
@@ -422,8 +421,8 @@ function election_vote_undo($form, &$form_state) {
 
     $post_name = election_get_post_name($election->type);
     drupal_set_message(
-      t('You have undone your vote !or_abstention for the @post_name !post_link.', array(
-        '@post_name' => $post_name,
+      t("You have undone your vote !or_abstention (@post: '!post_link').", array(
+        '@post' => $post_name,
         '!post_link' => l($post->title, election_post_uri_path($post)),
         '!or_abstention' => $post->allow_abstention ? t('or abstention') : '',
       ))
@@ -626,7 +625,7 @@ function election_vote_form_vote($form, &$form_state) {
 }
 
 /**
- * Find out whether the $account has previously voted for the $post.
+ * Find out whether the $account has previously voted regarding this $post.
  *
  * @param stdClass $post
  *   The election post object.

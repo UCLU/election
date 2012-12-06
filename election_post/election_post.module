@@ -123,20 +123,20 @@ function election_post_menu_alter(&$items) {
     $items[$path . '/' . $post_machine_name]['type'] = MENU_NORMAL_ITEM;
     $items[$path . '/' . $post_machine_name . '/fields']['type'] = MENU_NORMAL_ITEM;
     $items[$path . '/' . $post_machine_name . '/fields']['description'] = t(
-      'Manage fields for %type @posts_name_plural.',
+      'Manage fields for %election_type @posts.',
       array(
-        '%type' => $type['name'],
-        '@posts_name_plural' => $post_name_plural,
+        '%election_type' => $type['name'],
+        '@posts' => $post_name_plural,
       )
     );
     $items[$path . '/' . $post_machine_name . '/display']['type'] = MENU_NORMAL_ITEM;
     $items[$path . '/' . $post_machine_name . '/display/full']['type'] = MENU_NORMAL_ITEM;
     $items[$path . '/' . $post_machine_name . '/display/teaser']['type'] = MENU_NORMAL_ITEM;
     $items[$path . '/' . $post_machine_name . '/display']['description'] = t(
-      'Manage display for %type @posts_name_plural.',
+      'Manage display for %election_type @posts.',
       array(
-        '%type' => $type['name'],
-        '@posts_name_plural' => $post_name_plural,
+        '%election_type' => $type['name'],
+        '@posts' => $post_name_plural,
       )
     );
   }
@@ -547,7 +547,7 @@ function election_post_page_add_title($election) {
  */
 function election_post_manage_page_title($election) {
   // Output should not be escaped here; it is done later in the menu system.
-  return t('Manage @posts_name', array('@posts_name' => election_get_post_name($election->type, TRUE)));
+  return t('Manage @posts', array('@posts' => election_get_post_name($election->type, TRUE)));
 }
 
 /**

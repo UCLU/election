@@ -250,9 +250,9 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
 
   // Notify the user that the nomination was saved.
   drupal_set_message(t(
-    'The nomination for the @posts_name %title (name %first_name %last_name) was successfully submitted.',
+    'The nomination for the @post %title (name %first_name %last_name) was successfully submitted.',
     array(
-      '@posts_name' => election_get_post_name($election->type),
+      '@post' => election_get_post_name($election->type),
       '%title' => $post->title,
       '%first_name' => $candidate->first_name,
       '%last_name' => $candidate->last_name,
