@@ -545,10 +545,8 @@ function election_vote_form_abstain($form, &$form_state) {
 
     $form_state['redirect'] = url(election_uri_path($election));
 
-    // Invoke "After abstaining" rules.
-    if (module_exists('rules')) {
-      rules_invoke_event('election_vote_abstain', $GLOBALS['user'], $post, $election);
-    }
+    // Invoke "After abstaining" hooks and rules.
+    rules_invoke_all('election_vote_abstain', $GLOBALS['user'], $post, $election);
 
   }
 
@@ -615,10 +613,8 @@ function election_vote_form_vote($form, &$form_state) {
 
     $form_state['redirect'] = url(election_uri_path($election));
 
-    // Invoke "After casting a vote" rules.
-    if (module_exists('rules')) {
-      rules_invoke_event('election_vote_vote', $GLOBALS['user'], $post, $election);
-    }
+    // Invoke "After casting a vote" hooks and rules.
+    rules_invoke_all('election_vote_vote', $GLOBALS['user'], $post, $election);
 
   }
 
