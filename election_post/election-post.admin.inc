@@ -73,7 +73,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
     '#type' => 'checkboxes',
     '#title' => t('Roles eligible to vote'),
     '#options' => $roles_that_can_vote_global,
-    '#description' => t("Select the roles eligible to vote in this election. There may be other restrictions. Only roles with the permission 'vote in elections' are listed here."),
+    '#description' => t("Select the roles eligible to vote for this @post. There may be other restrictions. Only roles with the permission 'vote in elections' are listed here.", array('@post' => $post_name)),
     '#default_value' => (array) $post->rids,
   );
 
