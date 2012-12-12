@@ -330,12 +330,14 @@ function election_post_manage_form($form, &$form_state, stdClass $election) {
     );
 
     $operations = array();
-    if (entity_access('update', 'election', $election)) {
+    if (entity_access('update', 'election_post', $post)) {
       $operations['edit'] = l(
         t('edit'),
         election_post_uri_path($post) . '/edit',
         array('query' => $destination)
       );
+    }
+    if (entity_access('delete', 'election_post', $post)) {
       $operations['delete'] = l(
         t('delete'),
         election_post_uri_path($post) . '/delete',
