@@ -99,8 +99,8 @@ function election_referendum_count_page(stdClass $post, $totals) {
 
   $rows = array(
     array(
-      number_format($votes->yes) . ' (' . number_format($percentage_yes, 2) . '%)',
-      number_format($votes->no) . ' (' . number_format($percentage_no, 2) . '%)',
+      number_format($votes->yes) . ' (' . number_format($percentage_yes, 2) . '% of votes)',
+      number_format($votes->no) . ' (' . number_format($percentage_no, 2) . '% of votes)',
     ),
   );
 
