@@ -428,7 +428,7 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
       $field['#required'] = FALSE;
     }
   }
-  
+
   $form['published'] = array(
     '#type' => 'checkbox',
     '#title' => t('Published'),

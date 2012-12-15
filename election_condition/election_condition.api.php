@@ -21,7 +21,7 @@
 function hook_election_condition_info() {
   return array(
     'gmail' => array(
-      'name' =>  t('Have a Gmail account'),
+      'name' => t('Have a Gmail account'),
       'callbacks' => array('check_gmail'),
       'description' => t('The user\'s registered email address must end with "gmail.com" or "googlemail.com".'),
     ),

@@ -205,7 +205,7 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
     case 'cstatus':
       return _election_candidate_format_status($candidate);
       break;
-      
+
     case 'published':
       return $candidate->published ? t('Published') : t('Not published');
       break;

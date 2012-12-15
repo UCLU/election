@@ -310,7 +310,7 @@ function election_vote_undo_form($form, &$form_state, $post) {
   $form['undo'] = array(
     '#type' => 'item',
     '#markup' => t(
-      'If you wish, you can \'undo\' this action. This means you could vote !or_abstain again.',
+      "If you wish, you can 'undo' this action. This means you could vote !or_abstain again.",
       array(
         '!or_abstention' => $post->allow_abstention ? t('or abstention') : '',
         '!or_abstain' => $post->allow_abstention ? t('(or abstain)') : '',

@@ -298,7 +298,11 @@ function election_post_manage_form($form, &$form_state, stdClass $election) {
 
   // Build the sortable table header.
   $header = array(
-    'title' => array('data' => t('Title'), 'field' => 'ep.title', 'sort' => 'asc'),
+    'title' => array(
+      'data' => t('Title'),
+      'field' => 'ep.title',
+      'sort' => 'asc',
+    ),
     'changed' => array('data' => t('Last updated'), 'field' => 'ep.changed'),
     'operations' => array('data' => t('Operations')),
   );
