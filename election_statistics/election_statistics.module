@@ -38,12 +38,29 @@ function election_statistics_permission() {
 
 /**
  * Access callback for viewing an election's statistics.
+ *
+ * @param string $op
+ *   Only the 'view' operation is supported.
+ * @param stdClass $election
+ *   The election entity.
+ * @param stdClass $account
+ *   The user account to check access for.
+ *
+ * @return bool
+ *   TRUE if the user may view this election, and has permission to view
+ *   election statistics. FALSE otherwise.
  */
-function election_statistics_access($op, $election, $account = NULL) {
-  if (!election_access('view', $election, $account)) {
-    return FALSE;
+function election_statistics_access($op, stdClass $election, $account = NULL) {
+  switch ($op) {
+    case 'view':
+      if (!election_access('view', $election, $account)) {
+        return FALSE;
+      }
+      if (user_access('view election statistics', $account)) {
+        return TRUE;
+      }
   }
-  return user_access('view election statistics');
+  return FALSE;
 }
 
 /**
@@ -59,6 +76,7 @@ function election_statistics_theme() {
     ),
   );
 }
+
 /**
  * Page callback for election/%election/statistics.
  */
@@ -66,4 +84,90 @@ function election_statistics_page(stdClass $election) {
   drupal_set_title(t('Statistics: %election', array('%election' => $election->title)), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
   return theme('election_statistics', array('election' => $election));
+}
+
+/**
+ * Get the total numbers of ballots & votes for an election.
+ *
+ * @param stdClass $election
+ *   The election entity.
+ *
+ * @return array
+ *   An associative array containing:
+ *     'voters' (integer),
+ *     'ballots' (integer),
+ *     'votes' (integer),
+ *     'abstentions' (integer),
+ *     'posts' (array) - An array of post statistics, keyed and grouped by post
+ *        ID, itself containing all the above properties.
+ */
+function election_statistics_get_totals(stdClass $election) {
+  $totals = &drupal_static(__FUNCTION__, array());
+  $eid = $election->election_id;
+  // Return cached data if it already exists during this page request.
+  if (isset($totals[$eid])) {
+    return $totals[$eid];
+  }
+  $totals[$eid] = array();
+  // Get the total number of ballots, votes, and abstentions.
+  $query = db_select('election_vote', 'ev')
+    ->condition('ev.election_id', $eid);
+  $query->join('election_ballot', 'eb', 'ev.ballot_id = eb.ballot_id');
+  $query->addExpression('COUNT(DISTINCT ev.ballot_id)', 'ballots');
+  $query->addExpression('COUNT(DISTINCT IF(ev.abstain=0, ev.ballot_id, NULL))', 'votes');
+  $query->addExpression('COUNT(DISTINCT IF(ev.abstain=1, ev.ballot_id, NULL))', 'abstentions');
+  $query->addExpression('COUNT(DISTINCT IF(eb.uid = 0, eb.sid_hash, eb.uid))', 'voters');
+  $totals[$eid] += $query->execute()->fetchAssoc();
+  // Get the totals per post.
+  if ($totals[$eid]['votes'] > 0) {
+    // Re-use the previous query, grouping the results by post ID.
+    $query->fields('ev', array('post_id'));
+    $query->groupBy('ev.post_id');
+    $totals[$eid]['posts'] = $query->execute()->fetchAllAssoc('post_id');
+  }
+  return $totals[$eid];
+}
+
+/**
+ * Get a list of the most popular attribute values for voters in this election.
+ *
+ * @param stdClass $election
+ *   The election entity.
+ * @param string $group_by
+ *   The {election_ballot} table column to group results by.
+ * @param int $limit
+ *   The maximum number of items to select.
+ *
+ * @return array
+ *   An array whose elements are associative arrays containing a string 'agent'
+ *   and an integer 'voters'.
+ */
+function election_statistics_get_top_count(stdClass $election, $group_by, $limit = 10) {
+  $top_count = &drupal_static(__FUNCTION__, array());
+  $eid = $election->election_id;
+  if (!isset($top_count[$eid][$group_by])) {
+    $query = db_select('election_ballot', 'eb')
+      ->condition('election_id', $eid)
+      ->fields('eb', array($group_by));
+    $query->addExpression('COUNT(DISTINCT IF(uid = 0, sid_hash, uid))', 'voters');
+    $query->orderBy('COUNT(DISTINCT IF(uid = 0, sid_hash, uid))');
+    $query->groupBy($group_by);
+    $query->range(0, $limit);
+    $top_count[$eid][$group_by] = $query->execute()->fetchAll(PDO::FETCH_ASSOC);
+  }
+  return $top_count[$eid][$group_by];
+}
+
+/**
+ * Internal function to get a list of election posts ordered by title.
+ */
+function _election_statistics_get_posts($election) {
+  $post_ids = db_select('election_post', 'ep')
+      ->fields('ep', array('post_id'))
+      ->condition('election_id', $election->election_id)
+      ->orderBy('title')
+      ->execute()
+      ->fetchCol();
+  $posts = election_post_load_multiple($post_ids);
+  return $posts;
 }

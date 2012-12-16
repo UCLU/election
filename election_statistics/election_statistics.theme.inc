@@ -23,8 +23,7 @@ function template_preprocess_election_statistics(&$variables) {
 
   $variables['content'] = array();
 
-  $totals = db_query('SELECT COUNT(DISTINCT ballot_id) AS ballots, COUNT(DISTINCT IF(abstain=0,ballot_id,NULL)) AS votes, COUNT(DISTINCT IF(abstain=1, ballot_id, NULL)) AS abstentions FROM {election_vote} WHERE election_id = :eid', array(':eid' => $election->election_id))->fetch();
-  $totals->voters = db_query('SELECT COUNT(DISTINCT IF(uid = 0, sid_hash, uid)) AS voters FROM {election_ballot} WHERE election_id = :eid', array(':eid' => $election->election_id))->fetchField();
+  $totals = election_statistics_get_totals($election);
 
   $post_name = election_get_post_name($election->type);
 
@@ -35,15 +34,15 @@ function template_preprocess_election_statistics(&$variables) {
     'abstentions' => t('Abstentions'),
   );
   $rows = array();
-  $voter_avg = $totals->voters ? $totals->ballots / $totals->voters : 0;
+  $voter_avg = $totals['voters'] ? $totals['ballots'] / $totals['voters'] : 0;
   $rows[0] = array(
-    'voters' => number_format($totals->voters),
+    'voters' => number_format($totals['voters']),
     'ballots' => t(
       '@ballots (@avg each)',
-      array('@ballots' => number_format($totals->ballots), '@avg' => number_format($voter_avg, 1))
+      array('@ballots' => number_format($totals['ballots']), '@avg' => number_format($voter_avg, 1))
     ),
-    'votes' => number_format($totals->votes),
-    'abstentions' => number_format($totals->abstentions),
+    'votes' => number_format($totals['votes']),
+    'abstentions' => number_format($totals['abstentions']),
   );
 
   $election_table = array(
@@ -56,7 +55,8 @@ function template_preprocess_election_statistics(&$variables) {
   $variables['content']['election_table'] = $election_table;
 
   $posts_table = NULL;
-  if ($totals->votes > 0) {
+  if (!empty($totals['posts'])) {
+
     $header = array(
       'post' => check_plain(drupal_ucfirst($post_name)),
       'voters' => t('Voters'),
@@ -65,19 +65,12 @@ function template_preprocess_election_statistics(&$variables) {
       'abstentions' => t('Abstentions'),
     );
 
-    $post_ids = db_query('SELECT post_id FROM {election_post} WHERE election_id = :eid ORDER BY title', array(':eid' => $election->election_id))->fetchCol();
-
-    $posts = election_post_load_multiple($post_ids);
-
-    $posts_totals = db_query(
-      'SELECT ev.post_id, COUNT(DISTINCT ev.ballot_id) AS ballots, COUNT(DISTINCT IF(ev.abstain=0,ev.ballot_id,NULL)) AS votes, COUNT(DISTINCT IF(ev.abstain=1,ev.ballot_id,NULL)) AS abstentions, COUNT(DISTINCT IF(eb.uid = 0,eb.sid_hash,eb.uid)) AS voters FROM {election_vote} ev LEFT JOIN {election_ballot} eb USING (ballot_id) WHERE ev.election_id = :eid GROUP BY ev.post_id',
-      array(':eid' => $election->election_id)
-    )->fetchAllAssoc('post_id');
+    $posts = _election_statistics_get_posts($election);
 
     $rows = array();
     foreach ($posts as $post_id => $post) {
 
-      $post_totals = isset($posts_totals[$post_id]) ? $posts_totals[$post_id] : FALSE;
+      $post_totals = isset($totals['posts'][$post_id]) ? $totals['posts'][$post_id] : FALSE;
 
       $rows[] = array(
         'post' => l($post->title, election_post_uri_path($post)),
@@ -101,8 +94,8 @@ function template_preprocess_election_statistics(&$variables) {
   $variables['content']['posts_table'] = $posts_table;
 
   $top_agents_table = NULL;
-  $top_agents = db_query_range('SELECT agent, COUNT(DISTINCT IF(uid = 0, sid_hash, uid)) AS voters FROM {election_ballot} WHERE election_id = :eid GROUP BY agent ORDER BY COUNT(DISTINCT uid) DESC, COUNT(DISTINCT ballot_id) DESC', 0, 10, array(':eid' => $election->election_id));
-  if ($top_agents->rowCount()) {
+  $top_agents = election_statistics_get_top_count($election, 'agent');
+  if (count($top_agents)) {
     $header = array(t('Voters'), t('User agent'));
     $rows = array();
     $browscap = FALSE;
@@ -113,11 +106,11 @@ function template_preprocess_election_statistics(&$variables) {
     }
     foreach ($top_agents as $record) {
       $row = array(
-        number_format($record->voters),
-        check_plain(truncate_utf8($record->agent, 60, FALSE, TRUE)),
+        number_format($record['voters']),
+        check_plain(truncate_utf8($record['agent'], 60, FALSE, TRUE)),
       );
       if ($browscap) {
-        $browser = get_browser($record->agent);
+        $browser = get_browser($record['agent']);
         $row[] = check_plain($browser->parent);
         $row[] = check_plain($browser->platform);
       }
@@ -144,14 +137,14 @@ function template_preprocess_election_statistics(&$variables) {
   $variables['content']['top_agents_table'] = $top_agents_table;
 
   $top_ips_table = NULL;
-  $ips = db_query_range('SELECT ip, COUNT(DISTINCT IF(uid = 0, sid_hash, uid)) AS voters FROM {election_ballot} WHERE election_id = :eid GROUP BY ip ORDER BY COUNT(DISTINCT uid) DESC, COUNT(DISTINCT ballot_id) DESC', 0, 10, array(':eid' => $election->election_id));
-  if ($ips->rowCount()) {
+  $top_ips = election_statistics_get_top_count($election, 'ip');
+  if (count($top_ips)) {
     $header = array(t('Voters'), t('IP address'));
     $rows = array();
-    foreach ($ips as $record) {
+    foreach ($top_ips as $record) {
       $rows[] = array(
-        number_format($record->voters),
-        check_plain($record->ip),
+        number_format($record['voters']),
+        check_plain($record['ip']),
       );
     }
     $top_ips_table = array(
@@ -164,6 +157,5 @@ function template_preprocess_election_statistics(&$variables) {
   $variables['content']['top_ips_table'] = $top_ips_table;
 
   $variables['totals'] = $totals;
-
 
 }
