@@ -42,7 +42,7 @@ class views_handler_field_election_type extends views_handler_field {
     if ($this->options['machine_name'] != 1 && $data !== NULL && $data !== '') {
       $type = _election_type_get_info($data);
       $name = drupal_ucfirst($type['name']);
-      return t($this->sanitize_value($name));
+      return $this->sanitize_value($name);
     }
     return $this->sanitize_value($data);
   }
