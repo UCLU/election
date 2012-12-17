@@ -143,19 +143,14 @@ function election_statistics_get_totals(stdClass $election) {
  *   and an integer 'voters'.
  */
 function election_statistics_get_top_count(stdClass $election, $group_by, $limit = 10) {
-  $top_count = &drupal_static(__FUNCTION__, array());
-  $eid = $election->election_id;
-  if (!isset($top_count[$eid][$group_by])) {
-    $query = db_select('election_ballot', 'eb')
-      ->condition('election_id', $eid)
-      ->fields('eb', array($group_by));
-    $query->addExpression('COUNT(DISTINCT IF(uid = 0, sid_hash, uid))', 'voters');
-    $query->orderBy('COUNT(DISTINCT IF(uid = 0, sid_hash, uid))');
-    $query->groupBy($group_by);
-    $query->range(0, $limit);
-    $top_count[$eid][$group_by] = $query->execute()->fetchAll(PDO::FETCH_ASSOC);
-  }
-  return $top_count[$eid][$group_by];
+  $query = db_select('election_ballot', 'eb')
+    ->condition('election_id', $election->election_id)
+    ->fields('eb', array($group_by));
+  $query->addExpression('COUNT(DISTINCT IF(uid = 0, sid_hash, uid))', 'voters');
+  $query->orderBy('COUNT(DISTINCT IF(uid = 0, sid_hash, uid))', 'DESC');
+  $query->groupBy($group_by);
+  $query->range(0, $limit);
+  return $query->execute()->fetchAll(PDO::FETCH_ASSOC);
 }
 
 /**

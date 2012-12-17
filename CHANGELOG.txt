@@ -1,6 +1,6 @@
 Election 7.x-1.x-dev, 2012-12-16
 -----------------------
-- Default stats groups in themes_election_statistics() are now arrays, not
+- Default stats groups in theme_election_statistics() are now arrays, not
   stdClass objects. See election_statistics_get_totals().
 
 Election 7.x-1.x-dev, 2012-12-05
