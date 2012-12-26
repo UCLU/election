@@ -10,7 +10,7 @@
 function election_export_drush_command() {
   $items = array();
   $items['election-export'] = array(
-    'description' => 'Exports results for an election in a ZIP archive (.zip) containing ballot (.blt) files.',
+    'description' => 'Exports results for an election as a ZIP archive (.zip) containing ballot (.blt) files.',
     'arguments' => array(
       'election_id' => 'The ID of the election (required).',
       'destination' => 'Optional: A writeable destination filename, relative to private://election-export/. Defaults to STDOUT.',
@@ -21,6 +21,19 @@ function election_export_drush_command() {
       'include-ballot-ids' => 'Ballot IDs could help to identify ballots uniquely.',
     ),
     'aliases' => array('eex'),
+  );
+  $items['election-export-post'] = array(
+    'description' => 'Exports results for an election post as a ballot file.',
+    'arguments' => array(
+      'post_id' => 'The ID of the election post (required).',
+      'destination' => 'Optional: A writeable destination filename, relative to private://election-export/. Defaults to STDOUT.',
+    ),
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
+    'required-arguments' => 1,
+    'options' => array(
+      'include-ballot-ids' => 'Ballot IDs could help to identify ballots uniquely.',
+    ),
+    'aliases' => array('eexp'),
   );
   return $items;
 }
@@ -84,4 +97,55 @@ function drush_election_export($election_id, $destination = NULL) {
     $success = election_export_election($election, $destination, $options);
     return (bool) $success;
   }
+}
+
+/**
+ * Export the results for an election post.
+ *
+ * @param int $post_id
+ *   The ID of the election post.
+ * @param string $destination
+ *   The destination filename to write to (optional). If unspecified, output
+ *   will be printed to stdout. This filename should be in a writeable
+ *   directory. Relative filenames will relate to the directory
+ *   'private://election-export'.
+ *
+ * @return void
+ */
+function drush_election_export_post($post_id, $destination = NULL) {
+  $post = election_post_load($post_id);
+  if (!$post) {
+    return drush_set_error(dt('No election post found with the ID "@id".', array('@id' => $post_id)));
+  }
+  $election = $post->election;
+  if (empty($election->type_info['export']) || !_election_candidate_check_support($election)) {
+    return drush_set_error(dt("This election type doesn't support exporting."));
+  }
+  if (!empty($destination)) {
+    $dirname = dirname($destination);
+    if ($dirname == '.') {
+      $dirname = 'private://election-export';
+      if (!file_exists($dirname)) {
+        mkdir($dirname);
+      }
+      $destination = $dirname . '/' . $destination;
+    }
+    if ($dirname == $destination) {
+      $destination .= '/election-export-' . $election->election_id . '-' . $post_id . '.blt';
+    }
+    else if (file_exists($destination)) {
+      return drush_set_error(dt('The file @destination already exists.', array('@destination' => $destination)));
+    }
+    if (!is_writable($dirname)) {
+      return drush_set_error(dt('Directory not writeable: "@dir".', array('@dir' => $dirname)));
+    }
+  }
+  else {
+    $destination = 'php://stdout';
+  }
+  $options = array(
+    'include ballot ids' => drush_get_option('include-ballot-ids'),
+  );
+  $success = election_export_post($post, $destination, $options);
+  return (bool) $success;
 }
