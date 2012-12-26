@@ -391,7 +391,7 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
   $form['post'] = array(
     '#type' => 'item',
     '#title' => check_plain(drupal_ucfirst($post_name)),
-    '#markup' => check_plain($post->title),
+    '#markup' => $post ? check_plain($post->title) : t('Not defined'),
   );
 
   $form['first_name'] = array(
