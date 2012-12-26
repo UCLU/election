@@ -111,6 +111,7 @@ function election_export_form($form, &$form_state, stdClass $election) {
       '#multiple' => TRUE,
       '#options' => $post_options,
       '#default_value' => array_keys($post_options),
+      '#required' => TRUE,
     );
   }
   else {
@@ -123,6 +124,7 @@ function election_export_form($form, &$form_state, stdClass $election) {
     '#title' => t('Filename'),
     '#size' => strlen($default_filename),
     '#default_value' => $default_filename,
+    '#required' => TRUE,
   );
 
   $form['include_ballot_ids'] = array(
