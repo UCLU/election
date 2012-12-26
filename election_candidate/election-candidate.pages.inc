@@ -235,7 +235,6 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
   $candidate->first_name = $values['first_name'];
   $candidate->last_name = $values['last_name'];
   $candidate->mail = $values['mail'];
-  $candidate->phone = $values['phone'];
   $candidate->cstatus = ELECTION_CANDIDATE_PENDING;
 
   field_attach_submit('election_candidate', $candidate, $form, $form_state);
