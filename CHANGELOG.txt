@@ -1,3 +1,17 @@
+Election 7.x-1.x-dev, 2012-12-26
+-----------------------
+- New submodule: election_export, which takes over the ballot file (.blt) export
+  functionality which used to live in the election_stv submodule.
+- API change: hook_election_type_info() used to ask for 'results download form'
+  which is now no longer used. The key 'export' (Boolean) now defines whether
+  results can be exported & downloaded. This requires the election_export module
+  to be enabled, and the election type needs to support candidates. See
+  election.api.php.
+- API change: hook_election_type_info() used to ask for 'results page' which is
+  now no longer used. To change the results page, modules should implement
+  hook_election_results_page_alter(&$output, $post, $totals). But this will soon
+  be replaced by a theme preprocess hook.
+
 Election 7.x-1.x-dev, 2012-12-16
 -----------------------
 - Default stats groups in theme_election_statistics() are now arrays, not

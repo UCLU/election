@@ -76,9 +76,12 @@ function election_referendum_preprocess_election_vote_confirm(&$variables) {
 /**
  * Page callback function for the referendum results counting page.
  */
-function election_referendum_count_page(stdClass $post, $totals) {
+function election_referendum_election_results_page_alter(&$output, stdClass $post, $totals) {
 
   $election = $post->election;
+  if ($election->type != 'referendum') {
+    return;
+  }
 
   $votes = db_query(
     'SELECT COUNT(IF(answer = :yes, vote_id, NULL)) AS yes, COUNT(IF(answer = :no, vote_id, NULL)) AS no FROM {election_vote} WHERE post_id = :pid AND abstain <> 1',
@@ -110,8 +113,6 @@ function election_referendum_count_page(stdClass $post, $totals) {
     '#header' => $header,
     '#rows' => $rows,
   );
-
-  return $output;
 
 }
 

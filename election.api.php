@@ -40,9 +40,8 @@
  *         int $ballot_id     - The ID of the ballot that is being saved.
  *   - results page: A page callback that shows results for elections of this
  *     type (used by the election_results submodule).
- *   - results download form: A Form API form callback (taking the parameters
- *     $form, &$form_state, $post) that allows users to download the election's
- *     results.
+ *   - export: Whether the election results can be exported as an archive of
+ *     ballot (.blt) files. This needs the election_export submodule.
  *
  * @see election_types()
  */
@@ -54,7 +53,7 @@ function hook_election_type_info() {
       'post name' => t('position'),
       'has candidates' => TRUE,
       'results page' => 'fptpelection_results_page',
-      'results download form' => 'fptpelection_results_download_form',
+      'export' => TRUE,
     ),
   );
 }

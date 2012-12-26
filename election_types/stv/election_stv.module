@@ -122,217 +122,19 @@ function election_stv_views_default_views_alter(&$views) {
   }
 }
 
-
 /**
- * Download form for STV election results.
+ * Alter the page callback function for the position's results counting page.
  */
-function election_stv_results_download_form($form, &$form_state, $post) {
-
-  $form['#post'] = $post;
-  $form['#election'] = $post->election;
-
-  $default_filename = $post->election->title . '-' . $post->election_id . '_' . $post->title . '-' . $post->post_id;
-  $default_filename = truncate_utf8(preg_replace('/[^A-Z0-9\-_]+/i', '-', $default_filename), 60, FALSE, FALSE);
-  $default_filename .= '_' . date('YmdHis', REQUEST_TIME) . '.blt';
-
-  $form['options'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Download options'),
-  );
-  $form['options']['filename'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Filename'),
-    '#size' => strlen($default_filename),
-    '#default_value' => $default_filename,
-  );
-  $form['options']['include_ids'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Include ballot IDs'),
-    '#description' => t('This enables you to identify ballots uniquely.'),
-    '#default_value' => TRUE,
-  );
-
-  $form['buttons'] = array(
-    '#type' => 'actions',
-  );
-  $form['buttons']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Download'),
-    '#submit' => array('_election_stv_download_blt'),
-  );
-
-  return $form;
-
-}
-
-
-/**
- * Download a ballot file.
- *
- * @todo generate files with Batch API
- */
-function _election_stv_download_blt($form, &$form_state) {
-
-  $post = $form['#post'];
-  $election = $post->election;
-
-  $filename = $form_state['values']['filename'];
-  $include_ids = $form_state['values']['include_ids'];
-
-  $start_time = microtime(TRUE);
-
-  header('Content-Type:text/plain;charset=UTF-8');
-  header('Content-Disposition:attachment;filename=' . $filename);
-  header('Cache-Control:max-age=0; must-revalidate');
-
-  $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED, ELECTION_CANDIDATE_WITHDRAWN), FALSE);
-
-  $candidate_map = array();
-  $i = 1;
-  $candidate_lines = '';
-  $withdrawn = array();
-  foreach ($candidates as $candidate) {
-    $candidate_map[$candidate->candidate_id] = $i;
-    if ($candidate->cstatus == ELECTION_CANDIDATE_WITHDRAWN) {
-      $withdrawn[] = $i;
-    }
-    $name = addcslashes($candidate->first_name . ' ' . $candidate->last_name, '"');
-    $candidate_lines .= "\"$name\" # Candidate keyed by $i\n";
-    $i++;
-  }
-  if ($post->settings['use_ron']) {
-    $candidate_map['ron'] = $i;
-    $candidate_lines .= '"' . t('RON (Re-Open Nominations)') . '"' . " # Candidate keyed by $i\n";
-  }
-
-  $total_candidates = (int) count($candidates) + ($post->settings['use_ron']);
-  $total_vacancies = (int) $post->settings['vacancy_count'];
-
-  $votes_fields = array('ballot_id', 'candidate_id', 'ron', 'rank', 'abstain');
-
-  $votes_query = db_select('election_vote', 'ev')
-    ->fields('ev', $votes_fields)
-    ->condition('ev.post_id', $post->post_id)
-    ->orderBy('ballot_id')
-    ->orderBy('rank');
-
-  $votes = $votes_query->execute();
-
-  $allow_equal = $post->settings['allow_equal'];
-  $allow_abstention = $post->allow_abstention;
-
-  $ballots = array();
-  $ballot_errors = array();
-  $last_rank = NULL;
-  foreach ($votes as $vote) {
-
-    $ballot_id = $vote->ballot_id;
-
-    if (!isset($ballots[$ballot_id])) {
-      $ballots[$ballot_id] = '';
-      if ($vote->abstain) {
-        if (!$allow_abstention) {
-          $ballot_errors[$ballot_id] = 'Abstention found, but abstention is not allowed!';
-        }
-        continue;
-      }
-    }
-    elseif (isset($last_rank) && $last_rank === $vote->rank) {
-      if (!$allow_equal) {
-        $ballot_errors[$ballot_id] = 'Equal ranking found, but equal ranking is not allowed!';
-      }
-      $ballots[$ballot_id] .= '=';
-    }
-    else {
-      $ballots[$ballot_id] .= ' ';
-    }
-    $candidate_id = $vote->ron ? 'ron' : $vote->candidate_id;
-    $ballots[$ballot_id] .= $candidate_map[$candidate_id];
-    $last_rank = $vote->rank;
-  }
-
-  echo "################################################\n";
-
-  echo '# ' . t(
-    'Ballot file generated on !date',
-    array('!date' => format_date(REQUEST_TIME, 'custom', 'Y-m-d H:i:s'))
-  ) . " #\n";
-
-  echo "################################################\n";
-
-  echo '# ' . t(
-    '!candidates standing for !vacancies:',
-    array(
-      '!candidates' => format_plural($total_candidates, 'One candidate is', '@count candidates are'),
-      '!vacancies' => format_plural($total_vacancies, 'one vacancy', '@count vacancies'),
-    )
-  ) . "\n";
-
-  echo "$total_candidates $total_vacancies\n";
-
-  if (!empty($withdrawn)) {
-    echo '# ' . format_plural(
-      count($withdrawn),
-      "One candidate has withdrawn:",
-      "@count candidates have withdrawn:"
-    ) . "\n";
-    echo '-' . implode(' -', $withdrawn) . "\n";
-  }
-
-  echo "# Votes are below, each line is in the format:\n#    ";
-  if ($include_ids) {
-    echo "(BALLOT_ID) ";
-  }
-  echo "MULTIPLIER [CANDIDATE CANDIDATE ...] 0\n";
-  echo "# where candidates are represented by keys in order of preference.\n";
-  echo "# Candidate keys are each separated by a space, or by = for equal rankings.\n";
-
-  // Print the ballot lines.
-  foreach ($ballots as $ballot_id => $ballot) {
-    if ($include_ids) {
-      echo '(' . $ballot_id . ') ';
-    }
-    // Each line begins with a multiplier (always 1) and ends with 0.
-    if (empty($ballot)) {
-      // This is an abstention.
-      echo '1 0';
-    }
-    else {
-      echo '1 ' . $ballot . ' 0';
-    }
-    // Add any error messages for this ballot in a comment at the end.
-    if (isset($ballot_errors[$ballot_id])) {
-      echo ' # ' . $ballot_errors[$ballot_id];
-    }
-    echo "\n";
-  }
-
-  echo "0 # This marks the end of ballots.\n";
-
-  echo $candidate_lines;
-
-  echo '"' . addcslashes($post->title, '"') . '" # Position title' . "\n";
-  echo '"' . addcslashes($election->title, '"') . '" # Election title' . "\n";
-
-  $time = microtime(TRUE) - $start_time;
-  echo '# Time to generate file: ' . number_format($time * 1000, 2) . 'ms';
-
-  drupal_exit();
-
-}
-
-
-/**
- * Page callback function for the position's results counting page.
- */
-function election_stv_results_count_page(stdClass $post, $totals) {
+function election_stv_election_results_page_alter(&$output, stdClass $post, $totals) {
 
   $election = $post->election;
 
-  $output = array();
+  if ($election->type != 'stv') {
+    return;
+  }
 
   if (empty($post->ballot_count)) {
-    return $output;
+    return;
   }
 
   // For STV elections, use the DrooPHP library.
@@ -344,7 +146,7 @@ function election_stv_results_count_page(stdClass $post, $totals) {
         '@github' => 'https://github.com/pjcdawkins/DrooPHP/',
       )
     ), 'warning');
-    return $output;
+    return;
   }
 
   // Run the count.
@@ -363,16 +165,16 @@ function election_stv_results_count_page(stdClass $post, $totals) {
 
   $output['explanation'] = array(
     '#markup' => t(
-      '<p>This is a very basic STV count of the position\'s results, using !DrooPHP. A more accurate count can be obtained by downloading the ballot file (see <a href="@download_url">Download</a>), and counting results using software such as !droop or !OpenSTV.</p>',
+      '<p>This is a very basic STV count of the position\'s results, using !DrooPHP. A more accurate count can be obtained by downloading the ballot file (see <a href="@export_url">Export</a>), and counting results using software such as !Droop or !OpenSTV.</p>',
       array(
-        '@download_url' => url(election_post_uri_path($post) . '/results/download'),
+        '@export_url' => url(election_uri_path($election) . '/export'),
         '!DrooPHP' => l(
           'DrooPHP',
           'https://github.com/pjcdawkins/DrooPHP/',
           array('attributes' => array('target' => '_blank'))
         ),
-        '!droop' => l(
-          'droop',
+        '!Droop' => l(
+          'Droop',
           'http://code.google.com/p/droop/',
           array('attributes' => array('target' => '_blank'))
         ),
@@ -427,8 +229,6 @@ function election_stv_results_count_page(stdClass $post, $totals) {
     '#header' => $header,
     '#rows' => $rows,
   );
-
-  return $output;
 
 }
 

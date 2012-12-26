@@ -15,7 +15,6 @@ function election_referendum_election_type_info() {
       'post name' => t('question'),
       'vote form' => 'election_referendum_vote_form',
       'save votes' => 'election_referendum_save_votes',
-      'results page' => 'election_referendum_count_page',
     ),
   );
 }

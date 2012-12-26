@@ -16,8 +16,7 @@ function election_stv_election_type_info() {
       'has candidates' => TRUE,
       'vote form' => 'election_stv_vote_form',
       'save votes' => 'election_stv_save_votes',
-      'results page' => 'election_stv_results_count_page',
-      'results download form' => 'election_stv_results_download_form',
+      'export' => TRUE,
     ),
   );
 }

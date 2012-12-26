@@ -1,0 +1,418 @@
+<?php
+/**
+ * @file
+ * Main file for the Election Export module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function election_export_menu() {
+  $items = array();
+  $items['election/%election/export'] = array(
+    'title' => 'Export',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('election_export_form', 1),
+    'access callback' => 'election_export_access',
+    'access arguments' => array('export', 1),
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'weight' => 5,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function election_export_permission() {
+  return array(
+    'export any election results' => array(
+      'title' => t('Export any election results'),
+      'description' => t('This allows the user to export the results of any elections.'),
+    ),
+    'export own election results' => array(
+      'title' => t('Export own election results'),
+      'description' => t('This allows the user to export the results of their own elections (those to which they have editing access).'),
+    ),
+  );
+}
+
+/**
+ * Access callback for exporting results per election.
+ */
+function election_export_access($op, stdClass $election, $account = NULL) {
+  if (empty($account)) {
+    $account = $GLOBALS['user'];
+  }
+  switch ($op) {
+    case 'export':
+      if (empty($election->type_info['export'])) {
+        return FALSE;
+      }
+      if (!_election_candidate_check_support($election)) {
+        return FALSE;
+      }
+      break;
+
+    default:
+      return FALSE;
+
+  }
+  if (_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time) && !user_access('bypass running election lock', $account)) {
+    return FALSE;
+  }
+  if (election_access('edit', $election, $account) && user_access('export own election results', $account)) {
+    return TRUE;
+  }
+  if (user_access('export any election results', $account)) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Page callback for election/%election/export.
+ */
+function election_export_form($form, &$form_state, stdClass $election) {
+
+  $form['#election'] = $election;
+
+  drupal_set_title(t('Export: %election', array('%election' => $election->title)), PASS_THROUGH);
+  drupal_set_breadcrumb(_election_build_breadcrumb($election));
+
+  $default_filename = $election->title . '-' . $election->election_id;
+  $default_filename = truncate_utf8(preg_replace('/[^A-Z0-9\-_]+/i', '-', $default_filename), 60, FALSE, FALSE);
+  $default_filename .= '_' . date('YmdHis', REQUEST_TIME) . '.zip';
+
+  $post_name_plural = election_get_post_name($election->type, TRUE);
+
+  $post_options = db_query(
+    'SELECT post_id, title FROM {election_post} WHERE election_id = :eid',
+    array(':eid' => $election->election_id)
+  )->fetchAllKeyed();
+
+  $form['help'] = array(
+    '#markup' => t(
+      'You can use this form to export a ZIP archive (.zip) containing ballot files (.blt) for %election. This allows vote counts to be run through external counting tools such as !OpenSTV or !Droop.',
+      array(
+        '%election' => $election->title,
+        '!OpenSTV' => l('OpenSTV', 'http://www.openstv.org/'),
+        '!Droop' => l('Droop', 'http://code.google.com/p/droop/wiki/Droop'),
+      )
+    ),
+  );
+
+  if (!empty($post_options)) {
+    $form['post_ids'] = array(
+      '#type' => 'select',
+      '#title' => t('@Posts', array('@Posts' => drupal_ucfirst($post_name_plural))),
+      '#description' => t('Select the @posts you want to include in the export.', array('@posts' => $post_name_plural)),
+      '#multiple' => TRUE,
+      '#options' => $post_options,
+      '#default_value' => array_keys($post_options),
+    );
+  }
+  else {
+    $form['#disabled'] = TRUE;
+    drupal_set_message(t('There are no @posts yet to export.', array('@posts' => $post_name_plural)), 'warning');
+  }
+
+  $form['filename'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Filename'),
+    '#size' => strlen($default_filename),
+    '#default_value' => $default_filename,
+  );
+
+  $form['include_ballot_ids'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Include ballot IDs'),
+    '#description' => t('Ballot IDs could help to identify ballots uniquely.'),
+    '#default_value' => FALSE,
+  );
+
+  $form['buttons'] = array(
+    '#type' => 'actions',
+  );
+  $form['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Export'),
+  );
+
+  return $form;
+
+}
+
+/**
+ * Export a ZIP archive of ballot files, per election, and provide for download.
+ */
+function election_export_form_submit($form, &$form_state) {
+
+  $election = $form['#election'];
+
+  $filename = $form_state['values']['filename'];
+
+  $zipfile = election_export_election($election, NULL, array(
+    'post ids' => $form_state['values']['post_ids'],
+    'include ballot ids' => $form_state['values']['include_ballot_ids'],
+  ));
+
+  header('Content-Type:application/zip;charset=UTF-8');
+  header('Content-Disposition:attachment;filename=' . $filename);
+  header('Cache-Control:max-age=0; must-revalidate');
+  readfile($zipfile);
+  unlink($zipfile);
+
+  drupal_exit();
+
+}
+
+/**
+ * Generate ZIP archive of results files, for all the posts in an election.
+ *
+ * @todo per-post access check
+ * @todo menu item
+ * @todo download form
+ * @todo drush command
+ * @todo generalization
+ *
+ * @see election_export_post()
+ *
+ * @param stdClass $election
+ *   The election entity.
+ * @param string $destination
+ *   Optional: the path to the results archive file. This needs to be a
+ *   writeable filesystem path.
+ * @param array $options
+ *   Optional: an array of additional export options.
+ *
+ * @return string
+ *   The URI of the generated results archive file.
+ */
+function election_export_election(stdClass $election, $destination = NULL, array $options = array()) {
+  if (empty($destination)) {
+    $destination = drupal_tempnam('temporary://', 'election');
+  }
+  $default_options = array(
+    'zip flags' => ZIPARCHIVE::CREATE,
+  );
+  $options = array_merge($default_options, $options);
+  // The PHP ZipArchive utility requires absolute file system paths.
+  $destination_realpath = drupal_realpath($destination);
+  $zip = new ZipArchive();
+  $opened = $zip->open($destination_realpath, $options['zip flags']);
+  if ($opened !== TRUE) {
+    return FALSE;
+  }
+  if (!empty($options['post ids'])) {
+    $post_ids = $options['post ids'];
+  }
+  else {
+    $post_ids = db_query(
+      'SELECT post_id FROM {election_post} WHERE election_id = :eid',
+      array(':eid' => $election->election_id)
+    )->fetchCol();
+  }
+  $posts = election_post_load_multiple($post_ids);
+  $tmp_files = array();
+  foreach ($posts as $post) {
+    $localname = $election->title . '-' . $post->election_id . '_' . $post->title . '-' . $post->post_id;
+    $localname = truncate_utf8(preg_replace('/[^A-Z0-9\-_]+/i', '-', $localname), 60, FALSE, FALSE);
+    $localname .= '.blt';
+    $post_results_file = election_export_post($post, NULL, $options);
+    $tmp_files[] = $post_results_file;
+    $zip->addFile(drupal_realpath($post_results_file), $localname);
+  }
+  $zip->close();
+  // Delete the temporary files created for each post. This must be done after
+  // $zip->close().
+  foreach ($tmp_files as $tmp_file) {
+    unlink($tmp_file);
+  }
+  return $destination_realpath;
+}
+
+/**
+ * Generate a BLT file of results, for a single election post.
+ *
+ * @param stdClass $post
+ *   The election post entity.
+ * @param string $destination
+ *   Optional: the destination of the results file. This can be any writeable
+ *   stream URI (including 'php://output').
+ * @param array $options
+ *   Optional: an array of additional export options.
+ *
+ * @return string
+ *   The URI of the generated results file.
+ */
+function election_export_post(stdClass $post, $destination = NULL, array $options = array()) {
+
+  if (empty($destination)) {
+    $destination = drupal_tempnam('temporary://', 'election');
+  }
+  $stream = fopen($destination, 'w');
+  if (!$stream) {
+    return FALSE;
+  }
+
+  $default_options = array(
+    'include ballot ids' => FALSE,
+  );
+  $options = array_merge($default_options, $options);
+
+  // Load all approved and withdrawn candidates.
+  $candidates = election_candidate_load_by_post(
+    $post,
+    array(
+      ELECTION_CANDIDATE_APPROVED,
+      ELECTION_CANDIDATE_WITHDRAWN
+    ),
+    FALSE
+  );
+
+  // Map the candidates to integer keys.
+  $candidate_map = array();
+  $i = 1;
+  $candidate_lines = '';
+  $total_candidates = (int) count($candidates);
+  $withdrawn = array();
+  foreach ($candidates as $candidate) {
+    $candidate_map[$candidate->candidate_id] = $i;
+    if ($candidate->cstatus == ELECTION_CANDIDATE_WITHDRAWN) {
+      $withdrawn[] = $i;
+    }
+    $name = addcslashes($candidate->first_name . ' ' . $candidate->last_name, '"');
+    $candidate_lines .= '"' . $name . '"';
+    $candidate_lines .= ' # ' . t('Candidate keyed by @i', array('@i' => $i)) . "\n";
+    $i++;
+  }
+  if (count($candidates) && !empty($post->settings['use_ron'])) {
+    $candidate_map['ron'] = $i;
+    $total_candidates++;
+    $candidate_lines .= '"' . t('RON (Re-Open Nominations)') . '"';
+    $candidate_lines .= ' # ' . t('Candidate keyed by @i', array('@i' => $i)) . "\n";
+  }
+
+  $total_vacancies = isset($post->settings['vacancy_count']) ? (int) $post->settings['vacancy_count'] : 0;
+
+  $votes_fields = array('ballot_id', 'candidate_id', 'ron', 'rank', 'abstain');
+
+  $votes_query = db_select('election_vote', 'ev')
+    ->fields('ev', $votes_fields)
+    ->condition('ev.post_id', $post->post_id)
+    ->orderBy('ballot_id')
+    ->orderBy('rank');
+
+  $votes = $votes_query->execute();
+
+  $allow_equal = !empty($post->settings['allow_equal']);
+  $allow_abstention = !empty($post->allow_abstention);
+
+  $ballots = array();
+  $ballot_errors = array();
+  $last_rank = NULL;
+  foreach ($votes as $vote) {
+
+    $ballot_id = $vote->ballot_id;
+
+    if (!isset($ballots[$ballot_id])) {
+      $ballots[$ballot_id] = '';
+      if ($vote->abstain) {
+        if (!$allow_abstention) {
+          $ballot_errors[$ballot_id] = t('Abstention found, but abstention is not allowed!');
+        }
+        continue;
+      }
+    }
+    elseif (isset($last_rank) && $last_rank === $vote->rank) {
+      if (!$allow_equal) {
+        $ballot_errors[$ballot_id] = t('Equal ranking found, but equal ranking is not allowed!');
+      }
+      $ballots[$ballot_id] .= '=';
+    }
+    else {
+      $ballots[$ballot_id] .= ' ';
+    }
+    $candidate_id = $vote->ron ? 'ron' : $vote->candidate_id;
+    $ballots[$ballot_id] .= $candidate_map[$candidate_id];
+    $last_rank = $vote->rank;
+  }
+
+  $output = "################################################\n";
+
+  $output .= '# ' . t(
+    'Ballot file generated on !date',
+    array('!date' => format_date(REQUEST_TIME, 'custom', 'Y-m-d H:i:s'))
+  ) . " #\n";
+
+  $output .= "################################################\n";
+
+  $output .= '# ' . t(
+    '!candidates standing for !vacancies:',
+    array(
+      '!candidates' => format_plural($total_candidates, 'One candidate is', '@count candidates are'),
+      '!vacancies' => format_plural($total_vacancies, 'one vacancy', '@count vacancies'),
+    )
+  ) . "\n";
+
+  $output .= "$total_candidates $total_vacancies\n";
+
+  if (!empty($withdrawn)) {
+    $output .= '# ' . format_plural(
+      count($withdrawn),
+      "One candidate has withdrawn:",
+      "@count candidates have withdrawn:"
+    ) . "\n";
+    $output .= '-' . implode(' -', $withdrawn) . "\n";
+  }
+
+  $output .= "# " . t('Votes are listed below. Each line is in the format:') . "\n#    ";
+  if ($options['include ballot ids']) {
+    $output .= '(BALLOT_ID) ';
+  }
+  $output .= t('MULTIPLIER [CANDIDATE CANDIDATE ...] 0');
+  $output .= "\n# " . t('where candidates are represented by keys in order of preference.');
+  $output .= "\n# " . t('Candidate keys are each separated by a space, or by = for equal rankings.') . "\n";
+
+  // Flush current data to the stream.
+  fwrite($stream, $output);
+  unset($output);
+
+  // Generate the ballot lines.
+  foreach ($ballots as $ballot_id => $ballot) {
+    $line = '';
+    if ($options['include ballot ids']) {
+      $line .= '(' . $ballot_id . ') ';
+    }
+    // Each line begins with a multiplier (always 1) and ends with 0.
+    if (empty($ballot)) {
+      // This is an abstention.
+      $line .= '1 0';
+    }
+    else {
+      $line .= '1 ' . $ballot . ' 0';
+    }
+    // Add any error messages for this ballot in a comment at the end.
+    if (isset($ballot_errors[$ballot_id])) {
+      $line .= ' # ' . $ballot_errors[$ballot_id];
+    }
+    $line .= "\n";
+    fwrite($stream, $line);
+  }
+
+  $output = '0 # ' . t('This marks the end of votes.') . "\n";
+
+  $output .= $candidate_lines;
+
+  $output .= '"' . addcslashes($post->title, '"') . "\"\n";
+  $output .= '"' . addcslashes($post->election->title, '"') . "\"\n";
+
+  fwrite($stream, $output);
+
+  fclose($stream);
+
+  return $destination;
+
+}

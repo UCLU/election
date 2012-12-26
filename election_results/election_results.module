@@ -23,16 +23,6 @@ function election_results_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
-  $items['election-post/%election_post/results/download'] = array(
-    'title' => 'Download',
-    'page callback' => 'election_results_download',
-    'page arguments' => array(1),
-    'access callback' => 'election_results_access',
-    'access arguments' => array('download', 1),
-    'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-    'weight' => 1,
-  );
   return $items;
 }
 
@@ -42,46 +32,34 @@ function election_results_menu() {
 function election_results_permission() {
   return array(
     'view any election results' => array(
-      'title' => t('View or download any election results'),
-      'description' => t('This allows the user to view or download the results of any elections.'),
+      'title' => t('View any election results'),
+      'description' => t('This allows the user to view the results of any election posts.'),
     ),
     'view own election results' => array(
-      'title' => t('View or download own election results'),
-      'description' => t('This allows the user to view or download the results of their own elections (those to which they have editing access).'),
+      'title' => t('View own election results'),
+      'description' => t('This allows the user to view the results of their own election posts (those to which they have editing access).'),
     ),
   );
 }
 
 /**
- * Access callback for viewing an election post's results.
+ * Access callback for viewing results per election post.
  */
 function election_results_access($op, stdClass $post, $account = NULL) {
   if (empty($account)) {
     $account = $GLOBALS['user'];
   }
   $election = $post->election;
-  switch ($op) {
-    case 'view':
-      if (empty($election->type_info['results page']) || !function_exists($election->type_info['results page'])) {
-        return FALSE;
-      }
-      break;
-
-    case 'download':
-      if (empty($election->type_info['results download form']) || !function_exists($election->type_info['results download form'])) {
-        return FALSE;
-      }
-      break;
-
-  }
-  if (_election_post_is_open($post, NULL, 'v') && !user_access('bypass running election lock', $account)) {
-    return FALSE;
-  }
-  if (election_post_access('edit', $post, $account) && user_access('view own election results', $account)) {
-    return TRUE;
-  }
-  if (user_access('view any election results', $account)) {
-    return TRUE;
+  if ($op == 'view') {
+    if (_election_post_is_open($post, NULL, 'v') && !user_access('bypass running election lock', $account)) {
+      return FALSE;
+    }
+    if (election_post_access('edit', $post, $account) && user_access('view own election results', $account)) {
+      return TRUE;
+    }
+    if (user_access('view any election results', $account)) {
+      return TRUE;
+    }
   }
   return FALSE;
 }
@@ -112,6 +90,8 @@ function election_results_entity_load($entities, $type) {
 
 /**
  * Page callback for election-post/%election_post/results.
+ *
+ * @todo make this themeable
  */
 function election_results_page(stdClass $post) {
 
@@ -159,32 +139,9 @@ function election_results_page(stdClass $post) {
     '#rows' => $rows,
   );
 
-  if (!empty($election->type_info['results page']) && function_exists($election->type_info['results page'])) {
-    $function = $election->type_info['results page'];
-    $output += $function($post, $totals);
-  }
+  drupal_alter('election_results_page', $output, $post, $totals);
 
   return $output;
-
-}
-
-/**
- * Page callback for election-post/%election_post/results/download.
- */
-function election_results_download(stdClass $post) {
-
-  $election = $post->election;
-
-  drupal_set_title(t('Download results: %post', array('%post' => $post->title)), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($election, '_MANAGE_POSTS_'));
-
-  if (!empty($election->type_info['results download form']) && function_exists($election->type_info['results download form'])) {
-    $form = $election->type_info['results download form'];
-    return drupal_get_form($form, $post);
-  }
-  else {
-    return MENU_NOT_FOUND;
-  }
 
 }
 

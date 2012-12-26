@@ -21,8 +21,8 @@ How to use this module
 4. Visit /admin/config/election to configure fields and display settings.
 
 There are several optional sub-modules you can also enable, providing further
-functionality, including Election Condition, Election Statistics, and Election
-Results.
+functionality, including Election Condition, Election Statistics, Election
+Results, and Election Export.
 
 
 Note on terminology (for developers)
