@@ -173,12 +173,6 @@ function election_export_form_submit($form, &$form_state) {
 /**
  * Generate ZIP archive of results files, for all the posts in an election.
  *
- * @todo per-post access check
- * @todo menu item
- * @todo download form
- * @todo drush command
- * @todo generalization
- *
  * @see election_export_post()
  *
  * @param stdClass $election
