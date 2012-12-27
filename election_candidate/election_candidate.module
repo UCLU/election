@@ -263,22 +263,10 @@ function election_candidate_menu() {
     'weight' => 0,
   );
 
-  $items['election/%election/candidates/manage'] = array(
+  $items['election/%election/candidates-admin'] = array(
     'title' => 'Manage candidates',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_candidate_manage_form', 1),
-    'access callback' => 'election_candidate_access_per_election',
-    'access arguments' => array('edit', 1),
-    'file' => 'election-candidate.admin.inc',
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 1,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-  );
-
-  $items['election/%election/candidates/totals'] = array(
-    'title' => 'Totals',
-    'page callback' => 'election_candidate_totals_page',
-    'page arguments' => array(1),
     'access callback' => 'election_candidate_access_per_election',
     'access arguments' => array('edit', 1),
     'file' => 'election-candidate.admin.inc',
@@ -287,7 +275,25 @@ function election_candidate_menu() {
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
-  $items['election/%election/candidates/download'] = array(
+  $items['election/%election/candidates-admin/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+
+  $items['election/%election/candidates-admin/totals'] = array(
+    'title' => 'Totals',
+    'page callback' => 'election_candidate_totals_page',
+    'page arguments' => array(1),
+    'access callback' => 'election_candidate_access_per_election',
+    'access arguments' => array('edit', 1),
+    'file' => 'election-candidate.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+
+  $items['election/%election/candidates-admin/download'] = array(
     'title' => 'Download',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_candidate_download_form', 1),
@@ -295,10 +301,9 @@ function election_candidate_menu() {
     'access arguments' => array('edit', 1),
     'file' => 'election-candidate.download.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 5,
+    'weight' => 2,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
-
 
   $items['election-candidate/%election_candidate'] = array(
     'title callback' => 'election_candidate_page_title',
