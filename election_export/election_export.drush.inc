@@ -48,8 +48,6 @@ function election_export_drush_command() {
  *   will be printed to stdout. This filename should have the extension '.zip'
  *   and be in a writeable directory. Relative filenames will relate to the
  *   directory 'private://election-export'.
- *
- * @return void
  */
 function drush_election_export($election_id, $destination = NULL) {
   $election = election_load($election_id);
@@ -71,7 +69,7 @@ function drush_election_export($election_id, $destination = NULL) {
     if ($dirname == $destination) {
       $destination .= '/election-export-' . $election_id . '.zip';
     }
-    else if (file_exists($destination)) {
+    elseif (file_exists($destination)) {
       return drush_set_error(dt('The file @destination already exists.', array('@destination' => $destination)));
     }
     if (!is_writable($dirname)) {
@@ -109,8 +107,6 @@ function drush_election_export($election_id, $destination = NULL) {
  *   will be printed to stdout. This filename should be in a writeable
  *   directory. Relative filenames will relate to the directory
  *   'private://election-export'.
- *
- * @return void
  */
 function drush_election_export_post($post_id, $destination = NULL) {
   $post = election_post_load($post_id);
@@ -133,7 +129,7 @@ function drush_election_export_post($post_id, $destination = NULL) {
     if ($dirname == $destination) {
       $destination .= '/election-export-' . $election->election_id . '-' . $post_id . '.blt';
     }
-    else if (file_exists($destination)) {
+    elseif (file_exists($destination)) {
       return drush_set_error(dt('The file @destination already exists.', array('@destination' => $destination)));
     }
     if (!is_writable($dirname)) {

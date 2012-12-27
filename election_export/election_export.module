@@ -122,7 +122,6 @@ function election_export_form($form, &$form_state, stdClass $election) {
   $form['filename'] = array(
     '#type' => 'textfield',
     '#title' => t('Filename'),
-    '#size' => strlen($default_filename),
     '#default_value' => $default_filename,
     '#required' => TRUE,
   );
@@ -263,7 +262,7 @@ function election_export_post(stdClass $post, $destination = NULL, array $option
     $post,
     array(
       ELECTION_CANDIDATE_APPROVED,
-      ELECTION_CANDIDATE_WITHDRAWN
+      ELECTION_CANDIDATE_WITHDRAWN,
     ),
     FALSE
   );
