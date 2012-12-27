@@ -83,7 +83,7 @@ function election_export_form($form, &$form_state, stdClass $election) {
 
   $default_filename = $election->title . '-' . $election->election_id;
   $default_filename = truncate_utf8(preg_replace('/[^A-Z0-9\-_]+/i', '-', $default_filename), 60, FALSE, FALSE);
-  $default_filename .= '_' . date('YmdHis', REQUEST_TIME) . '.zip';
+  $default_filename .= '_' . date('YmdHis', REQUEST_TIME);
 
   $post_name_plural = election_get_post_name($election->type, TRUE);
 
@@ -123,6 +123,7 @@ function election_export_form($form, &$form_state, stdClass $election) {
     '#type' => 'textfield',
     '#title' => t('Filename'),
     '#default_value' => $default_filename,
+    '#field_suffix' => '.zip',
     '#required' => TRUE,
   );
 
@@ -160,7 +161,7 @@ function election_export_form_submit($form, &$form_state) {
   ));
 
   header('Content-Type:application/zip;charset=UTF-8');
-  header('Content-Disposition:attachment;filename=' . $filename);
+  header('Content-Disposition:attachment;filename=' . $filename . '.zip');
   header('Cache-Control:max-age=0; must-revalidate');
   readfile($zipfile);
   unlink($zipfile);
