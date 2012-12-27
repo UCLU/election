@@ -257,12 +257,6 @@ function election_candidate_menu() {
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
-  $items['election/%election/candidates/list'] = array(
-    'title' => 'List',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => 0,
-  );
-
   $items['election/%election/candidates-admin'] = array(
     'title' => 'Manage candidates',
     'page callback' => 'drupal_get_form',
