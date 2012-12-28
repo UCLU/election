@@ -39,6 +39,13 @@ function election_export_permission() {
 }
 
 /**
+ * Check whether an election type supports/allows exporting.
+ */
+function election_export_check_support($election) {
+  return (!empty($election->type_info['export']) && election_candidate_check_support($election));
+}
+
+/**
  * Access callback for exporting results per election.
  */
 function election_export_access($op, stdClass $election, $account = NULL) {
@@ -50,7 +57,7 @@ function election_export_access($op, stdClass $election, $account = NULL) {
       if (empty($election->type_info['export'])) {
         return FALSE;
       }
-      if (!_election_candidate_check_support($election)) {
+      if (!election_candidate_check_support($election)) {
         return FALSE;
       }
       break;

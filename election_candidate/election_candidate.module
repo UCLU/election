@@ -220,7 +220,7 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
  */
 function election_candidate_access_per_election($op, stdClass $election, $account = NULL) {
   // Check whether the election supports candidates at all.
-  if (!_election_candidate_check_support($election)) {
+  if (!election_candidate_check_support($election)) {
     return FALSE;
   }
   // Defer to the election access system.
@@ -523,7 +523,7 @@ function election_candidate_form_election_post_form_alter(&$form, &$form_state) 
 
   $post = $form_state['post'];
   $election = $form_state['election'];
-  if (!_election_candidate_check_support($election)) {
+  if (!election_candidate_check_support($election)) {
     return;
   }
 
@@ -699,7 +699,7 @@ function election_candidate_nominate_access(stdClass $post, $account = NULL) {
   }
   $election = $post->election;
   // Check whether the election supports candidates.
-  if (!_election_candidate_check_support($election)) {
+  if (!election_candidate_check_support($election)) {
     return FALSE;
   }
   // Check if the user has global permission for submitting nominations.
@@ -1094,6 +1094,6 @@ function election_candidate_approve_action($candidate, $context = array()) {
 /**
  * Check whether an election type supports candidates.
  */
-function _election_candidate_check_support(stdClass $election) {
+function election_candidate_check_support(stdClass $election) {
   return (!empty($election->type_info['has candidates']));
 }
