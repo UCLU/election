@@ -52,23 +52,20 @@ function election_export_access($op, stdClass $election, $account = NULL) {
   if (empty($account)) {
     $account = $GLOBALS['user'];
   }
-  switch ($op) {
-    case 'export':
-      if (empty($election->type_info['export'])) {
-        return FALSE;
-      }
-      if (!election_candidate_check_support($election)) {
-        return FALSE;
-      }
-      break;
-
-    default:
-      return FALSE;
-
+  // The $op can only be 'export' for now.
+  if ($op != 'export') {
+    return FALSE;
   }
+  // Check that it's sane to export results for this election.
+  if (!election_export_check_support($election)) {
+    return FALSE;
+  }
+  // Check that the election isn't running, or that the user can 'bypass
+  // running election lock'.
   if (_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time) && !user_access('bypass running election lock', $account)) {
     return FALSE;
   }
+  // Check for permission to export own/any election results.
   if (election_access('edit', $election, $account) && user_access('export own election results', $account)) {
     return TRUE;
   }
