@@ -6,5 +6,3 @@ dependencies[] = election
 dependencies[] = election_post
 dependencies[] = election_candidate
 dependencies[] = election_vote
-dependencies[] = election_export
-dependencies[] = libraries
