@@ -19,7 +19,7 @@ function election_results_menu() {
     'weight' => 4,
   );
   $items['election-post/%election_post/results/view'] = array(
-    'title' => 'View',
+    'title' => 'Overview',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
@@ -49,8 +49,13 @@ function election_results_access($op, stdClass $post, $account = NULL) {
   if (empty($account)) {
     $account = $GLOBALS['user'];
   }
-  $election = $post->election;
   if ($op == 'view') {
+    // The user has to have permission to view the post itself.
+    if (!election_post_access('view', $post, $account)) {
+      return FALSE;
+    }
+    // Prevent users from viewing results while voting is open, unless they can
+    // 'bypass running election lock'.
     if (_election_post_is_open($post, NULL, 'v') && !user_access('bypass running election lock', $account)) {
       return FALSE;
     }
