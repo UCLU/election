@@ -98,11 +98,9 @@ function election_export_form($form, &$form_state, stdClass $election) {
 
   $form['help'] = array(
     '#markup' => t(
-      'You can use this form to export a ZIP archive (.zip) containing ballot files (.blt) for %election. This allows vote counts to be run through external counting tools such as !OpenSTV or !Droop.',
+      'You can use this form to export a ZIP archive (.zip) containing ballot files (.blt) for %election.',
       array(
         '%election' => $election->title,
-        '!OpenSTV' => l('OpenSTV', 'http://www.openstv.org/'),
-        '!Droop' => l('Droop', 'http://code.google.com/p/droop/wiki/Droop'),
       )
     ),
   );
