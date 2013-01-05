@@ -453,8 +453,7 @@ function election_candidate_entity_property_info() {
 function _election_candidate_get_cstatus_options() {
   return array(
     ELECTION_CANDIDATE_ELECTED => t('Elected'),
-    ELECTION_CANDIDATE_APPROVED => t('Approved'),
-    ELECTION_CANDIDATE_PENDING => t('Pending approval'),
+    ELECTION_CANDIDATE_HOPEFUL => t('Hopeful'),
     ELECTION_CANDIDATE_WITHDRAWN => t('Withdrawn'),
     ELECTION_CANDIDATE_REJECTED => t('Rejected'),
     ELECTION_CANDIDATE_DEFEATED => t('Defeated'),
@@ -996,6 +995,8 @@ function election_candidate_views_default_views() {
  *   An election post object.
  * @param array $statuses
  *   An array of candidate statuses, by which to filter results (optional).
+ * @param bool $only_published
+ *   Whether to only find published candidates.
  * @param string $order_by
  *   A database column to order candidates by. Default is random (MySQL RAND()).
  *   Set FALSE for no ordering.
@@ -1003,10 +1004,13 @@ function election_candidate_views_default_views() {
  * @return array
  *   An array of candidate objects keyed by candidate ID.
  */
-function election_candidate_load_by_post(stdClass $post, array $statuses = NULL, $order_by = 'RAND()') {
+function election_candidate_load_by_post(stdClass $post, array $statuses = NULL, $only_published = TRUE, $order_by = 'RAND()') {
   $select = db_select('election_candidate', 'ec')
     ->fields('ec', array('candidate_id'))
     ->condition('post_id', $post->post_id);
+  if ($only_published) {
+    $select->condition('published', 1);
+  }
   if ($statuses !== NULL) {
     $select->condition('cstatus', (array) $statuses, 'IN');
   }
@@ -1087,7 +1091,7 @@ function election_candidate_action_info() {
  *
  * @ingroup actions
  */
-function election_candidate_approve_action($candidate, $context = array()) {
+function election_candidate_publish_action($candidate, $context = array()) {
   $candidate->published = 1;
 }
 
@@ -1096,4 +1100,29 @@ function election_candidate_approve_action($candidate, $context = array()) {
  */
 function election_candidate_check_support(stdClass $election) {
   return (!empty($election->type_info['has candidates']));
+}
+
+/**
+ * Determine whether the election post has enough candidates for voting.
+ *
+ * A post needs to have at least 2 published candidates (inc. RON) in order for
+ * voting to be possible. Otherwise the candidate is unopposed.
+ */
+function election_candidate_post_has_enough($post) {
+  // Elections that don't support candidates always have 'enough'.
+  if (!election_candidate_check_support($post->election)) {
+    return TRUE;
+  }
+  $num_candidates = db_query('SELECT COUNT(candidate_id) FROM {election_candidate} WHERE post_id = :pid AND published = 1', array(':pid' => $post->post_id))->fetchField(0);
+  $has_ron = !empty($post->settings['use_ron']);
+  return ($num_candidates > 1 || ($num_candidates == 1 && $has_ron));
+}
+
+/**
+ * Prevent users from accessing vote forms when there aren't enough candidates.
+ */
+function election_candidate_election_vote_access($op, $post, $account) {
+  if (!election_candidate_post_has_enough($post)) {
+    return FALSE;
+  }
 }

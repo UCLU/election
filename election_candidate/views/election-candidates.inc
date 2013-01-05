@@ -17,7 +17,6 @@ $view->disabled = FALSE; /* Edit this to true to make a default view disabled in
 /* Display: Master */
 $handler = $view->new_display('default', 'Master', 'default');
 $handler->display->display_options['title'] = 'Candidates';
-$handler->display->display_options['use_more_always'] = FALSE;
 $handler->display->display_options['access']['type'] = 'perm';
 $handler->display->display_options['access']['perm'] = 'view published elections';
 $handler->display->display_options['cache']['type'] = 'none';
@@ -39,15 +38,18 @@ $handler->display->display_options['footer']['area']['id'] = 'area';
 $handler->display->display_options['footer']['area']['table'] = 'views';
 $handler->display->display_options['footer']['area']['field'] = 'area';
 $handler->display->display_options['footer']['area']['label'] = 'Note about random ordering';
+$handler->display->display_options['footer']['area']['empty'] = FALSE;
 $handler->display->display_options['footer']['area']['content'] = '<p class="election-candidate-random-order-note">If more than one candidate is standing for a position, they are listed in a random order.</p>';
 $handler->display->display_options['footer']['area']['format'] = 'full_html';
 /* No results behavior: Global: Text area */
 $handler->display->display_options['empty']['area']['id'] = 'area';
 $handler->display->display_options['empty']['area']['table'] = 'views';
 $handler->display->display_options['empty']['area']['field'] = 'area';
-$handler->display->display_options['empty']['area']['label'] = 'There are no candidates to display';
-$handler->display->display_options['empty']['area']['content'] = 'There are no candidates to display.';
+$handler->display->display_options['empty']['area']['label'] = 'There are currently no published candidate profiles for this election';
+$handler->display->display_options['empty']['area']['empty'] = FALSE;
+$handler->display->display_options['empty']['area']['content'] = 'There are currently no published candidate profiles for this election.';
 $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
+$handler->display->display_options['empty']['area']['tokenize'] = 0;
 /* Field: Election candidate: Name */
 $handler->display->display_options['fields']['fullname']['id'] = 'fullname';
 $handler->display->display_options['fields']['fullname']['table'] = 'election_candidate';
@@ -82,18 +84,22 @@ $handler->display->display_options['filters']['published_or_admin']['id'] = 'pub
 $handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
 $handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
 $handler->display->display_options['filters']['published_or_admin']['group'] = 1;
+/* Filter criterion: Election candidate: Published */
+$handler->display->display_options['filters']['published']['id'] = 'published';
+$handler->display->display_options['filters']['published']['table'] = 'election_candidate';
+$handler->display->display_options['filters']['published']['field'] = 'published';
+$handler->display->display_options['filters']['published']['value'] = '1';
 /* Filter criterion: Election candidate: Status */
 $handler->display->display_options['filters']['cstatus']['id'] = 'cstatus';
 $handler->display->display_options['filters']['cstatus']['table'] = 'election_candidate';
 $handler->display->display_options['filters']['cstatus']['field'] = 'cstatus';
+$handler->display->display_options['filters']['cstatus']['operator'] = 'not in';
 $handler->display->display_options['filters']['cstatus']['value'] = array(
-  1 => '1',
+  -2 => '-2',
 );
-$handler->display->display_options['filters']['cstatus']['group'] = 1;
 
 /* Display: Candidates per election */
 $handler = $view->new_display('page', 'Candidates per election', 'candidates_per_election');
-$handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
 $handler->display->display_options['defaults']['style_plugin'] = FALSE;
 $handler->display->display_options['style_plugin'] = 'default';
 $handler->display->display_options['style_options']['grouping'] = array(
@@ -139,13 +145,13 @@ $handler->display->display_options['tab_options']['weight'] = '3';
 
 /* Display: Candidates per post */
 $handler = $view->new_display('block', 'Candidates per post', 'candidates_per_post');
-$handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
 $handler->display->display_options['defaults']['footer'] = FALSE;
 /* Footer: Global: Text area */
 $handler->display->display_options['footer']['area']['id'] = 'area';
 $handler->display->display_options['footer']['area']['table'] = 'views';
 $handler->display->display_options['footer']['area']['field'] = 'area';
 $handler->display->display_options['footer']['area']['label'] = 'Note about random ordering';
+$handler->display->display_options['footer']['area']['empty'] = FALSE;
 $handler->display->display_options['footer']['area']['content'] = '<p class="election-candidate-random-order-note">Candidates are listed in a random order.</p>';
 $handler->display->display_options['footer']['area']['format'] = 'full_html';
 $handler->display->display_options['defaults']['empty'] = FALSE;
@@ -153,9 +159,11 @@ $handler->display->display_options['defaults']['empty'] = FALSE;
 $handler->display->display_options['empty']['area']['id'] = 'area';
 $handler->display->display_options['empty']['area']['table'] = 'views';
 $handler->display->display_options['empty']['area']['field'] = 'area';
-$handler->display->display_options['empty']['area']['label'] = 'There are currently no approved candidates for this position';
-$handler->display->display_options['empty']['area']['content'] = 'There are currently no approved candidates for this position.';
+$handler->display->display_options['empty']['area']['label'] = 'There are currently no published candidate profiles for this position';
+$handler->display->display_options['empty']['area']['empty'] = FALSE;
+$handler->display->display_options['empty']['area']['content'] = 'There are currently no published candidate profiles for this position.';
 $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
+$handler->display->display_options['empty']['area']['tokenize'] = 0;
 $handler->display->display_options['defaults']['sorts'] = FALSE;
 /* Sort criterion: Global: Random */
 $handler->display->display_options['sorts']['random']['id'] = 'random';

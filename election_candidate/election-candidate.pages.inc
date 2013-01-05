@@ -235,7 +235,7 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
   $candidate->first_name = $values['first_name'];
   $candidate->last_name = $values['last_name'];
   $candidate->mail = $values['mail'];
-  $candidate->cstatus = ELECTION_CANDIDATE_PENDING;
+  $candidate->cstatus = ELECTION_CANDIDATE_HOPEFUL;
 
   field_attach_submit('election_candidate', $candidate, $form, $form_state);
 
@@ -359,33 +359,6 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
     $candidate_account = user_load($candidate->uid);
   }
 
-  $form['cstatus'] = array(
-    '#type' => 'select',
-    '#options' => _election_candidate_get_cstatus_options(),
-    '#title' => t('Candidate status'),
-    '#required' => TRUE,
-    '#default_value' => $candidate->cstatus,
-    '#empty_option' => t('- Select status -'),
-    '#weight' => 0,
-  );
-
-  $form['user_info']['current_user'] = array(
-    '#title' => t('Associated user account'),
-    '#type' => 'item',
-    '#default_value' => empty($candidate_account) ? NULL : $candidate_account->name,
-    '#weight' => 1,
-  );
-  if (empty($candidate_account)) {
-    $form['user_info']['current_user']['#markup'] = t('No user account associated.');
-  }
-  else {
-    $form['user_info']['current_user']['#markup'] = theme(
-      'username',
-      array('account' => $candidate_account, 'link_options' => array('attributes' => array('target' => '_blank')))
-    );
-    $form['user_info']['current_user']['#description'] = t('The account that submitted the nomination.');
-  }
-
   $post = election_post_load($candidate->post_id);
   $post_name = election_get_post_name($election->type);
   $form['post'] = array(
@@ -426,6 +399,33 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
     if (strpos($key, 'field_') === 0 && isset($field['#required'])) {
       $field['#required'] = FALSE;
     }
+  }
+
+  $form['cstatus'] = array(
+    '#type' => 'select',
+    '#options' => _election_candidate_get_cstatus_options(),
+    '#title' => t('Status'),
+    '#required' => TRUE,
+    '#default_value' => $candidate->cstatus,
+    '#empty_option' => t('- Select status -'),
+    '#weight' => 97,
+  );
+
+  $form['current_user'] = array(
+    '#title' => t('Associated user account'),
+    '#type' => 'item',
+    '#default_value' => empty($candidate_account) ? NULL : $candidate_account->name,
+    '#weight' => 98,
+  );
+  if (empty($candidate_account)) {
+    $form['current_user']['#markup'] = t('No user account associated.');
+  }
+  else {
+    $form['current_user']['#markup'] = theme(
+      'username',
+      array('account' => $candidate_account, 'link_options' => array('attributes' => array('target' => '_blank')))
+    );
+    $form['current_user']['#description'] = t('The account that submitted the nomination.');
   }
 
   $form['published'] = array(

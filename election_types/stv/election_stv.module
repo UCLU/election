@@ -128,14 +128,14 @@ function election_stv_views_default_views_alter(&$views) {
 function election_stv_vote_form($form, &$form_state, $post, $election) {
 
   // Load candidates.
-  $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_APPROVED), 'RAND()');
+  $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_HOPEFUL), TRUE, 'RAND()');
   $form_state['candidates'] = $candidates;
 
   $num_candidates = count($candidates);
   $form_state['num_candidates'] = $num_candidates;
 
   if ($num_candidates == 0) {
-    drupal_set_message(t('Voting is currently closed: there are no approved candidates standing for this @post.', array('@post' => election_get_post_name($election->type))), 'warning', FALSE);
+    drupal_set_message(t('Voting is currently closed: there are no published candidates standing for this @post.', array('@post' => election_get_post_name($election->type))), 'warning', FALSE);
     $form['#disabled'] = TRUE;
     drupal_goto(election_post_uri_path($post));
   }

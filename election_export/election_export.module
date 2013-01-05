@@ -260,13 +260,14 @@ function election_export_post(stdClass $post, $destination = NULL, array $option
   );
   $options = array_merge($default_options, $options);
 
-  // Load all approved and withdrawn candidates.
+  // Load all hopeful and withdrawn candidates.
   $candidates = election_candidate_load_by_post(
     $post,
     array(
-      ELECTION_CANDIDATE_APPROVED,
+      ELECTION_CANDIDATE_HOPEFUL,
       ELECTION_CANDIDATE_WITHDRAWN,
     ),
+    FALSE,
     FALSE
   );
 

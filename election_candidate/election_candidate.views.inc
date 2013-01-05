@@ -67,6 +67,27 @@ function election_candidate_views_data() {
     ),
   );
 
+  $data['election_candidate']['published'] = array(
+    'title' => t('Published'),
+    'help' => t('Whether or not the candidate is published.'),
+    'field' => array(
+      'handler' => 'views_handler_field_boolean',
+      'click sortable' => TRUE,
+      'output formats' => array(
+        'published-notpublished' => array(t('Published'), t('Not published')),
+      ),
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_boolean_operator',
+      'label' => t('Published'),
+      'type' => 'yes-no',
+      'use equal' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
   $data['election_candidate']['fullname'] = array(
     'title' => t('Name'),
     'help' => t('The full name of the candidate ($Firstname $Lastname).'),

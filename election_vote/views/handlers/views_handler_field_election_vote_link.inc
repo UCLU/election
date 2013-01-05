@@ -24,11 +24,6 @@ class views_handler_field_election_vote_link extends views_handler_field_electio
     $small_post->post_id = $post_id;
     $small_post->settings = $this->get_value($values, 'settings');
 
-    // Ensure there are actually some candidates to vote for.
-    if (!_election_vote_post_has_approved_candidates($small_post)) {
-      return;
-    }
-
     // Ensure the user has not already voted.
     if (election_vote_check_account_previously_voted($small_post)) {
       return;

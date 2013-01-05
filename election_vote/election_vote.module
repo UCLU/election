@@ -692,37 +692,6 @@ function election_vote_html_head_alter(&$head_elements) {
 }
 
 /**
- * Check whether a post has approved candidates.
- *
- * @return bool
- *   TRUE if:
- *     (A) the number of approved candidates > 1
- *     or (B) there is 1 approved candidate, and RON;
- *   FALSE otherwise.
- */
-function _election_vote_post_has_approved_candidates($post) {
-  $num_candidates = db_query('SELECT COUNT(candidate_id) FROM {election_candidate} WHERE post_id = :pid AND cstatus = :approved', array(':pid' => $post->post_id, ':approved' => ELECTION_CANDIDATE_APPROVED))->fetchField(0);
-  $has_ron = !empty($post->settings['use_ron']);
-  return ($num_candidates > 1 || ($num_candidates == 1 && $has_ron));
-}
-
-/**
- * Determine whether the election post has enough candidates for voting.
- *
- * A post needs to have at least 2 approved candidates (inc. RON) in order for
- * voting to be possible. Otherwise the candidate is unopposed.
- *
- * @see _election_vote_post_has_approved_candidates()
- */
-function _election_vote_post_has_enough_candidates($post) {
-  if (empty($post->election->type_info['has candidates'])) {
-    // Elections that don't support candidates always have 'enough' candidates.
-    return TRUE;
-  }
-  return _election_vote_post_has_approved_candidates($post);
-}
-
-/**
  * Implements template_preprocess_election_post().
  */
 function election_vote_preprocess_election_post(&$variables) {

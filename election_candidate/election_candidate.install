@@ -51,18 +51,17 @@ function election_candidate_schema() {
       // Using 'status' as a column name would cause Entity API confusion.
       'cstatus' => array(
         'description' => sprintf(
-          'The candidate\'s status: pending %d, withdrawn %d, rejected %d, approved %d, defeated %d, or elected %d.',
-          ELECTION_CANDIDATE_PENDING,
+          'The candidate\'s status: withdrawn %d, rejected %d, hopeful %d, defeated %d, or elected %d.',
           ELECTION_CANDIDATE_WITHDRAWN,
           ELECTION_CANDIDATE_REJECTED,
-          ELECTION_CANDIDATE_APPROVED,
+          ELECTION_CANDIDATE_HOPEFUL,
           ELECTION_CANDIDATE_DEFEATED,
           ELECTION_CANDIDATE_ELECTED
         ),
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
-        'default' => ELECTION_CANDIDATE_PENDING,
+        'default' => ELECTION_CANDIDATE_HOPEFUL,
       ),
       'uid' => array(
         'description' => 'The {users}.uid of the candidate.',
@@ -110,6 +109,7 @@ function election_candidate_schema() {
     'indexes' => array(
       'post_id' => array('post_id'),
       'uid' => array('uid'),
+      'published' => array('published'),
       'first_name' => array('first_name'),
       'last_name' => array('last_name'),
       'mail' => array('mail'),
@@ -367,4 +367,48 @@ function election_candidate_update_7005() {
     'not null' => TRUE,
     'default' => 0,
   ));
+}
+
+/**
+ * Add an index to the 'published' column.
+ */
+function election_candidate_update_7006() {
+  db_add_index('election_candidate', 'published', array('published'));
+}
+
+/**
+ * Update candidate status field.
+ */
+function election_candidate_update_7007() {
+  // Recreate the 'cstatus' field and index.
+  db_drop_index('election_candidate', 'cstatus');
+  db_change_field(
+    'election_candidate',
+    'cstatus',
+    'cstatus',
+    array(
+      'description' => sprintf(
+        'The candidate\'s status: withdrawn %d, rejected %d, hopeful %d, defeated %d, or elected %d.',
+        ELECTION_CANDIDATE_WITHDRAWN,
+        ELECTION_CANDIDATE_REJECTED,
+        ELECTION_CANDIDATE_HOPEFUL,
+        ELECTION_CANDIDATE_DEFEATED,
+        ELECTION_CANDIDATE_ELECTED
+      ),
+      'type' => 'int',
+      'size' => 'tiny',
+      'not null' => TRUE,
+      'default' => ELECTION_CANDIDATE_HOPEFUL,
+    ),
+    array(
+      'indexes' => array(
+        'cstatus' => array('cstatus'),
+      ),
+    )
+  );
+  // Update all 'pending approval' statuses to 'hopeful'.
+  db_update('election_candidate')
+    ->fields(array('cstatus' => ELECTION_CANDIDATE_HOPEFUL))
+    ->condition('cstatus', 0)
+    ->execute();
 }

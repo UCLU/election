@@ -20,7 +20,7 @@ class ElectionCandidateController extends ElectionDefaultController {
       'election_id' => '',
       'post_id' => '',
       'published' => 0,
-      'cstatus' => ELECTION_CANDIDATE_PENDING,
+      'cstatus' => ELECTION_CANDIDATE_HOPEFUL,
       'uid' => '',
       'username' => '',
       'first_name' => '',

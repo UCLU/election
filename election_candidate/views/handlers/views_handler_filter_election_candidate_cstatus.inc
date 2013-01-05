@@ -14,18 +14,4 @@ class views_handler_filter_election_candidate_cstatus extends views_handler_filt
     return $this->value_options;
   }
 
-  /**
-   * Overrides parent::query().
-   */
-  public function query() {
-    $table = $this->ensure_my_table();
-    if (empty($this->value)) {
-      return;
-    }
-    $group = $this->query->set_where_group('OR');
-    foreach ($this->value as $value) {
-      $this->query->add_where_expression($group, "$table.cstatus = :value", array(':value' => $value));
-    }
-  }
-
 }

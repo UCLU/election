@@ -229,7 +229,7 @@ function election_permission() {
     ),
     'view published elections' => array(
       'title' => t('View published elections'),
-      'description' => t("This permission allows the user to view published elections, including those elections' posts and approved candidates."),
+      'description' => t("This permission allows the user to view published elections, including those elections' posts and any published candidates."),
     ),
   );
   return $permissions;

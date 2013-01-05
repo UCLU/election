@@ -84,7 +84,7 @@ function template_preprocess_election_vote_eligibility(&$variables) {
     }
   }
   // Check if there are enough candidates to vote for.
-  elseif (!_election_vote_post_has_enough_candidates($post)) {
+  elseif (module_exists('election_candidate') && !election_candidate_post_has_enough($post)) {
     $eligibility = t('Voting is currently closed (not enough candidates).');
   }
   // Check voting access.
@@ -162,7 +162,6 @@ function template_preprocess_election_vote_button(&$variables) {
 
   $variables['can_vote'] = (
     election_vote_access('vote', $post)
-    && _election_vote_post_has_enough_candidates($post)
     && !election_vote_check_account_previously_voted($post)
   );
 

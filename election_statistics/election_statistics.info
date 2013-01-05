@@ -3,6 +3,5 @@ description = "Voting statistics for an election."
 package = Election
 core = 7.x
 dependencies[] = election
-dependencies[] = election_candidate
 dependencies[] = election_post
 dependencies[] = election_vote
