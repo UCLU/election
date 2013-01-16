@@ -9,7 +9,7 @@
  * EntityAPIControllerExportable
  */
 
-class ElectionDefaultController extends EntityAPIControllerExportable {
+class ElectionDefaultController extends EntityAPIController {
 
   /**
    * Overrides EntityAPIController::save().
