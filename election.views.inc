@@ -293,14 +293,6 @@ function election_views_data() {
     ),
   );
 
-  $data['election']['candidates_link'] = array(
-    'field' => array(
-      'title' => t('Candidates link'),
-      'help' => t('A link to the candidates page, where relevant.'),
-      'handler' => 'views_handler_field_election_link_candidates',
-    ),
-  );
-
   return $data;
 
 }

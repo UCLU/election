@@ -15,7 +15,6 @@ files[] = includes/election-default.controller.inc
 files[] = includes/election.controller.inc
 files[] = views/handlers/views_handler_field_election.inc
 files[] = views/handlers/views_handler_field_election_link.inc
-files[] = views/handlers/views_handler_field_election_link_candidates.inc
 files[] = views/handlers/views_handler_field_election_link_delete.inc
 files[] = views/handlers/views_handler_field_election_link_edit.inc
 files[] = views/handlers/views_handler_field_election_link_posts.inc

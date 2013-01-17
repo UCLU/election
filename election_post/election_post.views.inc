@@ -75,14 +75,6 @@ function election_post_views_data() {
     ),
   );
 
-  $data['election_post']['nominate_link'] = array(
-    'field' => array(
-      'title' => t('Nomination form link'),
-      'help' => t('Provide a link to the nomination form, if relevant and if the user can nominate for this post.'),
-      'handler' => 'views_handler_field_election_candidate_link_nominate',
-    ),
-  );
-
   return $data;
 
 }
