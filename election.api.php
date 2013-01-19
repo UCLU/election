@@ -14,6 +14,10 @@
  * Information about existing election types is loaded via the election_types()
  * function.
  *
+ * For working examples, see:
+ *   election_types/referendum/election_referendum.election.inc
+ *   election_types/stv/election_stv.election.inc
+ *
  * @return array
  *   An array of election type arrays, keyed by a unique machine name. Election
  *   type arrays can include:
@@ -38,8 +42,6 @@
  *         stdClass $post     - The election post object.
  *         stdClass $election - The election object.
  *         int $ballot_id     - The ID of the ballot that is being saved.
- *   - results page: A page callback that shows results for elections of this
- *     type (used by the election_results submodule).
  *   - export: Whether the election results can be exported as an archive of
  *     ballot (.blt) files. This needs the election_export submodule.
  *
@@ -52,7 +54,6 @@ function hook_election_type_info() {
       'description' => t('A first-past-the-post election type, where voters can select a single candidate who wins based on a simple majority with a quorum.'),
       'post name' => t('position'),
       'has candidates' => TRUE,
-      'results page' => 'fptpelection_results_page',
       'export' => TRUE,
     ),
   );
