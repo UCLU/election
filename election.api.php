@@ -32,6 +32,14 @@
  *   - has candidates: Whether the election type has candidates. Modules
  *     providing elections that have candidates should depend on the
  *     election_candidate submodule.
+ *   - vote form: The name of a form builder function, extending or modifying
+ *     election_vote_form(), which allows users to vote. This option is provided
+ *     as a slightly more convenient alternative to hook_form_FORM_ID_alter().
+ *     The function takes the parameters:
+ *         array $form        - The form array from election_vote_form.
+ *         array $form_state  - The form_state array from election_vote_form.
+ *         stdClass $post     - The election post object.
+ *         stdClass $election - The election object.
  *   - save votes: The name of a function that saves 'votes' for this election
  *     type to the {election_vote} table. This function runs inside the
  *     same database transaction that saves 'ballots' to the {election_ballot}
