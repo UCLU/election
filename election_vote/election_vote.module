@@ -129,11 +129,19 @@ function election_vote_access($op, stdClass $post, $account = NULL) {
       break;
 
     case 'undo':
+      // Check global access to undo.
+      if (!user_access('undo own vote', $account)) {
+        return FALSE;
+      }
       // Don't allow undo if the user can no longer vote at all.
       if (!election_vote_access('vote', $post, $account)) {
         return FALSE;
       }
-      return user_access('undo own vote');
+      // The user must have previously voted in order to undo a vote.
+      if (!election_vote_check_account_previously_voted($post, $account)) {
+        return FALSE;
+      }
+      return TRUE;
       break;
 
   }
