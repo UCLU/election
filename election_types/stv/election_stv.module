@@ -100,7 +100,7 @@ function election_stv_post_settings_validate($form, &$form_state) {
 function election_stv_preprocess_election(&$vars) {
   $election = $vars['election'];
   $posts_name = election_get_post_name($election->type, TRUE);
-  if ($election->type == 'stv') {
+  if ($election->type == 'stv' && $vars['page']) {
     $vars['content']['posts'] = array(
       '#markup' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'
       . views_embed_view('election_posts', 'block_stv', $election->election_id)

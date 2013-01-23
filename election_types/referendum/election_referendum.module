@@ -10,7 +10,7 @@
 function election_referendum_preprocess_election(&$vars) {
   $election = $vars['election'];
   $posts_name = election_get_post_name($election->type, TRUE);
-  if ($election->type == 'referendum') {
+  if ($election->type == 'referendum' && $vars['page']) {
     $vars['content']['posts'] = array(
       '#markup' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'
       . views_embed_view('election_posts', 'block_referendum', $election->election_id)
