@@ -614,13 +614,6 @@ function election_post_view($post, $view_mode = 'full') {
   // Remove previously built content, if it exists.
   $post->content = array();
 
-  if ($view_mode != 'full') {
-    $post->content['title'] = array(
-      '#markup' => filter_xss($post->title),
-      '#weight' => -5,
-    );
-  }
-
   // Display a link to the election.
   $election = $post->election;
   $election_uri = election_uri($election);
