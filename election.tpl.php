@@ -7,7 +7,7 @@
 <div id="election-<?php print $election->election_id; ?>" class="<?php print $classes; ?> clearfix"<?php print $attributes; ?>>
 
   <?php if (!$page): ?>
-    <h2<?php print $title_attributes; ?>><a href="<?php print $election_url; ?>"><?php print $title; ?></a></h2>
+    <h2<?php print $title_attributes; ?>><a href="<?php print $election_url; ?>"><?php print render($content['title']); ?></a></h2>
   <?php endif; ?>
 
   <div class="content"<?php print $content_attributes; ?>>

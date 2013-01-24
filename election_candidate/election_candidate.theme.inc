@@ -16,81 +16,32 @@
  * @see election-candidate.tpl.php
  */
 function template_preprocess_election_candidate(&$variables) {
-  $variables['view_mode'] = $variables['elements']['#view_mode'];
-
-  $variables['teaser'] = $variables['view_mode'] == 'teaser';
+  
+  $candidate = $variables['elements']['#candidate'];
+  $election = $variables['elements']['#election'];
+  $post = $variables['elements']['#post'];
+  $view_mode = $variables['elements']['#view_mode'];
+  
+  // Detect whether the candidate is on its own page.
+  $page_candidate = menu_get_object('election_candidate');
+  $is_page = (!empty($page_candidate) && $page_candidate->candidate_id == $candidate->candidate_id);
+  
+  // Create some basic useful variables.
+  $variables['view_mode'] = $view_mode;
+  $variables['teaser'] = ($view_mode == 'teaser');
+  $variables['page'] = $is_page;
   $variables['details'] = $variables['view_mode'] == 'details';
-  $variables['page'] = ($variables['view_mode'] == 'full' || $variables['view_mode'] == 'details');
-
-  $variables['election'] = $variables['elements']['#election'];
-  $variables['candidate'] = $variables['elements']['#candidate'];
-  $variables['post'] = $variables['elements']['#post'];
-
-  $election = $variables['election'];
-  $candidate = $variables['candidate'];
-  $post = $variables['post'];
-  $election_type = _election_type_get_info($election->type);
-
-  if (empty($post)) {
-    // Handle gracefully when the candidate's post is deleted prematurely.
-    $post = entity_get_controller('election_post')->create(array(
-      'type' => $election_type['post machine name'],
-    ));
-  }
-
+  $variables['candidate'] = $candidate;
+  $variables['election'] = $election;
+  $variables['post'] = $post;
   $uri = election_candidate_uri($candidate);
-  $variables['url'] = url($uri['path'], $uri['options']);
-
-  $election_uri = entity_uri('election', $election);
-  $variables['election_url'] = url($election_uri['path'], $election_uri['options']);
-  $variables['election_title'] = check_plain($election->title);
-  $variables['election_link'] = l($election->title, $election_uri['path'], $election_uri['options']);
-  $variables['election_type'] = check_plain($election_type['name']);
-
-  $post_uri = entity_uri('election_post', $post);
-  $variables['post_url'] = url($post_uri['path'], $post_uri['options']);
-  $variables['post_title'] = check_plain($post->title);
-  $variables['post_link'] = l($post->title, $post_uri['path'], $post_uri['options']);
-  $variables['post_name'] = check_plain($election_type['post name']);
-
-  $variables['full_name'] = t('@first_name @last_name', array('@first_name' => $candidate->first_name, '@last_name' => $candidate->last_name));
+  $variables['candidate_url'] = url($uri['path'], $uri['options']);
+  
+  $variables['full_name'] = theme('election_candidate_full_name', array('candidate' => $candidate));
+  $variables['first_name'] = check_plain($candidate->first_name);
+  $variables['last_name'] = check_plain($candidate->last_name);
 
   $variables += array('content' => array());
-
-  $variables['content']['election'] = array(
-    '#theme' => 'election_info_item',
-    '#label' => t('Election'),
-    '#value' => $variables['election_link'],
-    '#html' => TRUE,
-  );
-
-  $variables['content']['post'] = array(
-    '#theme' => 'election_info_item',
-    '#label' => t('Standing for'),
-    '#value' => $variables['post_link'],
-    '#html' => TRUE,
-  );
-
-  if ($variables['view_mode'] == 'details') {
-
-    $variables['username'] = theme('username', array('account' => $candidate->uid ? user_load($candidate->uid) : NULL));
-    $variables['mail'] = l($candidate->mail, 'mailto:' . $candidate->mail, array('absolute' => TRUE));
-
-    $variables['content']['mail'] = array(
-      '#theme' => 'election_info_item',
-      '#label' => t('Email address'),
-      '#value' => $variables['mail'],
-      '#html' => TRUE,
-    );
-
-    $variables['content']['candidate-username'] = array(
-      '#theme' => 'election_info_item',
-      '#label' => t('Username'),
-      '#value' => $variables['username'],
-      '#html' => TRUE,
-    );
-
-  }
 
   foreach (element_children($variables['elements']) as $key) {
     $variables['content'][$key] = $variables['elements'][$key];
@@ -108,6 +59,31 @@ function template_preprocess_election_candidate(&$variables) {
 }
 
 /**
+ * Process variables for theme_election_candidate_status().
+ */
+function template_preprocess_election_candidate_status(&$variables) {
+  $candidate = $variables['candidate'];
+  $variables['status'] = check_plain(_election_candidate_status_name($candidate));
+  $variables['classes'] = array(
+    'election-candidate-status',
+    'election-candidate-status-' . preg_replace('/\W/', '-', drupal_strtolower($variables['status'])),
+  );
+}
+
+/**
+ * Theme function for displaying a candidate's status.
+ */
+function theme_election_candidate_status($variables) {
+  $attributes = array();
+  if ($variables['classes']) {
+    $attributes['class'] = $variables['classes'];
+  }
+  return '<span' . drupal_attributes($attributes) . '>'
+    . check_plain($variables['status'])
+    . '</span>';
+}
+
+/**
  * Theme function for displaying a candidate's full name.
  */
 function theme_election_candidate_full_name($variables) {
@@ -120,5 +96,7 @@ function theme_election_candidate_full_name($variables) {
  */
 function theme_election_candidate_ballot_item($variables) {
   $candidate = $variables['candidate'];
-  return '<span class="election-candidate-ballot-item">' . l(theme('election_candidate_full_name', array('candidate' => $candidate)), election_candidate_uri_path($candidate)) . '</span>';
+  $full_name = theme('election_candidate_full_name', array('candidate' => $candidate));
+  $link = l($full_name, election_candidate_uri_path($candidate));
+  return '<span class="election-candidate-ballot-item">' . $link . '</span>';
 }

@@ -20,10 +20,14 @@ function template_preprocess_election_post(&$variables) {
   $election = $post->election;
   $view_mode = $variables['elements']['#view_mode'];
 
+  // Detect whether the post is on its own page.
+  $page_post = menu_get_object('election_post');
+  $is_page = (!empty($page_post) && $page_post->post_id == $post->post_id);
+
   // Create some basic useful variables.
   $variables['view_mode'] = $view_mode;
   $variables['teaser'] = ($view_mode == 'teaser');
-  $variables['page'] = ($view_mode == 'full');
+  $variables['page'] = $is_page;
   $variables['post'] = $post;
   $variables['election'] = $election;
   $variables['title'] = check_plain($post->title);

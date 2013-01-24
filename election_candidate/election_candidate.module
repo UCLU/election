@@ -490,17 +490,17 @@ function election_candidate_field_extra_fields() {
     'display' => array(
       'election' => array(
         'label' => t('Election'),
-        'description' => t('The election for this nomination.'),
+        'description' => t('The election for this candidate.'),
         'weight' => 0,
       ),
       'post' => array(
         'label' => t('Post'),
-        'description' => t('The post/position for this nomination.'),
+        'description' => t('The post/position for this candidate.'),
         'weight' => 1,
       ),
-      'full-name' => array(
-        'label' => t('Name'),
-        'description' => t("The candidate's full name."),
+      'status' => array(
+        'label' => t('Status'),
+        'description' => t("The candidate's status."),
         'weight' => 2,
       ),
     ),
@@ -517,15 +517,30 @@ function election_candidate_field_extra_fields() {
  * Implements hook_field_extra_fields_alter().
  */
 function election_candidate_field_extra_fields_alter(&$info) {
-  if (isset($info['election_post'])) {
-    foreach (election_types() as $type) {
-      $bundle = $type['post machine name'];
-      if (!empty($type['has candidates'])) {
-        $info['election_post'][$bundle]['display']['candidates'] = array(
+  foreach (election_types() as $machine_name => $type) {
+    $bundle = $type['post machine name'];
+    if (!empty($type['has candidates'])) {
+      // Add a property to the 'Manage fields' form for election posts.
+      $info['election_post'][$bundle]['form'] += array(
+        'candidates_nominations' => array(
+          'label' => t('Candidates and nominations'),
+          'weight' => 80,
+        ),
+      );
+      // Add a property to the 'Manage display' form for elections.
+      $info['election'][$machine_name]['display'] += array(
+        'nstatus' => array(
+          'label' => t('Nominations status'),
+          'weight' => -2,
+        ),
+      );
+      // Add a property to the 'Manage display' form for election posts.
+      $info['election_post'][$bundle]['display'] += array(
+        'candidates' => array(
           'label' => t('Candidates'),
           'weight' => 100,
-        );
-      }
+        ),
+      );
     }
   }
 }
@@ -547,7 +562,6 @@ function election_candidate_form_election_post_form_alter(&$form, &$form_state) 
     '#type' => 'fieldset',
     '#title' => t('Candidates and nominations'),
     '#collapsible' => TRUE,
-    '#weight' => 97,
   );
 
   $form['candidates_nominations']['nstatus_inheritance'] = array(
@@ -841,13 +855,120 @@ function election_candidate_theme() {
       ),
       'file' => 'election_candidate.theme.inc',
     ),
+    'election_candidate_status' => array(
+      'variables' => array(
+        'candidate' => NULL,
+      ),
+      'file' => 'election_candidate.theme.inc',
+    ),
   );
 }
 
 /**
- * Format the 'cstatus' property of an election_candidate for display.
+ * Generate an array for rendering the given candidate.
+ *
+ * @param stdClass $candidate
+ *   An election candidate object.
+ * @param stdClass $election
+ *   The election to which the candidate belongs (optional).
+ * @param string $view_mode
+ *   View mode, e.g. 'full', 'teaser'...
+ *
+ * @return array
+ *   An array as expected by drupal_render().
  */
-function _election_candidate_format_status(stdClass $candidate) {
+function election_candidate_view($candidate, $view_mode = 'full') {
+
+  $election = election_load($candidate->election_id);
+  $post = election_post_load($candidate->post_id);
+
+  // Remove previously built content, if it exists.
+  $candidate->content = array();
+  
+  // Display a link to the election.
+  $candidate->content['election'] = array(
+    '#theme' => 'election_info_item',
+    '#label' => t('Election'),
+    '#value' => l($election->title, election_uri_path($election)),
+    '#html' => TRUE,
+  );
+
+  // Display a link to the post.
+  $candidate->content['post'] = array(
+    '#theme' => 'election_info_item',
+    '#label' => drupal_ucfirst(election_get_post_name($election->type)),
+    '#value' => l($post->title, election_post_uri_path($post)),
+    '#html' => TRUE,
+  );
+  
+  // Display the candidate's status.
+  $candidate->content['status'] = array(
+    '#theme' => 'election_info_item',
+    '#label' => t('Status'),
+    '#value' => theme('election_candidate_status', array('candidate' => $candidate)),
+    '#html' => TRUE,
+  );
+
+  // Only display the following information in the 'Details' view.
+  if ($view_mode == 'details') {
+    $username = theme('username', array('account' => $candidate->uid ? user_load($candidate->uid) : NULL));
+    $mailto = l($candidate->mail, 'mailto:' . $candidate->mail, array('absolute' => TRUE));
+    // Display the candidate's email address.
+    $candidate->content['mail'] = array(
+      '#theme' => 'election_info_item',
+      '#label' => t('Email address'),
+      '#value' => $mailto,
+      '#html' => TRUE,
+    );
+    // Display the candidate's username.
+    $candidate->content['username'] = array(
+      '#theme' => 'election_info_item',
+      '#label' => t('Username'),
+      '#value' => $username,
+      '#html' => TRUE,
+    );
+  }
+
+  // Build fields content.
+  // In case of a multiple view, node_view_multiple() already ran the
+  // 'prepare_view' step. An internal flag prevents the operation from running
+  // twice.
+  field_attach_prepare_view('election_candidate', array($candidate->candidate_id => $candidate), $view_mode);
+  entity_prepare_view('election_candidate', array($candidate->candidate_id => $candidate));
+  $candidate->content += field_attach_view('election_candidate', $candidate, $view_mode);
+
+  $build = $candidate->content;
+  // We don't need duplicate rendering info in $candidate->content.
+  unset($candidate->content);
+
+  $post = election_post_load($candidate->post_id);
+
+  $build += array(
+    '#theme' => 'election_candidate',
+    '#candidate' => $candidate,
+    '#election' => $election,
+    '#post' => $post,
+    '#view_mode' => $view_mode,
+  );
+
+  // Add contextual links for this candidate, except when the candidate is
+  // already being displayed on its own page.
+  if (!empty($candidate->candidate_id) && $view_mode != 'full') {
+    $build['#contextual_links']['election_candidate'] = array('election_candidate', array($candidate->candidate_id));
+  }
+
+  // Allow modules to modify the structured election candidate.
+  $type = 'election_candidate';
+  drupal_alter(array('election_candidate_view', 'entity_view'), $build, $type);
+
+  return $build;
+
+}
+
+/**
+ * Get the human-readable name of the candidate's 'cstatus' property.
+ */
+function _election_candidate_status_name(stdClass $candidate) {
   $options = _election_candidate_get_cstatus_options();
   return $options[$candidate->cstatus];
 }

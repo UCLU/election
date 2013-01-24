@@ -145,7 +145,9 @@ function template_preprocess_election_vote_eligibility(&$variables) {
  */
 function theme_election_vote_eligibility($variables) {
 
-  return '<div class="election-vote-eligibility">' . $variables['eligibility'] . '</div>';
+  return '<span class="election-vote-eligibility">'
+    . $variables['eligibility']
+    . '</span>';
 
 }
 

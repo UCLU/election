@@ -204,6 +204,20 @@ function election_post_field_extra_fields() {
   $info = array();
   foreach (election_types() as $type) {
     $bundle_name = $type['post machine name'];
+    $info['election_post'][$bundle_name]['form'] = array(
+      'title' => array(
+        'label' => t('Title'),
+        'weight' => -50,
+      ),
+      'role_access' => array(
+        'label' => t('Role eligibility'),
+        'weight' => 10,
+      ),
+      'voting' => array(
+        'label' => t('Voting'),
+        'weight' => 90,
+      ),
+    );
     $info['election_post'][$bundle_name]['display'] = array(
       'election' => array(
         'label' => t('Election'),
@@ -600,14 +614,11 @@ function election_post_view($post, $view_mode = 'full') {
   // Remove previously built content, if it exists.
   $post->content = array();
 
-  if ($view_mode == 'teaser') {
+  if ($view_mode != 'full') {
     $post->content['title'] = array(
       '#markup' => filter_xss($post->title),
       '#weight' => -5,
     );
-  }
-  else {
-    drupal_set_title($post->title);
   }
 
   // Display a link to the election.
@@ -688,13 +699,11 @@ function _election_post_is_open(stdClass $post, $election = NULL, $status_prefix
  */
 function election_post_page_view($post, $view_mode = 'full') {
 
-  if ($view_mode == 'full') {
-    drupal_set_breadcrumb(
-      _election_build_breadcrumb(
-        $post->election
-      )
-    );
-  }
+  drupal_set_breadcrumb(
+    _election_build_breadcrumb(
+      $post->election
+    )
+  );
 
   return election_post_view($post, $view_mode);
 

@@ -12,8 +12,13 @@
   color: #880000;
 }
 .election-status-future {
-  color: #347235;
+  color: inherit;
   font-weight: inherit;
+}
+
+/* Candidate statuses */
+.election-candidate-status-elected {
+  color: #347235;
 }
 
 /* Ballot paper */

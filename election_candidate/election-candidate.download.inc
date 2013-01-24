@@ -23,7 +23,7 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
     ),
     'candidate_id' => t('Candidate ID'),
     'published' => array(
-      'label' => t('Published status'),
+      'label' => t('Published?'),
       'default' => TRUE,
     ),
     'first_name' => array(
@@ -40,7 +40,7 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
       'default' => TRUE,
     ),
     'cstatus' => array(
-      'label' => t('Candidate status'),
+      'label' => t('Status'),
       'default' => TRUE,
     ),
     'mail' => array(
@@ -203,7 +203,7 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
       break;
 
     case 'cstatus':
-      return _election_candidate_format_status($candidate);
+      return _election_candidate_status_name($candidate);
       break;
 
     case 'published':

@@ -64,7 +64,7 @@ function election_candidate_manage_form($form, $form_state, stdClass $election) 
       'first_name' => check_plain($candidate->first_name),
       'last_name' => check_plain($candidate->last_name),
       'username' => $account ? theme('username', array('account' => $account)) : t('Anonymous'),
-      'cstatus' => _election_candidate_format_status($candidate),
+      'cstatus' => theme('election_candidate_status', array('candidate' => $candidate)),
       'published' => $candidate->published ? t('Yes') : t('No'),
     );
 

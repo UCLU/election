@@ -349,8 +349,8 @@ function election_menu() {
   $items['election/%election'] = array(
     'title callback' => 'election_page_title',
     'title arguments' => array(1),
-    'page callback' => 'election_view',
-    'page arguments' => array(1, 'full'),
+    'page callback' => 'election_page_view',
+    'page arguments' => array(1),
     'access callback' => 'election_access',
     'access arguments' => array('view', 1),
   );
@@ -540,13 +540,13 @@ function election_field_extra_fields() {
     $extra['election'][$bundle_name]['display'] = array(
       'vstatus' => array(
         'label' => t('Voting status'),
-        'weight' => 0,
+        'weight' => -1,
       ),
     );
     if (!empty($type['has candidates'])) {
       $extra['election'][$bundle_name]['display']['nstatus'] = array(
         'label' => t('Nominations status'),
-        'weight' => -1,
+        'weight' => -2,
       );
     }
   }
@@ -666,17 +666,20 @@ function election_theme() {
 }
 
 /**
+ * Page callback for viewing an election.
+ */
+function election_page_view(stdClass $election) {
+  drupal_set_breadcrumb(_election_build_breadcrumb());
+  return election_view($election, 'full');
+}
+
+/**
  * Generate an array for rendering the given election.
  */
 function election_view(stdClass $election, $view_mode = 'full') {
 
   // Remove previously built content, if it exists.
   $election->content = array();
-
-  if ($view_mode == 'full') {
-    drupal_set_title($election->title);
-    drupal_set_breadcrumb(_election_build_breadcrumb());
-  }
 
   // Display the voting status.
   $election->content['vstatus'] = array(

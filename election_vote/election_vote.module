@@ -686,7 +686,7 @@ function _election_vote_session_hash() {
  * Implements hook_html_head_alter().
  */
 function election_vote_html_head_alter(&$head_elements) {
-  // Set robots=noindex,nofollow on voting forms.
+  // Prevent search engines from indexing voting forms.
   if (preg_match('/election\-post\/[0-9]+\/vote/', current_path())) {
     foreach ($head_elements as $key => $element) {
       if (isset($element['#atributes']['name']) && $element['#attributes']['name'] == 'robots' && $element['#attributes']['content'] != 'noindex,nofollow') {
@@ -708,13 +708,16 @@ function election_vote_html_head_alter(&$head_elements) {
  */
 function election_vote_election_post_view_alter(&$build, $type) {
   $post = $build['#post'];
+  // Display the vote button and eligibility information on election posts.
   $build['vote_button'] = array(
     '#theme' => 'election_vote_button',
     '#post' => $post,
   );
   $build['eligibility'] = array(
-    '#theme' => 'election_vote_eligibility',
-    '#post' => $post,
+    '#theme' => 'election_info_item',
+    '#label' => t('Your eligibility'),
+    '#html' => TRUE,
+    '#value' => theme('election_vote_eligibility', array('post' => $post)),
   );
 }
 
@@ -724,13 +727,16 @@ function election_vote_election_post_view_alter(&$build, $type) {
 function election_vote_field_extra_fields_alter(&$info) {
   foreach (election_types() as $type) {
     $bundle_name = $type['post machine name'];
-    $info['election_post'][$bundle_name]['display']['vote_button'] = array(
-      'label' => t('Vote button'),
-      'weight' => -5,
-    );
-    $info['election_post'][$bundle_name]['display']['eligibility'] = array(
-      'label' => t('Eligibility'),
-      'weight' => 1,
+    // Add properties to the 'Manage Display' form for election posts.
+    $info['election_post'][$bundle_name]['display'] += array(
+      'vote_button' => array(
+        'label' => t('Vote button'),
+        'weight' => -5,
+      ),
+      'eligibility' => array(
+        'label' => t('Eligibility'),
+        'weight' => 1,
+      ),
     );
   }
 }

@@ -1,7 +1,7 @@
 Election 7.x-1.x-dev, 2013-01-24
 -----------------------
-- Many changes to themem-related things such as strings, and render arrays.
-  Check your theming.
+- Many changes to theme-related things such as render arrays, theme functions,
+  and some string changes and CSS tweaks.
 
 Election 7.x-1.x-dev, 2013-01-17
 -----------------------

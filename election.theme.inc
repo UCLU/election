@@ -74,6 +74,7 @@ function template_preprocess_election_status(&$variables) {
   // Nominations aren't relevant to elections that don't have candidates.
   if ($status_prefix == 'n' && empty($type['has candidates'])) {
     $variables['status'] = t('N/A');
+    $classes['na'] = 'election-status-na';
     unset($classes['closed']);
   }
   elseif ($variables['scheduled'] && $variables['future']) {
@@ -85,10 +86,9 @@ function template_preprocess_election_status(&$variables) {
     else {
       $variables['status'] = t('From %date (in @interval)', array(
         '%date' => format_date($open_time),
-        '@interval' => format_interval($open_time - REQUEST_TIME, 1),
+        '@interval' => format_interval($open_time - REQUEST_TIME),
       ));
     }
-    $classes[] = 'election-status-scheduled-future';
   }
   elseif ($variables['scheduled'] && $variables['open']) {
     if ($short) {
@@ -148,10 +148,14 @@ function template_preprocess_election(&$variables) {
   $election = $variables['elements']['#election'];
   $view_mode = $variables['elements']['#view_mode'];
 
+  // Detect whether the election is on its own page.
+  $page_election = menu_get_object('election');
+  $is_page = (!empty($page_election) && $page_election->election_id == $election->election_id);
+
   // Create some basic useful variables.
   $variables['view_mode'] = $view_mode;
   $variables['teaser'] = ($view_mode == 'teaser');
-  $variables['page'] = ($view_mode == 'full');
+  $variables['page'] = $is_page;
   $variables['election'] = $election;
   $variables['title'] = check_plain($election->title);
   $uri = election_uri($election);

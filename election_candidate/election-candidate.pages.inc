@@ -26,25 +26,20 @@ function election_candidate_list_page(stdClass $election) {
  */
 function election_candidate_page_view(stdClass $candidate, $view_mode = 'full') {
 
-  $election = election_load($candidate->election_id);
-
   if ($view_mode == 'full' || $view_mode == 'details') {
     drupal_set_title(
-      t(
-        'Candidate: @first-name @last-name',
-        array(
-          '@first-name' => $candidate->first_name,
-          '@last-name' => $candidate->last_name,
-        )
-      ),
+      t('Candidate: @full_name', array(
+        '@full_name' => theme('election_candidate_full_name', array('candidate' => $candidate))
+      )),
       PASS_THROUGH
     );
+    $election = election_load($candidate->election_id);
     drupal_set_breadcrumb(
       _election_build_breadcrumb($election, '_CANDIDATES_')
     );
   }
-
-  return election_candidate_view($candidate, $election, $view_mode);
+  
+  return election_candidate_view($candidate, $view_mode);
 
 }
 
@@ -77,7 +72,7 @@ function election_candidate_display_previous_nominations(stdClass $election, arr
       format_date($candidate->created, 'short'),
       $post_title,
       check_plain($candidate->first_name . ' ' . $candidate->last_name),
-      _election_candidate_format_status($candidate),
+      theme('election_candidate_status', array('candidate' => $candidate)),
     );
   }
   return array(
@@ -266,73 +261,6 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
   if (empty($_GET['destination'])) {
     $form_state['redirect'] = election_uri_path($election);
   }
-
-}
-
-/**
- * Generate an array for rendering the given candidate.
- *
- * @param stdClass $candidate
- *   An election candidate object.
- * @param stdClass $election
- *   The election to which the candidate belongs (optional).
- * @param string $view_mode
- *   View mode, e.g. 'full', 'teaser'...
- *
- * @return array
- *   An array as expected by drupal_render().
- */
-function election_candidate_view($candidate, $election = NULL, $view_mode = 'full') {
-
-  if (empty($election)) {
-    $election = election_load($candidate->election_id);
-  }
-
-  // Remove previously built content, if it exists.
-  $candidate->content = array();
-
-  $title = t('Candidate: @first-name @last-name', array('@first-name' => $candidate->first_name, '@last-name' => $candidate->last_name));
-
-  if ($view_mode == 'teaser') {
-    $candidate->content['title'] = array(
-      '#markup' => $title,
-      '#weight' => -5,
-    );
-  }
-
-  // Build fields content.
-  // In case of a multiple view, node_view_multiple() already ran the
-  // 'prepare_view' step. An internal flag prevents the operation from running
-  // twice.
-  field_attach_prepare_view('election_candidate', array($candidate->candidate_id => $candidate), $view_mode);
-  entity_prepare_view('election_candidate', array($candidate->candidate_id => $candidate));
-  $candidate->content += field_attach_view('election_candidate', $candidate, $view_mode);
-
-  $build = $candidate->content;
-  // We don't need duplicate rendering info in $candidate->content.
-  unset($candidate->content);
-
-  $post = election_post_load($candidate->post_id);
-
-  $build += array(
-    '#theme' => 'election_candidate',
-    '#candidate' => $candidate,
-    '#election' => $election,
-    '#post' => $post,
-    '#view_mode' => $view_mode,
-  );
-
-  // Add contextual links for this candidate, except when the candidate is
-  // already being displayed on its own page.
-  if (!empty($candidate->candidate_id) && $view_mode != 'full') {
-    $build['#contextual_links']['election_candidate'] = array('election_candidate', array($candidate->candidate_id));
-  }
-
-  // Allow modules to modify the structured election.
-  $type = 'election_candidate';
-  drupal_alter(array('election_candidate_view', 'entity_view'), $build, $type);
-
-  return $build;
 
 }
 

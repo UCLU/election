@@ -31,7 +31,7 @@ class views_handler_field_election_candidate_cstatus extends views_handler_field
     foreach ($values as $key => $value) {
       $candidate->{str_replace('election_candidate_', '', $key)} = $value;
     }
-    return _election_candidate_format_status($candidate);
+    return theme('election_candidate_status', array('candidate' => $candidate));
   }
 
 }

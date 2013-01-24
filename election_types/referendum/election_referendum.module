@@ -5,24 +5,11 @@
  */
 
 /**
- * Implements hook_ENTITY_view_alter().
- */
-function election_referendum_election_view_alter(&$build) {
-  $election = $build['#election'];
-  if ($election->type == 'referendum' && $build['#view_mode'] == 'full') {
-    $posts_name = election_get_post_name($election->type, TRUE);
-    $build['posts'] = array(
-      '#prefix' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>',
-      '#markup' => views_embed_view('election_posts', 'block_referendum', $election->election_id),
-      '#suffix' => '</div>',
-    );
-  }
-}
-
-/**
  * Implements template_preprocess_election_post().
  */
 function election_referendum_preprocess_election_post(&$vars) {
+  // A link to the election is displayed on election posts labelled with
+  // 'Election'. Alter this to say 'Referendum'.
   if ($vars['election']->type == 'referendum' && isset($vars['content']['election'])) {
     $vars['content']['election']['#label'] = t('Referendum');
   }
@@ -32,11 +19,29 @@ function election_referendum_preprocess_election_post(&$vars) {
  * Implements hook_views_default_views_alter().
  */
 function election_referendum_views_default_views_alter(&$views) {
+  // Add a new display to the View used for the list of election posts.
   if (isset($views['election_posts'])) {
     $view = $views['election_posts'];
     if (!isset($view->display['block_referendum'])) {
       require_once 'block_referendum_view_display.inc';
     }
+  }
+}
+
+/**
+ * Implements hook_ENTITY_view_alter().
+ */
+function election_referendum_election_view_alter(&$build) {
+  // Show the right Views display on referendums.
+  // See election_referendum_views_default_views_alter().
+  $election = $build['#election'];
+  if ($election->type == 'referendum' && $build['#view_mode'] == 'full') {
+    $posts_name = election_get_post_name($election->type, TRUE);
+    $build['posts'] = array(
+      '#prefix' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>',
+      '#markup' => views_embed_view('election_posts', 'block_referendum', $election->election_id),
+      '#suffix' => '</div>',
+    );
   }
 }
 
@@ -228,6 +233,19 @@ function election_referendum_settings_validate($form, &$form_state) {
   if ($form_state['values']['settings_answer_pos'] == $form_state['values']['settings_answer_neg']) {
     form_set_error('answers', t('The positive and negative answers cannot be the same.'));
   }
+}
+
+/**
+ * Implements hook_field_extra_fields_alter().
+ */
+function election_referendum_field_extra_fields_alter(&$info) {
+  // Add properties to the 'Manage fields' form for referendum questions.
+  $info['election_post']['referendum_post']['form'] += array(
+    'answers' => array(
+      'label' => t('Answers'),
+      'weight' => 1,
+    ),
+  );
 }
 
 /**

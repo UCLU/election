@@ -59,14 +59,12 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
     '#title' => t('Title'),
     '#default_value' => isset($post->title) ? $post->title : '',
     '#required' => TRUE,
-    '#weight' => -100,
   );
 
   $form['role_access'] = array(
     '#type' => 'fieldset',
     '#title' => t('Role eligibility'),
     '#collapsible' => TRUE,
-    '#weight' => 10,
   );
   $roles_that_can_vote_global = user_roles(FALSE, 'vote in elections');
   $form['role_access']['rids'] = array(
@@ -85,7 +83,6 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
     '#type' => 'fieldset',
     '#title' => t('Voting'),
     '#collapsible' => TRUE,
-    '#weight' => 98,
   );
   $form['voting']['vstatus_inheritance'] = array(
     '#type' => 'radios',

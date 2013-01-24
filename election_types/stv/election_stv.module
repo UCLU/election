@@ -5,21 +5,42 @@
  */
 
 /**
+ * Implements hook_ENTITY_view_alter().
+ */
+function election_stv_election_post_view_alter(&$build) {
+  // Display the number of vacancies on STV election positions.
+  $post = $build['#post'];
+  if ($post->election->type == 'stv') {
+    $build['vacancy_count'] = array(
+      '#theme' => 'election_info_item',
+      '#label' => t('Number of vacancies'),
+      '#value' => number_format($post->settings['vacancy_count']),
+    );
+  }
+}
+
+/**
  * Implements hook_field_extra_fields_alter().
  */
 function election_stv_field_extra_fields_alter(&$info) {
-  if (isset($info['election']['stv']['form'])) {
-    $info['election']['stv']['form'] += array(
-      'nstatus' => array(
-        'label' => t('Nominations status'),
-        'weight' => 1,
-      ),
-      'nschedule' => array(
-        'label' => t('Nominations schedule'),
-        'weight' => 2,
-      ),
-    );
-  }
+  // Add properties to the 'Manage fields' form for STV election positions.
+  $info['election_post']['stv_post']['form'] += array(
+    'settings_vacancy_count' => array(
+      'label' => t('Number of vacancies'),
+      'weight' => 1,
+    ),
+    'settings_use_ron' => array(
+      'label' => t('RON (Re-Open Nominations)'),
+      'weight' => 2,
+    ),
+  );
+  // Add properties to the 'Manage display' form for STV election positions.
+  $info['election_post']['stv_post']['display'] += array(
+    'vacancy_count' => array(
+      'label' => t('Number of vacancies'),
+      'weight' => 1,
+    ),
+  );
 }
 
 /**
@@ -95,9 +116,24 @@ function election_stv_post_settings_validate($form, &$form_state) {
 }
 
 /**
+ * Implements hook_views_default_views_alter().
+ */
+function election_stv_views_default_views_alter(&$views) {
+  // Add a new display to the View used for the list of election posts.
+  if (isset($views['election_posts'])) {
+    $view = $views['election_posts'];
+    if (!isset($view->display['block_stv'])) {
+      require_once 'block_stv_view_display.inc';
+    }
+  }
+}
+
+/**
  * Implements hook_ENTITY_view_alter().
  */
 function election_stv_election_view_alter(&$build) {
+  // Show the right Views display on STV elections.
+  // See election_stv_views_default_views_alter().
   $election = $build['#election'];
   if ($election->type == 'stv' && $build['#view_mode'] == 'full') {
     $posts_name = election_get_post_name($election->type, TRUE);
@@ -106,18 +142,6 @@ function election_stv_election_view_alter(&$build) {
       '#markup' => views_embed_view('election_posts', 'block_stv', $election->election_id),
       '#suffix' => '</div>',
     );
-  }
-}
-
-/**
- * Implements hook_views_default_views_alter().
- */
-function election_stv_views_default_views_alter(&$views) {
-  if (isset($views['election_posts'])) {
-    $view = $views['election_posts'];
-    if (!isset($view->display['block_stv'])) {
-      require_once 'block_stv_view_display.inc';
-    }
   }
 }
 
