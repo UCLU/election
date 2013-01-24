@@ -215,6 +215,19 @@ function election_post_field_extra_fields() {
 }
 
 /**
+ * Implements hook_field_extra_fields_alter().
+ */
+function election_post_field_extra_fields_alter(&$info) {
+  foreach (election_types() as $bundle => $type) {
+    $posts_name = election_get_post_name($bundle, TRUE);
+    $info['election'][$bundle]['display']['posts'] = array(
+      'label' => drupal_ucfirst($posts_name),
+      'weight' => 100,
+    );
+  }
+}
+
+/**
  * Implements hook_entity_property_info().
  */
 function election_post_entity_property_info() {
@@ -597,6 +610,16 @@ function election_post_view($post, $view_mode = 'full') {
     drupal_set_title($post->title);
   }
 
+  // Display a link to the election.
+  $election = $post->election;
+  $election_uri = election_uri($election);
+  $post->content['election'] = array(
+    '#theme' => 'election_info_item',
+    '#label' => t('Election'),
+    '#html' => TRUE,
+    '#value' => l($election->title, $election_uri['path'], $election_uri['options']),
+  );
+
   // Build fields content.
   // In case of a multiple view, node_view_multiple() already ran the
   // 'prepare_view' step. An internal flag prevents the operation from running
@@ -618,7 +641,7 @@ function election_post_view($post, $view_mode = 'full') {
   // Add contextual links for this post, except when the post is already being
   // displayed on its own page. Modules may alter this behavior (for example,
   // to restrict contextual links to certain view modes) by implementing
-  // hook_post_view_alter().
+  // hook_election_post_view_alter().
   if (!empty($post->post_id) && $view_mode != 'full') {
     $build['#contextual_links']['election_post'] = array('election_post', array($post->post_id));
   }
@@ -763,17 +786,17 @@ function _election_post_pathauto_update_alias_multiple(array $post_ids, $op, arr
 }
 
 /**
- * Implements template_preprocess_election().
+ * Implements hook_ENTITY_view_alter().
  */
-function election_post_preprocess_election(&$vars) {
-  if (!isset($vars['content']['posts']) && $vars['page']) {
-    $election = $vars['election'];
+function election_post_election_view_alter(&$build) {
+  if (!isset($build['posts']) && $build['#view_mode'] == 'full') {
+    $election = $build['#election'];
     $posts_name = election_get_post_name($election->type, TRUE);
-    $vars['content']['posts'] = array(
-      '#markup' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>'
-      . views_embed_view('election_posts', 'default', $election->election_id)
-      . '</div>',
-      '#weight' => 100,
+    $view = views_get_view('election_posts', 'default', $election->election_id);
+    $build['posts'] = array(
+      '#prefix' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>',
+      '#markup' => views_embed_view('election_posts', 'default', $election->election_id),
+      '#suffix' => '</div>',
     );
   }
 }

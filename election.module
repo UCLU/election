@@ -537,6 +537,18 @@ function election_field_extra_fields() {
         'weight' => 4,
       ),
     );
+    $extra['election'][$bundle_name]['display'] = array(
+      'vstatus' => array(
+        'label' => t('Voting status'),
+        'weight' => 0,
+      ),
+    );
+    if (!empty($type['has candidates'])) {
+      $extra['election'][$bundle_name]['display']['nstatus'] = array(
+        'label' => t('Nominations status'),
+        'weight' => -1,
+      );
+    }
   }
   return $extra;
 }
@@ -636,6 +648,7 @@ function election_theme() {
       'variables' => array(
         'election' => NULL,
         'status_prefix' => 'v',
+        'short' => FALSE,
       ),
       'file' => 'election.theme.inc',
     ),
@@ -645,6 +658,7 @@ function election_theme() {
         'value' => NULL,
         'classes' => array(),
         'html' => FALSE,
+        'children' => array(),
       ),
       'file' => 'election.theme.inc',
     ),
@@ -662,6 +676,33 @@ function election_view(stdClass $election, $view_mode = 'full') {
   if ($view_mode == 'full') {
     drupal_set_title($election->title);
     drupal_set_breadcrumb(_election_build_breadcrumb());
+  }
+
+  // Display the voting status.
+  $election->content['vstatus'] = array(
+    '#theme' => 'election_info_item',
+    '#label' => t('Voting'),
+    '#children' => array(
+      array(
+        '#theme' => 'election_status',
+        '#election' => $election,
+      ),
+    ),
+  );
+
+  // Display the nominations status.
+  if (!empty($election->type_info['has candidates'])) {
+    $election->content['nstatus'] = array(
+      '#theme' => 'election_info_item',
+      '#label' => t('Nominations'),
+      '#children' => array(
+        array(
+          '#theme' => 'election_status',
+          '#election' => $election,
+          '#status_prefix' => 'n'
+        ),
+      ),
+    );
   }
 
   field_attach_prepare_view('election', array($election->election_id => $election), $view_mode);

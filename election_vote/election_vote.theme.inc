@@ -29,7 +29,7 @@ function template_preprocess_election_vote_confirm(&$variables) {
 
   $post = $variables['form_state']['post'];
 
-  // Remove warning if the action can be undone.
+  // Remove "this action cannot be undone" warning, if undo is allowed.
   if (election_vote_access('undo', $post)) {
     $variables['confirm'] = NULL;
   }

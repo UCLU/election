@@ -704,22 +704,18 @@ function election_vote_html_head_alter(&$head_elements) {
 }
 
 /**
- * Implements template_preprocess_election_post().
+ * Implements hook_ENTITY_view_alter().
  */
-function election_vote_preprocess_election_post(&$variables) {
-
-  $post = $variables['elements']['#post'];
-
-  $variables['content']['vote_button'] = array(
+function election_vote_election_post_view_alter(&$build, $type) {
+  $post = $build['#post'];
+  $build['vote_button'] = array(
     '#theme' => 'election_vote_button',
     '#post' => $post,
   );
-
-  $variables['content']['eligibility'] = array(
+  $build['eligibility'] = array(
     '#theme' => 'election_vote_eligibility',
     '#post' => $post,
   );
-
 }
 
 /**
@@ -730,11 +726,11 @@ function election_vote_field_extra_fields_alter(&$info) {
     $bundle_name = $type['post machine name'];
     $info['election_post'][$bundle_name]['display']['vote_button'] = array(
       'label' => t('Vote button'),
-      'weight' => -50,
+      'weight' => -5,
     );
     $info['election_post'][$bundle_name]['display']['eligibility'] = array(
       'label' => t('Eligibility'),
-      'weight' => 10,
+      'weight' => 1,
     );
   }
 }

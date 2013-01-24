@@ -514,6 +514,23 @@ function election_candidate_field_extra_fields() {
 }
 
 /**
+ * Implements hook_field_extra_fields_alter().
+ */
+function election_candidate_field_extra_fields_alter(&$info) {
+  if (isset($info['election_post'])) {
+    foreach (election_types() as $type) {
+      $bundle = $type['post machine name'];
+      if (!empty($type['has candidates'])) {
+        $info['election_post'][$bundle]['display']['candidates'] = array(
+          'label' => t('Candidates'),
+          'weight' => 100,
+        );
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  *
  * Add candidate settings to the election post edit form.
@@ -1053,19 +1070,18 @@ function _election_candidate_count($by, stdClass $entity, $statuses = NULL) {
 }
 
 /**
- * Implements template_preprocess_election_post().
+ * Implements hook_ENTITY_view_alter().
  */
-function election_candidate_preprocess_election_post(&$vars) {
-  $post = $vars['elements']['#post'];
+function election_candidate_election_post_view_alter(&$build) {
+  $post = $build['#post'];
   $election = $post->election;
-  if (!empty($election->type_info['has candidates']) && $vars['view_mode'] == 'full') {
+  if (election_candidate_check_support($election) && $build['#view_mode'] == 'full') {
     $candidates_view = views_embed_view('election_candidates', 'candidates_per_post', $post->post_id);
     if (!empty($candidates_view)) {
-      $vars['content']['candidates'] = array(
-        '#markup' => '<div class="election-post-candidates"><h2>' . t('Candidates') . '</h2>'
-        . $candidates_view
-        . '</div>',
-        '#weight' => 100,
+      $build['candidates'] = array(
+        '#prefix' => '<div class="election-post-candidates"><h2>' . t('Candidates') . '</h2>',
+        '#markup' => $candidates_view,
+        '#suffix' => '</div>',
       );
     }
   }

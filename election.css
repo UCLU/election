@@ -3,6 +3,19 @@
  * CSS for the Election module.
  */
 
+/* Election statuses */
+.election-status-open {
+  color: #347235;
+  font-weight: bold;
+}
+.election-status-closed {
+  color: #880000;
+}
+.election-status-future {
+  color: #347235;
+  font-weight: inherit;
+}
+
 /* Ballot paper */
 #election-vote-form #edit-clear-form {
   float: right;
@@ -37,8 +50,9 @@
 
 /* Election page */
 .election-posts,
-.election-candidates {
+.election-post-candidates {
   clear: both;
+  margin-top: 1em;
 }
 
 /* Item of information */

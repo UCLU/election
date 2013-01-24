@@ -33,7 +33,7 @@ class views_handler_field_election_vstatus extends views_handler_field {
     foreach ($values as $key => $value) {
       $election->{str_replace('election_', '', $key)} = $value;
     }
-    return theme('election_status', array('election' => $election));
+    return theme('election_status', array('election' => $election, 'short' => TRUE));
   }
 
 }
