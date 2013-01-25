@@ -29,7 +29,7 @@ function election_candidate_page_view(stdClass $candidate, $view_mode = 'full') 
   if ($view_mode == 'full' || $view_mode == 'details') {
     drupal_set_title(
       t('Candidate: @full_name', array(
-        '@full_name' => theme('election_candidate_full_name', array('candidate' => $candidate))
+        '@full_name' => theme('election_candidate_full_name', array('candidate' => $candidate)),
       )),
       PASS_THROUGH
     );
@@ -38,7 +38,7 @@ function election_candidate_page_view(stdClass $candidate, $view_mode = 'full') 
       _election_build_breadcrumb($election, '_CANDIDATES_')
     );
   }
-  
+
   return election_candidate_view($candidate, $view_mode);
 
 }

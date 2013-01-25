@@ -104,7 +104,7 @@ function election_candidate_get_types($type_name = NULL) {
 }
 
 /**
- * Implements hook_default_{ENTITY_ID}().
+ * Implements hook_default_ENTITY_ID().
  *
  * Define the default election candidate types.
  *
@@ -884,7 +884,7 @@ function election_candidate_view($candidate, $view_mode = 'full') {
 
   // Remove previously built content, if it exists.
   $candidate->content = array();
-  
+
   // Display a link to the election.
   $candidate->content['election'] = array(
     '#theme' => 'election_info_item',
@@ -900,7 +900,7 @@ function election_candidate_view($candidate, $view_mode = 'full') {
     '#value' => l($post->title, election_post_uri_path($post)),
     '#html' => TRUE,
   );
-  
+
   // Display the candidate's status.
   $candidate->content['status'] = array(
     '#theme' => 'election_info_item',

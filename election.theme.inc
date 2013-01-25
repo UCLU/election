@@ -100,7 +100,7 @@ function template_preprocess_election_status(&$variables) {
   }
   elseif ($variables['scheduled']) {
     $variables['status'] = t('Closed %interval ago', array(
-      '%interval' => format_interval(REQUEST_TIME - $close_time, $short ? 1 : 2)
+      '%interval' => format_interval(REQUEST_TIME - $close_time, $short ? 1 : 2),
     ));
   }
   elseif ($variables['open']) {
@@ -129,7 +129,7 @@ function theme_election_status($variables) {
   $attributes = array('class' => $variables['classes']);
 
   return '<span' . drupal_attributes($attributes) . '>'
-    .  $variables['status']
+    . $variables['status']
     . '</span>';
 
 }

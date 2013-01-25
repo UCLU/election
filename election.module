@@ -702,7 +702,7 @@ function election_view(stdClass $election, $view_mode = 'full') {
         array(
           '#theme' => 'election_status',
           '#election' => $election,
-          '#status_prefix' => 'n'
+          '#status_prefix' => 'n',
         ),
       ),
     );
