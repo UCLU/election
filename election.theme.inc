@@ -15,7 +15,7 @@ function theme_election_info_item($variables) {
   $children = $variables['children'] ? $variables['children'] : array();
   $classes[] = 'election-info';
   if (!empty($label)) {
-    $classes[] = 'election-info-' . strtolower(preg_replace('/[^A-Z0-9]+/i', '-', $label));
+    $classes[] = drupal_html_class('election-info-' . $label);
   }
   $content = '';
   if ($label) {

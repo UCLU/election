@@ -16,16 +16,16 @@
  * @see election-candidate.tpl.php
  */
 function template_preprocess_election_candidate(&$variables) {
-  
+
   $candidate = $variables['elements']['#candidate'];
   $election = $variables['elements']['#election'];
   $post = $variables['elements']['#post'];
   $view_mode = $variables['elements']['#view_mode'];
-  
+
   // Detect whether the candidate is on its own page.
   $page_candidate = menu_get_object('election_candidate');
   $is_page = (!empty($page_candidate) && $page_candidate->candidate_id == $candidate->candidate_id);
-  
+
   // Create some basic useful variables.
   $variables['view_mode'] = $view_mode;
   $variables['teaser'] = ($view_mode == 'teaser');
@@ -36,7 +36,7 @@ function template_preprocess_election_candidate(&$variables) {
   $variables['post'] = $post;
   $uri = election_candidate_uri($candidate);
   $variables['candidate_url'] = url($uri['path'], $uri['options']);
-  
+
   $variables['full_name'] = theme('election_candidate_full_name', array('candidate' => $candidate));
   $variables['first_name'] = check_plain($candidate->first_name);
   $variables['last_name'] = check_plain($candidate->last_name);
@@ -66,7 +66,7 @@ function template_preprocess_election_candidate_status(&$variables) {
   $variables['status'] = check_plain(_election_candidate_status_name($candidate));
   $variables['classes'] = array(
     'election-candidate-status',
-    'election-candidate-status-' . preg_replace('/\W/', '-', drupal_strtolower($variables['status'])),
+    drupal_html_class('election-candidate-status-' . $variables['status']),
   );
 }
 
