@@ -122,8 +122,8 @@ function election_stv_views_default_views_alter(&$views) {
   // Add a new display to the View used for the list of election posts.
   if (isset($views['election_posts'])) {
     $view = $views['election_posts'];
-    if (!isset($view->display['block_stv'])) {
-      require_once 'block_stv_view_display.inc';
+    if (!isset($view->display['embed_stv'])) {
+      require_once 'embed_stv_view_display.inc';
     }
   }
 }
@@ -139,7 +139,7 @@ function election_stv_election_view_alter(&$build) {
     $posts_name = election_get_post_name($election->type, TRUE);
     $build['posts'] = array(
       '#prefix' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>',
-      '#markup' => views_embed_view('election_posts', 'block_stv', $election->election_id),
+      '#markup' => views_embed_view('election_posts', 'embed_stv', $election->election_id),
       '#suffix' => '</div>',
     );
   }

@@ -797,7 +797,7 @@ function election_post_election_view_alter(&$build) {
     $view = views_get_view('election_posts', 'default', $election->election_id);
     $build['posts'] = array(
       '#prefix' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>',
-      '#markup' => views_embed_view('election_posts', 'default', $election->election_id),
+      '#markup' => views_embed_view('election_posts', 'embed', $election->election_id),
       '#suffix' => '</div>',
     );
   }

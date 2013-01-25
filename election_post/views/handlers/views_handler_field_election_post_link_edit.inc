@@ -35,4 +35,5 @@ class views_handler_field_election_post_link_edit extends views_handler_field_el
     $text = !empty($this->options['text']) ? $this->options['text'] : t('Edit');
     return $text;
   }
+
 }

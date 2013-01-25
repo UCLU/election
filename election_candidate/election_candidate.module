@@ -1197,7 +1197,7 @@ function election_candidate_election_post_view_alter(&$build) {
   $post = $build['#post'];
   $election = $post->election;
   if (election_candidate_check_support($election) && $build['#view_mode'] == 'full') {
-    $candidates_view = views_embed_view('election_candidates', 'candidates_per_post', $post->post_id);
+    $candidates_view = views_embed_view('election_candidates', 'embed_candidates_per_post', $post->post_id);
     if (!empty($candidates_view)) {
       $build['candidates'] = array(
         '#prefix' => '<div class="election-post-candidates"><h2>' . t('Candidates') . '</h2>',
