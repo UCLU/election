@@ -6,123 +6,20 @@
  */
 
 /**
- * Form builder function for the main administrative election candidate list.
+ * Page callback for managing election candidates.
  */
-function election_candidate_manage_form($form, $form_state, stdClass $election) {
-
+function election_candidate_manage_page(stdClass $election) {
   drupal_set_title(t('Manage candidates'), PASS_THROUGH);
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb($election)
-  );
-
-  $post_name = election_get_post_name($election->type);
-
-  // Build the sortable table header.
-  $header = array(
-    'created' => array('data' => t('Nominated'), 'field' => 'ec.created', 'sort' => 'desc'),
-    'post_title' => array('data' => drupal_ucfirst($post_name), 'field' => 'ep.title'),
-    'first_name' => array('data' => t('First name'), 'field' => 'ec.first_name'),
-    'last_name' => array('data' => t('Last name'), 'field' => 'ec.last_name'),
-    'username' => array('data' => t('Username'), 'field' => 'ec.username'),
-    'cstatus' => array('data' => t('Status'), 'field' => 'ec.cstatus'),
-    'published' => array('data' => t('Published'), 'field' => 'ec.published'),
-    'operations' => array('data' => t('Operations')),
-  );
-
-  // Build the query, adding a pager and sorter.
-  $query = db_select('election_candidate', 'ec')
-    ->extend('PagerDefault')
-    ->extend('TableSort')
-    ->fields('ec', array('candidate_id'));
-  $query->leftJoin('election_post', 'ep', 'ec.post_id=ep.post_id');
-  $query->condition('ec.election_id', $election->election_id)
-    ->limit(50)
-    ->orderByHeader($header);
-  $result = $query->execute();
-
-  // Get array of candidates.
-  $candidate_ids = $result->fetchCol();
-  $candidates = election_candidate_load_multiple($candidate_ids);
-
-  $destination = drupal_get_destination();
-
-  $default_post_title = '<em class="deleted-post">' . t('Deleted?') . '</em>';
-
-  $options = array();
-  foreach ($candidates as $id => $candidate) {
-
-    $post_title = $default_post_title;
-    if (!empty($candidate->post_id) && ($post = election_post_load($candidate->post_id))) {
-      $post_title = check_plain($post->title);
-    }
-
-    $account = user_load($candidate->uid);
-
-    $options[$candidate->candidate_id] = array(
-      'created' => format_date($candidate->created, 'short'),
-      'post_title' => truncate_utf8($post_title, 40, TRUE, TRUE),
-      'first_name' => check_plain($candidate->first_name),
-      'last_name' => check_plain($candidate->last_name),
-      'username' => $account ? theme('username', array('account' => $account)) : t('Anonymous'),
-      'cstatus' => theme('election_candidate_status', array('candidate' => $candidate)),
-      'published' => $candidate->published ? t('Yes') : t('No'),
-    );
-
-    $operations = array();
-    $candidate_uri_path = election_candidate_uri_path($candidate);
-
-    if (election_candidate_access('view', $candidate)) {
-      $operations['view'] = l(
-        t('view'),
-        $candidate_uri_path
-      );
-    }
-
-    if (election_candidate_access('view details', $candidate)) {
-      $operations['view_details'] = l(
-        t('details'),
-        $candidate_uri_path . '/details'
-      );
-    }
-
-    if (election_candidate_access('update', $candidate)) {
-      $operations['edit'] = l(
-        t('edit'),
-        $candidate_uri_path . '/edit',
-        array('query' => $destination)
-      );
-    }
-
-    if (count($operations)) {
-      // Render an unordered list of operations links.
-      $options[$candidate->candidate_id]['operations'] = array(
-        'data' => array(
-          '#theme' => 'item_list',
-          '#items' => $operations,
-          '#attributes' => array('class' => array('operations')),
-        ),
-      );
-    }
-
-  }
-
-  $form['election_candidates'] = array(
-    '#theme' => 'table',
-    '#header' => $header,
-    '#rows' => $options,
-    '#empty' => t('No candidates available.'),
-  );
-
-  $form['pager'] = array('#markup' => theme('pager'));
-
-  return $form;
+  drupal_set_breadcrumb(_election_build_breadcrumb($election));
+  return views_embed_view('election_candidates_admin', 'embed', $election->election_id);
 }
 
 /**
- * Display total numbers of candidates per post.
+ * Page callback to display total numbers of candidates per post.
  */
 function election_candidate_totals_page(stdClass $election) {
 
+  drupal_set_title(t('Candidate totals'), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
 
   $totals = db_query("SELECT IFNULL(cstatus, 'all') AS cstatus, COUNT(DISTINCT candidate_id) FROM {election_candidate} WHERE election_id = :eid GROUP BY cstatus WITH ROLLUP", array(':eid' => $election->election_id))->fetchAllKeyed();

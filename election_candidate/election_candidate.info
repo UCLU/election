@@ -10,6 +10,7 @@ files[] = election-candidate.controller.inc
 files[] = election-candidate-type.controller.inc
 files[] = election-candidate-type-ui.controller.inc
 files[] = views/handlers/views_handler_field_election_candidate_link.inc
+files[] = views/handlers/views_handler_field_election_candidate_link_edit.inc
 files[] = views/handlers/views_handler_field_election_candidate_link_nominate.inc
 files[] = views/handlers/views_handler_field_election_candidate_fullname.inc
 files[] = views/handlers/views_handler_field_election_candidate_cstatus.inc

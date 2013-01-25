@@ -67,11 +67,49 @@ function election_post_views_data() {
     ),
   );
 
+  $data['election_post']['created'] = array(
+    'title' => t('Created date'),
+    'help' => t('The date when the post was created.'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+  );
+
+  $data['election_post']['changed'] = array(
+    'title' => t('Updated date'),
+    'help' => t('The date when the post was last updated.'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+  );
+
   $data['election_post']['view_link'] = array(
     'field' => array(
       'title' => t('Link'),
       'help' => t('Provide a simple link to the post.'),
       'handler' => 'views_handler_field_election_post_link',
+    ),
+  );
+
+  $data['election_post']['edit_link'] = array(
+    'field' => array(
+      'title' => t('Edit link'),
+      'help' => t('A link to edit the post.'),
+      'handler' => 'views_handler_field_election_post_link_edit',
     ),
   );
 

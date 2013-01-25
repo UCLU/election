@@ -29,8 +29,8 @@ function election_post_menu() {
   $items['election/%election/posts'] = array(
     'title callback' => 'election_post_manage_page_title',
     'title arguments' => array(1),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_post_manage_form', 1),
+    'page callback' => 'election_post_manage_page',
+    'page arguments' => array(1),
     'file' => 'election-post.admin.inc',
     'access callback' => 'election_access',
     'access arguments' => array('update', 1),

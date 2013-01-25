@@ -281,97 +281,14 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
 }
 
 /**
- * Form builder function for the administrative list of election posts.
+ * Page callback for managing election posts.
  */
-function election_post_manage_form($form, &$form_state, stdClass $election) {
-
-  $title = election_post_manage_page_title($election);
-  drupal_set_title($title, PASS_THROUGH);
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb($election)
-  );
-
-  $form['#election'] = $election;
-
-  // Build the sortable table header.
-  $header = array(
-    'title' => array(
-      'data' => t('Title'),
-      'field' => 'ep.title',
-      'sort' => 'asc',
-    ),
-    'changed' => array('data' => t('Last updated'), 'field' => 'ep.changed'),
-    'operations' => array('data' => t('Operations')),
-  );
-
-  // Build the posts query, adding a pager and sorter.
-  $query = db_select('election_post', 'ep')
-    ->extend('PagerDefault')
-    ->extend('TableSort')
-    ->fields('ep', array('post_id'))
-    ->condition('election_id', $election->election_id);
-
-  $query->limit(50)->orderByHeader($header);
-
-  // Get an array of post IDs.
-  $post_ids = $query->execute()->fetchCol();
-
-  $posts = election_post_load_multiple($post_ids);
-  $form['#posts'] = $posts;
-
-  $destination = drupal_get_destination();
-
-  $rows = array();
-  foreach ($posts as $id => $post) {
-
-    $rows[$post->post_id] = array(
-      'title' => l($post->title, election_post_uri_path($post)),
-      'changed' => format_date($post->changed, 'short'),
-      'operations' => array(),
-    );
-
-    $operations = array();
-    if (entity_access('update', 'election_post', $post)) {
-      $operations['edit'] = l(
-        t('edit'),
-        election_post_uri_path($post) . '/edit',
-        array('query' => $destination)
-      );
-    }
-    if (entity_access('delete', 'election_post', $post)) {
-      $operations['delete'] = l(
-        t('delete'),
-        election_post_uri_path($post) . '/delete',
-        array('query' => $destination)
-      );
-    }
-
-    if (count($operations)) {
-      // Render an unordered list of operations links.
-      $rows[$post->post_id]['operations'] = array(
-        'data' => array(
-          '#theme' => 'item_list',
-          '#items' => $operations,
-          '#attributes' => array('class' => array('operations')),
-        ),
-      );
-    }
-
-  }
-
-  $form['election_posts'] = array(
-    '#theme' => 'table',
-    '#header' => $header,
-    '#rows' => $rows,
-    '#empty' => t('No @posts available.', array('@posts' => election_get_post_name($election->type, TRUE))),
-  );
-
-  $form['pager'] = array('#markup' => theme('pager'));
-
-  return $form;
-
+function election_post_manage_page(stdClass $election) {
+  $posts_name = election_get_post_name($election->type, TRUE);
+  drupal_set_title(t('Manage @posts', array('@posts' => $posts_name)), PASS_THROUGH);
+  drupal_set_breadcrumb(_election_build_breadcrumb($election));
+  return views_embed_view('election_posts_admin', 'embed', $election->election_id);
 }
-
 
 /**
  * Page callback for editing an election post.

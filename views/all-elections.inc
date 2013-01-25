@@ -4,10 +4,10 @@
  * View listing all elections.
  */
 
-$view = new view;
+$view = new view();
 $view->name = 'elections';
 $view->description = 'A publicly viewable list of elections';
-$view->tag = 'default';
+$view->tag = 'election';
 $view->base_table = 'election';
 $view->human_name = 'Elections';
 $view->core = 7;

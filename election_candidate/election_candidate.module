@@ -259,8 +259,8 @@ function election_candidate_menu() {
 
   $items['election/%election/candidates-admin'] = array(
     'title' => 'Manage candidates',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_candidate_manage_form', 1),
+    'page callback' => 'election_candidate_manage_page',
+    'page arguments' => array(1),
     'access callback' => 'election_candidate_access_per_election',
     'access arguments' => array('edit', 1),
     'file' => 'election-candidate.admin.inc',
@@ -1220,6 +1220,13 @@ function election_candidate_action_info() {
       'behavior' => array('changes_property'),
       'triggers' => array('election_candidate_presave'),
     ),
+    'election_candidate_unpublish_action' => array(
+      'type' => 'election_candidate',
+      'label' => t('Unpublish candidate'),
+      'configurable' => FALSE,
+      'behavior' => array('changes_property'),
+      'triggers' => array('election_candidate_presave'),
+    ),
   );
 }
 
@@ -1230,6 +1237,15 @@ function election_candidate_action_info() {
  */
 function election_candidate_publish_action($candidate, $context = array()) {
   $candidate->published = 1;
+}
+
+/**
+ * Unpublishes a candidate.
+ *
+ * @ingroup actions
+ */
+function election_candidate_unpublish_action($candidate, $context = array()) {
+  $candidate->published = 0;
 }
 
 /**

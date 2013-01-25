@@ -261,10 +261,32 @@ function election_views_data() {
     ),
   );
 
+  $data['election']['uid'] = array(
+    'title' => t('Author UID'),
+    'help' => t('The UID of the user who created the election.'),
+    'relationship' => array(
+      'title' => t('Author'),
+      'help' => t('Relate elections to the users who created them.'),
+      'handler' => 'views_handler_relationship',
+      'base' => 'users',
+      'field' => 'uid',
+      'label' => t('author'),
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_user_name',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_numeric',
+    ),
+    'field' => array(
+      'handler' => 'views_handler_field_user',
+    ),
+  );
+
   $data['election']['view_election'] = array(
     'field' => array(
       'title' => t('Link'),
-      'help' => t('Provide a simple link to the election.'),
+      'help' => t('A link to the election.'),
       'handler' => 'views_handler_field_election_link',
     ),
   );
@@ -272,7 +294,7 @@ function election_views_data() {
   $data['election']['edit_election'] = array(
     'field' => array(
       'title' => t('Edit link'),
-      'help' => t('Provide a simple link to edit the election.'),
+      'help' => t('A link to edit the election.'),
       'handler' => 'views_handler_field_election_link_edit',
     ),
   );
@@ -280,7 +302,7 @@ function election_views_data() {
   $data['election']['delete_election'] = array(
     'field' => array(
       'title' => t('Delete link'),
-      'help' => t('Provide a simple link to delete the election.'),
+      'help' => t('A link to delete the election.'),
       'handler' => 'views_handler_field_election_link_delete',
     ),
   );

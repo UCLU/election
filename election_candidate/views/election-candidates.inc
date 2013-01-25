@@ -7,7 +7,7 @@
 $view = new view();
 $view->name = 'election_candidates';
 $view->description = 'A list of candidates (intended for the public / all viewers of the election).';
-$view->tag = 'default';
+$view->tag = 'election';
 $view->base_table = 'election_candidate';
 $view->human_name = 'Election candidates';
 $view->core = 7;

@@ -88,6 +88,28 @@ function election_candidate_views_data() {
     ),
   );
 
+  $data['election_candidate']['uid'] = array(
+    'title' => t('User UID'),
+    'help' => t('The UID of the user associated with the candidate.'),
+    'relationship' => array(
+      'title' => t('User'),
+      'help' => t('Relate candidates to users.'),
+      'handler' => 'views_handler_relationship',
+      'base' => 'users',
+      'field' => 'uid',
+      'label' => t('user'),
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_user_name',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_numeric',
+    ),
+    'field' => array(
+      'handler' => 'views_handler_field_user',
+    ),
+  );
+
   $data['election_candidate']['fullname'] = array(
     'title' => t('Name'),
     'help' => t('The full name of the candidate ($Firstname $Lastname).'),
@@ -97,11 +119,77 @@ function election_candidate_views_data() {
     ),
   );
 
+  $data['election_candidate']['first_name'] = array(
+    'title' => t('First name'),
+    'help' => t('The first name(s) of the candidate.'),
+    'field' => array(
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
+  $data['election_candidate']['last_name'] = array(
+    'title' => t('Last name'),
+    'help' => t('The last name(s) of the candidate.'),
+    'field' => array(
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
+  $data['election_candidate']['created'] = array(
+    'title' => t('Created date'),
+    'help' => t('The date when the candidate was created (or nomination date).'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+  );
+
+  $data['election_candidate']['changed'] = array(
+    'title' => t('Updated date'),
+    'help' => t('The date when the candidate was last updated.'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+  );
+
   $data['election_candidate']['view_link'] = array(
     'field' => array(
       'title' => t('Profile link'),
       'help' => t("Provide a simple link to the candidate's profile page."),
       'handler' => 'views_handler_field_election_candidate_link',
+    ),
+  );
+
+  $data['election_candidate']['edit_link'] = array(
+    'field' => array(
+      'title' => t('Edit link'),
+      'help' => t('A link to edit the candidate.'),
+      'handler' => 'views_handler_field_election_candidate_link_edit',
     ),
   );
 

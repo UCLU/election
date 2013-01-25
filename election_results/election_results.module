@@ -73,9 +73,9 @@ function election_results_access($op, stdClass $post, $account = NULL) {
  * Implements hook_entity_load().
  */
 function election_results_entity_load($entities, $type) {
-  $ballot_counts = &drupal_static(__FUNCTION__, array());
   // Add 'ballot_count' property to posts.
   if ($type == 'election_post') {
+    $ballot_counts = &drupal_static(__FUNCTION__, array());
     if (count(array_diff_key($entities, $ballot_counts))) {
       $ballot_counts = db_query(
         'SELECT post_id, COUNT(DISTINCT ballot_id) AS ballot_count FROM {election_ballot} WHERE post_id IN(:pids) GROUP BY post_id',
@@ -148,25 +148,4 @@ function election_results_page(stdClass $post) {
 
   return $output;
 
-}
-
-/**
- * Implements hook_form_FORM_ID_alter().
- *
- * Alter the form at election/%election/posts.
- */
-function election_results_form_election_post_manage_form_alter(&$form) {
-  $election = $form['#election'];
-  $posts = $form['#posts'];
-  foreach ($form['election_posts']['#rows'] as $post_id => &$row) {
-    $post = $posts[$post_id];
-    $path = election_post_uri_path($post);
-    // Add a 'results' link.
-    if (election_results_access('view', $post)) {
-      $row['operations']['data']['#items']['results'] = l(
-        t('results (@count)', array('@count' => $post->ballot_count)),
-        $path . '/results'
-      );
-    }
-  }
 }
