@@ -645,28 +645,31 @@ function election_vote_check_account_previously_voted($post, $account = NULL) {
   if (empty($account)) {
     $account = $user;
   }
+
+  // Determine whether or not we're checking on behalf of the current user.
   $account_is_user = ($account->uid == $user->uid);
 
-  // For anonymous users, check the session ID.
-  // Of course this is not a 100% reliable identifier of a user.
-  // The session ID is hashed, to improve anonymity.
-  if ($account_is_user && !user_is_logged_in()) {
-    $result = db_query_range('SELECT ballot_id FROM {election_ballot} WHERE uid = 0 AND post_id = :pid AND (sid_hash = :sh OR (ip = :ip AND agent = :agent))', 0, 1, array(
-      ':sh' => _election_vote_session_hash(),
-      ':ip' => ip_address(),
-      ':agent' => $_SERVER['HTTP_USER_AGENT'],
-      ':pid' => $post->post_id,
-    ))->fetchCol();
-    return (!empty($result));
+  // Build the SQL query, first checking against the UID.
+  $query = db_select('election_ballot')
+    ->fields('election_ballot', array('ballot_id'))
+    ->condition('uid', $account->uid)
+    ->condition('post_id', $post->post_id);
+
+  // For anonymous users, check the session ID, or a combination of IP address
+  // and user agent. Of course this is not a reliable identifier of a user.
+  if ($account_is_user && $account->uid == 0) {
+    $query->condition(db_or()
+      ->condition('sid_hash', _election_vote_session_hash())
+      ->condition(db_and()
+        ->condition('ip', ip_address())
+        ->condition('agent', $_SERVER['HTTP_USER_AGENT'])
+      )
+    );
   }
 
-  // Otherwise, check based on the $account->uid.
-  $vote_count = db_query(
-    'SELECT COUNT(ballot_id) FROM {election_ballot} WHERE uid = :uid AND post_id = :pid',
-    array(':uid' => $account->uid, ':pid' => $post->post_id)
-  )->fetchField(0);
+  $result = $query->execute()->fetchCol();
 
-  return (bool) $vote_count;
+  return !empty($result);
 
 }
 
