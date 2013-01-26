@@ -203,20 +203,16 @@ function election_vote_form($form, &$form_state, stdClass $post) {
   $form_state['post'] = $post;
 
   if ($previously_voted = election_vote_check_account_previously_voted($post)) {
-    if (election_vote_access('undo', $post)) {
-      drupal_goto(election_post_uri_path($post) . '/vote/undo');
-      return;
-    }
-    else {
-      drupal_set_message(t(
+    drupal_set_message(
+      t(
         'You have already voted (or abstained) for this @post.',
-        array('@post' => election_get_post_name($election->type)),
-        'status',
-        FALSE
-      ));
-      drupal_goto(election_post_uri_path($post));
-      return;
-    }
+        array('@post' => election_get_post_name($election->type))
+      ),
+      'status',
+      FALSE
+    );
+    drupal_goto(election_post_uri_path($post));
+    return;
   }
   else {
     // At this stage it's safe to assume the user has not voted.
@@ -479,7 +475,7 @@ function election_vote_form_abstain_confirm($form, &$form_state) {
 
   // @todo Make this confirmation page themeable.
   $warning = t('This action cannot be undone.');
-  if (election_vote_access('undo', $post)) {
+  if (user_access('undo own vote')) {
     $warning = '';
   }
 
