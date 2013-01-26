@@ -31,7 +31,6 @@ $handler->display->display_options['pager']['options']['offset'] = '0';
 $handler->display->display_options['pager']['options']['id'] = '0';
 $handler->display->display_options['style_plugin'] = 'table';
 $handler->display->display_options['style_options']['columns'] = array(
-  'views_bulk_operations' => 'views_bulk_operations',
   'created' => 'created',
   'title' => 'title',
   'first_name' => 'first_name',
@@ -44,11 +43,6 @@ $handler->display->display_options['style_options']['columns'] = array(
 );
 $handler->display->display_options['style_options']['default'] = 'created';
 $handler->display->display_options['style_options']['info'] = array(
-  'views_bulk_operations' => array(
-    'align' => '',
-    'separator' => '',
-    'empty_column' => 0,
-  ),
   'created' => array(
     'sortable' => 1,
     'default_sort_order' => 'desc',
