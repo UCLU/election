@@ -287,7 +287,11 @@ function election_post_manage_page(stdClass $election) {
   $posts_name = election_get_post_name($election->type, TRUE);
   drupal_set_title(t('Manage @posts', array('@posts' => $posts_name)), PASS_THROUGH);
   drupal_set_breadcrumb(_election_build_breadcrumb($election));
-  return views_embed_view('election_posts_admin', 'embed', $election->election_id);
+  $view = views_get_view('election_posts_admin');
+  // Explicitly set the path, so that Views Bulk Operations could work if
+  // configured (VBO needs help setting the form's "action" attribute).
+  $view->override_path = current_path();
+  return $view->preview('embed', array($election->election_id));
 }
 
 /**
