@@ -446,24 +446,19 @@ function election_stv_preprocess_election_vote_confirm(&$variables) {
       $rows[$candidate_id][] = $rank == 'NONE' ? t('-') : _election_stv_get_ordinal($rank);
     }
 
-    $variables['rankings'] = array(
+    $variables['confirm']['rankings'] = array(
       '#theme' => 'table',
       '#header' => $header,
       '#rows' => $rows,
+      '#weight' => 1,
     );
 
     if ($ranking_changed) {
-      $variables['rankings'] = array(
-        'table' => $variables['rankings'],
-        'warning' => array(
-          '#prefix' => '<p><sup>*</sup>',
-          '#markup' => t('Your input is converted so that the candidates are ranked consecutively.'),
-          '#suffix' => '</p>',
-        ),
+      $variables['confirm']['warning'] = array(
+        '#markup' => '<p><sup>*</sup>' . t('Your input is converted so that the candidates are ranked consecutively.') . '</p>',
+        '#weight' => 2,
       );
     }
-
-    $variables['confirm'] = $variables['rankings'];
 
   }
 

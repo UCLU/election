@@ -14,6 +14,8 @@ function theme_election_vote_confirm($variables) {
 
   $confirm = $variables['confirm'];
 
+  dpm($confirm);
+
   return render($confirm);
 
 }
@@ -23,15 +25,13 @@ function theme_election_vote_confirm($variables) {
  */
 function template_preprocess_election_vote_confirm(&$variables) {
 
-  $variables['confirm'] = array(
-    '#markup' => t('This action cannot be undone.'),
-  );
+  $variables['confirm'] = array();
 
-  $post = $variables['form_state']['post'];
-
-  // Remove "this action cannot be undone" warning, if undo is allowed.
-  if (election_vote_access('undo', $post)) {
-    $variables['confirm'] = NULL;
+  if (!user_access('undo own vote')) {
+    $variables['confirm']['warning_undo'] = array(
+      '#markup' => '<p>' . t('This action cannot be undone.') . '</p>',
+      '#weight' => 50,
+    );
   }
 
 }

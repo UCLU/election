@@ -58,13 +58,13 @@ function election_referendum_preprocess_election_vote_confirm(&$variables) {
 
     $answer = $form_state['values']['answer'];
 
-    $variables['confirm'] = array(
-      array(
+    $variables['confirm'] += array(
+      'post' => array(
         '#type' => 'item',
         '#title' => drupal_ucfirst(election_get_post_name('referendum')),
         '#markup' => check_plain($post->title),
       ),
-      array(
+      'answer' => array(
         '#type' => 'item',
         '#title' => t('Your answer'),
         '#markup' => drupal_placeholder(
