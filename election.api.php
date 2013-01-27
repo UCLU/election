@@ -34,22 +34,13 @@
  *     election_candidate submodule.
  *   - vote form: The name of a form builder function, extending or modifying
  *     election_vote_form(), which allows users to vote. This option is provided
- *     as a slightly more convenient alternative to hook_form_FORM_ID_alter().
+ *     as a more convenient alternative to hook_form_FORM_ID_alter() (to avoid
+ *     complications with confirm form logic).
  *     The function takes the parameters:
  *         array $form        - The form array from election_vote_form.
  *         array $form_state  - The form_state array from election_vote_form.
  *         stdClass $post     - The election post object.
  *         stdClass $election - The election object.
- *   - save votes: The name of a function that saves 'votes' for this election
- *     type to the {election_vote} table. This function runs inside the
- *     same database transaction that saves 'ballots' to the {election_ballot}
- *     table. To roll back the transaction it would throw an exception. The
- *     function takes the parameters:
- *         array $form        - The form array from election_vote_form.
- *         array $form_state  - The form_state array from election_vote_form.
- *         stdClass $post     - The election post object.
- *         stdClass $election - The election object.
- *         int $ballot_id     - The ID of the ballot that is being saved.
  *   - export: Whether the election results can be exported as an archive of
  *     ballot (.blt) files. This needs the election_export submodule.
  *
@@ -63,6 +54,7 @@ function hook_election_type_info() {
       'post name' => t('position'),
       'has candidates' => TRUE,
       'export' => TRUE,
+      'vote form' => 'election_fptp_vote_form',
     ),
   );
 }

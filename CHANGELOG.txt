@@ -1,3 +1,8 @@
+Election 7.x-1.x-dev, 2013-01-27
+-----------------------
+- API change: removed 'save votes' callbacks, replacing them with a new hook,
+  hook_election_vote_ELECTION_TYPE_save(). See election_vote.api.php.
+
 Election 7.x-1.x-dev, 2013-01-24
 -----------------------
 - Many changes to theme-related things such as render arrays, theme functions,

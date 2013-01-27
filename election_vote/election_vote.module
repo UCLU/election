@@ -574,13 +574,13 @@ function election_vote_form_vote($form, &$form_state) {
   $post = $form_state['post'];
   $election = $form_state['election'];
 
-  $success = FALSE;
-
   // Check to prevent duplicate form submissions.
   if (!empty($_SESSION['election_vote_cast_' . $post->post_id])) {
     $form_state['redirect'] = url(election_uri_path($election));
     return;
   }
+
+  $success = FALSE;
 
   $transaction = db_transaction();
 
@@ -599,18 +599,24 @@ function election_vote_form_vote($form, &$form_state) {
       ->fields($ballot)
       ->execute();
     if (empty($ballot_id)) {
-      throw new Exception('The vote record could not be saved.');
+      throw new Exception('The ballot record could not be saved.');
     }
 
-    $type = $election->type_info;
-    if (!empty($type['save votes']) && function_exists($type['save votes'])) {
-      $function = $type['save votes'];
-      $success = $function($form, $form_state, $post, $ballot_id);
+    // Invoke hook_election_vote_ELECTION_TYPE_save().
+    $hook = 'election_vote_' . $election->type . 'save';
+    $vote_save = module_invoke_all($hook, $ballot_id, $post, $form, $form_state);
+    // Fail if any of the hooks returned something other than TRUE.
+    foreach ($vote_save as $return_value) {
+      if ($return_value !== TRUE) {
+        throw new Exception('The vote record could not be saved.');
+      }
     }
 
+    $success = TRUE;
   }
   catch (Exception $e) {
     $transaction->rollback();
+    $success = FALSE;
     watchdog_exception('election_vote', $e, NULL, WATCHDOG_ERROR);
   }
 

@@ -338,11 +338,18 @@ function election_stv_vote_form_validate($form, &$form_state) {
 }
 
 /**
+ * Implements hook_election_vote_ELECTION_TYPE_save().
+ *
  * Save votes for an STV election.
  */
-function election_stv_save_votes($form, &$form_state, $post, $ballot_id) {
+function election_stv_election_vote_stv_save($ballot_id, $post, $vote_form, $vote_form_state) {
 
-  $candidate_rankings = $form_state['candidate_rankings'];
+  $election = $post->election;
+  if ($election->type != 'stv') {
+    return TRUE;
+  }
+
+  $candidate_rankings = $vote_form_state['candidate_rankings'];
 
   foreach ($candidate_rankings as $cid => $candidate_ranking) {
 

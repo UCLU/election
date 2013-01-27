@@ -14,7 +14,6 @@ function election_referendum_election_type_info() {
       'description' => t('A simple referendum where people can vote in response to one or more questions.'),
       'post name' => t('question'),
       'vote form' => 'election_referendum_vote_form',
-      'save votes' => 'election_referendum_save_votes',
     ),
   );
 }

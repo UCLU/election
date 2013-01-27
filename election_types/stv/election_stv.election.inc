@@ -15,7 +15,6 @@ function election_stv_election_type_info() {
       'post name' => t('position'),
       'has candidates' => TRUE,
       'vote form' => 'election_stv_vote_form',
-      'save votes' => 'election_stv_save_votes',
       'export' => TRUE,
     ),
   );
