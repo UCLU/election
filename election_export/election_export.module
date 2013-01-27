@@ -190,7 +190,7 @@ function election_export_post(stdClass $post, $destination = NULL, array $option
     $candidate_lines .= ' # ' . t('Candidate keyed by @i', array('@i' => $i)) . "\n";
   }
 
-  $total_vacancies = isset($post->settings['vacancy_count']) ? (int) $post->settings['vacancy_count'] : 0;
+  $total_vacancies = isset($post->settings['vacancy_count']) ? (int) $post->settings['vacancy_count'] : 1;
 
   $votes_fields = array('ballot_id', 'candidate_id', 'ron', 'rank', 'abstain');
 
