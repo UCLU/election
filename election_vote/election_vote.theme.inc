@@ -14,8 +14,6 @@ function theme_election_vote_confirm($variables) {
 
   $confirm = $variables['confirm'];
 
-  dpm($confirm);
-
   return render($confirm);
 
 }
