@@ -10,11 +10,11 @@
  * Authorise users whose registered email addresses end with either "gmail.com"
  * or "googlemail.com".
  */
-function election_example_conditions_access_gmail(stdClass $post, stdClass $account) {
+function election_example_conditions_access_gmail($post, $account) {
   if ($account->uid == 0) {
     return FALSE;
   }
-  return (bool) preg_match('/g(oogle)?mail\.com\s*\b/i', $account->mail);
+  return (bool) preg_match('/g(oogle)?mail\.com$/i', $account->mail);
 }
 
 /**
@@ -23,9 +23,9 @@ function election_example_conditions_access_gmail(stdClass $post, stdClass $acco
  * Authorise users whose registered email addresses end with either
  * "hotmail.com" or "hotmail.co.uk".
  */
-function election_example_conditions_access_hotmail(stdClass $post, stdClass $account) {
+function election_example_conditions_access_hotmail($post, $account) {
   if ($account->uid == 0) {
     return FALSE;
   }
-  return (bool) preg_match('/hotmail\.com\s*\b/i', $account->mail);
+  return (bool) preg_match('/hotmail\.(com|co\.uk)$/i', $account->mail);
 }
