@@ -754,7 +754,9 @@ function election_get_post_name($type_machine_name, $plural = FALSE) {
   if ($type = _election_type_get_info($type_machine_name)) {
     if (!empty($type['post name'])) {
       $name = $type['post name'];
-      $name = !empty($type['post name plural']) ? $type['post name plural'] : $name . 's';
+      if ($plural) {
+        $name = !empty($type['post name plural']) ? $type['post name plural'] : $name . 's';
+      }
     }
   }
   return $name;
