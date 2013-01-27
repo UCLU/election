@@ -179,11 +179,11 @@ function election_referendum_election_vote_referendum_save($ballot_id, $post, $v
     'answer' => $vote_form_state['answer'],
   );
 
-  db_insert('election_vote')
+  $success = db_insert('election_vote')
     ->fields($vote)
     ->execute();
 
-  return TRUE;
+  return $success ? TRUE : FALSE;
 
 }
 

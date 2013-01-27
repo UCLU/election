@@ -439,7 +439,7 @@ function election_vote_form_vote($form, &$form_state) {
     }
 
     // Invoke hook_election_vote_ELECTION_TYPE_save().
-    $hook = 'election_vote_' . $election->type . 'save';
+    $hook = 'election_vote_' . $election->type . '_save';
     $vote_save = module_invoke_all($hook, $ballot_id, $post, $form, $form_state);
     // Fail if any of the hooks returned something other than TRUE.
     foreach ($vote_save as $return_value) {

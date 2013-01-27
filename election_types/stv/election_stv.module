@@ -374,9 +374,13 @@ function election_stv_election_vote_stv_save($ballot_id, $post, $vote_form, $vot
     }
 
     // Note the whole of this function is inside a DB transaction.
-    db_insert('election_vote')
+    $insert_id = db_insert('election_vote')
       ->fields($vote_entry)
       ->execute();
+
+    if (!$insert_id) {
+      return FALSE;
+    }
 
   }
 
