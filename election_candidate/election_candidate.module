@@ -239,7 +239,7 @@ function election_candidate_menu() {
     'page arguments' => array('election_candidate_nomination_form', 1),
     'access callback' => 'election_candidate_nominate_access',
     'access arguments' => array(1),
-    'file' => 'election-candidate.pages.inc',
+    'file' => 'election_candidate.forms.inc',
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'weight' => 4,
@@ -251,7 +251,7 @@ function election_candidate_menu() {
     'page arguments' => array(1),
     'access callback' => 'election_candidate_access_per_election',
     'access arguments' => array('view', 1),
-    'file' => 'election-candidate.pages.inc',
+    'file' => 'election_candidate.pages.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 2,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -263,7 +263,7 @@ function election_candidate_menu() {
     'page arguments' => array(1),
     'access callback' => 'election_candidate_access_per_election',
     'access arguments' => array('edit', 1),
-    'file' => 'election-candidate.admin.inc',
+    'file' => 'election_candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 4,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -281,7 +281,7 @@ function election_candidate_menu() {
     'page arguments' => array(1),
     'access callback' => 'election_candidate_access_per_election',
     'access arguments' => array('edit', 1),
-    'file' => 'election-candidate.admin.inc',
+    'file' => 'election_candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -304,7 +304,7 @@ function election_candidate_menu() {
     'title arguments' => array(1),
     'page callback' => 'election_candidate_page_view',
     'page arguments' => array(1),
-    'file' => 'election-candidate.pages.inc',
+    'file' => 'election_candidate.pages.inc',
     'access callback' => 'election_candidate_access',
     'access arguments' => array('view', 1),
     'type' => MENU_CALLBACK,
@@ -320,7 +320,7 @@ function election_candidate_menu() {
     'title' => 'Details',
     'page callback' => 'election_candidate_page_view',
     'page arguments' => array(1, 'details'),
-    'file' => 'election-candidate.pages.inc',
+    'file' => 'election_candidate.pages.inc',
     'access callback' => 'election_candidate_access',
     'access arguments' => array('edit', 1),
     'type' => MENU_LOCAL_TASK,
@@ -332,7 +332,7 @@ function election_candidate_menu() {
     'title' => 'Edit',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_candidate_edit_form', 1),
-    'file' => 'election-candidate.pages.inc',
+    'file' => 'election_candidate.forms.inc',
     'access callback' => 'election_candidate_access',
     'access arguments' => array('update', 1),
     'type' => MENU_LOCAL_TASK,
@@ -346,7 +346,7 @@ function election_candidate_menu() {
     'page arguments' => array('election_candidate_edit_form_delete_confirm', 1),
     'access callback' => 'election_candidate_access',
     'access arguments' => array('delete', 1),
-    'file' => 'election-candidate.pages.inc',
+    'file' => 'election_candidate.forms.inc',
     'weight' => 3,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_INLINE,
@@ -1276,4 +1276,44 @@ function election_candidate_election_vote_access($op, $post, $account) {
   if (!election_candidate_post_has_enough($post)) {
     return FALSE;
   }
+}
+
+/**
+ * Generate a table of a user's previous nominations in an election.
+ *
+ * @param stdClass $election
+ *   An election object.
+ * @param array $previous_nominations
+ *   An array of candidate objects representing the user's previous nominations.
+ *
+ * @todo make this themeable
+ */
+function election_candidate_display_previous_nominations(stdClass $election, array $previous_nominations) {
+  if (empty($previous_nominations)) {
+    return;
+  }
+  $caption = t('Your previous nominations in this election');
+  $header = array(
+    t('Nomination date'),
+    drupal_ucfirst(election_get_post_name($election->type)),
+    t('Candidate name'),
+    t('Status'),
+  );
+  $rows = array();
+  foreach ($previous_nominations as $candidate) {
+    $post = election_post_load($candidate->post_id);
+    $post_title = empty($post) ? '?' : check_plain($post->title);
+    $rows[] = array(
+      format_date($candidate->created, 'short'),
+      $post_title,
+      check_plain($candidate->first_name . ' ' . $candidate->last_name),
+      theme('election_candidate_status', array('candidate' => $candidate)),
+    );
+  }
+  return array(
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
+    '#caption' => $caption,
+  );
 }
