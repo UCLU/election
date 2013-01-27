@@ -32,15 +32,12 @@
  *   - has candidates: Whether the election type has candidates. Modules
  *     providing elections that have candidates should depend on the
  *     election_candidate submodule.
- *   - vote form: The name of a form builder function, extending or modifying
- *     election_vote_form(), which allows users to vote. This option is provided
- *     as a more convenient alternative to hook_form_FORM_ID_alter() (to avoid
- *     complications with confirm form logic).
+ *   - vote form: The name of a callback altering the voting form. This option
+ *     is provided as a more convenient alternative to hook_form_FORM_ID_alter()
+ *     to avoid complications with confirm form logic.
  *     The function takes the parameters:
- *         array $form        - The form array from election_vote_form.
- *         array $form_state  - The form_state array from election_vote_form.
- *         stdClass $post     - The election post object.
- *         stdClass $election - The election object.
+ *         array &$form        - The form array from election_vote_form().
+ *         array &$form_state  - The form_state array from election_vote_form().
  *   - export: Whether the election results can be exported as an archive of
  *     ballot (.blt) files. This needs the election_export submodule.
  *

@@ -146,9 +146,12 @@ function election_stv_election_view_alter(&$build) {
 }
 
 /**
- * Form modifying function for election-post/%election_post/vote.
+ * Form modifying function - voting form (election-post/%election_post/vote).
  */
-function election_stv_vote_form($form, &$form_state, $post, $election) {
+function election_stv_vote_form(&$form, &$form_state) {
+
+  $post = $form_state['post'];
+  $election = $post->election;
 
   // Load candidates.
   $candidates = election_candidate_load_by_post($post, array(ELECTION_CANDIDATE_HOPEFUL), TRUE, 'RAND()');
@@ -256,8 +259,6 @@ function election_stv_vote_form($form, &$form_state, $post, $election) {
     '#title' => 'Clear form',
     '#href' => $_GET['q'],
   );
-
-  return $form;
 
 }
 

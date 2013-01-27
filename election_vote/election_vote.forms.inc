@@ -72,10 +72,15 @@ function election_vote_form($form, &$form_state, stdClass $post) {
 
   $form['#attached']['js'][] = drupal_get_path('module', 'election') . '/submit-single.min.js';
 
-  $type = $election->type_info;
-  if (!empty($type['vote form']) && function_exists($type['vote form'])) {
-    $function = $type['vote form'];
-    $form = $function($form, $form_state, $post, $election);
+  // Allow the form to be modified via the election type's 'vote form' callback.
+  if (!empty($election->type_info['vote form'])) {
+    $function = $election->type_info['vote form'];
+    if (function_exists($function)) {
+      $function($form, $form_state);
+    }
+    else {
+      watchdog('election_vote', 'Vote form callback not found: @cb()', array('@cb' => $function), WATCHDOG_ERROR);
+    }
   }
 
   return $form;

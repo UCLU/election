@@ -2,6 +2,8 @@ Election 7.x-1.x-dev, 2013-01-27
 -----------------------
 - API change: removed 'save votes' callbacks, replacing them with a new hook,
   hook_election_vote_ELECTION_TYPE_save(). See election_vote.api.php.
+- API change: a 'vote form' callback now has the same function signature as
+  hook_form_alter(). See election.api.php.
 
 Election 7.x-1.x-dev, 2013-01-24
 -----------------------

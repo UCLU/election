@@ -123,7 +123,10 @@ function election_referendum_election_results_page_alter(&$output, stdClass $pos
 /**
  * Form modifying function - voting form (election-post/%election_post/vote).
  */
-function election_referendum_vote_form($form, &$form_state, $post, $election) {
+function election_referendum_vote_form(&$form, &$form_state) {
+
+  $post = $form_state['post'];
+  $election = $post->election;
 
   $form['post_preview'] = array(
     '#type' => 'item',
@@ -149,8 +152,6 @@ function election_referendum_vote_form($form, &$form_state, $post, $election) {
   );
 
   $form['#validate'][] = 'election_referendum_vote_form_validate';
-
-  return $form;
 
 }
 
