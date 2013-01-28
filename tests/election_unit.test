@@ -18,6 +18,14 @@ class ElectionUnitTestCase extends DrupalUnitTestCase {
   }
 
   /**
+   * Overrides parent::setUp().
+   */
+  public function setUp() {
+    // Enable the Election module.
+    parent::setUp('election');
+  }
+
+  /**
    * Test the function _election_is_open().
    */
   public function testElectionIsOpen() {
