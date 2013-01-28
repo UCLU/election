@@ -19,8 +19,6 @@ class ElectionUnitTestCase extends DrupalUnitTestCase {
 
   /**
    * Test the function _election_is_open().
-   *
-   * It takes a status flag and two optional timestamps, and returns   a boolean.
    */
   public function testElectionIsOpen() {
     $result = _election_is_open(ELECTION_STATUS_CLOSED, NULL, NULL);
