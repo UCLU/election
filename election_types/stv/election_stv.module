@@ -24,23 +24,27 @@ function election_stv_election_post_view_alter(&$build) {
  */
 function election_stv_field_extra_fields_alter(&$info) {
   // Add properties to the 'Manage fields' form for STV election positions.
-  $info['election_post']['stv_post']['form'] += array(
-    'settings_vacancy_count' => array(
-      'label' => t('Number of vacancies'),
-      'weight' => 1,
-    ),
-    'settings_use_ron' => array(
-      'label' => t('RON (Re-Open Nominations)'),
-      'weight' => 2,
-    ),
-  );
+  if (isset($info['election_post']['stv_post']['form'])) {
+    $info['election_post']['stv_post']['form'] += array(
+      'settings_vacancy_count' => array(
+        'label' => t('Number of vacancies'),
+        'weight' => 1,
+      ),
+      'settings_use_ron' => array(
+        'label' => t('RON (Re-Open Nominations)'),
+        'weight' => 2,
+      ),
+    );
+  }
   // Add properties to the 'Manage display' form for STV election positions.
-  $info['election_post']['stv_post']['display'] += array(
-    'vacancy_count' => array(
-      'label' => t('Number of vacancies'),
-      'weight' => 1,
-    ),
-  );
+  if (isset($info['election_post']['stv_post']['display'])) {
+    $info['election_post']['stv_post']['display'] += array(
+      'vacancy_count' => array(
+        'label' => t('Number of vacancies'),
+        'weight' => 1,
+      ),
+    );
+  }
 }
 
 /**

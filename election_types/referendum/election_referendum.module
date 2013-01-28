@@ -243,12 +243,14 @@ function election_referendum_settings_validate($form, &$form_state) {
  */
 function election_referendum_field_extra_fields_alter(&$info) {
   // Add properties to the 'Manage fields' form for referendum questions.
-  $info['election_post']['referendum_post']['form'] += array(
-    'answers' => array(
-      'label' => t('Answers'),
-      'weight' => 1,
-    ),
-  );
+  if (isset($info['election_post']['referendum_post']['form'])) {
+    $info['election_post']['referendum_post']['form'] += array(
+      'answers' => array(
+        'label' => t('Answers'),
+        'weight' => 1,
+      ),
+    );
+  }
 }
 
 /**
