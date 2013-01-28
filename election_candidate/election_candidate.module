@@ -791,16 +791,18 @@ function election_candidate_label(stdClass $entity, $entity_type) {
 }
 
 /**
- * Load an individual election candidate.
+ * Load an individual candidate.
  *
- * @param mixed $candidate_id
+ * @param int $candidate_id
  *   A single election candidate ID.
+ * @param bool $reset
+ *   Whether to reset the internal cache for election candidate entities.
  *
  * @return stdClass
  *   A stdClass election_candidate object.
  */
-function election_candidate_load($candidate_id = NULL) {
-  $result = entity_load('election_candidate', (array) $candidate_id);
+function election_candidate_load($candidate_id, $reset = FALSE) {
+  $result = election_candidate_load_multiple((array) $candidate_id, $reset);
   if (!is_array($result) || !count($result)) {
     return FALSE;
   }
@@ -810,14 +812,17 @@ function election_candidate_load($candidate_id = NULL) {
 /**
  * Load multiple candidates.
  *
- * @param mixed $candidate_ids
+ * @param array $candidate_ids
  *   An array of election candidate IDs.
+ * @param bool $reset
+ *   Whether to reset the internal cache for election candidate entities.
  *
- * @return stdClass
- *   A stdClass election_candidate object.
+ * @return array
+ *   An array of election candidate objects keyed by candidate ID.
  */
-function election_candidate_load_multiple(array $candidate_ids = array()) {
-  return entity_load('election_candidate', $candidate_ids);
+function election_candidate_load_multiple(array $candidate_ids = array(), $reset = FALSE) {
+  // The $conditions parameter is not used as this is deprecated for D8.
+  return entity_load('election_candidate', $candidate_ids, array(), $reset);
 }
 
 /**

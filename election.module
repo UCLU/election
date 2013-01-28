@@ -152,14 +152,16 @@ function election_uri_path($election) {
 /**
  * Load an individual election.
  *
- * @param mixed $election_id
+ * @param int $election_id
  *   A single election ID.
+ * @param bool $reset
+ *   Whether to reset the internal cache for election entities.
  *
  * @return stdClass
  *   A stdClass election object.
  */
-function election_load($election_id = NULL) {
-  $result = entity_load('election', (array) $election_id);
+function election_load($election_id, $reset = FALSE) {
+  $result = election_load_multiple((array) $election_id, $reset);
   if (!is_array($result) || !count($result)) {
     return FALSE;
   }
@@ -171,12 +173,15 @@ function election_load($election_id = NULL) {
  *
  * @param array $election_ids
  *   An array of election IDs.
+ * @param bool $reset
+ *   Whether to reset the internal cache for election entities.
  *
- * @return stdClass
- *   A stdClass election object.
+ * @return array
+ *   An array of election objects keyed by election ID.
  */
-function election_load_multiple(array $election_ids = array()) {
-  return entity_load('election', $election_ids);
+function election_load_multiple(array $election_ids = array(), $reset = FALSE) {
+  // The $conditions parameter is not used as this is deprecated for D8.
+  return entity_load('election', $election_ids, array(), $reset);
 }
 
 /**

@@ -396,16 +396,18 @@ function election_post_uri_path($post) {
 }
 
 /**
- * Load an individual election post.
+ * Load an individual post.
  *
- * @param mixed $post_id
+ * @param int $post_id
  *   A single election post ID.
+ * @param bool $reset
+ *   Whether to reset the internal cache for election post entities.
  *
  * @return stdClass
- *   A stdClass post object.
+ *   A stdClass election_post object.
  */
-function election_post_load($post_id = NULL) {
-  $result = entity_load('election_post', (array) $post_id);
+function election_post_load($post_id, $reset = FALSE) {
+  $result = election_post_load_multiple((array) $post_id, $reset);
   if (!is_array($result) || !count($result)) {
     return FALSE;
   }
@@ -415,14 +417,17 @@ function election_post_load($post_id = NULL) {
 /**
  * Load multiple posts.
  *
- * @param mixed $post_ids
- *   An array of post IDs.
+ * @param array $post_ids
+ *   An array of election post IDs.
+ * @param bool $reset
+ *   Whether to reset the internal cache for election post entities.
  *
- * @return stdClass
- *   A stdClass election_post object.
+ * @return array
+ *   An array of election post objects keyed by post ID.
  */
-function election_post_load_multiple(array $post_ids = array()) {
-  return entity_load('election_post', $post_ids);
+function election_post_load_multiple(array $post_ids = array(), $reset = FALSE) {
+  // The $conditions parameter is not used as this is deprecated for D8.
+  return entity_load('election_post', $post_ids, array(), $reset);
 }
 
 /**
