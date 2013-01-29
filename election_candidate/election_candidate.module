@@ -104,9 +104,9 @@ function election_candidate_get_types($type_name = NULL) {
 }
 
 /**
- * Implements hook_default_ENTITY_ID().
- *
  * Define the default election candidate types.
+ *
+ * @see http://drupal.org/node/999942
  *
  * @return array
  *   An array of default candidate types, keyed by machine names.
@@ -164,7 +164,7 @@ function election_candidate_permission() {
  * @param stdClass $account
  *   The user to check for. Leave it to NULL to check for the global user.
  *
- * @return boolean
+ * @return bool
  *   Whether access is allowed or not.
  */
 function election_candidate_access($op, $candidate = NULL, $account = NULL) {
@@ -581,7 +581,6 @@ function election_candidate_form_election_post_form_alter(&$form, &$form_state) 
     ),
     '#weight' => 20,
   );
-
 
   $type_options = array();
   foreach (election_candidate_get_types() as $bundle => $type) {

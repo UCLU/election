@@ -6,15 +6,8 @@
 
 /**
  * Implements hook_election_vote_access().
- *
- * @return mixed
- *   FALSE on permission denied, NULL otherwise.
  */
-function election_condition_election_vote_access($op, $post = NULL, $account = NULL) {
-
-  if (empty($account)) {
-    $account = $GLOBALS['user'];
-  }
+function election_condition_election_vote_access($op, $post, $account) {
 
   switch ($op) {
 

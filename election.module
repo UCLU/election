@@ -252,7 +252,7 @@ function election_permission() {
  * @param stdClass $account
  *   The user to check for. Leave it to NULL to check for the global user.
  *
- * @return boolean
+ * @return bool
  *   Whether access is allowed or not.
  */
 function election_access($op, $election = NULL, $account = NULL) {

@@ -178,5 +178,4 @@ function template_preprocess_election(&$variables) {
   $variables['theme_hook_suggestions'][] = 'election__' . $election->type;
   $variables['theme_hook_suggestions'][] = 'election__' . $election->election_id;
 
-
 }
