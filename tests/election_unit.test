@@ -21,8 +21,10 @@ class ElectionUnitTestCase extends DrupalUnitTestCase {
    * Overrides parent::setUp().
    */
   public function setUp() {
-    // Enable the Election module.
-    parent::setUp('election');
+    parent::setUp();
+    // Include necessary files.
+    $election_path = drupal_get_path('module', 'election');
+    require_once $election_path . '/election.module';
   }
 
   /**
