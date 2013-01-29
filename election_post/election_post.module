@@ -101,7 +101,7 @@ function election_post_menu() {
     'page arguments' => array('election_post_form_delete_confirm', 1),
     'access callback' => 'election_post_access',
     'access arguments' => array('delete', 1),
-    'file' => 'election-post.admin.inc',
+    'file' => 'election_post.forms.inc',
     'weight' => 2,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_INLINE,
@@ -652,7 +652,7 @@ function election_post_view($post, $view_mode = 'full') {
   // to restrict contextual links to certain view modes) by implementing
   // hook_election_post_view_alter().
   if (!empty($post->post_id) && $view_mode != 'full') {
-    $build['#contextual_links']['election_post'] = array('election_post', array($post->post_id));
+    $build['#contextual_links']['election_post'] = array('election-post', array($post->post_id));
   }
 
   // Allow modules to modify the structured post.

@@ -957,7 +957,7 @@ function election_candidate_view($candidate, $view_mode = 'full') {
   // Add contextual links for this candidate, except when the candidate is
   // already being displayed on its own page.
   if (!empty($candidate->candidate_id) && $view_mode != 'full') {
-    $build['#contextual_links']['election_candidate'] = array('election_candidate', array($candidate->candidate_id));
+    $build['#contextual_links']['election_candidate'] = array('election-candidate', array($candidate->candidate_id));
   }
 
   // Allow modules to modify the structured election candidate.
