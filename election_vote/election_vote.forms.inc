@@ -139,7 +139,7 @@ function election_vote_undo_form($form, &$form_state, $post) {
 
   $form['post'] = array(
     '#type' => 'item',
-    '#title' => drupal_ucfirst($post_name),
+    '#title' => check_plain(drupal_ucfirst($post_name)),
     '#markup' => check_plain($post->title),
   );
   $form['warning'] = array(

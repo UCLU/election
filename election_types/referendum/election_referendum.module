@@ -130,7 +130,7 @@ function election_referendum_vote_form(&$form, &$form_state) {
 
   $form['post_preview'] = array(
     '#type' => 'item',
-    '#title' => drupal_ucfirst(election_get_post_name($election->type)),
+    '#title' => check_plain(drupal_ucfirst(election_get_post_name($election->type))),
     '#markup' => t('@post (<a href="@post_url">view details</a>)', array(
       '@post' => $post->title,
       '@post_url' => url(election_post_uri_path($post)),
