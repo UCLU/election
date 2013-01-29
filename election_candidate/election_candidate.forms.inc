@@ -119,6 +119,16 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
     '#access' => entity_access('delete', 'election_candidate', $candidate),
     '#limit_validation_errors' => array(),
   );
+  $cancel_path = election_candidate_uri_path($candidate);
+  if (!empty($_GET['destination'])) {
+    $options = drupal_parse_url($_GET['destination']);
+    $cancel_path = $options['path'];
+  }
+  $form['buttons']['cancel'] = array(
+    '#type' => 'link',
+    '#title' => t('Cancel'),
+    '#href' => $cancel_path,
+  );
 
   $form['#validate'][] = 'election_candidate_form_validate';
   $form['#validate'][] = 'election_candidate_edit_form_validate';
@@ -332,6 +342,16 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $post)
     '#value' => t('Submit nomination'),
     '#submit' => array('election_candidate_nomination_form_submit'),
   );
+
+  if (!empty($_GET['destination'])) {
+    $options = drupal_parse_url($_GET['destination']);
+    $cancel_path = $options['path'];
+    $form['buttons']['cancel'] = array(
+      '#type' => 'link',
+      '#title' => t('Cancel'),
+      '#href' => $cancel_path,
+    );
+  }
 
   $form['#validate'][] = 'election_candidate_form_validate';
 

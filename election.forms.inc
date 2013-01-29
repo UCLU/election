@@ -140,6 +140,17 @@ function election_form($form, &$form_state, stdClass $election) {
     );
   }
 
+  $cancel_path = empty($election->election_id) ? 'elections' : election_uri_path($election);
+  if (!empty($_GET['destination'])) {
+    $options = drupal_parse_url($_GET['destination']);
+    $cancel_path = $options['path'];
+  }
+  $form['buttons']['cancel'] = array(
+    '#type' => 'link',
+    '#title' => t('Cancel'),
+    '#href' => $cancel_path,
+  );
+
   $form['#validate'][] = 'election_form_validate';
 
   // Add custom fields from the Field system.
