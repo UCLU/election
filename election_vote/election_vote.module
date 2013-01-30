@@ -286,3 +286,16 @@ function election_vote_field_extra_fields_alter(&$info) {
     );
   }
 }
+
+
+/**
+ * Implements hook_ip_anon_alter().
+ *
+ * Integrates with the IP Anonymize module (drupal.org/project/ip_anon).
+ */
+function election_vote_ip_anon_alter(&$tables) {
+  $tables['election_ballot'] = array(
+    'hostname' => 'ip',
+    'timestamp' => 'timestamp',
+  );
+}
