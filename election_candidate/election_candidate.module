@@ -426,7 +426,7 @@ function election_candidate_entity_property_info() {
       'required' => TRUE,
     ),
     'mail' => array(
-      'label' => t('Email address'),
+      'label' => t('E-mail address'),
       'type' => 'text',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'mail',
@@ -495,8 +495,8 @@ function election_candidate_field_extra_fields() {
         'weight' => 2,
       ),
       'mail' => array(
-        'label' => t('Email address'),
-        'description' => t("The candidate's email address."),
+        'label' => t('E-mail address'),
+        'description' => t("The candidate's e-mail address."),
         'weight' => 3,
       ),
     ),
@@ -922,10 +922,10 @@ function election_candidate_view($candidate, $view_mode = 'full') {
   if ($view_mode == 'details') {
     $username = theme('username', array('account' => $candidate->uid ? user_load($candidate->uid) : NULL));
     $mailto = l($candidate->mail, 'mailto:' . $candidate->mail, array('absolute' => TRUE));
-    // Display the candidate's email address.
+    // Display the candidate's e-mail address.
     $candidate->content['mail'] = array(
       '#theme' => 'election_info_item',
-      '#label' => t('Email address'),
+      '#label' => t('E-mail address'),
       '#value' => $mailto,
       '#html' => TRUE,
     );

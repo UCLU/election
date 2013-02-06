@@ -55,7 +55,7 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
 
   $form['mail'] = array(
     '#type' => module_exists('elements') ? 'emailfield' : 'textfield',
-    '#title' => t('Email address'),
+    '#title' => t('E-mail address'),
     '#size' => 30,
     '#required' => FALSE,
     '#default_value' => $candidate->mail,
@@ -323,8 +323,8 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $post)
   );
 
   $form['mail'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Email address'),
+    '#type' => module_exists('elements') ? 'emailfield' : 'textfield',
+    '#title' => t('E-mail address'),
     '#size' => 30,
     '#required' => TRUE,
     '#default_value' => empty($GLOBALS['user']->mail) ? NULL : $GLOBALS['user']->mail,
@@ -365,7 +365,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $post)
 function election_candidate_form_validate($form, &$form_state) {
 
   if ($form['mail']['#type'] == 'textfield' && !empty($form_state['values']['mail']) && !filter_var($form_state['values']['mail'], FILTER_VALIDATE_EMAIL)) {
-    form_set_error('mail', t('Please enter a valid email address'));
+    form_set_error('mail', t('Please enter a valid e-mail address.'));
   }
 
   field_attach_form_validate('election_candidate', $form_state['candidate'], $form, $form_state);

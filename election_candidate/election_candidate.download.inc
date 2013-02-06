@@ -45,7 +45,7 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
       'default' => TRUE,
     ),
     'mail' => array(
-      'label' => t('Email address'),
+      'label' => t('E-mail address'),
       'default' => TRUE,
     ),
     'uid' => t('User ID'),

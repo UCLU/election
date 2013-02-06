@@ -88,7 +88,7 @@ function election_candidate_schema() {
         'not null' => FALSE,
       ),
       'mail' => array(
-        'description' => 'The candidate\'s email address.',
+        'description' => 'The candidate\'s e-mail address.',
         'type' => 'varchar',
         'length' => 254,
         'not null' => TRUE,

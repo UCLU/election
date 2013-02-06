@@ -28,8 +28,8 @@ function election_candidate_token_info() {
         'type' => 'election',
       ),
       'mail' => array(
-        'name' => t('Email address'),
-        'description' => t('The email address of the candidate.'),
+        'name' => t('E-mail address'),
+        'description' => t('The e-mail address of the candidate.'),
       ),
       'first_name' => array(
         'name' => t('First name'),
