@@ -388,6 +388,7 @@ function election_candidate_entity_property_info() {
       'type' => 'token',
       'required' => TRUE,
       'schema field' => 'type',
+      'options list' => '_election_candidate_get_type_options',
     ),
     'published' => array(
       'label' => t('Published status'),
@@ -445,6 +446,18 @@ function election_candidate_entity_property_info() {
     ),
   );
   return $info;
+}
+
+/**
+ * Get an array of candidate types.
+ */
+function _election_candidate_get_type_options() {
+  $type_options = array();
+  foreach (election_candidate_get_types() as $bundle => $type) {
+    // N.B. no sanitizing happens here.
+    $type_options[$bundle] = $type->label;
+  }
+  return $type_options;
 }
 
 /**
@@ -582,16 +595,10 @@ function election_candidate_form_election_post_form_alter(&$form, &$form_state) 
     '#weight' => 20,
   );
 
-  $type_options = array();
-  foreach (election_candidate_get_types() as $bundle => $type) {
-    // No need to sanitize for 'select' form elements: FAPI does it already.
-    $type_options[$bundle] = $type->label;
-  }
-
   $form['candidates_nominations']['settings_candidate_type'] = array(
     '#type' => 'select',
     '#title' => t('Candidate type'),
-    '#options' => $type_options,
+    '#options' => _election_candidate_get_type_options(),
     '#weight' => -10,
     '#default_value' => isset($post->settings['candidate_type']) ? $post->settings['candidate_type'] : 'candidate',
     '#required' => TRUE,
