@@ -293,7 +293,7 @@ function election_candidate_menu() {
     'page arguments' => array('election_candidate_download_form', 1),
     'access callback' => 'election_candidate_access_per_election',
     'access arguments' => array('edit', 1),
-    'file' => 'election-candidate.download.inc',
+    'file' => 'election_candidate.download.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 2,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
