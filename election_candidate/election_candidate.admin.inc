@@ -30,7 +30,7 @@ function election_candidate_totals_page(stdClass $election) {
 
   $output = array(
     'total' => array(
-      '#markup' => '<p>' . t('Total number of candidates: !totalAll', array('!totalAll' => $totals['all'])) . '</p>',
+      '#markup' => '<p>' . t('Total number of candidates: !totalAll', array('!totalAll' => empty($totals['all']) ? 0 : number_format($totals['all']))) . '</p>',
     ),
   );
 
