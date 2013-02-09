@@ -327,7 +327,6 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $post)
     '#title' => t('E-mail address'),
     '#size' => 30,
     '#required' => TRUE,
-    '#default_value' => empty($GLOBALS['user']->mail) ? NULL : $GLOBALS['user']->mail,
   );
 
   // Add custom fields from the Field system.
