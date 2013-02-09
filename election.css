@@ -72,8 +72,9 @@
   top: 1em;
 }
 .election-vote-button a {
-  border: 1px solid #eeeeee;
-  border-radius: 1.3em;
+  background-color: #fee94f;
+  border: 1px solid #ffaa22;
+  border-radius: 1em;
   font-family: sans-serif;
   font-size: 1.3em;
   padding: 0.5em 0.8em;
@@ -81,14 +82,12 @@
 }
 .election-vote-button a:link,
 .election-vote-button a:visited {
-  color: #222222;
+  color: #333333;
 }
 .election-vote-button a:hover,
 .election-vote-button a:active,
 .election-vote-button a:focus {
-  border-color: #cccccc;
   color: #000000;
-  text-decoration: none;
 }
 .election-vote-button a:active {
   position: relative;
