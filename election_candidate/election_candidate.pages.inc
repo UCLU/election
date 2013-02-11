@@ -12,8 +12,8 @@ function election_candidate_list_page(stdClass $election) {
 
   $view = views_embed_view('election_candidates', 'embed_candidates_per_election', $election->election_id);
 
-  drupal_set_title(t('Candidates'), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($election));
+  drupal_set_title(t('Candidates: %election', array('%election' => $election->title)), PASS_THROUGH);
+  election_set_breadcrumb($election);
 
   return array(
     '#markup' => $view,
@@ -34,9 +34,8 @@ function election_candidate_page_view(stdClass $candidate, $view_mode = 'full') 
       PASS_THROUGH
     );
     $election = election_load($candidate->election_id);
-    drupal_set_breadcrumb(
-      _election_build_breadcrumb($election, '_CANDIDATES_')
-    );
+    $post = election_post_load($candidate->post_id);
+    election_post_set_breadcrumb($election, $post);
   }
 
   return election_candidate_view($candidate, $view_mode);

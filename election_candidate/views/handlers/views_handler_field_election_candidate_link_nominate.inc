@@ -2,26 +2,34 @@
 /**
  * @file
  * Field handler to present a link to an election post's nomination form.
+ *
+ * @todo fix this for performance
  */
 
-class views_handler_field_election_candidate_link_nominate extends views_handler_field_election_post_link {
+class views_handler_field_election_candidate_link_nominate extends views_handler_field {
 
   /**
-   * Overrides parent::render_link().
+   * Overrides parent::construct().
    */
-  public function render_link($data, $values) {
+  public function construct() {
+    parent::construct();
+    $this->additional_fields['post_id'] = 'post_id';
+  }
+
+  /**
+   * Overrides parent::query().
+   */
+  public function query() {
+    $this->ensure_my_table();
+    $this->add_additional_fields();
+  }
+
+  /**
+   * Overrides parent::render().
+   */
+  public function render($values) {
     $post = election_post_load($this->get_value($values, 'post_id'));
-    // Only show a link if the user has access to nominate for this post.
-    if (!election_candidate_nominate_access($post)) {
-      return;
-    }
-    $this->options['alter']['make_link'] = TRUE;
-    $this->options['alter']['path'] = "election-post/{$post->post_id}/nomination-form";
-    $this->options['alter']['alt'] = t('Nomination form for @post', array('@post' => $post->title));
-
-    $text = !empty($this->options['text']) ? $this->options['text'] : t('Nominate');
-
-    return $text;
+    return theme('election_candidate_nominate_link', array('post' => $post));
   }
 
 }

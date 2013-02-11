@@ -282,9 +282,7 @@ function election_form_delete_submit($form, &$form_state) {
  */
 function election_form_delete_confirm($form, &$form_state, stdClass $election) {
 
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb($election)
-  );
+  election_set_breadcrumb($election);
 
   $form['#election'] = $election;
   $form['election_id'] = array(

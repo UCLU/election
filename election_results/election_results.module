@@ -103,7 +103,7 @@ function election_results_page(stdClass $post) {
   $election = $post->election;
 
   drupal_set_title(t('Results: %post', array('%post' => $post->title)), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($election, '_MANAGE_POSTS_'));
+  election_set_breadcrumb($election);
 
   $output = array();
 

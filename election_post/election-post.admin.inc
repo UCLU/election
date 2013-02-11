@@ -10,7 +10,7 @@
 function election_post_manage_page(stdClass $election) {
   $posts_name = election_get_post_name($election->type, TRUE);
   drupal_set_title(t('Manage @posts', array('@posts' => $posts_name)), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($election));
+  election_set_breadcrumb($election);
   $view = views_get_view('election_posts_admin');
   // Explicitly set the path, so that Views Bulk Operations could work if
   // configured (VBO needs help setting the form's "action" attribute).
@@ -36,13 +36,7 @@ function election_post_page_edit($post) {
 
   $election = $post->election;
 
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb(
-      $election,
-      '_MANAGE_POSTS_',
-      l($post->title, election_post_uri_path($post))
-    )
-  );
+  election_post_set_breadcrumb($election, $post);
 
   module_load_include('inc', 'election_post', 'election_post.forms');
 
@@ -51,14 +45,10 @@ function election_post_page_edit($post) {
 
 /**
  * Page callback for adding an election post.
- *
- * Path: election/%election/posts/add.
  */
 function election_post_page_add($election) {
 
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_MANAGE_POSTS_')
-  );
+  election_set_breadcrumb($election);
 
   if (!is_object($election)) {
     return MENU_NOT_FOUND;

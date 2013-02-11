@@ -29,45 +29,9 @@ $handler->display->display_options['query']['options']['query_comment'] = FALSE;
 $handler->display->display_options['exposed_form']['type'] = 'basic';
 $handler->display->display_options['pager']['type'] = 'full';
 $handler->display->display_options['pager']['options']['items_per_page'] = '50';
-$handler->display->display_options['style_plugin'] = 'table';
-$handler->display->display_options['style_options']['columns'] = array(
-  'title' => 'title',
-  'eligibility' => 'eligibility',
-  'view_link' => 'view_link',
-  'vote_link' => 'view_link',
-  'nominate_link' => 'view_link',
-);
-$handler->display->display_options['style_options']['default'] = 'title';
-$handler->display->display_options['style_options']['info'] = array(
-  'title' => array(
-    'sortable' => 1,
-    'default_sort_order' => 'asc',
-    'align' => '',
-    'separator' => '',
-    'empty_column' => 0,
-  ),
-  'eligibility' => array(
-    'align' => '',
-    'separator' => '',
-    'empty_column' => 0,
-  ),
-  'view_link' => array(
-    'align' => '',
-    'separator' => ' · ',
-    'empty_column' => 0,
-  ),
-  'vote_link' => array(
-    'align' => '',
-    'separator' => '',
-    'empty_column' => 0,
-  ),
-  'nominate_link' => array(
-    'align' => '',
-    'separator' => '',
-    'empty_column' => 0,
-  ),
-);
-$handler->display->display_options['style_options']['empty_table'] = TRUE;
+$handler->display->display_options['style_plugin'] = 'default';
+$handler->display->display_options['row_plugin'] = 'entity';
+$handler->display->display_options['row_options']['view_mode'] = 'teaser';
 /* No results behavior: Global: Text area */
 $handler->display->display_options['empty']['area']['id'] = 'area';
 $handler->display->display_options['empty']['area']['table'] = 'views';
@@ -75,44 +39,6 @@ $handler->display->display_options['empty']['area']['field'] = 'area';
 $handler->display->display_options['empty']['area']['label'] = 'There are currently no posts in this election';
 $handler->display->display_options['empty']['area']['content'] = 'There are currently no posts in this election.';
 $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
-/* Field: Election post: Title */
-$handler->display->display_options['fields']['title']['id'] = 'title';
-$handler->display->display_options['fields']['title']['table'] = 'election_post';
-$handler->display->display_options['fields']['title']['field'] = 'title';
-$handler->display->display_options['fields']['title']['element_label_colon'] = FALSE;
-$handler->display->display_options['fields']['title']['link_to_post'] = 1;
-/* Field: Election post: Eligibility */
-$handler->display->display_options['fields']['eligibility']['id'] = 'eligibility';
-$handler->display->display_options['fields']['eligibility']['table'] = 'election_post';
-$handler->display->display_options['fields']['eligibility']['field'] = 'eligibility';
-$handler->display->display_options['fields']['eligibility']['label'] = 'Your eligibility';
-$handler->display->display_options['fields']['eligibility']['element_label_colon'] = FALSE;
-/* Field: Election post: Link */
-$handler->display->display_options['fields']['view_link']['id'] = 'view_link';
-$handler->display->display_options['fields']['view_link']['table'] = 'election_post';
-$handler->display->display_options['fields']['view_link']['field'] = 'view_link';
-$handler->display->display_options['fields']['view_link']['label'] = 'Actions';
-$handler->display->display_options['fields']['view_link']['element_wrapper_type'] = 'span';
-$handler->display->display_options['fields']['view_link']['element_wrapper_class'] = 'election-action-link election-action-link-view';
-$handler->display->display_options['fields']['view_link']['element_default_classes'] = FALSE;
-$handler->display->display_options['fields']['view_link']['hide_empty'] = TRUE;
-$handler->display->display_options['fields']['view_link']['text'] = 'View details';
-/* Field: Election post: Vote link */
-$handler->display->display_options['fields']['vote_link']['id'] = 'vote_link';
-$handler->display->display_options['fields']['vote_link']['table'] = 'election_post';
-$handler->display->display_options['fields']['vote_link']['field'] = 'vote_link';
-$handler->display->display_options['fields']['vote_link']['label'] = '';
-$handler->display->display_options['fields']['vote_link']['element_label_colon'] = FALSE;
-$handler->display->display_options['fields']['vote_link']['element_wrapper_type'] = 'span';
-$handler->display->display_options['fields']['vote_link']['element_wrapper_class'] = 'election-action-link election-action-link-vote';
-$handler->display->display_options['fields']['vote_link']['element_default_classes'] = FALSE;
-$handler->display->display_options['fields']['vote_link']['hide_empty'] = TRUE;
-/* Field: Election post: Nomination form link */
-$handler->display->display_options['fields']['nominate_link']['id'] = 'nominate_link';
-$handler->display->display_options['fields']['nominate_link']['table'] = 'election_post';
-$handler->display->display_options['fields']['nominate_link']['field'] = 'nominate_link';
-$handler->display->display_options['fields']['nominate_link']['label'] = '';
-$handler->display->display_options['fields']['nominate_link']['element_label_colon'] = FALSE;
 /* Sort criterion: Election post: Title */
 $handler->display->display_options['sorts']['title']['id'] = 'title';
 $handler->display->display_options['sorts']['title']['table'] = 'election_post';

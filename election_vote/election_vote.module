@@ -261,7 +261,6 @@ function election_vote_election_post_view_alter(&$build, $type) {
   );
   $build['eligibility'] = array(
     '#theme' => 'election_info_item',
-    '#label' => t('Your eligibility'),
     '#html' => TRUE,
     '#value' => theme('election_vote_eligibility', array('post' => $post)),
   );
@@ -281,7 +280,7 @@ function election_vote_field_extra_fields_alter(&$info) {
       ),
       'eligibility' => array(
         'label' => t('Eligibility'),
-        'weight' => 1,
+        'weight' => 3,
       ),
     );
   }

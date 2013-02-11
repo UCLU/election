@@ -82,7 +82,7 @@ function election_statistics_theme() {
  */
 function election_statistics_page(stdClass $election) {
   drupal_set_title(t('Statistics: %election', array('%election' => $election->title)), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($election));
+  election_set_breadcrumb($election);
   return theme('election_statistics', array('election' => $election));
 }
 

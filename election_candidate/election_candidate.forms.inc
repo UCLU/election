@@ -12,9 +12,7 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
   $election = election_load($candidate->election_id);
 
   drupal_set_title(t('Edit candidate: %first-name %last-name', array('%first-name' => $candidate->first_name, '%last-name' => $candidate->last_name)), PASS_THROUGH);
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_CANDIDATES_')
-  );
+  election_set_breadcrumb($election);
 
   $form['#id'] = 'election-candidate-edit-form';
   $form['#candidate'] = $candidate;
@@ -196,9 +194,7 @@ function election_candidate_edit_form_delete_confirm($form, &$form_state, stdCla
 
   $election = election_load($candidate->election_id);
 
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_CANDIDATES_')
-  );
+  election_set_breadcrumb($election);
 
   $form['candidate_id'] = array(
     '#type' => 'value',
@@ -265,10 +261,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $post)
   drupal_set_title(t('Nomination form: %post', array(
     '%post' => truncate_utf8($post->title, 50, TRUE, TRUE, 30),
   )), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb(
-    $election,
-    l($post->title, election_post_uri_path($post))
-  ));
+  election_post_set_breadcrumb($election, $post);
 
   $candidate_type = !empty($post->settings['candidate_type']) ? $post->settings['candidate_type'] : 'candidate';
   $candidate = entity_get_controller('election_candidate')->create(array(

@@ -547,8 +547,12 @@ function election_candidate_field_extra_fields_alter(&$info) {
           'weight' => -2,
         ),
       );
-      // Add a property to the 'Manage display' form for election posts.
+      // Add properties to the 'Manage display' form for election posts.
       $info['election_post'][$bundle]['display'] += array(
+        'nominate_link' => array(
+          'label' => t('Nomination form link'),
+          'weight' => 2,
+        ),
         'candidates' => array(
           'label' => t('Candidates'),
           'weight' => 100,
@@ -866,6 +870,12 @@ function election_candidate_theme() {
       ),
       'file' => 'election_candidate.theme.inc',
     ),
+    'election_candidate_nominate_link' => array(
+      'variables' => array(
+        'post' => NULL,
+      ),
+      'file' => 'election_candidate.theme.inc',
+    ),
     'election_candidate_status' => array(
       'variables' => array(
         'candidate' => NULL,
@@ -894,21 +904,30 @@ function election_candidate_view($candidate, $view_mode = 'full') {
   // Remove previously built content, if it exists.
   $candidate->content = array();
 
+  $election_path = election_uri_path($election);
+  $election_candidates_path = $election_path . '/candidates';
+  $post_path = election_post_uri_path($post);
+  $current_path = current_path();
+
   // Display a link to the election.
-  $candidate->content['election'] = array(
-    '#theme' => 'election_info_item',
-    '#label' => t('Election'),
-    '#value' => l($election->title, election_uri_path($election)),
-    '#html' => TRUE,
-  );
+  if (!in_array($current_path, array($election_path, $election_candidates_path, $post_path))) {
+    $candidate->content['election'] = array(
+      '#theme' => 'election_info_item',
+      '#label' => t('Election'),
+      '#value' => l($election->title, election_uri_path($election)),
+      '#html' => TRUE,
+    );
+  }
 
   // Display a link to the post.
-  $candidate->content['post'] = array(
-    '#theme' => 'election_info_item',
-    '#label' => drupal_ucfirst(election_get_post_name($election->type)),
-    '#value' => l($post->title, election_post_uri_path($post)),
-    '#html' => TRUE,
-  );
+  if ($current_path != $post_path && $current_path != $election_path . '/candidates') {
+    $candidate->content['post'] = array(
+      '#theme' => 'election_info_item',
+      '#label' => drupal_ucfirst(election_get_post_name($election->type)),
+      '#value' => l($post->title, election_post_uri_path($post)),
+      '#html' => TRUE,
+    );
+  }
 
   // Display the candidate's status.
   $candidate->content['status'] = array(
@@ -1175,12 +1194,23 @@ function election_candidate_load_by_post(stdClass $post, array $statuses = NULL,
 function election_candidate_election_post_view_alter(&$build) {
   $post = $build['#post'];
   $election = $post->election;
-  if (election_candidate_check_support($election) && $build['#view_mode'] == 'full') {
-    $candidates_view = views_embed_view('election_candidates', 'embed_candidates_per_post', $post->post_id);
-    if (!empty($candidates_view)) {
+  if (!election_candidate_check_support($election)) {
+    return;
+  }
+  // Display a link to the nomination form for the post.
+  $build['nominate_link'] = array(
+    '#theme' => 'election_info_item',
+    '#html' => TRUE,
+    '#value' => theme('election_candidate_nominate_link', array('post' => $post)),
+  );
+  // Display a list of candidates on the post.
+  if ($build['#view_mode'] == 'full') {
+    $view = views_get_view('election_candidates');
+    $output = $view->preview('embed_candidates_per_post', array($post->post_id));
+    if ($view->result) {
       $build['candidates'] = array(
         '#prefix' => '<div class="election-post-candidates"><h2>' . t('Candidates') . '</h2>',
-        '#markup' => $candidates_view,
+        '#markup' => $output,
         '#suffix' => '</div>',
       );
     }

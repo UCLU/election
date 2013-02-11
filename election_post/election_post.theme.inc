@@ -48,7 +48,10 @@ function template_preprocess_election_post(&$variables) {
   field_attach_preprocess('election_post', $post, $variables['content'], $variables);
 
   // Gather classes.
-  $variables['classes_array'][] = drupal_html_class('election-post-' . $election->type);
+  $variables['classes_array'][] = drupal_html_class('election-type-' . $election->type . '-post');
+  if ($view_mode == 'teaser') {
+    $variables['classes_array'][] = 'election-post-teaser';
+  }
 
   // Clean up name so there are no underscores.
   $variables['theme_hook_suggestions'][] = 'election_post__' . $election->type;

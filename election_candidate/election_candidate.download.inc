@@ -10,7 +10,7 @@
 function election_candidate_download_form($form, &$form_state, stdClass $election) {
 
   drupal_set_title(t('Download candidates'), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($election));
+  election_set_breadcrumb($election);
 
   $candidate_field_instances = field_info_instances('election_candidate');
 

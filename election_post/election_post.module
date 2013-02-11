@@ -26,36 +26,6 @@ function election_post_menu() {
     );
   }
 
-  $items['election/%election/posts'] = array(
-    'title callback' => 'election_post_manage_page_title',
-    'title arguments' => array(1),
-    'page callback' => 'election_post_manage_page',
-    'page arguments' => array(1),
-    'file' => 'election-post.admin.inc',
-    'access callback' => 'election_access',
-    'access arguments' => array('update', 1),
-    'weight' => 3,
-    'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-  );
-
-  $items['election/%election/posts/manage'] = array(
-    'title' => 'Manage',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => 0,
-  );
-
-  $items['election/%election/posts/manage/add'] = array(
-    'title callback' => 'election_post_page_add_title',
-    'title arguments' => array(1),
-    'page callback' => 'election_post_page_add',
-    'page arguments' => array(1),
-    'access callback' => 'election_post_access',
-    'access arguments' => array('create', 1),
-    'file' => 'election-post.admin.inc',
-    'type' => MENU_LOCAL_ACTION,
-  );
-
   $items['election/%election/add-post'] = array(
     'title callback' => 'election_post_page_add_title',
     'title arguments' => array(1),
@@ -555,31 +525,11 @@ function election_post_save($post) {
 }
 
 /**
- * Title callback for election/%election/posts/manage.
- *
- * Output should not be escaped here as it is done by the menu system.
- */
-function election_post_list_page_title($election) {
-  return drupal_ucfirst(election_get_post_name($election->type, TRUE));
-}
-
-/**
  * Title callback for adding an election post.
- *
- * Paths: election/%election/add-post and election/%election/posts/manage/add.
- *
- * Output should not be escaped here as it is done by the menu system.
  */
 function election_post_page_add_title($election) {
-  return t('Add new !post_name', array('!post_name' => election_get_post_name($election->type)));
-}
-
-/**
- * Title callback for election/%election/posts/manage.
- */
-function election_post_manage_page_title($election) {
   // Output should not be escaped here; it is done later in the menu system.
-  return t('Manage @posts', array('@posts' => election_get_post_name($election->type, TRUE)));
+  return t('Add new !post_name', array('!post_name' => election_get_post_name($election->type)));
 }
 
 /**
@@ -619,15 +569,17 @@ function election_post_view($post, $view_mode = 'full') {
   // Remove previously built content, if it exists.
   $post->content = array();
 
-  // Display a link to the election.
+  // Display a link to the election, if we're not on the election's page.
   $election = $post->election;
   $election_uri = election_uri($election);
-  $post->content['election'] = array(
-    '#theme' => 'election_info_item',
-    '#label' => t('Election'),
-    '#html' => TRUE,
-    '#value' => l($election->title, $election_uri['path'], $election_uri['options']),
-  );
+  if (current_path() != $election_uri['path']) {
+    $post->content['election'] = array(
+      '#theme' => 'election_info_item',
+      '#label' => t('Election'),
+      '#html' => TRUE,
+      '#value' => l($election->title, $election_uri['path'], $election_uri['options']),
+    );
+  }
 
   // Build fields content.
   // In case of a multiple view, node_view_multiple() already ran the
@@ -697,14 +649,29 @@ function _election_post_is_open(stdClass $post, $election = NULL, $status_prefix
  */
 function election_post_page_view($post, $view_mode = 'full') {
 
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb(
-      $post->election
-    )
-  );
+  election_set_breadcrumb($post->election);
 
   return election_post_view($post, $view_mode);
 
+}
+
+/**
+ * Set the breadcrumb for an election post.
+ *
+ * @param stdClass $election
+ *   An election object.
+ * @param stdClass $post
+ *   An election post object (optional).
+ */
+function election_post_set_breadcrumb(stdClass $election, stdClass $post = NULL) {
+  $links = array();
+  $links[] = l(t('Home'), '<front>');
+  $links[] = l(t('Elections'), 'elections');
+  $links[] = l($election->title, election_uri_path($election));
+  if ($post) {
+    $links[] = l($post->title, election_post_uri_path($post));
+  }
+  drupal_set_breadcrumb($links);
 }
 
 /**

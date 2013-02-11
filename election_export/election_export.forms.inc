@@ -12,7 +12,7 @@ function election_export_form($form, &$form_state, stdClass $election) {
   $form['#election'] = $election;
 
   drupal_set_title(t('Export: %election', array('%election' => $election->title)), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($election));
+  election_set_breadcrumb($election);
 
   $default_filename = $election->title . '-' . $election->election_id;
   $default_filename = truncate_utf8(preg_replace('/[^A-Z0-9\-_]+/i', '-', $default_filename), 60, FALSE, FALSE);

@@ -307,14 +307,6 @@ function election_views_data() {
     ),
   );
 
-  $data['election']['posts_link'] = array(
-    'field' => array(
-      'title' => t('Posts link'),
-      'help' => t('A link to the list of posts/positions/questions for the election.'),
-      'handler' => 'views_handler_field_election_link_posts',
-    ),
-  );
-
   return $data;
 
 }

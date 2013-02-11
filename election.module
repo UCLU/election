@@ -675,7 +675,7 @@ function election_theme() {
  */
 function election_page_view(stdClass $election) {
   drupal_set_title($election->title);
-  drupal_set_breadcrumb(_election_build_breadcrumb());
+  election_set_breadcrumb();
   return election_view($election, 'full');
 }
 
@@ -792,59 +792,19 @@ function _election_is_open($status, $open_time, $close_time) {
 }
 
 /**
- * General function for creating elections' breadcrumbs.
- *
- * Accepts any number of parameters, each corresponding to the breadcrumb link.
- * The first parameter, if given, must be an election object. Output must be
- * sanitized before passing to this function.
+ * Set the breadcrumb for an election, format: Home > Elections [ > Election].
  *
  * @param stdClass $election
  *   An election object (optional).
- *
- * @return array
- *   An array of breadcrumb parts to be provided to drupal_set_breadcrumb().
  */
-function _election_build_breadcrumb(stdClass $election = NULL) {
-  $args = func_get_args();
+function election_set_breadcrumb(stdClass $election = NULL) {
   $links = array();
-  $links[] = l(
-    t('Home'),
-    '<front>'
-  );
-  $links[] = l(
-    t('Elections'),
-    'elections'
-  );
-  if (!is_object($election)) {
-    return $links;
+  $links[] = l(t('Home'), '<front>');
+  $links[] = l(t('Elections'), 'elections');
+  if ($election) {
+    $links[] = l($election->title, election_uri_path($election));
   }
-  $election_uri_path = election_uri_path($election);
-  unset($args[0]);
-  $args_count = count($args);
-  // l() runs check_plain on the first argument.
-  $links[] = l(
-    $election->title,
-    $election_uri_path
-  );
-  foreach ($args as $key => $arg) {
-    switch ($arg) {
-      case '_MANAGE_POSTS_':
-        $posts_name = election_get_post_name($election->type, TRUE);
-        $link = l(drupal_ucfirst($posts_name), $election_uri_path . '/posts');
-        break;
-
-      case '_CANDIDATES_':
-        $link = l(t('Candidates'), $election_uri_path . '/candidates');
-        break;
-
-      default:
-        $link = $arg;
-        break;
-
-    }
-    $links[] = $link;
-  }
-  return $links;
+  drupal_set_breadcrumb($links);
 }
 
 /**

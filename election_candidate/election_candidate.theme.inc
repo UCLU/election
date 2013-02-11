@@ -50,7 +50,10 @@ function template_preprocess_election_candidate(&$variables) {
   // Make the field variables available with the appropriate language.
   field_attach_preprocess('election_candidate', $candidate, $variables['content'], $variables);
 
-  $variables['classes_array'][] = drupal_html_class('election-' . $election->type . '-candidate');
+  $variables['classes_array'][] = drupal_html_class('election-type-' . $election->type . '-candidate');
+  if ($view_mode == 'teaser') {
+    $variables['classes_array'][] = 'election-candidate-teaser';
+  }
 
   $variables['theme_hook_suggestions'][] = 'election_candidate__' . $candidate->candidate_id;
   $variables['theme_hook_suggestions'][] = 'election__' . $election->type . '__candidate';
@@ -99,4 +102,37 @@ function theme_election_candidate_ballot_item($variables) {
   $full_name = theme('election_candidate_full_name', array('candidate' => $candidate));
   $link = l($full_name, election_candidate_uri_path($candidate));
   return '<span class="election-candidate-ballot-item">' . $link . '</span>';
+}
+
+/**
+ * Process variables for displaying a link to the nomination form on a post.
+ */
+function template_preprocess_election_candidate_nominate_link(&$variables) {
+  $post = $variables['post'];
+  $variables['logged_in'] = user_is_logged_in();
+  $variables['nominate_access'] = election_candidate_nominate_access($post);
+  $variables['nominate_open'] = _election_post_is_open($post, $post->election, 'n');
+}
+
+/**
+ * Theme function for displaying a link to the nomination form on a post.
+ */
+function theme_election_candidate_nominate_link($variables) {
+  $nominate_access = $variables['nominate_access'];
+  $nominate_open = $variables['nominate_open'];
+  $logged_in = $variables['logged_in'];
+  $post = $variables['post'];
+  $election = $post->election;
+  $options = array('query' => drupal_get_destination());
+  if (!election_candidate_check_support($election)) {
+    return;
+  }
+  elseif ($nominate_access) {
+    $output = l(t('Submit a nomination'), election_post_uri_path($post) . '/nomination-form', $options);
+    return '<span class="election-nominate-link">' . $output  . '</span>';
+  }
+  elseif (!$logged_in && $nominate_open) {
+    $output = t('<a href="@login">Log in</a> to submit a nomination', array('@login' => url('user/login', $options)));
+    return '<span class="election-nominate-link election-nominate-login">' . $output  . '</span>';
+  }
 }

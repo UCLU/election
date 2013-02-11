@@ -34,13 +34,14 @@ $handler->display->display_options['style_plugin'] = 'default';
 $handler->display->display_options['style_options']['grouping'] = array(
   0 => array(
     'field' => 'title',
-    'rendered' => 0,
+    'rendered' => 1,
     'rendered_strip' => 0,
   ),
 );
 $handler->display->display_options['style_options']['row_class'] = 'election-candidate-row clearfix';
-$handler->display->display_options['row_plugin'] = 'fields';
-$handler->display->display_options['row_options']['default_field_elements'] = FALSE;
+$handler->display->display_options['style_options']['uses_fields'] = TRUE;
+$handler->display->display_options['row_plugin'] = 'entity';
+$handler->display->display_options['row_options']['view_mode'] = 'teaser';
 /* Footer: Global: Text area */
 $handler->display->display_options['footer']['area']['id'] = 'area';
 $handler->display->display_options['footer']['area']['table'] = 'views';
@@ -112,18 +113,7 @@ $handler->display->display_options['fields']['title']['id'] = 'title';
 $handler->display->display_options['fields']['title']['table'] = 'election_post';
 $handler->display->display_options['fields']['title']['field'] = 'title';
 $handler->display->display_options['fields']['title']['label'] = 'Standing for';
-$handler->display->display_options['fields']['title']['exclude'] = TRUE;
 $handler->display->display_options['fields']['title']['link_to_post'] = 1;
-/* Field: Election candidate: Name */
-$handler->display->display_options['fields']['fullname']['id'] = 'fullname';
-$handler->display->display_options['fields']['fullname']['table'] = 'election_candidate';
-$handler->display->display_options['fields']['fullname']['field'] = 'fullname';
-$handler->display->display_options['fields']['fullname']['label'] = '';
-$handler->display->display_options['fields']['fullname']['element_type'] = 'span';
-$handler->display->display_options['fields']['fullname']['element_class'] = 'election-candidate-name';
-$handler->display->display_options['fields']['fullname']['element_label_colon'] = FALSE;
-$handler->display->display_options['fields']['fullname']['element_default_classes'] = FALSE;
-$handler->display->display_options['fields']['fullname']['link_to_candidate'] = 1;
 
 /* Display: Candidates per post */
 $handler = $view->new_display('embed', 'Candidates per post', 'embed_candidates_per_post');
@@ -132,14 +122,6 @@ $handler->display->display_options['css_class'] = 'election-post-candidates';
 $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
 $handler->display->display_options['defaults']['header'] = FALSE;
 $handler->display->display_options['defaults']['empty'] = FALSE;
-/* No results behavior: Global: Text area */
-$handler->display->display_options['empty']['area']['id'] = 'area';
-$handler->display->display_options['empty']['area']['table'] = 'views';
-$handler->display->display_options['empty']['area']['field'] = 'area';
-$handler->display->display_options['empty']['area']['label'] = 'There are currently no published candidate profiles for this position';
-$handler->display->display_options['empty']['area']['empty'] = TRUE;
-$handler->display->display_options['empty']['area']['content'] = 'There are currently no published candidate profiles for this position.';
-$handler->display->display_options['empty']['area']['format'] = 'filtered_html';
 $handler->display->display_options['defaults']['arguments'] = FALSE;
 /* Contextual filter: Election post: Post ID */
 $handler->display->display_options['arguments']['post_id']['id'] = 'post_id';

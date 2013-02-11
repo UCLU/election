@@ -26,9 +26,7 @@ function election_vote_form($form, &$form_state, stdClass $post) {
     )),
     PASS_THROUGH
   );
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, l($post->title, election_post_uri_path($post)))
-  );
+  election_post_set_breadcrumb($election, $post);
 
   $form_state['election'] = $election;
   $form_state['post'] = $post;
@@ -126,12 +124,7 @@ function election_vote_undo_form($form, &$form_state, $post) {
   $form_state['post'] = $post;
   $form_state['election'] = $election;
 
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb(
-      $election,
-      l($post->title, election_post_uri_path($post))
-    )
-  );
+  election_post_set_breadcrumb($election, $post);
 
   if (isset($form_state['undo_require_confirm'])) {
     return election_vote_undo_confirm($form, $form_state);

@@ -174,6 +174,9 @@ function template_preprocess_election(&$variables) {
   field_attach_preprocess('election', $election, $variables['content'], $variables);
 
   $variables['classes_array'][] = drupal_html_class('election-type-' . $election->type);
+  if ($view_mode == 'teaser') {
+    $variables['classes_array'][] = 'election-teaser';
+  }
 
   $variables['theme_hook_suggestions'][] = 'election__' . $election->type;
   $variables['theme_hook_suggestions'][] = 'election__' . $election->election_id;

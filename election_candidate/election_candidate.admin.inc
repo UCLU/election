@@ -10,7 +10,7 @@
  */
 function election_candidate_manage_page(stdClass $election) {
   drupal_set_title(t('Manage candidates'), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($election));
+  election_set_breadcrumb($election);
   $view = views_get_view('election_candidates_admin');
   // Explicitly set the path, so that Views Bulk Operations could work if
   // configured (VBO needs help setting the form's "action" attribute).
@@ -24,7 +24,7 @@ function election_candidate_manage_page(stdClass $election) {
 function election_candidate_totals_page(stdClass $election) {
 
   drupal_set_title(t('Candidate totals'), PASS_THROUGH);
-  drupal_set_breadcrumb(_election_build_breadcrumb($election));
+  election_set_breadcrumb($election);
 
   $totals = db_query("SELECT IFNULL(cstatus, 'all') AS cstatus, COUNT(DISTINCT candidate_id) FROM {election_candidate} WHERE election_id = :eid GROUP BY cstatus WITH ROLLUP", array(':eid' => $election->election_id))->fetchAllKeyed();
 

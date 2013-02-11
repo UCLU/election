@@ -25,9 +25,7 @@ function election_page_edit($election) {
   );
 
   drupal_set_title($title, PASS_THROUGH);
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb($election)
-  );
+  election_set_breadcrumb($election);
 
   module_load_include('inc', 'election', 'election.forms');
 

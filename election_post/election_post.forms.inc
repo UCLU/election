@@ -27,21 +27,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
 
   $post->is_new = empty($post->post_id);
 
-  if ($post->is_new) {
-    $breadcrumb = _election_build_breadcrumb(
-      $election,
-      '_MANAGE_POSTS_'
-    );
-  }
-  else {
-    $breadcrumb = _election_build_breadcrumb(
-      $election,
-      '_MANAGE_POSTS_',
-      l($post->title, election_post_uri_path($post))
-    );
-  }
-
-  drupal_set_breadcrumb($breadcrumb);
+  election_post_set_breadcrumb($election, $post->is_new ? NULL : $post);
 
   $post_name = election_get_post_name($election->type);
 
@@ -223,9 +209,7 @@ function election_post_form_delete_confirm($form, &$form_state, stdClass $post) 
 
   $election = $post->election;
 
-  drupal_set_breadcrumb(
-    _election_build_breadcrumb($election, '_MANAGE_POSTS_', l($post->title, election_post_uri_path($post)))
-  );
+  election_post_set_breadcrumb($election, $post);
 
   $form['election_id'] = array(
     '#type' => 'value',
@@ -286,7 +270,7 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
   }
 
   if (empty($_GET['destination'])) {
-    $form_state['redirect'] = election_uri_path($election) . '/posts';
+    $form_state['redirect'] = election_uri_path($election);
   }
 
 }
