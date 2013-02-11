@@ -109,9 +109,11 @@ function theme_election_candidate_ballot_item($variables) {
  */
 function template_preprocess_election_candidate_nominate_link(&$variables) {
   $post = $variables['post'];
+  $election = $post->election;
   $variables['logged_in'] = user_is_logged_in();
+  $variables['nominate_path'] = election_post_uri_path($post) . '/nomination-form';
+  $variables['nominate_open'] = _election_post_is_open($post, $election, 'n');
   $variables['nominate_access'] = election_candidate_nominate_access($post);
-  $variables['nominate_open'] = _election_post_is_open($post, $post->election, 'n');
 }
 
 /**
@@ -120,15 +122,11 @@ function template_preprocess_election_candidate_nominate_link(&$variables) {
 function theme_election_candidate_nominate_link($variables) {
   $nominate_access = $variables['nominate_access'];
   $nominate_open = $variables['nominate_open'];
+  $nominate_path = $variables['nominate_path'];
   $logged_in = $variables['logged_in'];
-  $post = $variables['post'];
-  $election = $post->election;
   $options = array('query' => drupal_get_destination());
-  if (!election_candidate_check_support($election)) {
-    return;
-  }
-  elseif ($nominate_access) {
-    $output = l(t('Submit a nomination'), election_post_uri_path($post) . '/nomination-form', $options);
+  if ($nominate_access) {
+    $output = l(t('Submit a nomination'), $nominate_path, $options);
     return '<span class="election-nominate-link">' . $output  . '</span>';
   }
   elseif (!$logged_in && $nominate_open) {
