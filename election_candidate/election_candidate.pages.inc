@@ -5,6 +5,18 @@
  * (Election module).
  */
 
+ /**
+  * Page callback for election-post/%election_post/nomination-form.
+  */
+function election_candidate_nomination_form_page(stdClass $post) {
+  drupal_set_title(t('Nomination form: %post', array(
+    '%post' => truncate_utf8($post->title, 50, TRUE, TRUE, 30),
+  )), PASS_THROUGH);
+  election_post_set_breadcrumb($post->election, $post);
+  module_load_include('inc', 'election_candidate', 'election_candidate.forms');
+  return drupal_get_form('election_candidate_nomination_form', $post);
+}
+
 /**
  * Page callback for election/%election/candidates/list.
  */

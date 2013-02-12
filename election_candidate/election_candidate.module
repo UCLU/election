@@ -237,11 +237,11 @@ function election_candidate_menu() {
 
   $items['election-post/%election_post/nomination-form'] = array(
     'title' => 'Nomination form',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_candidate_nomination_form', 1),
+    'page callback' => 'election_candidate_nomination_form_page',
+    'page arguments' => array(1),
     'access callback' => 'election_candidate_nominate_access',
     'access arguments' => array(1),
-    'file' => 'election_candidate.forms.inc',
+    'file' => 'election_candidate.pages.inc',
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'weight' => 4,
