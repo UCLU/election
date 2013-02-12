@@ -142,9 +142,10 @@ function election_stv_election_view_alter(&$build) {
   if ($election->type == 'stv' && $build['#view_mode'] == 'full') {
     $posts_name = election_get_post_name($election->type, TRUE);
     $build['posts'] = array(
-      '#prefix' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>',
-      '#markup' => views_embed_view('election_posts', 'embed_stv', $election->election_id),
-      '#suffix' => '</div>',
+      '#theme' => 'election_post_list_embed',
+      '#title' => drupal_ucfirst($posts_name),
+      '#display' => 'embed_stv',
+      '#args' => array($election->election_id),
     );
   }
 }

@@ -550,6 +550,15 @@ function election_post_theme() {
       'template' => 'election-post',
       'file' => 'election_post.theme.inc',
     ),
+    'election_post_list_embed' => array(
+      'variables' => array(
+        'view' => 'election_posts',
+        'display' => 'embed',
+        'args' => array(),
+        'title' => NULL,
+      ),
+      'file' => 'election_post.theme.inc',
+    ),
   );
 }
 
@@ -766,11 +775,10 @@ function election_post_election_view_alter(&$build) {
   if (!isset($build['posts']) && $build['#view_mode'] == 'full') {
     $election = $build['#election'];
     $posts_name = election_get_post_name($election->type, TRUE);
-    $view = views_get_view('election_posts', 'default', $election->election_id);
     $build['posts'] = array(
-      '#prefix' => '<div class="election-posts"><h2>' . drupal_ucfirst(check_plain($posts_name)) . '</h2>',
-      '#markup' => views_embed_view('election_posts', 'embed', $election->election_id),
-      '#suffix' => '</div>',
+      '#theme' => 'election_post_list_embed',
+      '#title' => drupal_ucfirst($posts_name),
+      '#args' => array($election->election_id),
     );
   }
 }

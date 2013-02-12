@@ -58,3 +58,24 @@ function template_preprocess_election_post(&$variables) {
   $variables['theme_hook_suggestions'][] = 'election_post__' . $election->election_id;
 
 }
+
+/**
+ * Theme function for displaying a list of posts in an embedded View.
+ */
+function theme_election_post_list_embed($variables) {
+
+  $view = views_get_view($variables['view']);
+  $view_output = $view->preview($variables['display'], $variables['args']);
+  if (!$view->result) {
+    return;
+  }
+  $output = '<div class="election-posts">';
+  if ($variables['title']) {
+    $output .= '<h2>' . check_plain($variables['title']) . '</h2>';
+  }
+  $output .= $view_output;
+  $output .= '</div>';
+
+  return $output;
+
+}
