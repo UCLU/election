@@ -47,6 +47,8 @@ function election_candidate_entity_info() {
     'view callback' => 'entity_metadata_view_single',
     // Disable fields added by the Redirect module.
     'redirect' => FALSE,
+    // Enable the Meta Tags module to integrate with candidates.
+    'metatags' => TRUE,
   );
 
   // The entity that holds information about candidate types.

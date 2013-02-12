@@ -146,6 +146,8 @@ function election_post_entity_info() {
       ),
     ),
     'view callback' => 'entity_metadata_view_single',
+    // Enable the Meta Tags module to integrate with posts.
+    'metatags' => TRUE,
   );
 
   foreach (election_types() as $type_machine_name => $type) {
@@ -159,8 +161,6 @@ function election_post_entity_info() {
         'bundle argument' => 4,
         'access arguments' => array('administer elections'),
       ),
-      // Prevent the Metatags module adding elements.
-      'metatags' => FALSE,
     );
   }
 

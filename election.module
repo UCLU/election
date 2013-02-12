@@ -41,6 +41,8 @@ function election_entity_info() {
       ),
     ),
     'view callback' => 'entity_metadata_view_single',
+    // Enable the Meta Tags module to integrate with elections.
+    'metatags' => TRUE,
   );
 
   foreach (election_types() as $type_machine_name => $type) {
