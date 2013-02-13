@@ -128,6 +128,7 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
     '#href' => $cancel_path,
   );
 
+  form_load_include($form_state, 'inc', 'election_candidate', 'election_candidate.forms');
   $form['#validate'][] = 'election_candidate_form_validate';
   $form['#validate'][] = 'election_candidate_edit_form_validate';
 
@@ -340,6 +341,7 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $post)
     );
   }
 
+  form_load_include($form_state, 'inc', 'election_candidate', 'election_candidate.forms');
   $form['#validate'][] = 'election_candidate_form_validate';
 
   return $form;

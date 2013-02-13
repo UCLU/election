@@ -151,6 +151,7 @@ function election_form($form, &$form_state, stdClass $election) {
     '#href' => $cancel_path,
   );
 
+  form_load_include($form_state, 'inc', 'election', 'election.forms');
   $form['#validate'][] = 'election_form_validate';
 
   // Add custom fields from the Field system.

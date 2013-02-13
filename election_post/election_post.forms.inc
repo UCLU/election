@@ -122,6 +122,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
     '#href' => $cancel_path,
   );
 
+  form_load_include($form_state, 'inc', 'election_post', 'election_post.forms');
   $form['#validate'][] = 'election_post_form_validate';
 
   // Add custom fields from the Field system.
