@@ -34,7 +34,7 @@ function election_candidate_totals_page(stdClass $election) {
     ),
   );
 
-  if ($totals['all'] > 0) {
+  if (!empty($totals['all'])) {
     $result = db_query(
       "SELECT ep.post_id, ep.title, cstatus, COUNT(DISTINCT candidate_id) AS num FROM {election_post} ep LEFT JOIN {election_candidate} ec USING (post_id) WHERE ep.election_id = :eid GROUP BY ep.post_id, ec.cstatus ORDER BY ep.title",
       array(':eid' => $election->election_id)
