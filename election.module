@@ -739,7 +739,12 @@ function election_view(stdClass $election, $view_mode = 'full') {
     $build['#contextual_links']['election'] = array('election', array($election->election_id));
   }
 
-  // Allow modules to modify the structured election.
+  // Invoke hook_entity_view().
+  global $language;
+  $langcode = $language->language;
+  module_invoke_all('entity_view', $election, 'election', $view_mode, $langcode);
+
+  // Invoke hook_ENTITY_view_alter() and hook_entity_view_alter().
   $type = 'election';
   drupal_alter(array('election_view', 'entity_view'), $build, $type);
 

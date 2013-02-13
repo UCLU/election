@@ -987,7 +987,12 @@ function election_candidate_view($candidate, $view_mode = 'full') {
     $build['#contextual_links']['election_candidate'] = array('election-candidate', array($candidate->candidate_id));
   }
 
-  // Allow modules to modify the structured election candidate.
+  // Invoke hook_entity_view().
+  global $language;
+  $langcode = $language->language;
+  module_invoke_all('entity_view', $candidate, 'election_candidate', $view_mode, $langcode);
+
+  // Invoke hook_ENTITY_view_alter() and hook_entity_view_alter().
   $type = 'election_candidate';
   drupal_alter(array('election_candidate_view', 'entity_view'), $build, $type);
 
