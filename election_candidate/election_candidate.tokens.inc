@@ -27,6 +27,11 @@ function election_candidate_token_info() {
         'description' => t('The election in which the candidate is standing.'),
         'type' => 'election',
       ),
+      'post' => array(
+        'name' => t('Election post'),
+        'description' => t('The post for which the candidate is standing.'),
+        'type' => 'election_post',
+      ),
       'mail' => array(
         'name' => t('E-mail address'),
         'description' => t('The e-mail address of the candidate.'),
@@ -75,11 +80,20 @@ function election_candidate_tokens($type, array $tokens, array $data = array(), 
           $replacements[$original] = $sanitize ? check_plain($election->title) : $election->title;
           break;
 
+        case 'post':
+          $post = election_post_load($candidate->post_id);
+          $replacements[$original] = $sanitize ? check_plain($post->title) : $post->title;
+          break;
+
       }
     }
     if ($election_tokens = token_find_with_prefix($tokens, 'election')) {
       $election = election_load($candidate->election_id);
       $replacements += token_generate('election', $election_tokens, array('election' => $election), $options);
+    }
+    if ($post_tokens = token_find_with_prefix($tokens, 'election_post')) {
+      $post = election_post_load($candidate->post_id);
+      $replacements += token_generate('election_post', $post_tokens, array('election_post' => $post), $options);
     }
   }
   return $replacements;
