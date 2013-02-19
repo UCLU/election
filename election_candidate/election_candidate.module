@@ -757,6 +757,9 @@ function election_candidate_nominate_access(stdClass $post, $account = NULL) {
   $has_exclusive = FALSE;
   $prev_post_ids = array();
   foreach ($nominations as $nomination) {
+    if (in_array($nomination->cstatus, array(ELECTION_CANDIDATE_REJECTED, ELECTION_CANDIDATE_WITHDRAWN))) {
+      continue;
+    }
     $settings = (array) unserialize($nomination->settings);
     if (!empty($settings['exclusive'])) {
       $has_exclusive = TRUE;
