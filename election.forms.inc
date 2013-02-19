@@ -33,10 +33,14 @@ function election_form($form, &$form_state, stdClass $election) {
     $election->type_info = _election_type_get_info($election->type);
   }
   if (!empty($election->type_info['has candidates'])) {
-
+    $form['nominations'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Nominations'),
+      '#collapsible' => TRUE,
+    );
     $nopen_default = isset($election->nopen_time) ? $election->nopen_time : NULL;
     $nclose_default = isset($election->nclose_time) ? $election->nclose_time : NULL;
-    $form['nstatus'] = array(
+    $form['nominations']['nstatus'] = array(
       '#type' => 'select',
       '#title' => t('Nominations status'),
       '#default_value' => isset($election->nstatus) ? $election->nstatus : ELECTION_STATUS_CLOSED,
@@ -46,7 +50,7 @@ function election_form($form, &$form_state, stdClass $election) {
         ELECTION_STATUS_SCHEDULED => t('Scheduled'),
       ),
     );
-    $form['nschedule'] = array(
+    $form['nominations']['nschedule'] = array(
       '#title' => t('Nominations schedule'),
       '#type' => 'fieldset',
       '#description' => 'Set the opening and closing times for nominations.',
@@ -56,7 +60,7 @@ function election_form($form, &$form_state, stdClass $election) {
         ),
       ),
     );
-    $form['nschedule']['nopen_time'] = array(
+    $form['nominations']['nschedule']['nopen_time'] = array(
       '#title' => t('Opening time'),
       '#type' => $date_widget,
       '#default_value' => $nopen_default ? date('Y-m-d H:i:s', $nopen_default) : NULL,
@@ -64,7 +68,7 @@ function election_form($form, &$form_state, stdClass $election) {
       '#date_increment' => 5,
       '#date_year_range' => '-2:+5',
     );
-    $form['nschedule']['nclose_time'] = array(
+    $form['nominations']['nschedule']['nclose_time'] = array(
       '#title' => t('Closing time'),
       '#type' => $date_widget,
       '#default_value' => $nclose_default ? date('Y-m-d H:i:s', $nclose_default) : NULL,
@@ -77,7 +81,12 @@ function election_form($form, &$form_state, stdClass $election) {
   $vopen_default = isset($election->vopen_time) ? $election->vopen_time : NULL;
   $vclose_default = isset($election->vclose_time) ? $election->vclose_time : NULL;
 
-  $form['vstatus'] = array(
+  $form['voting'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Voting'),
+    '#collapsible' => TRUE,
+  );
+  $form['voting']['vstatus'] = array(
     '#type' => 'select',
     '#title' => t('Voting status'),
     '#default_value' => isset($election->vstatus) ? $election->vstatus : ELECTION_STATUS_CLOSED,
@@ -87,7 +96,7 @@ function election_form($form, &$form_state, stdClass $election) {
       ELECTION_STATUS_SCHEDULED => t('Scheduled'),
     ),
   );
-  $form['vschedule'] = array(
+  $form['voting']['vschedule'] = array(
     '#title' => t('Voting schedule'),
     '#type' => 'fieldset',
     '#description' => 'Set the opening and closing times for voting.',
@@ -97,7 +106,7 @@ function election_form($form, &$form_state, stdClass $election) {
       ),
     ),
   );
-  $form['vschedule']['vopen_time'] = array(
+  $form['voting']['vschedule']['vopen_time'] = array(
     '#title' => t('Opening time'),
     '#type' => $date_widget,
     '#default_value' => $vopen_default ? date('Y-m-d H:i:s', $vopen_default) : NULL,
@@ -105,7 +114,7 @@ function election_form($form, &$form_state, stdClass $election) {
     '#date_increment' => 5,
     '#date_year_range' => '-2:+5',
   );
-  $form['vschedule']['vclose_time'] = array(
+  $form['voting']['vschedule']['vclose_time'] = array(
     '#title' => t('Closing time'),
     '#type' => $date_widget,
     '#default_value' => $vclose_default ? date('Y-m-d H:i:s', $vclose_default) : NULL,

@@ -535,13 +535,9 @@ function election_field_extra_fields() {
         'label' => t('Title'),
         'weight' => 0,
       ),
-      'vstatus' => array(
-        'label' => t('Voting status'),
-        'weight' => 3,
-      ),
-      'vschedule' => array(
-        'label' => t('Voting schedule'),
-        'weight' => 4,
+      'voting' => array(
+        'label' => t('Voting configuration'),
+        'weight' => 2,
       ),
     );
     $extra['election'][$bundle_name]['display'] = array(
@@ -551,6 +547,10 @@ function election_field_extra_fields() {
       ),
     );
     if (!empty($type['has candidates'])) {
+      $extra['election'][$bundle_name]['form']['nominations'] = array(
+        'label' => t('Nominations configuration'),
+        'weight' => 1,
+      );
       $extra['election'][$bundle_name]['display']['nstatus'] = array(
         'label' => t('Nominations status'),
         'weight' => -2,
