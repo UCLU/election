@@ -100,7 +100,7 @@ function theme_election_candidate_full_name($variables) {
 function theme_election_candidate_ballot_item($variables) {
   $candidate = $variables['candidate'];
   $full_name = theme('election_candidate_full_name', array('candidate' => $candidate));
-  $link = l($full_name, election_candidate_uri_path($candidate));
+  $link = l($full_name, election_candidate_uri_path($candidate), array('html' => TRUE));
   return '<span class="election-candidate-ballot-item">' . $link . '</span>';
 }
 
