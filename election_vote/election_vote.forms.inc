@@ -5,7 +5,17 @@
  */
 
 /**
- * Form builder function for election-post/%election_post/vote.
+ * Form builder function for the voting form.
+ *
+ * This just builds a basic form with two submit buttons ('Vote' and, if
+ * enabled, 'Abstain'), and deals with the logic for subsequent confirmation
+ * forms. The confirmation stages build upon this form; they do not have
+ * separate form IDs.
+ *
+ * Election types should define 'vote form' callbacks to construct the rest of
+ * the voting form. They act similarly to hook_form_FORM_ID_alter(), but only
+ * apply to the voting stage, rather than altering the confirmation forms at
+ * the same time.
  */
 function election_vote_form($form, &$form_state, stdClass $post) {
 
@@ -86,7 +96,9 @@ function election_vote_form($form, &$form_state, stdClass $post) {
 }
 
 /**
- * Submit callback for the 'Vote' button on the vote form.
+ * The confirmation stage for the Vote button on the voting form.
+ *
+ * @see election_vote_form()
  */
 function election_vote_form_vote_confirm($form, &$form_state) {
 
@@ -127,7 +139,7 @@ function election_vote_undo_form($form, &$form_state, $post) {
   election_post_set_breadcrumb($election, $post);
 
   if (isset($form_state['undo_require_confirm'])) {
-    return election_vote_undo_confirm($form, $form_state);
+    return election_vote_undo_form_confirm($form, $form_state);
   }
 
   $form['post'] = array(
@@ -160,7 +172,7 @@ function election_vote_undo_form($form, &$form_state, $post) {
   $form['actions']['undo'] = array(
     '#type' => 'submit',
     '#value' => t('Undo…'),
-    '#submit' => array('election_vote_undo'),
+    '#submit' => array('election_vote_undo_form_undo'),
     '#limit_validation_errors' => array(),
   );
   $form['actions']['return_election'] = array(
@@ -173,16 +185,18 @@ function election_vote_undo_form($form, &$form_state, $post) {
 }
 
 /**
- * Confirm the 'Undo vote' button on the Undo vote form.
+ * The confirmation stage for the Undo button on the vote undo form.
+ *
+ * @see election_vote_undo_form()
  */
-function election_vote_undo_confirm($form, &$form_state) {
+function election_vote_undo_form_confirm($form, &$form_state) {
 
   $form['undo_confirmed'] = array(
     '#type' => 'hidden',
     '#value' => TRUE,
   );
 
-  $form['#submit'] = array('election_vote_undo');
+  $form['#submit'] = array('election_vote_undo_form_undo');
 
   $form['#attached']['js'][] = drupal_get_path('module', 'election') . '/submit-single.min.js';
 
@@ -208,9 +222,9 @@ function election_vote_undo_confirm($form, &$form_state) {
 }
 
 /**
- * Submit callback for confirming undo on an election vote.
+ * Submit callback for the undo form: undo a vote or abstention.
  */
-function election_vote_undo($form, &$form_state) {
+function election_vote_undo_form_undo($form, &$form_state) {
 
   if (empty($form_state['values']['undo_confirmed'])) {
     $form_state['undo_require_confirm'] = TRUE;
