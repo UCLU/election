@@ -96,7 +96,7 @@ function election_vote_form($form, &$form_state, stdClass $post) {
 }
 
 /**
- * The confirmation stage for the Vote button on the voting form.
+ * The confirmation stage for voting.
  *
  * @see election_vote_form()
  */
@@ -126,7 +126,7 @@ function election_vote_form_vote_confirm($form, &$form_state) {
 }
 
 /**
- * Form for undoing a vote (or abstention).
+ * Form for undoing a vote or abstention.
  */
 function election_vote_undo_form($form, &$form_state, $post) {
 
@@ -185,7 +185,7 @@ function election_vote_undo_form($form, &$form_state, $post) {
 }
 
 /**
- * The confirmation stage for the Undo button on the vote undo form.
+ * The confirmation stage for undoing a vote or abstention.
  *
  * @see election_vote_undo_form()
  */
@@ -222,7 +222,9 @@ function election_vote_undo_form_confirm($form, &$form_state) {
 }
 
 /**
- * Submit callback for the undo form: undo a vote or abstention.
+ * Submit callback for undoing a vote or abstention.
+ *
+ * @see election_vote_undo_form()
  */
 function election_vote_undo_form_undo($form, &$form_state) {
 
@@ -298,7 +300,9 @@ function election_vote_undo_form_undo($form, &$form_state) {
 }
 
 /**
- * Confirm the 'Abstain' button on the vote form.
+ * The confirmation stage for abstaining.
+ *
+ * @see election_vote_form()
  */
 function election_vote_form_abstain_confirm($form, &$form_state) {
 
@@ -332,7 +336,9 @@ function election_vote_form_abstain_confirm($form, &$form_state) {
 }
 
 /**
- * Submit callback for the 'Abstain' button on the vote form.
+ * Submit callback for abstaining.
+ *
+ * @see election_vote_form()
  */
 function election_vote_form_abstain($form, &$form_state) {
 
@@ -404,7 +410,9 @@ function election_vote_form_abstain($form, &$form_state) {
 }
 
 /**
- * Submit callback for the 'Vote' button on the form election_vote_form_confirm.
+ * Submit callback for voting.
+ *
+ * @see election_vote_form()
  */
 function election_vote_form_vote($form, &$form_state) {
 
