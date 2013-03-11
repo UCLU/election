@@ -111,8 +111,8 @@ function template_preprocess_election_statistics(&$variables) {
       );
       if ($browscap) {
         $browser = get_browser($record['agent']);
-        $row[] = check_plain($browser->parent);
-        $row[] = check_plain($browser->platform);
+        $row[] = isset($browser->parent) ? check_plain($browser->parent) : 'unknown';
+        $row[] = isset($browser->platform) ? check_plain($browser->platform) : 'unknown';
       }
       $rows[] = $row;
     }
