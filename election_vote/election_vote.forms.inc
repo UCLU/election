@@ -293,7 +293,7 @@ function election_vote_undo_form_undo($form, &$form_state) {
       )
     );
 
-    $form_state['redirect'] = url(election_post_uri_path($post));
+    $form_state['redirect'] = election_post_uri_path($post);
 
   }
 
@@ -353,7 +353,7 @@ function election_vote_form_abstain($form, &$form_state) {
 
   // Check to prevent duplicate form submissions.
   if (!empty($_SESSION['election_vote_cast_' . $post->post_id])) {
-    $form_state['redirect'] = url(election_uri_path($election));
+    $form_state['redirect'] = election_uri_path($election);
     return;
   }
 
@@ -400,7 +400,7 @@ function election_vote_form_abstain($form, &$form_state) {
     // Save a session variable to prevent duplicate form submissions.
     $_SESSION['election_vote_cast_' . $post->post_id] = TRUE;
 
-    $form_state['redirect'] = url(election_uri_path($election));
+    $form_state['redirect'] = election_uri_path($election);
 
     // Invoke "After abstaining" hooks and rules.
     rules_invoke_all('election_vote_abstain', $GLOBALS['user'], $post, $election);
@@ -427,7 +427,7 @@ function election_vote_form_vote($form, &$form_state) {
 
   // Check to prevent duplicate form submissions.
   if (!empty($_SESSION['election_vote_cast_' . $post->post_id])) {
-    $form_state['redirect'] = url(election_uri_path($election));
+    $form_state['redirect'] = election_uri_path($election);
     return;
   }
 
@@ -476,7 +476,7 @@ function election_vote_form_vote($form, &$form_state) {
     // Save a session variable to prevent duplicate form submissions.
     $_SESSION['election_vote_cast_' . $post->post_id] = TRUE;
 
-    $form_state['redirect'] = url(election_uri_path($election));
+    $form_state['redirect'] = election_uri_path($election);
 
     // Invoke "After casting a vote" hooks and rules.
     rules_invoke_all('election_vote_vote', $GLOBALS['user'], $post, $election);
