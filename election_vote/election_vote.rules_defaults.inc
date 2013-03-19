@@ -16,11 +16,9 @@ function election_vote_default_rules_configuration() {
     "LABEL" : "Notify user after abstaining",
     "PLUGIN" : "reaction rule",
     "TAGS" : [ "election" ],
-    "REQUIRES" : [ "rules", "election_vote" ],
+    "REQUIRES" : [ "election_vote" ],
     "ON" : [ "election_vote_abstain" ],
-    "DO" : [
-      { "drupal_message" : { "message" : "You have abstained from voting ([election:type:post-name]: \u003Ca href=\u0022[post:url]\u0022\u003E[post:title]\u003C\/a\u003E)." } }
-    ]
+    "DO" : [ { "election_vote_abstain_message" : { "post" : [ "post" ] } } ]
   }
 }');
 
@@ -29,11 +27,9 @@ function election_vote_default_rules_configuration() {
     "LABEL" : "Notify user after voting",
     "PLUGIN" : "reaction rule",
     "TAGS" : [ "election" ],
-    "REQUIRES" : [ "rules", "election_vote" ],
+    "REQUIRES" : [ "election_vote" ],
     "ON" : [ "election_vote_vote" ],
-    "DO" : [
-      { "drupal_message" : { "message" : "Thank you for voting ([election:type:post-name]: \u003Ca href=\u0022[post:url]\u0022\u003E[post:title]\u003C\/a\u003E)." } }
-    ]
+    "DO" : [ { "election_vote_vote_message" : { "post" : [ "post" ] } } ]
   }
 }');
 
