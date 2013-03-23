@@ -210,7 +210,7 @@ function election_vote_undo_form_confirm($form, &$form_state) {
     $form,
     t('Undo: are you sure?'),
     current_path(),
-    t("This will undo your vote !or_abstention (@post: '%post_title').", array(
+    t("This will undo your vote !or_abstention for the @post %post_title.", array(
       '@post' => election_get_post_name($election->type),
       '%post_title' => $post->title,
       '!or_abstention' => $post->allow_abstention ? t('or abstention') : '',
@@ -274,9 +274,10 @@ function election_vote_undo_form_undo($form, &$form_state) {
 
     $post_name = election_get_post_name($election->type);
     drupal_set_message(
-      t("You have undone your vote !or_abstention (@post: '!post_link').", array(
+      t('You have undone your vote !or_abstention for the @post <a href="!post_url">%post_title</a>.', array(
         '@post' => $post_name,
-        '!post_link' => l($post->title, election_post_uri_path($post)),
+        '!post_url' => url(election_post_uri_path($post)),
+        '%post_title' => $post->title,
         '!or_abstention' => $post->allow_abstention ? t('or abstention') : '',
       ))
     );

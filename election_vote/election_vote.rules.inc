@@ -99,10 +99,10 @@ function election_vote_rules_action_info() {
  */
 function election_vote_rules_abstain_message($post) {
   drupal_set_message(
-    t('You have abstained from voting (@post_name: <a href="!post_url">@post_title</a>).', array(
-      '@post_name' => election_get_post_name($post->election->type),
+    t('You have abstained from voting for the @post <a href="!post_url">%post_title</a>.', array(
+      '@post' => election_get_post_name($post->election->type),
       '!post_url' => url(election_post_uri_path($post)),
-      '@post_title' => $post->title,
+      '%post_title' => $post->title,
     ))
   );
 }
@@ -112,10 +112,10 @@ function election_vote_rules_abstain_message($post) {
  */
 function election_vote_rules_vote_message($post) {
   drupal_set_message(
-    t('Thank you for voting (@post_name: <a href="!post_url">@post_title</a>).', array(
-      '@post_name' => election_get_post_name($post->election->type),
+    t('Thank you for voting for the @post <a href="!post_url">%post_title</a>.', array(
+      '@post' => election_get_post_name($post->election->type),
       '!post_url' => url(election_post_uri_path($post)),
-      '@post_title' => $post->title,
+      '%post_title' => $post->title,
     ))
   );
 }
