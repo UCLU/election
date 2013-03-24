@@ -5,29 +5,24 @@
  */
 
 /**
- * Implements hook_election_vote_access().
+ * Implements hook_election_vote_before_grant().
  */
-function election_condition_election_vote_access($op, $post, $account) {
+function election_condition_election_vote_before_grant($post, $account) {
 
-  switch ($op) {
+  // Get the conditions associated with this post.
+  $conditions = election_condition_get_conditions($post);
+  if (!count($conditions)) {
+    return;
+  }
 
-    case 'vote':
-      // Get the conditions associated with this post.
-      $conditions = election_condition_get_conditions($post);
-      if (!count($conditions)) {
-        return NULL;
+  // Make sure that all the callbacks for all the conditions exist and return
+  // TRUE. Otherwise, return FALSE to deny voting access.
+  foreach ($conditions as $condition) {
+    foreach ($condition->callbacks as $callback) {
+      if (!function_exists($callback) || $callback($post, $account) !== TRUE) {
+        return FALSE;
       }
-
-      // If any condition does not exist or return TRUE, return FALSE.
-      foreach ($conditions as $condition) {
-        foreach ($condition->callbacks as $callback) {
-          if (!function_exists($callback) || $callback($post, $account) !== TRUE) {
-            return FALSE;
-          }
-        }
-      }
-      break;
-
+    }
   }
 
 }

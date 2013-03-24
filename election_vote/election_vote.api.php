@@ -7,24 +7,21 @@
  */
 
 /**
- * Modify voting access check.
+ * Act before voting access is granted for a user.
  *
- * This allows other modules to deny access to voting, or to deleting one's own
- * votes. The election_condition submodule provides an example.
+ * @see election_condition.election.inc
  *
- * @param string $op
- *   The operation requested (either 'vote' or 'delete').
  * @param stdClass $post
  *   An election post object.
  * @param stdClass $account
  *   A Drupal user account object.
  *
  * @return mixed
- *   Return FALSE to deny access; other return values have no effect.
+ *   Return FALSE to deny voting access. Other return values have no effect.
  */
-function hook_election_vote_access($op, $post, $account) {
-  // Deny vote access to the user with the UID 37491.
-  if ($op == 'vote' && $account->uid == 37491) {
+function hook_election_vote_before_grant($post, $account) {
+  // Deny access to the user with the UID 37491.
+  if ($account->uid == 37491) {
     return FALSE;
   }
 }
@@ -33,8 +30,8 @@ function hook_election_vote_access($op, $post, $account) {
  * Save votes on submission of the voting form, for this election type.
  *
  * This hook runs inside the same database transaction that saves 'ballots' to
- * the {election_ballot} table. To roll back the transaction, throw an
- * Exception.
+ * the {election_ballot} table. To roll back the transaction, return FALSE or
+ * throw an exception.
  *
  * @param int $ballot_id
  *   The {ballot}.ballot_id of the ballot being saved.

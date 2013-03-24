@@ -92,62 +92,83 @@ function election_vote_theme() {
  *   The operation requested (e.g. 'vote').
  * @param stdClass $post
  *   The election post object.
+ * @param stdClass $account
+ *   The user account for which to check.
  */
 function election_vote_access($op, stdClass $post, $account = NULL) {
-  if (empty($account)) {
+
+  // The default account is the current user.
+  if ($account === NULL) {
     $account = $GLOBALS['user'];;
   }
-  // Allow other modules to block access using hook_election_vote_access().
-  $hook_results = module_invoke_all('election_vote_access', $op, $post, $account);
-  foreach ($hook_results as $hook_result) {
-    if ($hook_result === FALSE) {
+
+  // If access has already been checked in this page request, return from cache.
+  $grants = &drupal_static('election_vote_grants', array());
+  if (isset($grants[$post->post_id][$account->uid][$op])) {
+    return $grants[$post->post_id][$account->uid][$op];
+  }
+
+  // Check whether the user can view the post.
+  if (!election_post_access('view', $post, $account)) {
+    $grants[$post->post_id][$account->uid][$op] = FALSE;
+    return FALSE;
+  }
+
+  // Check whether the election is open.
+  $election = $post->election;
+  if (!_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
+    $grants[$post->post_id][$account->uid][$op] = FALSE;
+    return FALSE;
+  }
+
+  // Check whether the post is individually set to 'closed'.
+  if ($post->vstatus_inheritance == ELECTION_POST_STATUS_CLOSED) {
+    $grants[$post->post_id][$account->uid][$op] = FALSE;
+    return FALSE;
+  }
+
+  // Check role access.
+  $accounts_roles_with_access = array_intersect(array_keys($account->roles), (array) $post->rids);
+  if (!count($accounts_roles_with_access)) {
+    $grants[$post->post_id][$account->uid][$op] = FALSE;
+    return FALSE;
+  }
+
+  if ($op == 'undo') {
+    // Check undo access.
+    if (!user_access('undo own vote', $account)) {
+      $grants[$post->post_id][$account->uid][$op] = FALSE;
+      return FALSE;
+    }
+    // The user must have previously voted in order to undo a vote.
+    if (!election_vote_check_account_previously_voted($post, $account)) {
+      $grants[$post->post_id][$account->uid][$op] = FALSE;
       return FALSE;
     }
   }
-  $election = $post->election;
-  switch ($op) {
-    case 'vote':
-      // Check whether the user can view the post.
-      if (!election_post_access('view', $post, $account)) {
-        return FALSE;
-      }
-      // Check whether the election is open.
-      if (!_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
-        return FALSE;
-      }
-      // Check whether the post is individually set to 'closed'.
-      switch ($post->vstatus_inheritance) {
-        case ELECTION_POST_STATUS_CLOSED:
-          return FALSE;
-          break;
 
-      }
-      // Check role access.
-      $accounts_roles_with_access = array_intersect(array_keys($account->roles), (array) $post->rids);
-      if (!count($accounts_roles_with_access)) {
-        return FALSE;
-      }
-      return TRUE;
-      break;
-
-    case 'undo':
-      // Check global access to undo.
-      if (!user_access('undo own vote', $account)) {
-        return FALSE;
-      }
-      // Don't allow undo if the user can no longer vote at all.
-      if (!election_vote_access('vote', $post, $account)) {
-        return FALSE;
-      }
-      // The user must have previously voted in order to undo a vote.
-      if (!election_vote_check_account_previously_voted($post, $account)) {
-        return FALSE;
-      }
-      return TRUE;
-      break;
-
+  // Invoke hook_election_vote_before_grant().
+  $hook_results = module_invoke_all('election_vote_before_grant', $post, $account);
+  foreach ($hook_results as $result) {
+    if ($result === FALSE) {
+      $grants[$post->post_id][$account->uid]['vote'] = FALSE;
+      $grants[$post->post_id][$account->uid]['undo'] = FALSE;
+      return FALSE;
+    }
   }
-  return FALSE;
+
+  // Invoke the Rules event 'Before granting access to vote'.
+  rules_invoke_event('election_vote_before_grant', $post, $account);
+
+  // Check the grants cache again; the Rules action 'Deny voting access' acts
+  // on the same cache.
+  if (isset($grants[$post->post_id][$account->uid][$op]) && $grants[$post->post_id][$account->uid][$op] === FALSE) {
+    return FALSE;
+  }
+
+  $grants[$post->post_id][$account->uid][$op] = TRUE;
+
+  return TRUE;
 }
 
 /**
@@ -155,7 +176,7 @@ function election_vote_access($op, stdClass $post, $account = NULL) {
  */
 function election_vote_hook_info() {
   return array(
-    'election_vote_access' => array(
+    'election_vote_before_grant' => array(
       'group' => 'election',
     ),
   );

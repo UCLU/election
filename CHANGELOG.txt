@@ -1,3 +1,10 @@
+Election 7.x-1.x-dev, 2013-03-25
+-----------------------
+- API change in Election Vote module: removed hook_election_vote_access() and
+  replaced it with hook_election_vote_before_grant(), which takes one less
+  parameter. There is also a new Rules event, 'Before granting access to vote',
+  and the corresponding action 'Deny voting access'. See election_vote.api.php.
+
 Election 7.x-1.x-dev, 2013-01-27
 -----------------------
 - API change: removed 'save votes' callbacks, replacing them with a new hook,

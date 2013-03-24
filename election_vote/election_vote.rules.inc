@@ -9,11 +9,25 @@
  */
 function election_vote_rules_event_info() {
   $defaults = array(
-    'group' => t('Election'),
+    'group' => t('Election Vote'),
     'module' => 'election_vote',
     'access callback' => 'election_vote_rules_config_access',
   );
   $events = array();
+  $events['election_vote_before_grant'] = $defaults + array(
+    'label' => t('Before granting access to vote'),
+    'variables' => array(
+      'post' => array(
+        'type' => 'election_post',
+        'label' => t('The election post'),
+        'skip save' => TRUE,
+      ),
+      'account' => array(
+        'type' => 'user',
+        'label' => t('The user who is attempting to vote'),
+      ),
+    ),
+  );
   $events['election_vote_vote'] = $defaults + array(
     'label' => t('After casting a vote'),
     'variables' => array(
@@ -61,9 +75,28 @@ function election_vote_rules_event_info() {
  * Implements hook_rules_action_info().
  */
 function election_vote_rules_action_info() {
+
   $actions = array();
 
-  $actions['election_vote_abstain_message'] = array(
+  $defaults = array(
+    'group' => t('Election Vote'),
+  );
+
+  $actions['election_vote_deny_access'] = $defaults + array(
+    'label' => t('Deny voting access'),
+    'parameter' => array(
+      'post' => array(
+        'type' => 'election_post',
+        'label' => t('The election post'),
+      ),
+      'user' => array(
+        'type' => 'user',
+        'label' => t('The user account'),
+      ),
+    ),
+  );
+
+  $actions['election_vote_abstain_message'] = $defaults + array(
     'label' => t('Display a "You have abstained" message'),
     'parameter' => array(
       'post' => array(
@@ -71,13 +104,9 @@ function election_vote_rules_action_info() {
         'label' => t('The election post'),
       ),
     ),
-    'group' => t('Election Vote'),
-    'callbacks' => array(
-      'execute' => 'election_vote_rules_abstain_message',
-    ),
   );
 
-  $actions['election_vote_vote_message'] = array(
+  $actions['election_vote_vote_message'] = $defaults + array(
     'label' => t('Display a "Thank you for voting" message'),
     'parameter' => array(
       'post' => array(
@@ -85,19 +114,32 @@ function election_vote_rules_action_info() {
         'label' => t('The election post'),
       ),
     ),
-    'group' => t('Election Vote'),
-    'callbacks' => array(
-      'execute' => 'election_vote_rules_vote_message',
-    ),
   );
 
   return $actions;
 }
 
 /**
+ * Rules action: deny voting access during the current page request.
+ *
+ * This will only have an effect if it is called from after the Rules event
+ * 'Before granting access to vote', which is invoked in election_vote_access().
+ *
+ * @param stdClass $post
+ *   The election post.
+ * @param stdClass $account
+ *   The user account.
+ */
+function election_vote_deny_access($post, $account) {
+  $grants = &drupal_static('election_vote_grants', array());
+  $grants[$post->post_id][$account->uid]['vote'] = FALSE;
+  $grants[$post->post_id][$account->uid]['undo'] = FALSE;
+}
+
+/**
  * Rules action: displays a "You have abstained" message.
  */
-function election_vote_rules_abstain_message($post) {
+function election_vote_abstain_message($post) {
   drupal_set_message(
     t('You have abstained from voting for the @post <a href="!post_url">%post_title</a>.', array(
       '@post' => election_get_post_name($post->election->type),
@@ -110,7 +152,7 @@ function election_vote_rules_abstain_message($post) {
 /**
  * Rules action: displays a "Thank you for voting" message.
  */
-function election_vote_rules_vote_message($post) {
+function election_vote_vote_message($post) {
   drupal_set_message(
     t('Thank you for voting for the @post <a href="!post_url">%post_title</a>.', array(
       '@post' => election_get_post_name($post->election->type),

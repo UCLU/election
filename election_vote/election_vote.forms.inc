@@ -41,7 +41,7 @@ function election_vote_form($form, &$form_state, stdClass $post) {
   $form_state['election'] = $election;
   $form_state['post'] = $post;
 
-  if ($previously_voted = election_vote_check_account_previously_voted($post)) {
+  if (election_vote_check_account_previously_voted($post)) {
     drupal_set_message(
       t(
         'You have already voted (or abstained) for this @post.',
