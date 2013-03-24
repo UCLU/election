@@ -98,21 +98,25 @@ function template_preprocess_election_statistics(&$variables) {
   if (count($top_agents)) {
     $header = array(t('Voters'), t('User agent'));
     $rows = array();
-    $browscap = FALSE;
-    if (ini_get('browscap')) {
-      $browscap = TRUE;
-      $header[] = t('Browser');
+    $browscap = module_exists('browscap');
+    if ($browscap) {
       $header[] = t('Platform');
+      $header[] = t('Browser');
+      $header[] = t('Version');
     }
     foreach ($top_agents as $record) {
       $row = array(
         number_format($record['voters']),
-        check_plain(truncate_utf8($record['agent'], 60, FALSE, TRUE)),
+        array(
+          'data' => check_plain($record['agent']),
+          'class' => array('user-agent'),
+        ),
       );
       if ($browscap) {
-        $browser = get_browser($record['agent']);
-        $row[] = isset($browser->parent) ? check_plain($browser->parent) : 'unknown';
-        $row[] = isset($browser->platform) ? check_plain($browser->platform) : 'unknown';
+        $browser = browscap_get_browser($record['agent']);
+        $row[] = isset($browser['platform']) ? check_plain($browser['platform']) : 'unknown';
+        $row[] = isset($browser['browser']) ? check_plain($browser['browser']) : 'unknown';
+        $row[] = isset($browser['version']) ? check_plain($browser['version']) : 'unknown';
       }
       $rows[] = $row;
     }
@@ -121,13 +125,14 @@ function template_preprocess_election_statistics(&$variables) {
       '#theme' => 'table',
       '#header' => $header,
       '#rows' => $rows,
+      '#attributes' => array('class' => array('election-statistics-user-agents')),
     );
     if (!$browscap) {
       $top_agents_table['#rows'][] = array(
         array(
           'data' => t(
-            'Install <code>browscap</code> to display browser and platform details in this table. See the PHP docs for <a href="@get_browser" target="_blank"><code>get_browser()</code></a>.',
-            array('@get_browser' => 'http://php.net/manual/en/function.get-browser.php')
+            'Install the !Browscap module to display browser and platform details in this table.',
+            array('!Browscap' => l(t('Browscap'), 'http://drupal.org/project/browscap'))
           ),
           'colspan' => 3,
         ),

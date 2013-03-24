@@ -110,3 +110,11 @@
   font-size: 1em;
   padding: 0.3em 0.5em;
 }
+
+/* Statistics */
+.election-statistics-user-agents .user-agent {
+  overflow: hidden;
+  max-width: 20em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
