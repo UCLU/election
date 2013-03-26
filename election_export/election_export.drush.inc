@@ -93,7 +93,7 @@ function drush_election_export($election_id, $destination = NULL) {
   if (empty($destination)) {
     $tmp_filename = election_export_election($election, NULL, $options);
     $success = readfile($tmp_filename);
-    unlink($tmp_filename);
+    drupal_unlink($tmp_filename);
     if ($success) {
       drush_log(dt('Election @eid ("@title") successfully exported.', array(
         '@eid' => $election_id,

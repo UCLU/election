@@ -312,7 +312,7 @@ function _election_post_get_inheritance_options() {
  * @param stdClass $account
  *   The user to check for. Leave it to NULL to check for the global user.
  *
- * @return boolean
+ * @return bool
  *   Whether access is allowed or not.
  */
 function election_post_access($op, $post = NULL, $account = NULL) {
@@ -325,7 +325,6 @@ function election_post_access($op, $post = NULL, $account = NULL) {
     case 'view':
       // Viewing a post has the same access as viewing an election.
       return election_access($op, $election, $account);
-      break;
 
     case 'create':
     case 'update':
@@ -338,7 +337,6 @@ function election_post_access($op, $post = NULL, $account = NULL) {
       }
       // All these actions on posts have the same access as editing elections.
       return election_access('edit', $election, $account);
-      break;
 
   }
   return FALSE;

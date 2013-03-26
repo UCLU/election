@@ -127,10 +127,10 @@ function theme_election_candidate_nominate_link($variables) {
   $options = array('query' => drupal_get_destination());
   if ($nominate_access) {
     $output = l(t('Submit a nomination'), $nominate_path, $options);
-    return '<span class="election-nominate-link">' . $output  . '</span>';
+    return '<span class="election-nominate-link">' . $output . '</span>';
   }
   elseif (!$logged_in && $nominate_open) {
     $output = t('<a href="@login">Log in</a> to submit a nomination', array('@login' => url('user/login', $options)));
-    return '<span class="election-nominate-link election-nominate-login">' . $output  . '</span>';
+    return '<span class="election-nominate-link election-nominate-login">' . $output . '</span>';
   }
 }

@@ -120,10 +120,12 @@ function election_vote_rules_action_info() {
 }
 
 /**
- * Rules action: deny voting access during the current page request.
+ * Rules action: denies voting access during the current page request.
  *
- * This will only have an effect if it is called from after the Rules event
+ * This will only have an effect if it is called in reaction to the Rules event
  * 'Before granting access to vote', which is invoked in election_vote_access().
+ *
+ * @see election_vote_access()
  *
  * @param stdClass $post
  *   The election post.

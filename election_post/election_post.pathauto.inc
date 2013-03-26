@@ -24,8 +24,6 @@ function election_post_pathauto($op) {
         $settings['patternitems'][$post_machine_name] = t('Pattern for all %post paths', array('%post' => $post_name));
       }
       return (object) $settings;
-    default:
-      break;
 
   }
 }

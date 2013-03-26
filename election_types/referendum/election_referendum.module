@@ -264,14 +264,12 @@ function _election_referendum_get_answer_text($post, $answer) {
         return $post->settings['answer_pos'];
       }
       return t('Yes');
-      break;
 
     case ELECTION_ANSWER_NO:
       if (!empty($post->settings['answer_neg'])) {
         return $post->settings['answer_neg'];
       }
       return t('No');
-      break;
 
   }
 }

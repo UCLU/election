@@ -187,13 +187,10 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
   switch ($property_key) {
     case 'profile_link':
       return url(election_candidate_uri_path($candidate), array('absolute' => TRUE));
-      return $election->title;
-      break;
 
     case 'election_title':
       $election = election_load($candidate->election_id);
       return $election->title;
-      break;
 
     case 'post_title':
       if (empty($candidate->post_id)) {
@@ -201,15 +198,12 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
       }
       $post = election_post_load($candidate->post_id);
       return $post->title;
-      break;
 
     case 'cstatus':
       return _election_candidate_status_name($candidate);
-      break;
 
     case 'published':
       return $candidate->published ? t('Published') : t('Not published');
-      break;
 
   }
   $type = 'string';
@@ -219,7 +213,6 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
   switch ($type) {
     case 'timestamp':
       return date('Y-m-d H:i:s', $value);
-      break;
 
     case 'string':
       if (is_string($value)) {

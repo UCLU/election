@@ -205,12 +205,10 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
       case 'view':
         // Users are always allowed to see their own nominations.
         return TRUE;
-        break;
 
       case 'edit':
       case 'update':
         return (bool) user_access('edit own nominations', $account);
-        break;
 
     }
   }

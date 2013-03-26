@@ -22,7 +22,6 @@ function election_pathauto($op) {
         $settings['patternitems'][$type_machine_name] = t('Pattern for all %type paths', array('%type' => $type['name']));
       }
       return (object) $settings;
-      break;
 
   }
 }

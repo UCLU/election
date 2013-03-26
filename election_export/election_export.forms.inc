@@ -97,7 +97,7 @@ function election_export_form_submit($form, &$form_state) {
   header('Content-Disposition:attachment;filename=' . $filename . '.zip');
   header('Cache-Control:max-age=0; must-revalidate');
   readfile($zipfile);
-  unlink($zipfile);
+  drupal_unlink($zipfile);
 
   drupal_exit();
 

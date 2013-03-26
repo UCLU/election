@@ -282,7 +282,6 @@ function election_access($op, $election = NULL, $account = NULL) {
 
     case 'create':
       return user_access('create elections', $account);
-      break;
 
     case 'update':
     case 'edit':
