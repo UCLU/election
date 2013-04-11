@@ -12,8 +12,6 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
   drupal_set_title(t('Download candidates'), PASS_THROUGH);
   election_set_breadcrumb($election);
 
-  $candidate_field_instances = field_info_instances('election_candidate');
-
   $post_name = election_get_post_name($election->type);
 
   $properties = array(
@@ -68,7 +66,9 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
       'default' => TRUE,
     ),
   );
-  foreach ($candidate_field_instances as $bundle_name => $instances) {
+
+  foreach (election_candidate_get_types() as $bundle_name => $info) {
+    $instances = field_info_instances('election_candidate', $bundle_name);
     foreach ($instances as $field_name => $instance) {
       if (!isset($properties[$field_name])) {
         $field = field_info_field($field_name);
