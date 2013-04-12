@@ -20,87 +20,21 @@ function election_condition_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'condition_id' => array(
-        'description' => 'Relates to {election_condition}.condition_id.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => FALSE,
+      'condition_machine_name' => array(
+        'description' => 'The machine name of the condition.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
       ),
     ),
     'unique keys' => array(
-      'posts_conditions' => array('post_id', 'condition_id'),
+      'posts_conditions' => array('post_id', 'condition_machine_name'),
     ),
     'foreign keys' => array(
-      'condition' => array(
-        'table' => 'election_condition',
-        'columns' => array('condition_id' => 'condition_id'),
-      ),
       'post' => array(
         'table' => 'election_post',
         'columns' => array('post_id' => 'post_id'),
       ),
-    ),
-  );
-
-  $schema['election_condition'] = array(
-    'description' => 'The conditions table for the election module. Conditions limit voter eligibility.',
-    'fields' => array(
-      'condition_id' => array(
-        'description' => 'Primary key: identifier for an condition.',
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'machine_name' => array(
-        'description' => 'The unique machine name of the condition.',
-        'type' => 'varchar',
-        'length' => 100,
-        'not null' => TRUE,
-      ),
-      'name' => array(
-        'description' => 'The name of the condition - a human-readable identifier.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => FALSE,
-      ),
-      'description' => array(
-        'description' => 'A human-readable description of the condition.',
-        'type' => 'text',
-        'not null' => FALSE,
-      ),
-      'callbacks' => array(
-        'description' => 'A serialized array of names of callback functions, which all validate an $account object for voting.',
-        'type' => 'blob',
-        'size' => 'big',
-        'serialize' => TRUE,
-        'not null' => FALSE,
-      ),
-      'locked' => array(
-        'description' => 'Whether or not the condition is locked (i.e. created in code, not editable).',
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'created' => array(
-        'description' => 'The Unix timestamp for when the condition was created.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'changed' => array(
-        'description' => 'The Unix timestamp for when the condition was most recently changed.',
-        'type' => 'int',
-        'not null' => FALSE,
-      ),
-    ),
-    'primary key' => array('condition_id'),
-    'unique keys' => array(
-      'machine_name' => array('machine_name'),
-    ),
-    'indexes' => array(
-      'created' => array('created'),
-      'name' => array('name'),
     ),
   );
 
@@ -109,12 +43,45 @@ function election_condition_schema() {
 }
 
 /**
- * Implements hook_install().
+ * Convert to remove unnecessary {election_condition} table.
  */
-function election_condition_install() {
-
-  _election_condition_install_code_conditions();
-
-  menu_rebuild();
-
+function election_condition_update_7101() {
+  // Find a list of the currently assigned conditions for each post, with
+  // their machine names taken from the {election_condition} table.
+  $query = db_select('election_post_condition', 'epc');
+  $query->join('election_condition', 'ec', 'ec.condition_id = epc.condition_id');
+  $query->fields('epc', array('post_id'))->fields('ec', array('condition_machine_name'));
+  $result = $query->execute();
+  $posts_conditions = array();
+  while ($record = $result->fetch()) {
+    $posts_conditions[] = array(
+      'post_id' => $record->post_id,
+      'condition_machine_name' => $record->machine_name,
+    );
+  }
+  // Truncate the table.
+  db_truncate('election_post_condition')->execute();
+  // Add the new 'condition_machine_name' column.
+  db_add_field('election_post_condition', 'condition_machine_name', array(
+    'description' => 'The machine name of the condition.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+  ));
+  // Re-insert the data with machine names rather than condition IDs.
+  $insert = db_insert('election_post_condition')->fields(array('post_id', 'condition_machine_name'));
+  foreach ($posts_conditions as $record) {
+    $insert->values($record);
+  }
+  $insert->execute();
+  // Get rid of the condition_id column.
+  db_drop_unique_key('election_post_condition', 'posts_conditions');
+  db_drop_field('election_post_condition', 'condition_id');
+  // Add the unique index on (post_id, condition_machine_name).
+  db_add_unique_key('election_post_condition', 'posts_conditions', array(
+    'post_id',
+    'condition_machine_name',
+  ));
+  // Drop the now redundant election_condition table.
+  db_drop_table('election_condition');
 }

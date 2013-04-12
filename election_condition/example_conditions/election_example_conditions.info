@@ -2,3 +2,4 @@ name = Election example conditions
 description = "Define some example voter eligibility conditions for elections."
 package = Election
 core = 7.x
+dependencies[] = election_condition

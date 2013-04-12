@@ -5,57 +5,62 @@
  */
 
 /**
- * Get information about all conditions.
+ * Get conditions.
+ *
+ * @see hook_election_condition_info()
+ * @see hook_election_condition_info_alter()
  *
  * @return array
  *   Array of conditions keyed by machine name.
  */
-function election_condition_conditions($post = NULL) {
-  $query = db_select('election_condition', 'ee');
-  $query->fields('ee');
-  if (is_object($post)) {
-    $query->leftJoin('election_post_condition', 'epe', 'ee.post_id=epe.post_id');
-    $query->condition('epe.post_id', $post->post_id);
+function election_condition_get_conditions() {
+  $conditions = &drupal_static(__FUNCTION__, NULL);
+  if ($conditions === NULL) {
+    $conditions = array();
+    $conditions += module_invoke_all('election_condition_info');
+    drupal_alter('election_condition_info', $conditions);
   }
-  $query->orderBy('ee.name');
-  $result = $query->execute();
-
-  $conditions = array();
-
-  $code_conditions = _election_condition_get_code_conditions();
-
-  while ($condition = $result->fetchAssoc()) {
-    $key = $condition['machine_name'];
-    if ($condition['locked']) {
-      if (isset($code_conditions[$key])) {
-        $condition['callbacks'] = (array) $code_conditions[$key]['callbacks'];
-      }
-    }
-    else {
-
-      // This is envisioned to allow conditions to be configured dynamically.
-      // @todo look into ctools exportables.
-      $condition['callbacks'] = (array) unserialize($condition['callbacks']);
-    }
-    $key = $condition['machine_name'];
-    $conditions[$key] = $condition;
-  }
-
   return $conditions;
 }
 
 /**
- * Get information about code conditions.
+ * Get the conditions assigned to a given post.
  *
- * @see hook_election_condition_info()
+ * @param stdClass $post
+ *   An election post object.
+ *
+ * @return array
+ *   Array of conditions keyed by machine name.
  */
-function _election_condition_get_code_conditions() {
-  $conditions = &drupal_static(__FUNCTION__);
-  if (empty($conditions)) {
-    $conditions = array();
-    $conditions += module_invoke_all('election_condition_info');
+function election_condition_get_conditions_by_post($post) {
+  $conditions = &drupal_static(__FUNCTION__, array());
+  $post_id = $post->post_id;
+  if (!isset($conditions[$post_id])) {
+    $conditions[$post_id] = array();
+    $machine_names = db_select('election_post_condition', 'epc')
+      ->fields('epc', array('condition_machine_name'))
+      ->condition('post_id', $post_id)
+      ->execute()
+      ->fetchCol();
+    if (count($machine_names)) {
+      $condition_info = election_condition_get_conditions();
+      foreach ($machine_names as $machine_name) {
+        if (isset($condition_info[$machine_name])) {
+          $condition = $condition_info[$machine_name];
+        }
+        else {
+          $condition = array(
+            'condition_machine_name' => $machine_name,
+            'name' => $machine_name,
+            'callbacks' => array(),
+            'description' => t('Unknown condition'),
+          );
+        }
+        $conditions[$post_id][$machine_name] = $condition;
+      }
+    }
   }
-  return $conditions;
+  return $conditions[$post_id];
 }
 
 /**
@@ -70,129 +75,6 @@ function election_condition_hook_info() {
 }
 
 /**
- * Implements hook_modules_enabled().
- */
-function election_condition_modules_enabled($modules = array()) {
-  // If any of the enabled modules contains an implementation of
-  // hook_election_condition_info,
-  // run _election_condition_install_code_conditions().
-  foreach ($modules as $module) {
-    if (function_exists($module . '_election_condition_info')) {
-      _election_condition_install_code_conditions();
-      break;
-
-    }
-  }
-}
-
-/**
- * Implements hook_modules_disabled().
- */
-function election_condition_modules_disabled($modules = array()) {
-  // If any of the enabled modules contains an implementation of
-  // hook_election_condition_info,
-  // run _election_condition_uninstall_code_conditions().
-  foreach ($modules as $module) {
-    if (function_exists($module . '_election_condition_info')) {
-      _election_condition_uninstall_code_conditions();
-      break;
-
-    }
-  }
-}
-
-/**
- * Uninstall redundant conditions from the database.
- *
- * This deletes conditions from the DB only if they are not assigned to any
- * posts AND they do not (or no longer) exist in code.
- */
-function _election_condition_uninstall_code_conditions() {
-  $code_conditions = _election_condition_get_code_conditions();
-  $transaction = db_transaction();
-  try {
-    $db_conditions = db_query('SELECT condition_id, machine_name FROM {election_condition} WHERE locked = 1');
-    while ($db_condition = $db_conditions->fetchAssoc()) {
-      // Don't delete conditions that (still) exist in code.
-      if (isset($code_conditions[$db_condition['machine_name']])) {
-        continue;
-      }
-      // Don't delete assigned conditions.
-      $assigned = db_query_range(
-        'SELECT 1 FROM {election_post_condition} WHERE condition_id = :eid',
-        0, 1,
-        array(':eid' => $db_condition['condition_id'])
-      );
-      if ($assigned->rowCount()) {
-        continue;
-      }
-      db_delete('election_condition')
-        ->condition('condition_id', $db_condition['condition_id'])
-        ->execute();
-      watchdog(
-        'election_condition',
-        'Deleted the condition %machine_name from the database as it is no longer in use.',
-        array('%machine_name' => $db_condition['machine_name'])
-      );
-    }
-  }
-  catch (Exception $e) {
-    $transaction->rollback();
-    watchdog_exception(
-      'election_condition',
-      $e,
-      'Failed to remove from the database those conditions that no longer exist in code.',
-      WATCHDOG_ERROR
-    );
-    return FALSE;
-  }
-}
-
-/**
- * Install conditions defined in code to the database.
- *
- * This finds conditions in code and writes them (identified by 'machine name')
- * to the {election_condition} table.
- */
-function _election_condition_install_code_conditions() {
-  foreach (_election_condition_get_code_conditions() as $condition_mn => $condition) {
-    $record = array(
-      'machine_name' => $condition_mn,
-      'name' => empty($condition['name']) ? $condition_mn : $condition['name'],
-      'description' => @$condition['description'],
-      'locked' => 1,
-      'changed' => REQUEST_TIME,
-    );
-    db_merge('election_condition')
-      ->key(array('machine_name' => $condition_mn))
-      ->updateFields($record)
-      ->insertFields($record + array('created' => REQUEST_TIME))
-      ->execute();
-  }
-}
-
-/**
- * Add condition information to a post.
- */
-function election_condition_get_conditions($post) {
-  if (!isset($post->conditions)) {
-    $post->conditions = array();
-    if (!empty($post->post_id)) {
-      $conditions = db_query('SELECT ec.* FROM {election_condition} ec LEFT JOIN {election_post_condition} epc USING (condition_id) WHERE epc.post_id = :pid', array(':pid' => $post->post_id));
-      $code_conditions = _election_condition_get_code_conditions();
-      foreach ($conditions as $condition) {
-        // Callbacks aren't saved in the database for locked 'code conditions'.
-        if ($condition->locked && isset($code_conditions[$condition->machine_name])) {
-          $condition->callbacks = $code_conditions[$condition->machine_name]['callbacks'];
-        }
-        $post->conditions[$condition->condition_id] = $condition;
-      }
-    }
-  }
-  return $post->conditions;
-}
-
-/**
  * Implements hook_form_FORM_ID_alter().
  */
 function election_condition_form_election_post_form_alter(&$form, &$form_state) {
@@ -200,13 +82,13 @@ function election_condition_form_election_post_form_alter(&$form, &$form_state) 
   $post = $form_state['post'];
   $election = $form_state['election'];
 
-  $conditions = election_condition_get_conditions($post);
+  $post_conditions = election_condition_get_conditions_by_post($post);
 
   $form['conditions'] = array(
     '#type' => 'fieldset',
     '#title' => t('Conditional voting'),
     '#collapsible' => TRUE,
-    '#collapsed' => (empty($post->conditions)),
+    '#collapsed' => (empty($post_conditions)),
     '#weight' => 99,
   );
   $form['conditions']['title'] = array(
@@ -221,12 +103,13 @@ function election_condition_form_election_post_form_alter(&$form, &$form_state) 
     'callbacks' => t('Callbacks'),
     'description' => t('Description'),
   );
+
   $condition_options = array();
-  foreach (election_condition_conditions() as $condition_mn => $condition) {
+  foreach (election_condition_get_conditions() as $machine_name => $condition) {
     if (empty($condition['callbacks'])) {
       $callbacks = '<span class="error">'
                   . t('No valid callbacks found for the condition %machine_name.',
-                      array('%machine_name' => $condition_mn))
+                      array('%machine_name' => $machine_name))
                   . '</span>';
     }
     else {
@@ -239,16 +122,27 @@ function election_condition_form_election_post_form_alter(&$form, &$form_state) 
       }
       $callbacks = theme('item_list', array('items' => $items));
     }
-    $condition_options[$condition['condition_id']] = array(
+    $condition_options[$machine_name] = array(
       'name' => $condition['name'],
       'callbacks' => $callbacks,
       'description' => $condition['description'],
     );
   }
+
+  foreach ($post_conditions as $machine_name => $condition) {
+    if (!isset($condition_options[$machine_name])) {
+      $condition_options[$machine_name] = array(
+        'name' => $machine_name,
+        'callbacks' => '',
+        'description' => t('Unknown condition'),
+      );
+    }
+  }
+
   $form['conditions']['conditions'] = array(
     '#type' => 'tableselect',
-    '#attributes' => array('class', 'select-conditions'),
-    '#default_value' => array_fill_keys(array_keys($conditions), 1),
+    '#attributes' => array('class' => array('select-conditions')),
+    '#default_value' => array_fill_keys(array_keys($post_conditions), 1),
     '#header' => $condition_headers,
     '#options' => $condition_options,
     '#multiple' => TRUE,
@@ -273,20 +167,21 @@ function election_condition_election_post_form_submit($form, &$form_state) {
 
   $transaction = db_transaction();
   try {
-    $condition_ids = array();
-    foreach ($form_state['values']['conditions'] as $condition_id => $value) {
+    $conditions = array();
+    foreach ($form_state['values']['conditions'] as $machine_name => $value) {
       if (!empty($value)) {
-        $condition_ids[] = $condition_id;
+        $conditions[] = $machine_name;
       }
     }
     db_delete('election_post_condition')
       ->condition('post_id', $post->post_id)
       ->execute();
-    foreach ($condition_ids as $condition_id) {
-      db_insert('election_post_condition')->fields(array(
-        'post_id' => $post->post_id,
-        'condition_id' => $condition_id,
-      ))->execute();
+    if (count($conditions)) {
+      $insert = db_insert('election_post_condition')->fields(array('post_id', 'condition_machine_name'));
+      foreach ($conditions as $machine_name) {
+        $insert->values(array($post->post_id, $machine_name));
+      }
+      $insert->execute();
     }
   }
   catch (Exception $e) {
