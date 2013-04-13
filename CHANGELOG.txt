@@ -1,3 +1,11 @@
+Election 7.x-1.x-dev, 2013-04-13
+-----------------------
+- Tagged as 7.x-1.0-beta14: as a consequence of the previous change (see below),
+  many internal simplifications to the Election Condition submodule have been
+  made, including the removal of a database table. If you have previously had
+  the Election Condition module enabled, you will need to run update.php (or
+  drush updb).
+
 Election 7.x-1.x-dev, 2013-03-25
 -----------------------
 - API change in Election Vote module: removed hook_election_vote_access() and
