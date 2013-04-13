@@ -28,3 +28,11 @@ function hook_election_condition_info() {
     ),
   );
 }
+
+/**
+ * Alter previously defined voting conditions.
+ */
+function hook_election_condition_info_alter(&$info) {
+  // Add an extra check to the gmail condition.
+  $info['gmail']['callbacks'][] = 'check_gmail_extra';
+}

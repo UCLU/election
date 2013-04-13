@@ -125,10 +125,13 @@ function election_condition_form_election_post_form_alter(&$form, &$form_state) 
     $condition_options[$machine_name] = array(
       'name' => $condition['name'],
       'callbacks' => $callbacks,
-      'description' => $condition['description'],
+      'description' => !empty($condition['description']) ? $condition['description'] : '',
     );
   }
 
+  // Also list conditions that are assigned to the post but don't exist anymore
+  // in code. Deliberately, these will prevent voting access until they are
+  // unassigned.
   foreach ($post_conditions as $machine_name => $condition) {
     if (!isset($condition_options[$machine_name])) {
       $condition_options[$machine_name] = array(
