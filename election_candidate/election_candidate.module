@@ -1277,24 +1277,18 @@ function election_candidate_check_support(stdClass $election) {
  *
  * A post needs to have at least 2 published candidates (inc. RON) in order for
  * voting to be possible. Otherwise the candidate is unopposed.
+ *
+ * @return bool
+ *   TRUE if there are enough candidates for voting, or if the election doesn't
+ *   support candidates; FALSE otherwise.
  */
 function election_candidate_post_has_enough($post) {
-  // Elections that don't support candidates always have 'enough'.
   if (!election_candidate_check_support($post->election)) {
     return TRUE;
   }
   $num_candidates = db_query('SELECT COUNT(candidate_id) FROM {election_candidate} WHERE post_id = :pid AND published = 1', array(':pid' => $post->post_id))->fetchField(0);
   $has_ron = !empty($post->settings['use_ron']);
   return ($num_candidates > 1 || ($num_candidates == 1 && $has_ron));
-}
-
-/**
- * Prevent users from accessing vote forms when there aren't enough candidates.
- */
-function election_candidate_election_vote_access($op, $post, $account) {
-  if (!election_candidate_post_has_enough($post)) {
-    return FALSE;
-  }
 }
 
 /**
