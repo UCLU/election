@@ -115,12 +115,9 @@ function election_modules_disabled($modules) {
 function _election_modules_changed($modules) {
   // If any of the enabled modules contains an implementation of
   // hook_election_type_info(), clear the static cache of election types.
-  foreach ($modules as $module) {
-    if (function_exists($module . '_election_type_info')) {
-      drupal_static_reset('election_types');
-      break;
-
-    }
+  $implements = module_implements('election_type_info');
+  if (count(array_intersect($implements, $modules))) {
+    drupal_static_reset('election_types');
   }
 }
 
