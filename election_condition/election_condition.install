@@ -50,7 +50,7 @@ function election_condition_update_7101() {
   // their machine names taken from the {election_condition} table.
   $query = db_select('election_post_condition', 'epc');
   $query->join('election_condition', 'ec', 'ec.condition_id = epc.condition_id');
-  $query->fields('epc', array('post_id'))->fields('ec', array('condition_machine_name'));
+  $query->fields('epc', array('post_id'))->fields('ec', array('machine_name'));
   $result = $query->execute();
   $posts_conditions = array();
   while ($record = $result->fetch()) {
