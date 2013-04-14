@@ -50,6 +50,14 @@
   font-style: oblique;
 }
 
+/* Manage Candidates view */
+.view-election-candidates-admin .views-field-title {
+  overflow: hidden;
+  max-width: 20em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Election page */
 .election-posts,
 .election-post-candidates {

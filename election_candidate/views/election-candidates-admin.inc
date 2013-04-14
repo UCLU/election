@@ -29,6 +29,7 @@ $handler->display->display_options['pager']['options']['offset'] = '0';
 $handler->display->display_options['pager']['options']['id'] = '0';
 $handler->display->display_options['style_plugin'] = 'table';
 $handler->display->display_options['style_options']['columns'] = array(
+  'views_bulk_operations' => 'views_bulk_operations',
   'created' => 'created',
   'title' => 'title',
   'first_name' => 'first_name',
@@ -41,6 +42,11 @@ $handler->display->display_options['style_options']['columns'] = array(
 );
 $handler->display->display_options['style_options']['default'] = 'created';
 $handler->display->display_options['style_options']['info'] = array(
+  'views_bulk_operations' => array(
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
   'created' => array(
     'sortable' => 1,
     'default_sort_order' => 'desc',
@@ -112,6 +118,73 @@ $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
 $handler->display->display_options['relationships']['uid']['id'] = 'uid';
 $handler->display->display_options['relationships']['uid']['table'] = 'election_candidate';
 $handler->display->display_options['relationships']['uid']['field'] = 'uid';
+/* Field: Bulk operations: Election candidate */
+$handler->display->display_options['fields']['views_bulk_operations']['id'] = 'views_bulk_operations';
+$handler->display->display_options['fields']['views_bulk_operations']['table'] = 'election_candidate';
+$handler->display->display_options['fields']['views_bulk_operations']['field'] = 'views_bulk_operations';
+$handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['display_type'] = '0';
+$handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['enable_select_all_pages'] = 1;
+$handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['force_single'] = 0;
+$handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['entity_load_capacity'] = '10';
+$handler->display->display_options['fields']['views_bulk_operations']['vbo_operations'] = array(
+  'action::views_bulk_operations_delete_item' => array(
+    'selected' => 0,
+    'postpone_processing' => 0,
+    'skip_confirmation' => 0,
+    'override_label' => 0,
+    'label' => '',
+  ),
+  'action::views_bulk_operations_script_action' => array(
+    'selected' => 0,
+    'postpone_processing' => 0,
+    'skip_confirmation' => 0,
+    'override_label' => 0,
+    'label' => '',
+  ),
+  'action::views_bulk_operations_modify_action' => array(
+    'selected' => 0,
+    'postpone_processing' => 0,
+    'skip_confirmation' => 0,
+    'override_label' => 0,
+    'label' => '',
+    'settings' => array(
+      'show_all_tokens' => 1,
+      'display_values' => array(
+        '_all_' => '_all_',
+      ),
+    ),
+  ),
+  'action::views_bulk_operations_argument_selector_action' => array(
+    'selected' => 0,
+    'skip_confirmation' => 0,
+    'override_label' => 0,
+    'label' => '',
+    'settings' => array(
+      'url' => '',
+    ),
+  ),
+  'action::election_candidate_publish_action' => array(
+    'selected' => 1,
+    'postpone_processing' => 0,
+    'skip_confirmation' => 0,
+    'override_label' => 0,
+    'label' => '',
+  ),
+  'action::system_send_email_action' => array(
+    'selected' => 0,
+    'postpone_processing' => 0,
+    'skip_confirmation' => 0,
+    'override_label' => 0,
+    'label' => '',
+  ),
+  'action::election_candidate_unpublish_action' => array(
+    'selected' => 1,
+    'postpone_processing' => 0,
+    'skip_confirmation' => 0,
+    'override_label' => 0,
+    'label' => '',
+  ),
+);
 /* Field: Election candidate: Created date */
 $handler->display->display_options['fields']['created']['id'] = 'created';
 $handler->display->display_options['fields']['created']['table'] = 'election_candidate';
@@ -124,7 +197,6 @@ $handler->display->display_options['fields']['title']['table'] = 'election_post'
 $handler->display->display_options['fields']['title']['field'] = 'title';
 $handler->display->display_options['fields']['title']['label'] = 'Position';
 $handler->display->display_options['fields']['title']['alter']['max_length'] = '30';
-$handler->display->display_options['fields']['title']['alter']['trim'] = TRUE;
 $handler->display->display_options['fields']['title']['link_to_post'] = 0;
 /* Field: Election candidate: First name */
 $handler->display->display_options['fields']['first_name']['id'] = 'first_name';
