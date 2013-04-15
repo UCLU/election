@@ -4,6 +4,9 @@
  * Install functions for the Election Post module.
  */
 
+// Make sure Election constants are available (e.g. during uninstall).
+require_once drupal_get_path('module', 'election') . '/includes/election.constants.inc';
+
 /**
  * Implements hook_schema().
  */
