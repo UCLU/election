@@ -117,7 +117,9 @@ function _election_modules_changed($modules) {
   // hook_election_type_info(), clear the static cache of election types.
   $implements = module_implements('election_type_info');
   if (count(array_intersect($implements, $modules))) {
+    // @todo check which of these is needed, if either.
     drupal_static_reset('election_types');
+    menu_rebuild();
   }
 }
 

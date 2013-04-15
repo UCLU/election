@@ -122,13 +122,6 @@ function election_schema() {
 }
 
 /**
- * Implements hook_install().
- */
-function election_install() {
-  menu_rebuild();
-}
-
-/**
  * Add the 'published' column to the election table.
  */
 function election_update_7101() {
