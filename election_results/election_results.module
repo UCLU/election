@@ -59,7 +59,7 @@ function election_results_access($op, stdClass $post, $account = NULL) {
     if (_election_post_is_open($post, NULL, 'v') && !user_access('bypass running election lock', $account)) {
       return FALSE;
     }
-    if (election_post_access('edit', $post, $account) && user_access('view own election results', $account)) {
+    if ($post->election->uid == $account->uid && user_access('view own election results', $account)) {
       return TRUE;
     }
     if (user_access('view any election results', $account)) {

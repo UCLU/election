@@ -46,6 +46,6 @@ function election_candidate_rules_event_info() {
  */
 function election_candidate_rules_config_access($type, $name) {
   if ($type == 'event' || $type == 'condition') {
-    return election_access('edit') && entity_access('view', 'user');
+    return election_access('update') && entity_access('view', 'user');
   }
 }

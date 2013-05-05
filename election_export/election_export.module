@@ -67,7 +67,7 @@ function election_export_access($op, stdClass $election, $account = NULL) {
     return FALSE;
   }
   // Check for permission to export own/any election results.
-  if (election_access('edit', $election, $account) && user_access('export own election results', $account)) {
+  if (election_access('update', $election, $account) && user_access('export own election results', $account)) {
     return TRUE;
   }
   if (user_access('export any election results', $account)) {

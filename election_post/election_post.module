@@ -31,8 +31,8 @@ function election_post_menu() {
     'title arguments' => array(1),
     'page callback' => 'election_post_page_add',
     'page arguments' => array(1),
-    'access callback' => 'election_post_access',
-    'access arguments' => array('create', 1),
+    'access callback' => 'election_access',
+    'access arguments' => array('update', 1),
     'file' => 'election-post.admin.inc',
     'type' => MENU_LOCAL_ACTION,
   );
@@ -304,39 +304,35 @@ function _election_post_get_inheritance_options() {
  * Determines whether the given user has access to a post.
  *
  * @param string $op
- *   The operation being performed. One of 'view', 'update', 'create', 'delete'
- *   or just 'edit' (being the same as 'create' or 'update').
+ *   The operation being performed. One of 'view', 'update', or 'delete'. Access
+ *   to create a post should check using election_access() on the election.
  * @param stdClass $post
- *   Optionally a post to check access for. If nothing is given, access for all
- *   posts is determined.
+ *   A post to check access for.
  * @param stdClass $account
  *   The user to check for. Leave it to NULL to check for the global user.
  *
  * @return bool
  *   Whether access is allowed or not.
  */
-function election_post_access($op, $post = NULL, $account = NULL) {
+function election_post_access($op, $post, $account = NULL) {
   if (empty($account)) {
     global $user;
     $account = $user;
   }
-  $election = empty($post) ? NULL : $post->election;
   switch ($op) {
     case 'view':
       // Viewing a post has the same access as viewing an election.
-      return election_access($op, $election, $account);
+      return election_access($op, $post->election, $account);
 
-    case 'create':
     case 'update':
-    case 'edit':
     case 'delete':
       // These actions are denied while voting is open for this post.
       // Use the 'bypass running election lock' permission to allow them again.
-      if ($post && isset($post->vstatus_inheritance) && _election_post_is_open($post, $election, 'v')) {
+      if (isset($post->vstatus_inheritance) && _election_post_is_open($post, $post->election, 'v')) {
         return user_access('bypass running election lock');
       }
-      // All these actions on posts have the same access as editing elections.
-      return election_access('edit', $election, $account);
+      // These actions have the same access as updating elections.
+      return election_access('update', $post->election, $account);
 
   }
   return FALSE;

@@ -158,8 +158,7 @@ function election_candidate_permission() {
  * Determines whether the given user has access to a given election candidate.
  *
  * @param string $op
- *   The operation being performed. One of 'view', 'update', 'create', 'delete'
- *   or just 'edit' (being the same as 'create' or 'update').
+ *   The operation being performed. One of 'view', 'update', or 'delete'.
  * @param stdClass $candidate
  *   Optionally a candidate to check access for. If nothing is
  *   given, access for all candidates is determined.
@@ -179,8 +178,8 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
   }
   switch ($op) {
     case 'view':
-      // Users who can edit elections can also view the candidates.
-      if (election_access('edit', $election, $account)) {
+      // Users who can update elections can also view the candidates.
+      if (election_access('update', $election, $account)) {
         return TRUE;
       }
       // Users who can view the election can also view published candidates.
@@ -189,10 +188,9 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
       }
       break;
 
-    case 'edit':
     case 'update':
     case 'delete':
-      if (election_access('edit', $election, $account)) {
+      if (election_access('update', $election, $account)) {
         return TRUE;
       }
       break;
@@ -206,7 +204,6 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
         // Users are always allowed to see their own nominations.
         return TRUE;
 
-      case 'edit':
       case 'update':
         return (bool) user_access('edit own nominations', $account);
 
@@ -262,7 +259,7 @@ function election_candidate_menu() {
     'page callback' => 'election_candidate_manage_page',
     'page arguments' => array(1),
     'access callback' => 'election_candidate_access_per_election',
-    'access arguments' => array('edit', 1),
+    'access arguments' => array('update', 1),
     'file' => 'election_candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 4,
@@ -280,7 +277,7 @@ function election_candidate_menu() {
     'page callback' => 'election_candidate_totals_page',
     'page arguments' => array(1),
     'access callback' => 'election_candidate_access_per_election',
-    'access arguments' => array('edit', 1),
+    'access arguments' => array('update', 1),
     'file' => 'election_candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
@@ -292,7 +289,7 @@ function election_candidate_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_candidate_download_form', 1),
     'access callback' => 'election_candidate_access_per_election',
-    'access arguments' => array('edit', 1),
+    'access arguments' => array('update', 1),
     'file' => 'election_candidate.download.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 2,
@@ -322,7 +319,7 @@ function election_candidate_menu() {
     'page arguments' => array(1, 'details'),
     'file' => 'election_candidate.pages.inc',
     'access callback' => 'election_candidate_access',
-    'access arguments' => array('edit', 1),
+    'access arguments' => array('update', 1),
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'weight' => 1,

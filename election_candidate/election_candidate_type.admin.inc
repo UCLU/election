@@ -7,7 +7,7 @@
 /**
  * Generates the candidate type editing form.
  */
-function election_candidate_type_form($form, &$form_state, $candidate_type, $op = 'edit') {
+function election_candidate_type_form($form, &$form_state, $candidate_type, $op = 'update') {
 
   if ($op == 'clone') {
     $candidate_type->label .= ' (cloned)';

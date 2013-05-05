@@ -245,8 +245,8 @@ function election_permission() {
  * Determines whether the given user has access to an election.
  *
  * @param string $op
- *   The operation being performed. One of 'view', 'update', 'create', 'delete'
- *   or just 'edit' (being the same as 'create' or 'update').
+ *   The operation being performed. One of 'view', 'create', 'update', or
+ *   'delete'.
  * @param stdClass $election
  *   Optionally an election or an election type to check access for. By default,
  *   access for all elections is determined.
@@ -271,7 +271,7 @@ function election_access($op, $election = NULL, $account = NULL) {
       }
       elseif (empty($election) || empty($election->published)) {
         // If the election is unpublished, limit viewing to editors.
-        return election_access('edit', $election, $account);
+        return election_access('update', $election, $account);
       }
       elseif (user_access('view published elections', $account)) {
         // Otherwise, allow viewing to those who can 'view published elections'.
@@ -283,7 +283,6 @@ function election_access($op, $election = NULL, $account = NULL) {
       return user_access('create elections', $account);
 
     case 'update':
-    case 'edit':
       if ($election_belongs_to_account && user_access('edit own elections', $account)) {
         return TRUE;
       }
