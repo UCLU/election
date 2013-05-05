@@ -316,6 +316,13 @@ function election_menu() {
 
   $items = array();
 
+  $items['elections'] = array(
+    'title' => 'Elections',
+    'page callback' => 'election_page_list',
+    'file' => 'election.pages.inc',
+    'access arguments' => array('view published elections'),
+  );
+
   $items['admin/config/election'] = array(
     'title' => 'Elections',
     'description' => 'Administer elections.',

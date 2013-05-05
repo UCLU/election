@@ -49,11 +49,8 @@ $handler->display->display_options['filters']['published_or_admin']['id'] = 'pub
 $handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
 $handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
 
-/* Display: Page */
-$handler = $view->new_display('page', 'Page', 'page');
+/* Display: Embed */
+$handler = $view->new_display('embed', 'Embed', 'embed');
 $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
-$handler->display->display_options['path'] = 'elections';
-$handler->display->display_options['menu']['type'] = 'normal';
-$handler->display->display_options['menu']['title'] = 'Elections';
 
 $views[$view->name] = $view;
