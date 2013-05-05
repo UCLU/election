@@ -34,8 +34,6 @@ class ElectionCrudTestCase extends DrupalWebTestCase {
       'election_stv',
     );
     parent::setUp($modules);
-    // Clear the Views cache (needed for default Views to work, it seems).
-    views_invalidate_cache();
   }
 
   /**
