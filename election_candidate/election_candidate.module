@@ -130,18 +130,6 @@ function election_candidate_permission() {
       'title' => t('Administer candidate types'),
       'description' => t('This allows the user to add/edit/delete candidate types, and manage field and display settings for candidates.'),
     ),
-    'bypass nomination schedule' => array(
-      'title' => t('Bypass nomination schedule'),
-      'description' => t('This allows the user to submit a nomination at any time, regardless of whether or not nominations are open.'),
-    ),
-    'bypass nomination exclusivity' => array(
-      'title' => t('Bypass nomination exclusivity'),
-      'description' => t('This allows the user to submit a nomination for more than one exclusive position.'),
-    ),
-    'allow duplicate nominations' => array(
-      'title' => t('Allow duplicate nominations'),
-      'description' => t('This allows the user to submit more than one nomination for the same position.'),
-    ),
     'submit nominations' => array(
       'title' => t('Submit nominations'),
       'description' => t('This allows the user to submit a nomination, provided nominations are open.'),
@@ -225,6 +213,13 @@ function election_candidate_access_per_election($op, stdClass $election, $accoun
 }
 
 /**
+ * Helper function to allow determining candidate access per election post.
+ */
+function election_candidate_access_per_post($op, stdClass $post, $account = NULL) {
+  return election_candidate_access_per_election($op, $post->election, $account);
+}
+
+/**
  * Implements hook_menu().
  */
 function election_candidate_menu() {
@@ -296,6 +291,16 @@ function election_candidate_menu() {
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
+  $items['election-post/%election_post/add-candidate'] = array(
+    'title' => 'Add new candidate',
+    'page callback' => 'election_candidate_page_add',
+    'page arguments' => array(1),
+    'file' => 'election_candidate.admin.inc',
+    'access callback' => 'election_candidate_access_per_post',
+    'access arguments' => array('create', 1),
+    'type' => MENU_LOCAL_ACTION,
+  );
+
   $items['election-candidate/%election_candidate'] = array(
     'title callback' => 'election_candidate_page_title',
     'title arguments' => array(1),
@@ -327,9 +332,9 @@ function election_candidate_menu() {
 
   $items['election-candidate/%election_candidate/edit'] = array(
     'title' => 'Edit',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_candidate_edit_form', 1),
-    'file' => 'election_candidate.forms.inc',
+    'page callback' => 'election_candidate_page_edit',
+    'page arguments' => array(1),
+    'file' => 'election_candidate.admin.inc',
     'access callback' => 'election_candidate_access',
     'access arguments' => array('update', 1),
     'type' => MENU_LOCAL_TASK,
@@ -340,7 +345,7 @@ function election_candidate_menu() {
   $items['election-candidate/%election_candidate/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('election_candidate_edit_form_delete_confirm', 1),
+    'page arguments' => array('election_candidate_form_delete_confirm', 1),
     'access callback' => 'election_candidate_access',
     'access arguments' => array('delete', 1),
     'file' => 'election_candidate.forms.inc',
@@ -744,7 +749,7 @@ function election_candidate_nominate_access(stdClass $post, $account = NULL) {
     return FALSE;
   }
   // Check whether nominations are open.
-  if (!_election_post_is_open($post, $election, 'n') && !user_access('bypass nomination schedule', $account)) {
+  if (!_election_post_is_open($post, $election, 'n')) {
     return FALSE;
   }
   // Load the user's previous nominations, if any.
@@ -762,11 +767,11 @@ function election_candidate_nominate_access(stdClass $post, $account = NULL) {
     $prev_post_ids[] = $nomination->post_id;
   }
   // Prevent duplicate nominations for the same post by one account.
-  if (!user_access('allow duplicate nominations', $account) && in_array($post->post_id, $prev_post_ids)) {
+  if (in_array($post->post_id, $prev_post_ids)) {
     return FALSE;
   }
   // Prevent more than one nomination for an 'exclusive' post by one account.
-  if (!empty($post->settings['exclusive']) && $has_exclusive && !user_access('bypass nomination exclusivity', $account)) {
+  if (!empty($post->settings['exclusive']) && $has_exclusive) {
     return FALSE;
   }
   return TRUE;

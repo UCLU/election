@@ -7,25 +7,18 @@
 /**
  * Form builder function for editing a single candidate.
  */
-function election_candidate_edit_form($form, &$form_state, stdClass $candidate) {
+function election_candidate_form($form, &$form_state, stdClass $candidate, stdClass $post) {
 
-  $election = election_load($candidate->election_id);
+  global $user;
 
-  drupal_set_title(t('Edit candidate: %first-name %last-name', array('%first-name' => $candidate->first_name, '%last-name' => $candidate->last_name)), PASS_THROUGH);
-  election_set_breadcrumb($election);
+  $election = $post->election;
 
-  $form['#id'] = 'election-candidate-edit-form';
+  $form['#id'] = 'election-candidate-form';
   $form['#candidate'] = $candidate;
 
   $form_state['election'] = $election;
   $form_state['candidate'] = $candidate;
 
-  $candidate_account = NULL;
-  if (!empty($candidate->uid)) {
-    $candidate_account = user_load($candidate->uid);
-  }
-
-  $post = election_post_load($candidate->post_id);
   $post_name = election_get_post_name($election->type);
   $form['post'] = array(
     '#type' => 'item',
@@ -77,22 +70,18 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
     '#weight' => 97,
   );
 
+  $candidate_account = NULL;
+  if (!empty($candidate->uid)) {
+    $candidate_account = user_load($candidate->uid);
+  }
   $form['current_user'] = array(
     '#title' => t('Associated user account'),
-    '#type' => 'item',
-    '#default_value' => empty($candidate_account) ? NULL : $candidate_account->name,
+    '#type' => 'textfield',
+    '#maxlength' => 60,
+    '#autocomplete_path' => 'user/autocomplete',
+    '#default_value' => empty($candidate_account) ? $user->name : $candidate_account->name,
     '#weight' => 98,
   );
-  if (empty($candidate_account)) {
-    $form['current_user']['#markup'] = t('No user account associated.');
-  }
-  else {
-    $form['current_user']['#markup'] = theme(
-      'username',
-      array('account' => $candidate_account, 'link_options' => array('attributes' => array('target' => '_blank')))
-    );
-    $form['current_user']['#description'] = t('The account that submitted the nomination.');
-  }
 
   $form['published'] = array(
     '#type' => 'checkbox',
@@ -108,38 +97,40 @@ function election_candidate_edit_form($form, &$form_state, stdClass $candidate) 
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
-    '#submit' => array('election_candidate_edit_form_submit'),
+    '#submit' => array('election_candidate_form_submit'),
   );
-  $form['buttons']['delete'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete'),
-    '#submit' => array('election_candidate_edit_form_delete_submit'),
-    '#access' => entity_access('delete', 'election_candidate', $candidate),
-    '#limit_validation_errors' => array(),
-  );
-  $cancel_path = election_candidate_uri_path($candidate);
-  if (!empty($_GET['destination'])) {
-    $options = drupal_parse_url($_GET['destination']);
-    $cancel_path = $options['path'];
+
+  if (empty($candidate->is_new)) {
+    $form['buttons']['delete'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete'),
+      '#submit' => array('election_candidate_form_delete_submit'),
+      '#access' => entity_access('delete', 'election_candidate', $candidate),
+      '#limit_validation_errors' => array(),
+    );
+    $cancel_path = election_candidate_uri_path($candidate);
+    if (!empty($_GET['destination'])) {
+      $options = drupal_parse_url($_GET['destination']);
+      $cancel_path = $options['path'];
+    }
+    $form['buttons']['cancel'] = array(
+      '#type' => 'link',
+      '#title' => t('Cancel'),
+      '#href' => $cancel_path,
+    );
   }
-  $form['buttons']['cancel'] = array(
-    '#type' => 'link',
-    '#title' => t('Cancel'),
-    '#href' => $cancel_path,
-  );
 
   form_load_include($form_state, 'inc', 'election_candidate', 'election_candidate.forms');
   $form['#validate'][] = 'election_candidate_form_validate';
-  $form['#validate'][] = 'election_candidate_edit_form_validate';
 
   return $form;
 
 }
 
 /**
- * Form submit function for the Save button in election_candidate_edit_form.
+ * Form submit function for the Save button in election_candidate_form.
  */
-function election_candidate_edit_form_submit($form, &$form_state) {
+function election_candidate_form_submit($form, &$form_state) {
 
   $candidate = &$form_state['candidate'];
 
@@ -170,12 +161,16 @@ function election_candidate_edit_form_submit($form, &$form_state) {
     )
   );
 
+  if (empty($_GET['destination'])) {
+    $form_state['redirect'] = election_candidate_uri_path($candidate);
+  }
+
 }
 
 /**
- * Form submit function for the Delete button in election_candidate_edit_form.
+ * Form submit function for the Delete button in election_candidate_form.
  */
-function election_candidate_edit_form_delete_submit($form, &$form_state) {
+function election_candidate_form_delete_submit($form, &$form_state) {
   $destination = array();
   if (isset($_GET['destination'])) {
     $destination = drupal_get_destination();
@@ -191,7 +186,7 @@ function election_candidate_edit_form_delete_submit($form, &$form_state) {
 /**
  * Form builder function to confirm the delete action for a candidate.
  */
-function election_candidate_edit_form_delete_confirm($form, &$form_state, stdClass $candidate) {
+function election_candidate_form_delete_confirm($form, &$form_state, stdClass $candidate) {
 
   $election = election_load($candidate->election_id);
 
@@ -215,7 +210,7 @@ function election_candidate_edit_form_delete_confirm($form, &$form_state, stdCla
 /**
  * Form submit function for confirming delete for an election candidate.
  */
-function election_candidate_edit_form_delete_confirm_submit($form, &$form_state) {
+function election_candidate_form_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {
 
     $candidate = election_candidate_load($form_state['values']['candidate_id']);
@@ -359,17 +354,6 @@ function election_candidate_form_validate($form, &$form_state) {
 
   field_attach_form_validate('election_candidate', $form_state['candidate'], $form, $form_state);
 
-}
-
-/**
- * Validation function for editing a candidate.
- */
-function election_candidate_edit_form_validate($form, &$form_state) {
-  if (!empty($form_state['values']['new_user'])) {
-    if (!$account = user_load_by_name($form_state['values']['new_user'])) {
-      form_set_error('new_user', t('The username %name does not exist', array('%name' => $form_state['values']['new_user'])));
-    }
-  }
 }
 
 /**

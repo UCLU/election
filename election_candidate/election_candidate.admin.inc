@@ -19,6 +19,53 @@ function election_candidate_manage_page(stdClass $election) {
 }
 
 /**
+ * Page callback for editing an election candidate.
+ */
+function election_candidate_page_edit($candidate) {
+
+  drupal_set_title(t('Edit candidate: %first-name %last-name', array('%first-name' => $candidate->first_name, '%last-name' => $candidate->last_name)), PASS_THROUGH);
+
+  $post = election_post_load($candidate->post_id);
+  $election = $post->election;
+  election_post_set_breadcrumb($election, $post);
+
+  module_load_include('inc', 'election_candidate', 'election_candidate.forms');
+
+  return drupal_get_form('election_candidate_form', $candidate, $post);
+}
+
+/**
+ * Page callback for adding an election candidate.
+ */
+function election_candidate_page_add($post) {
+
+  if (!is_object($post)) {
+    return MENU_NOT_FOUND;
+  }
+
+  $election = $post->election;
+  election_post_set_breadcrumb($election, $post);
+
+  $candidate_type = !empty($post->settings['candidate_type']) ? $post->settings['candidate_type'] : 'candidate';
+  $candidate = entity_get_controller('election_candidate')->create(array(
+    'type' => $candidate_type,
+    'election_id' => $election->election_id,
+    'post_id' => $post->post_id,
+    'is_new' => TRUE,
+  ));
+
+  drupal_set_title(
+    t('Add new candidate to %post', array('%post' => $post->title)),
+    PASS_THROUGH
+  );
+
+  module_load_include('inc', 'election_candidate', 'election_candidate.forms');
+
+  return drupal_get_form('election_candidate_form', $candidate, $post);
+
+}
+
+/**
  * Page callback to display total numbers of candidates per post.
  */
 function election_candidate_totals_page(stdClass $election) {

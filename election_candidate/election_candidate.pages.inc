@@ -45,8 +45,8 @@ function election_candidate_page_view(stdClass $candidate, $view_mode = 'full') 
       )),
       PASS_THROUGH
     );
-    $election = election_load($candidate->election_id);
     $post = election_post_load($candidate->post_id);
+    $election = $post->election;
     election_post_set_breadcrumb($election, $post);
   }
 
