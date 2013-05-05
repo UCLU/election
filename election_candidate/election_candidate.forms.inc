@@ -12,6 +12,7 @@ function election_candidate_form($form, &$form_state, stdClass $candidate, stdCl
   global $user;
 
   $election = $post->election;
+  $candidate->is_new = empty($candidate->is_new) ? FALSE : TRUE;
 
   $form['#id'] = 'election-candidate-form';
   $form['#candidate'] = $candidate;
@@ -100,7 +101,7 @@ function election_candidate_form($form, &$form_state, stdClass $candidate, stdCl
     '#submit' => array('election_candidate_form_submit'),
   );
 
-  if (empty($candidate->is_new)) {
+  if (!$candidate->is_new) {
     $form['buttons']['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete'),
@@ -108,17 +109,23 @@ function election_candidate_form($form, &$form_state, stdClass $candidate, stdCl
       '#access' => entity_access('delete', 'election_candidate', $candidate),
       '#limit_validation_errors' => array(),
     );
-    $cancel_path = election_candidate_uri_path($candidate);
-    if (!empty($_GET['destination'])) {
-      $options = drupal_parse_url($_GET['destination']);
-      $cancel_path = $options['path'];
-    }
-    $form['buttons']['cancel'] = array(
-      '#type' => 'link',
-      '#title' => t('Cancel'),
-      '#href' => $cancel_path,
-    );
   }
+
+  if (!empty($_GET['destination'])) {
+    $options = drupal_parse_url($_GET['destination']);
+    $cancel_path = $options['path'];
+  }
+  elseif (!$candidate->is_new) {
+    $cancel_path = election_candidate_uri_path($candidate);
+  }
+  else {
+    $cancel_path = election_post_uri_path($post);
+  }
+  $form['buttons']['cancel'] = array(
+    '#type' => 'link',
+    '#title' => t('Cancel'),
+    '#href' => $cancel_path,
+  );
 
   form_load_include($form_state, 'inc', 'election_candidate', 'election_candidate.forms');
   $form['#validate'][] = 'election_candidate_form_validate';
