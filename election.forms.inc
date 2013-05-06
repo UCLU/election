@@ -128,7 +128,9 @@ function election_form($form, &$form_state, stdClass $election) {
     '#title' => t('Published'),
     '#default_value' => isset($election->published) ? $election->published : 0,
     '#weight' => 99,
-    '#description' => t("This allows those with the 'view published elections' permission to view the election."),
+    '#description' => t("This allows those with the '!perm' permission to view the election.", array(
+      '!perm' => t('View published elections'),
+    )),
   );
 
   $form['buttons'] = array(
