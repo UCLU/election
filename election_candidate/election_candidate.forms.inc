@@ -80,7 +80,7 @@ function election_candidate_form($form, &$form_state, stdClass $candidate, stdCl
     if (!empty($candidate->uid)) {
       $candidate_account = user_load($candidate->uid);
     }
-    $form['current_user'] = array(
+    $form['user'] = array(
       '#title' => t('Associated user account'),
       '#type' => 'textfield',
       '#maxlength' => 60,
@@ -152,8 +152,8 @@ function election_candidate_form_submit($form, &$form_state) {
     }
   }
 
-  if (!empty($form_state['values']['new_user'])) {
-    if ($account = user_load_by_name($form_state['values']['new_user'])) {
+  if (!empty($form_state['values']['user'])) {
+    if ($account = user_load_by_name($form_state['values']['user'])) {
       $candidate->uid = $account->uid;
       $candidate->username = $account->username;
     }
