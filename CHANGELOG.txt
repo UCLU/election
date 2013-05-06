@@ -1,3 +1,11 @@
+Election 7.x-1.x-dev, 2013-05-05
+-----------------------
+- Election editors are now able to add candidates via an 'Add new candidate'
+  form. So the permissions 'bypass nomination schedule', 'bypass nomination
+  exclusivity', and 'allow duplicate nominations' have now been removed as they
+  are no longer useful. The form ID 'election_candidate_edit_form' has been
+  changed to 'election_candidate_form'.
+
 Election 7.x-1.x-dev, 2013-04-13
 -----------------------
 - Tagged as 7.x-1.0-beta14: as a consequence of the previous change (see below),
