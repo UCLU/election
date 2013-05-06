@@ -20,6 +20,11 @@ function election_candidate_form($form, &$form_state, stdClass $candidate, stdCl
   $form_state['election'] = $election;
   $form_state['candidate'] = $candidate;
 
+  // Determine whether the user is an 'election admin', i.e. he/she has access
+  // to update the election. This automatically gives access to create, update,
+  // or delete candidates in this election.
+  $election_admin = election_access('update', $elecion);
+
   $post_name = election_get_post_name($election->type);
   $form['post'] = array(
     '#type' => 'item',
@@ -61,35 +66,35 @@ function election_candidate_form($form, &$form_state, stdClass $candidate, stdCl
     }
   }
 
-  $form['cstatus'] = array(
-    '#type' => 'select',
-    '#options' => _election_candidate_get_cstatus_options(),
-    '#title' => t('Status'),
-    '#required' => TRUE,
-    '#default_value' => $candidate->cstatus,
-    '#empty_option' => t('- Select status -'),
-    '#weight' => 97,
-  );
-
-  $candidate_account = NULL;
-  if (!empty($candidate->uid)) {
-    $candidate_account = user_load($candidate->uid);
+  if ($election_admin) {
+    $form['cstatus'] = array(
+      '#type' => 'select',
+      '#options' => _election_candidate_get_cstatus_options(),
+      '#title' => t('Status'),
+      '#required' => TRUE,
+      '#default_value' => $candidate->cstatus,
+      '#empty_option' => t('- Select status -'),
+      '#weight' => 97,
+    );
+    $candidate_account = NULL;
+    if (!empty($candidate->uid)) {
+      $candidate_account = user_load($candidate->uid);
+    }
+    $form['current_user'] = array(
+      '#title' => t('Associated user account'),
+      '#type' => 'textfield',
+      '#maxlength' => 60,
+      '#autocomplete_path' => 'user/autocomplete',
+      '#default_value' => empty($candidate_account) ? $user->name : $candidate_account->name,
+      '#weight' => 98,
+    );
+    $form['published'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Published'),
+      '#default_value' => isset($candidate->published) ? $candidate->published : 0,
+      '#weight' => 99,
+    );
   }
-  $form['current_user'] = array(
-    '#title' => t('Associated user account'),
-    '#type' => 'textfield',
-    '#maxlength' => 60,
-    '#autocomplete_path' => 'user/autocomplete',
-    '#default_value' => empty($candidate_account) ? $user->name : $candidate_account->name,
-    '#weight' => 98,
-  );
-
-  $form['published'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Published'),
-    '#default_value' => isset($candidate->published) ? $candidate->published : 0,
-    '#weight' => 99,
-  );
 
   $form['buttons'] = array(
     '#type' => 'actions',
@@ -101,7 +106,7 @@ function election_candidate_form($form, &$form_state, stdClass $candidate, stdCl
     '#submit' => array('election_candidate_form_submit'),
   );
 
-  if (!$candidate->is_new) {
+  if ($election_admin && !$candidate->is_new) {
     $form['buttons']['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete'),
