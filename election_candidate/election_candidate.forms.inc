@@ -23,7 +23,7 @@ function election_candidate_form($form, &$form_state, stdClass $candidate, stdCl
   // Determine whether the user is an 'election admin', i.e. he/she has access
   // to update the election. This automatically gives access to create, update,
   // or delete candidates in this election.
-  $election_admin = election_access('update', $elecion);
+  $election_admin = election_access('update', $election);
 
   $post_name = election_get_post_name($election->type);
   $form['post'] = array(
