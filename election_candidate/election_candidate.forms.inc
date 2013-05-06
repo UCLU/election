@@ -155,7 +155,7 @@ function election_candidate_form_submit($form, &$form_state) {
   if (!empty($form_state['values']['user'])) {
     if ($account = user_load_by_name($form_state['values']['user'])) {
       $candidate->uid = $account->uid;
-      $candidate->username = $account->username;
+      $candidate->username = $account->name;
     }
   }
 
