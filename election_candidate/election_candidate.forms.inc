@@ -93,6 +93,7 @@ function election_candidate_form($form, &$form_state, stdClass $candidate, stdCl
       '#title' => t('Published'),
       '#default_value' => isset($candidate->published) ? $candidate->published : 0,
       '#weight' => 99,
+      '#description' => t('When published, candidates can be viewed by those who are allowed to view the election.'),
     );
   }
 
