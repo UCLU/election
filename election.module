@@ -292,7 +292,7 @@ function election_access($op, $election = NULL, $account = NULL) {
       break;
 
     case 'delete':
-      if ($election && isset($election->vstatus) && _election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time) && !user_access('bypass running election lock')) {
+      if ($election && isset($election->vstatus) && _election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time) && !user_access('bypass running election lock', $account)) {
         // Deny deleting running elections.
         // Use the permission 'bypass running election lock' to bypass this.
         return FALSE;

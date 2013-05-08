@@ -56,7 +56,7 @@ function election_results_access($op, stdClass $post, $account = NULL) {
     }
     // Prevent users from viewing results while voting is open, unless they can
     // 'bypass running election lock'.
-    if (_election_post_is_open($post, NULL, 'v') && !user_access('bypass running election lock', $account)) {
+    if (_election_post_is_open($post) && !user_access('bypass running election lock', $account)) {
       return FALSE;
     }
     if ($post->election->uid == $account->uid && user_access('view own election results', $account)) {

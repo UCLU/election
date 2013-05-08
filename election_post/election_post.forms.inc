@@ -32,7 +32,7 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
   $post_name = election_get_post_name($election->type);
 
   // Warn if voting is open.
-  if (!$post->is_new && _election_post_is_open($post, $election, 'v')) {
+  if (!$post->is_new && _election_post_is_open($post)) {
     drupal_set_message(t('Voting is currently open: you should not make changes to this @post!', array('@post' => $post_name)), 'warning');
   }
 

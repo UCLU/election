@@ -322,14 +322,14 @@ function election_post_access($op, $post, $account = NULL) {
   switch ($op) {
     case 'view':
       // Viewing a post has the same access as viewing an election.
-      return election_access($op, $post->election, $account);
+      return election_access('view', $post->election, $account);
 
     case 'update':
     case 'delete':
       // These actions are denied while voting is open for this post.
       // Use the 'bypass running election lock' permission to allow them again.
-      if (isset($post->vstatus_inheritance) && _election_post_is_open($post, $post->election, 'v')) {
-        return user_access('bypass running election lock');
+      if (_election_post_is_open($post) && !user_access('bypass running election lock', $account)) {
+        return FALSE;
       }
       // These actions have the same access as updating elections.
       return election_access('update', $post->election, $account);
@@ -633,14 +633,12 @@ function election_post_view($post, $view_mode = 'full') {
  * @param string $status_prefix
  *   The type of status ('v' for voting, 'n' for nominations).
  */
-function _election_post_is_open(stdClass $post, $election = NULL, $status_prefix = 'v') {
+function _election_post_is_open(stdClass $post, $status_prefix = 'v') {
   $status_inheritance = $post->{$status_prefix . 'status_inheritance'};
   if ($status_inheritance == ELECTION_POST_STATUS_CLOSED) {
     return FALSE;
   }
-  if (empty($election)) {
-    $election = $post->election;
-  }
+  $election = $post->election;
   $status = $election->{$status_prefix . 'status'};
   $open_time = $election->{$status_prefix . 'open_time'};
   $close_time = $election->{$status_prefix . 'close_time'};

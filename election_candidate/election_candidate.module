@@ -625,7 +625,7 @@ function election_candidate_form_election_post_form_alter(&$form, &$form_state) 
     '#weight' => 10,
   );
 
-  if (user_access('administer candidate types')) {
+  if (election_candidate_type_access('update')) {
     $form['candidates_nominations']['settings_candidate_type']['#description'] .= ' '
       . l(
         t('Manage candidate types'),
@@ -762,7 +762,7 @@ function election_candidate_nominate_access(stdClass $post, $account = NULL) {
     return FALSE;
   }
   // Check whether nominations are open.
-  if (!_election_post_is_open($post, $election, 'n')) {
+  if (!_election_post_is_open($post, 'n')) {
     return FALSE;
   }
   // Load the user's previous nominations, if any.
