@@ -216,7 +216,12 @@ function election_candidate_access_per_election($op, stdClass $election, $accoun
  * Helper function to allow determining candidate access per election post.
  */
 function election_candidate_access_per_post($op, stdClass $post, $account = NULL) {
-  return election_candidate_access_per_election($op, $post->election, $account);
+  // Check whether the election supports candidates at all.
+  if (!election_candidate_check_support($post->election)) {
+    return FALSE;
+  }
+  // Defer to the election post access system.
+  return election_post_access($op, $post, $account);
 }
 
 /**
@@ -241,24 +246,27 @@ function election_candidate_menu() {
     'title' => 'Candidates',
     'page callback' => 'election_candidate_list_page',
     'page arguments' => array(1),
-    'access callback' => 'election_candidate_access_per_election',
-    'access arguments' => array('view', 1),
     'file' => 'election_candidate.pages.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 2,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    // To view candidates, the user needs to have view access to the election.
+    'access callback' => 'election_candidate_access_per_election',
+    'access arguments' => array('view', 1),
   );
 
   $items['election/%election/candidates-admin'] = array(
     'title' => 'Manage candidates',
     'page callback' => 'election_candidate_manage_page',
     'page arguments' => array(1),
-    'access callback' => 'election_candidate_access_per_election',
-    'access arguments' => array('update', 1),
     'file' => 'election_candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 4,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    // To manage candidates, the user needs to have update access to the
+    // election.
+    'access callback' => 'election_candidate_access_per_election',
+    'access arguments' => array('update', 1),
   );
 
   $items['election/%election/candidates-admin/list'] = array(
@@ -271,24 +279,28 @@ function election_candidate_menu() {
     'title' => 'Totals',
     'page callback' => 'election_candidate_totals_page',
     'page arguments' => array(1),
-    'access callback' => 'election_candidate_access_per_election',
-    'access arguments' => array('update', 1),
     'file' => 'election_candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    // To view candidate totals, the user needs to have update access to the
+    // election.
+    'access callback' => 'election_candidate_access_per_election',
+    'access arguments' => array('update', 1),
   );
 
   $items['election/%election/candidates-admin/download'] = array(
     'title' => 'Download',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('election_candidate_download_form', 1),
-    'access callback' => 'election_candidate_access_per_election',
-    'access arguments' => array('update', 1),
     'file' => 'election_candidate.download.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 2,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    // To download candidate data, the user needs to have update access to the
+    // election.
+    'access callback' => 'election_candidate_access_per_election',
+    'access arguments' => array('update', 1),
   );
 
   $items['election-post/%election_post/add-candidate'] = array(
@@ -296,9 +308,10 @@ function election_candidate_menu() {
     'page callback' => 'election_candidate_page_add',
     'page arguments' => array(1),
     'file' => 'election_candidate.admin.inc',
-    'access callback' => 'election_candidate_access_per_post',
-    'access arguments' => array('create', 1),
     'type' => MENU_LOCAL_ACTION,
+    // To create a candidate, the user needs to have update access to the post.
+    'access callback' => 'election_candidate_access_per_post',
+    'access arguments' => array('update', 1),
   );
 
   $items['election-candidate/%election_candidate'] = array(
