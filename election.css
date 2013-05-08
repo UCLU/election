@@ -58,14 +58,19 @@
   white-space: nowrap;
 }
 
-/* Election page */
-.election-posts,
-.election-post-candidates {
+/* Titles of embedded lists of posts and candidates */
+.election-posts > h2,
+.election-post-candidates > h2 {
   clear: both;
+  margin-bottom: 0.5em;
   margin-top: 1em;
 }
 
 /* Item of information */
+.election-info {
+  margin-bottom: 0.5em;
+  margin-top: 0.5em;
+}
 .election-info .label {
   font-weight: bold;
 }
