@@ -249,6 +249,13 @@ function election_form_submit($form, &$form_state) {
     $election->uid = $user->uid;
   }
 
+  foreach ($form_state['values'] as $property => $value) {
+    if (substr($property, 0, 9) == 'settings_') {
+      $key = substr($property, 9);
+      $election->settings[$key] = $value;
+    }
+  }
+
   foreach ($election as $property => $value) {
     if (isset($form_state['values'][$property])) {
       $election->$property = $form_state['values'][$property];

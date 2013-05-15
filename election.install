@@ -91,6 +91,13 @@ function election_schema() {
         'type' => 'int',
         'not null' => FALSE,
       ),
+      'settings' => array(
+        'description' => 'A serialized array of any further settings for this election.',
+        'type' => 'blob',
+        'size' => 'normal',
+        'serialize' => TRUE,
+        'not null' => FALSE,
+      ),
       'created' => array(
         'description' => 'The Unix timestamp for when the election was created.',
         'type' => 'int',
@@ -169,4 +176,17 @@ function election_update_7102() {
 function election_update_7103() {
   field_attach_rename_bundle('election_post', 'motion', 'referendum_post');
   field_attach_rename_bundle('election_post', 'position', 'stv_post');
+}
+
+/**
+ * Add 'settings' field
+ */
+function election_update_7104() {
+  db_add_field('election', 'settings', array(
+    'description' => 'A serialized array of any further settings for this election.',
+    'type' => 'blob',
+    'size' => 'normal',
+    'serialize' => TRUE,
+    'not null' => FALSE,
+  ));
 }
