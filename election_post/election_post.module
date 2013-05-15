@@ -395,27 +395,6 @@ function election_post_load_multiple(array $post_ids = array(), $reset = FALSE) 
 }
 
 /**
- * Count the posts for a given election.
- *
- * @param stdClass $election
- *   The election object (containing at least the property election_id).
- *
- * @return int
- *   The total number of posts.
- */
-function _election_post_count_by_election(stdClass $election) {
-  $post_counts = &drupal_static(__FUNCTION__, array());
-  $election_id = $election->election_id;
-  if (!isset($post_counts[$election_id])) {
-    $post_counts[$election_id] = db_query(
-      'SELECT COUNT(*) FROM {election_post} WHERE election_id = :eid',
-      array(':eid' => $election_id)
-    )->fetchField();
-  }
-  return (int) $post_counts[$election_id];
-}
-
-/**
  * Implements hook_entity_load().
  */
 function election_post_entity_load($entities, $type) {
