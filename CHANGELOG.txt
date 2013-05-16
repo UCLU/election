@@ -1,3 +1,10 @@
+Election 7.x-1.x-dev, 2013-05-16
+-----------------------
+- Issue #1995704: Added hook_election_candidate_post_has_enough_alter(),
+  allowing other modules to help determine whether a post has 'enough'
+  candidates for voting to be possible. See
+  election_candidate/election_candidate.api.php for details.
+
 Election 7.x-1.x-dev, 2013-05-05
 -----------------------
 - Election editors are now able to add candidates via an 'Add new candidate'

@@ -1288,22 +1288,59 @@ function election_candidate_check_support(stdClass $election) {
 }
 
 /**
+ * Implements hook_hook_info().
+ */
+function election_candidate_hook_info() {
+  return array(
+    'election_candidate_post_has_enough_alter' => array(
+      'group' => 'election',
+    ),
+  );
+}
+
+/**
  * Determine whether the election post has enough candidates for voting.
  *
- * A post needs to have at least 2 published candidates (inc. RON) in order for
- * voting to be possible. Otherwise the candidate is unopposed.
+ * Other modules may alter the result of this function by implementing
+ * hook_election_candidate_post_has_enough_alter().
  *
  * @return bool
- *   TRUE if there are enough candidates for voting, or if the election doesn't
- *   support candidates; FALSE otherwise.
+ *   TRUE if there are enough candidates for voting, or if the election type
+ *   does not support candidates; FALSE otherwise.
  */
 function election_candidate_post_has_enough($post) {
   if (!election_candidate_check_support($post->election)) {
     return TRUE;
   }
-  $num_candidates = db_query('SELECT COUNT(candidate_id) FROM {election_candidate} WHERE post_id = :pid AND published = 1', array(':pid' => $post->post_id))->fetchField(0);
-  $has_ron = !empty($post->settings['use_ron']);
-  return ($num_candidates > 1 || ($num_candidates == 1 && $has_ron));
+
+  // Use a static cache to store the result.
+  $enough = &drupal_static(__FUNCTION__, array());
+  if (!isset($enough[$post->post_id])) {
+    $enough[$post->post_id] = FALSE;
+
+    // Find the number of published, 'hopeful' candidates standing for the post.
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'election_candidate')
+      ->propertyCondition('post_id', $post->post_id)
+      ->propertyCondition('published', 1)
+      ->propertyCondition('cstatus', ELECTION_CANDIDATE_HOPEFUL)
+      ->count();
+    $num_candidates = $query->execute();
+
+    // Usually two or more candidates are enough.
+    if ($num_candidates > 1) {
+      $enough[$post->post_id] = TRUE;
+    }
+    // If RON (Re-Open Nominations) is enabled for the post, only one candidate
+    // is needed.
+    elseif ($num_candidates == 1 && !empty($post->settings['use_ron'])) {
+      $enough[$post->post_id] = TRUE;
+    }
+
+    // Allow other modules to alter the result.
+    drupal_alter('election_candidate_post_has_enough', $enough[$post->post_id], $post, $num_candidates);
+  }
+  return $enough[$post->post_id];
 }
 
 /**
