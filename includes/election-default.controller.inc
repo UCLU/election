@@ -22,7 +22,7 @@ class ElectionDefaultController extends EntityAPIController {
 
     // Convert timestamp fields.
     foreach ($entity as $property => $value) {
-      if (substr($property, -5) == '_time' && !empty($value)) {
+      if (substr($property, -5) == '_time' && !empty($value) && !is_numeric($value)) {
         $entity->$property = strtotime($value);
       }
     }
