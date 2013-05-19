@@ -201,7 +201,20 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
 }
 
 /**
- * Helper function to allow determining candidate access per election.
+ * Determine access to the Candidates tab on an election.
+ */
+function election_candidate_access_tab(stdClass $election) {
+  if (!election_candidate_access_per_election('view', $election)) {
+    return FALSE;
+  }
+  if (empty($election->settings['show_candidates_tab'])) {
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/**
+ * Determine candidate access per election.
  */
 function election_candidate_access_per_election($op, stdClass $election, $account = NULL) {
   // Check whether the election supports candidates at all.
@@ -213,7 +226,7 @@ function election_candidate_access_per_election($op, stdClass $election, $accoun
 }
 
 /**
- * Helper function to allow determining candidate access per election post.
+ * Determine candidate access per election post.
  */
 function election_candidate_access_per_post($op, stdClass $post, $account = NULL) {
   // Check whether the election supports candidates at all.
@@ -250,9 +263,8 @@ function election_candidate_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 2,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-    // To view candidates, the user needs to have view access to the election.
-    'access callback' => 'election_candidate_access_per_election',
-    'access arguments' => array('view', 1),
+    'access callback' => 'election_candidate_access_tab',
+    'access arguments' => array(1),
   );
 
   $items['election/%election/candidates-admin'] = array(
@@ -548,6 +560,13 @@ function election_candidate_field_extra_fields_alter(&$info) {
   foreach (election_types() as $machine_name => $type) {
     $bundle = $type['post machine name'];
     if (!empty($type['has candidates'])) {
+      // Add a property to the 'Manage fields' form for elections.
+      $info['election'][$machine_name]['form'] += array(
+        'presentation' => array(
+          'label' => t('Presentation'),
+          'weight' => 10,
+        ),
+      );
       // Add a property to the 'Manage fields' form for election posts.
       $info['election_post'][$bundle]['form'] += array(
         'candidates_nominations' => array(
@@ -575,6 +594,29 @@ function election_candidate_field_extra_fields_alter(&$info) {
       );
     }
   }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Add candidate settings to the election edit form.
+ */
+function election_candidate_form_election_form_alter(&$form, &$form_state) {
+  $election = $form_state['election'];
+  if (!election_candidate_check_support($election)) {
+    return;
+  }
+  $form['presentation'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Presentation'),
+    '#collapsible' => TRUE,
+  );
+  $form['presentation']['settings_show_candidates_tab'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show the Candidates tab'),
+    '#description' => t('If enabled, a Candidates tab will be shown for this election, listing published candidates.'),
+    '#default_value' => isset($election->settings['show_candidates_tab']) ? $election->settings['show_candidates_tab'] : 1,
+  );
 }
 
 /**

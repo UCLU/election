@@ -412,3 +412,26 @@ function election_candidate_update_7007() {
     ->condition('cstatus', 0)
     ->execute();
 }
+
+/**
+ * Set the 'show_candidates_tab' setting to 1 on existing elections.
+ */
+function election_candidate_update_7101() {
+  $election_ids = db_select('election')
+    ->fields('election', array('election_id'))
+    ->execute()
+    ->fetchCol();
+  $elections = election_load_multiple($election_ids);
+  foreach ($elections as $election) {
+    if (!isset($election->settings)) {
+      break;
+    }
+    if (!election_candidate_check_support($election)) {
+      continue;
+    }
+    if (!isset($election->settings['show_candidates_tab'])) {
+      $election->settings['show_candidates_tab'] = 1;
+      election_save($election);
+    }
+  }
+}
