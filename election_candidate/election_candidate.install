@@ -423,9 +423,6 @@ function election_candidate_update_7101() {
     ->fetchCol();
   $elections = election_load_multiple($election_ids);
   foreach ($elections as $election) {
-    if (!isset($election->settings)) {
-      break;
-    }
     if (!election_candidate_check_support($election)) {
       continue;
     }
