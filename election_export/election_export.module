@@ -111,10 +111,11 @@ function election_export_election(stdClass $election, $destination = NULL, array
     $post_ids = $options['post ids'];
   }
   else {
-    $post_ids = db_query(
-      'SELECT post_id FROM {election_post} WHERE election_id = :eid',
-      array(':eid' => $election->election_id)
-    )->fetchCol();
+    $post_ids = db_select('election_post')
+      ->fields('election_post', array('post_id'))
+      ->condition('election_id', $election->election_id)
+      ->execute()
+      ->fetchCol();
   }
   $posts = election_post_load_multiple($post_ids);
   $tmp_files = array();

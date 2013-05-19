@@ -725,14 +725,14 @@ function election_candidate_get_nominations(stdClass $election, $account = NULL)
     return array();
   }
   if (!isset($nominations[$election->election_id][$account->uid])) {
-    $select = db_query(
-      'SELECT ec.*, ep.title AS post_title, ep.settings FROM {election_candidate} ec LEFT JOIN {election_post} ep USING (post_id) WHERE ec.uid = :uid AND ep.election_id = :eid',
-      array(
-        ':eid' => $election->election_id,
-        ':uid' => $account->uid,
-      )
-    );
-    $nominations[$election->election_id][$account->uid] = $select->fetchAll();
+    // @todo convert this into a standard EntityFieldQuery + entity load.
+    $query = db_select('election_candidate', 'ec');
+    $query->join('election_post', 'ep', 'ec.post_id = ep.post_id');
+    $query->fields('ec')
+      ->fields('ep', array('settings'))
+      ->condition('ec.uid', $account->uid)
+      ->condition('ep.election_id', $election->election_id);
+    $nominations[$election->election_id][$account->uid] = $query->execute()->fetchAll();
   }
   return $nominations[$election->election_id][$account->uid];
 }
@@ -1047,7 +1047,11 @@ function election_candidate_entity_delete($entity, $type) {
     case 'election':
       $election_id = $entity->election_id;
       // Delete associated candidates when an election is deleted.
-      $candidate_ids = db_query('SELECT candidate_id FROM {election_candidate} WHERE election_id = :eid', array(':eid' => $election_id))->fetchCol();
+      $candidate_ids = db_select('election_candidate')
+        ->fields('election_candidate', array('candidate_id'))
+        ->condition('election_id', $election_id)
+        ->execute()
+        ->fetchCol();
       election_candidate_delete_multiple($candidate_ids);
       break;
 

@@ -189,8 +189,12 @@ function election_vote_entity_delete($entity, $type) {
   switch ($type) {
     // Delete associated votes when a post is deleted.
     case 'election_post':
-      db_query('DELETE FROM {election_vote} WHERE post_id = :pid', array(':pid' => $entity->post_id));
-      db_query('DELETE FROM {election_ballot} WHERE post_id = :pid', array(':pid' => $entity->post_id));
+      db_delete('election_vote')
+        ->condition('post_id', $entity->post_id)
+        ->execute();
+      db_delete('election_ballot')
+        ->condition('post_id', $entity->post_id)
+        ->execute();
       break;
 
   }

@@ -70,30 +70,6 @@ function election_results_access($op, stdClass $post, $account = NULL) {
 }
 
 /**
- * Implements hook_entity_load().
- */
-function election_results_entity_load($entities, $type) {
-  // Add 'ballot_count' property to posts.
-  if ($type == 'election_post') {
-    $ballot_counts = &drupal_static(__FUNCTION__, array());
-    if (count(array_diff_key($entities, $ballot_counts))) {
-      $ballot_counts = db_query(
-        'SELECT post_id, COUNT(DISTINCT ballot_id) AS ballot_count FROM {election_ballot} WHERE post_id IN(:pids) GROUP BY post_id',
-        array(':pids' => array_keys($entities))
-      )->fetchAllAssoc('post_id');
-    }
-    foreach ($entities as $post_id => $post) {
-      if (isset($ballot_counts[$post_id])) {
-        $post->ballot_count = $ballot_counts[$post_id]->ballot_count;
-      }
-      else {
-        $post->ballot_count = 0;
-      }
-    }
-  }
-}
-
-/**
  * Page callback for election-post/%election_post/results.
  *
  * @todo make this themeable
@@ -107,18 +83,24 @@ function election_results_page(stdClass $post) {
 
   $output = array();
 
-  if (empty($post->ballot_count)) {
+  // Get the number of ballots for this post.
+  $query = db_select('election_ballot');
+  $query->addExpression('COUNT(ballot_id)');
+  $query->condition('post_id', $post->post_id);
+  $ballot_count = $query->execute()->fetchField();
+
+  if (!$ballot_count) {
     return array(
       '#markup' => '<p>' . t('No ballots have been cast for this @post.', array('@post' => election_get_post_name($election->type))) . '</p>',
     );
   }
 
-  $totals = db_query(
-    'SELECT COUNT(DISTINCT IF(abstain = 0, ballot_id, NULL)) AS votes, COUNT(DISTINCT IF(abstain = 1, ballot_id, NULL)) AS abstentions FROM {election_vote} WHERE post_id = :pid',
-    array(
-      ':pid' => $post->post_id,
-    )
-  )->fetch();
+  // Get the total number of votes and abstentions for the post.
+  $query = db_select('election_vote');
+  $query->addExpression('COUNT(DISTINCT IF(abstain = 0, ballot_id, NULL))', 'votes');
+  $query->addExpression('COUNT(DISTINCT IF(abstain = 1, ballot_id, NULL))', 'abstentions');
+  $query->condition('post_id', $post->post_id);
+  $totals = $query->execute()->fetch();
 
   if ($totals->votes == 0 && $totals->abstentions == 0) {
     return $output;
@@ -132,7 +114,7 @@ function election_results_page(stdClass $post) {
 
   $rows = array();
   $rows[0] = array(
-    'ballots' => number_format($post->ballot_count),
+    'ballots' => number_format($ballot_count),
     'votes' => number_format($totals->votes),
     'abstentions' => number_format($totals->abstentions),
   );

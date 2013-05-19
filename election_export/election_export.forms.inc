@@ -20,10 +20,12 @@ function election_export_form($form, &$form_state, stdClass $election) {
 
   $post_name_plural = election_get_post_name($election->type, TRUE);
 
-  $post_options = db_query(
-    'SELECT post_id, title FROM {election_post} WHERE election_id = :eid',
-    array(':eid' => $election->election_id)
-  )->fetchAllKeyed();
+  $post_options = db_select('election_post')
+    ->fields('election_post', array('post_id', 'title'))
+    ->condition('election_id', $election->election_id)
+    ->orderBy('title')
+    ->execute()
+    ->fetchAllKeyed();
 
   $form['help'] = array(
     '#markup' => t(

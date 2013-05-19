@@ -101,14 +101,12 @@ function election_referendum_election_results_page_alter(&$output, stdClass $pos
     return;
   }
 
-  $votes = db_query(
-    'SELECT COUNT(IF(answer = :yes, vote_id, NULL)) AS yes, COUNT(IF(answer = :no, vote_id, NULL)) AS no FROM {election_vote} WHERE post_id = :pid AND abstain <> 1',
-    array(
-      ':pid' => $post->post_id,
-      ':yes' => ELECTION_ANSWER_YES,
-      ':no' => ELECTION_ANSWER_NO,
-    )
-  )->fetch();
+  $query = db_select('election_vote');
+  $query->addExpression('COUNT(IF(answer = :yes, vote_id, NULL))', 'yes', array(':yes' => ELECTION_ANSWER_YES));
+  $query->addExpression('COUNT(IF(answer = :no, vote_id, NULL))', 'no', array(':no' => ELECTION_ANSWER_NO));
+  $query->condition('post_id', $post->post_id)
+    ->condition('abstain', 0);
+  $votes = $query->execute()->fetch();
 
   $header = array(
     check_plain(_election_referendum_get_answer_text($post, ELECTION_ANSWER_YES)),

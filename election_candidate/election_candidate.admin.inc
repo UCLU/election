@@ -73,7 +73,13 @@ function election_candidate_totals_page(stdClass $election) {
   drupal_set_title(t('Candidate totals'), PASS_THROUGH);
   election_set_breadcrumb($election);
 
-  $totals = db_query("SELECT IFNULL(cstatus, 'all') AS cstatus, COUNT(DISTINCT candidate_id) FROM {election_candidate} WHERE election_id = :eid GROUP BY cstatus WITH ROLLUP", array(':eid' => $election->election_id))->fetchAllKeyed();
+  // Get the total number of candidates for each status.
+  $query = db_select('election_candidate')
+    ->condition('election_id', $election->election_id);
+  $query->addExpression("IFNULL(cstatus, 'all')");
+  $query->addExpression('COUNT(DISTINCT candidate_id)');
+  $query->groupBy('cstatus WITH ROLLUP');
+  $totals = $query->execute()->fetchAllKeyed();
 
   $output = array(
     'total' => array(
@@ -82,10 +88,17 @@ function election_candidate_totals_page(stdClass $election) {
   );
 
   if (!empty($totals['all'])) {
-    $result = db_query(
-      "SELECT ep.post_id, ep.title, cstatus, COUNT(DISTINCT candidate_id) AS num FROM {election_post} ep LEFT JOIN {election_candidate} ec USING (post_id) WHERE ep.election_id = :eid GROUP BY ep.post_id, ec.cstatus ORDER BY ep.title",
-      array(':eid' => $election->election_id)
-    );
+    // Get the total number of candidates for each status, per post.
+    $query = db_select('election_post', 'ep');
+    $query->join('election_candidate', 'ec', 'ep.post_id = ec.post_id');
+    $query->addExpression('COUNT(DISTINCT candidate_id)', 'num');
+    $query->fields('ep', array('post_id', 'title'))
+      ->fields('ec', array('cstatus'))
+      ->condition('ep.election_id', $election->election_id)
+      ->groupBy('ep.post_id')
+      ->groupBy('ec.cstatus')
+      ->orderBy('ep.title');
+    $result = $query->execute();
     $cstatuses = _election_candidate_get_cstatus_options();
     $header = array_merge(
       array(drupal_ucfirst(election_get_post_name($election->type))),

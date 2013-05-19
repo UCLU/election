@@ -88,7 +88,13 @@ class ElectionCrudTestCase extends DrupalWebTestCase {
       t('The @type %title was saved.', array('@type' => $type['name'], '%title' => $title)),
       t('Election of type %type added correctly.', array('%type' => $type['name']))
     );
-    $election_id = db_query('SELECT election_id FROM {election} WHERE title = :title', array(':title' => $title))->fetchField();
+    // Load the newly created election by its title.
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'election')
+      ->propertyCondition('title', $title);
+    $result = $query->execute();
+    $election_ids = array_keys($result['election']);
+    $election_id = reset($election_ids);
     $election = election_load($election_id);
     // Check that the new election has the correct properties.
     $this->assertEqual($election->type, $bundle, t('Election has the correct type.'));
