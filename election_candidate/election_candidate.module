@@ -1119,19 +1119,8 @@ function election_candidate_entity_delete($entity, $type) {
  * Implements hook_entity_insert().
  */
 function election_candidate_entity_insert($entity, $type) {
-  switch ($type) {
-    case 'election_candidate':
-      if (module_exists('pathauto')) {
-        _election_candidate_pathauto_update_alias($entity, 'insert');
-      }
-      break;
-
-    case 'election':
-      // Clear the entity info cache.
-      // Needed because creating an election also creates candidate bundles.
-      entity_info_cache_clear();
-      break;
-
+  if ($type == 'election_candidate' && module_exists('pathauto')) {
+    _election_candidate_pathauto_update_alias($entity, 'insert');
   }
 }
 
