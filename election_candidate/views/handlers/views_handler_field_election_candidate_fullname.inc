@@ -13,6 +13,7 @@ class views_handler_field_election_candidate_fullname extends views_handler_fiel
     parent::construct();
     $this->additional_fields['first_name'] = 'first_name';
     $this->additional_fields['last_name'] = 'last_name';
+    $this->additional_fields['type'] = 'type';
   }
 
   /**
@@ -81,6 +82,7 @@ class views_handler_field_election_candidate_fullname extends views_handler_fiel
     $candidate = new stdClass();
     $candidate->first_name = $this->get_value($values, 'first_name');
     $candidate->last_name = $this->get_value($values, 'last_name');
+    $candidate->type = $this->get_value($values, 'type');
     $data = theme('election_candidate_full_name', array('candidate' => $candidate));
     return $this->render_link($data, $values);
   }
