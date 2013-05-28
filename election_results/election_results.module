@@ -149,7 +149,7 @@ function election_results_get_totals($post) {
       // Count abstentions.
       $query = db_select('election_vote')
         ->condition('post_id', $pid)
-        ->condition('abstain', 0);
+        ->condition('abstain', 1);
       $query->addExpression('COUNT(ballot_id)');
       $abstentions = $query->execute()->fetchField();
     }
