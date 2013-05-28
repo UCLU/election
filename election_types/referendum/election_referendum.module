@@ -92,34 +92,35 @@ function election_referendum_preprocess_election_vote_confirm(&$variables) {
 }
 
 /**
- * Page callback function for the referendum results counting page.
+ * Alter the results page to display referendum result counts.
  */
-function election_referendum_election_results_page_alter(&$output, stdClass $post, $totals) {
+function election_referendum_election_results_page_alter(&$output, stdClass $post) {
 
   $election = $post->election;
+
   if ($election->type != 'referendum') {
     return;
   }
 
-  $query = db_select('election_vote');
-  $query->addExpression('COUNT(IF(answer = :yes, vote_id, NULL))', 'yes', array(':yes' => ELECTION_ANSWER_YES));
-  $query->addExpression('COUNT(IF(answer = :no, vote_id, NULL))', 'no', array(':no' => ELECTION_ANSWER_NO));
-  $query->condition('post_id', $post->post_id)
-    ->condition('abstain', 0);
-  $votes = $query->execute()->fetch();
-
+  // Create the results table header, using the user-defined answers.
   $header = array(
     check_plain(_election_referendum_get_answer_text($post, ELECTION_ANSWER_YES)),
     check_plain(_election_referendum_get_answer_text($post, ELECTION_ANSWER_NO)),
   );
 
-  $percentage_yes = $totals->votes == 0 ? 0 : ($votes->yes / $totals->votes) * 100;
-  $percentage_no = $totals->votes == 0 ? 0 : ($votes->no / $totals->votes) * 100;
+  // Count the yes & no votes.
+  $yes = election_referendum_count_votes_by_answer($post, ELECTION_ANSWER_YES);
+  $no = election_referendum_count_votes_by_answer($post, ELECTION_ANSWER_NO);
+
+  // Calculate the results as percentages of the total number of votes.
+  $totals = election_results_get_totals($post);
+  $pc_yes = $totals['votes'] == 0 ? 0 : ($yes / $totals['votes']) * 100;
+  $pc_no = $totals['votes'] == 0 ? 0 : ($no / $totals['votes']) * 100;
 
   $rows = array(
     array(
-      number_format($votes->yes) . ' (' . number_format($percentage_yes, 2) . '% of votes)',
-      number_format($votes->no) . ' (' . number_format($percentage_no, 2) . '% of votes)',
+      number_format($yes) . ' (' . number_format($pc_yes, 2) . '% of votes)',
+      number_format($no) . ' (' . number_format($pc_no, 2) . '% of votes)',
     ),
   );
 
@@ -130,6 +131,26 @@ function election_referendum_election_results_page_alter(&$output, stdClass $pos
     '#rows' => $rows,
   );
 
+}
+
+/**
+ * Count the number of votes for a post according to the answer given.
+ *
+ * @param stdClass $post
+ *   The election post (referendum question) object.
+ * @param int $answer
+ *   The answer given (either ELECTION_ANSWER_YES or ELECTION_ANSWER_NO).
+ *
+ * @return int
+ *   The number of votes.
+ */
+function election_referendum_count_votes_by_answer($post, $answer) {
+  $query = db_select('election_vote')
+    ->condition('post_id', $post->post_id)
+    ->condition('abstain', 0)
+    ->condition('answer', $answer);
+  $query->addExpression('COUNT(*)');
+  return $query->execute()->fetchField();
 }
 
 /**

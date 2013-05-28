@@ -70,64 +70,96 @@ function election_results_access($op, stdClass $post, $account = NULL) {
 }
 
 /**
- * Page callback for election-post/%election_post/results.
- *
- * @todo make this themeable
+ * Implements hook_theme().
+ */
+function election_results_theme() {
+  return array(
+    'election_results_totals' => array(
+      'variables' => array(
+        'post' => NULL,
+        'ballots' => 0,
+        'votes' => 0,
+        'abstentions' => 0,
+      ),
+      'file' => 'election_results.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Page callback: display results for an election post.
  */
 function election_results_page(stdClass $post) {
-
   $election = $post->election;
 
   drupal_set_title(t('Results: %post', array('%post' => $post->title)), PASS_THROUGH);
   election_set_breadcrumb($election);
 
+  $totals = election_results_get_totals($post);
+
   $output = array();
-
-  // Get the number of ballots for this post.
-  $query = db_select('election_ballot');
-  $query->addExpression('COUNT(ballot_id)');
-  $query->condition('post_id', $post->post_id);
-  $ballot_count = $query->execute()->fetchField();
-
-  if (!$ballot_count) {
-    return array(
-      '#markup' => '<p>' . t('No ballots have been cast for this @post.', array('@post' => election_get_post_name($election->type))) . '</p>',
-    );
-  }
-
-  // Get the total number of votes and abstentions for the post.
-  $query = db_select('election_vote');
-  $query->addExpression('COUNT(DISTINCT IF(abstain = 0, ballot_id, NULL))', 'votes');
-  $query->addExpression('COUNT(DISTINCT IF(abstain = 1, ballot_id, NULL))', 'abstentions');
-  $query->condition('post_id', $post->post_id);
-  $totals = $query->execute()->fetch();
-
-  if ($totals->votes == 0 && $totals->abstentions == 0) {
-    return $output;
-  }
-
-  $header = array(
-    'ballots' => t('Ballots'),
-    'votes' => t('Votes'),
-    'abstentions' => t('Abstentions'),
-  );
-
-  $rows = array();
-  $rows[0] = array(
-    'ballots' => number_format($ballot_count),
-    'votes' => number_format($totals->votes),
-    'abstentions' => number_format($totals->abstentions),
-  );
-
   $output['totals'] = array(
-    '#theme' => 'table',
-    '#caption' => t('Totals'),
-    '#header' => $header,
-    '#rows' => $rows,
+    '#theme' => 'election_results_totals',
+    '#post' => $post,
+    '#ballots' => $totals['ballots'],
+    '#votes' => $totals['votes'],
+    '#abstentions' => $totals['abstentions'],
   );
 
-  drupal_alter('election_results_page', $output, $post, $totals);
+  drupal_alter('election_results_page', $output, $post);
 
   return $output;
+}
 
+/**
+ * Get the total number of ballots, votes and abstentions for a post.
+ *
+ * @param stdClass $post
+ *   The election post object.
+ *
+ * @return array
+ *   An array of totals for the post: 'ballots', 'votes', and 'abstentions' (all
+ *   integers).
+ */
+function election_results_get_totals($post) {
+  $totals = &drupal_static(__FUNCTION__, array());
+  $pid = $post->post_id;
+  if (!isset($totals[$pid])) {
+
+    // Count the number of ballots cast for this post.
+    $query = db_select('election_ballot')
+      ->condition('post_id', $pid);
+    $query->addExpression('COUNT(*)');
+    $ballots = $query->execute()->fetchField();
+
+    // No need to count votes and abstentions if there aren't any ballots.
+    if ($ballots == 0) {
+      $votes = 0;
+      $abstentions = 0;
+    }
+    else {
+
+      // Count votes.
+      $query = db_select('election_vote')
+        ->condition('post_id', $pid)
+        ->condition('abstain', 0);
+      $query->addExpression('COUNT(ballot_id)');
+      $votes = $query->execute()->fetchField();
+
+      // Count abstentions.
+      $query = db_select('election_vote')
+        ->condition('post_id', $pid)
+        ->condition('abstain', 0);
+      $query->addExpression('COUNT(ballot_id)');
+      $abstentions = $query->execute()->fetchField();
+    }
+
+    // Make sure all the figures are integers.
+    $totals[$pid] = array(
+      'ballots' => (int) $ballots,
+      'votes' => (int) $votes,
+      'abstentions' => (int) $abstentions,
+    );
+  }
+  return $totals[$pid];
 }

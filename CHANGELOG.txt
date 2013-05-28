@@ -1,3 +1,10 @@
+Election 7.x-1.x-dev, 2013-05-28
+-----------------------
+- The previously undocumented hook hook_election_results_page_alter() now no
+  longer provides $totals as a parameter. The function
+  election_results_get_totals() has been added.
+- The function election_referendum_count_votes_by_answer() has been added.
+
 Election 7.x-1.x-dev, 2013-05-19
 -----------------------
 - Issue #1994932 by ricky.middaugh: Added a setting to show or hide the
