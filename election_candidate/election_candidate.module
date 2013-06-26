@@ -1137,6 +1137,29 @@ function election_candidate_file_download_access($field, $entity_type, $entity) 
 }
 
 /**
+ * Implements hook_file_entity_access().
+ */
+function election_candidate_file_entity_access($op, $file, $account) {
+  // If the user can view the election candidate, they should be allowed to view
+  // attached file entities even if they are stored as 'private files'.
+  if (($op == 'view' || $op == 'download') && is_object($file)) {
+    $references = file_get_file_references($file);
+    foreach ($references as $field_name => $result) {
+      if (!isset($result['election_candidate'])) {
+        return FILE_ENTITY_ACCESS_IGNORE;
+      }
+      foreach (array_keys($result['election_candidate']) as $candidate_id) {
+        $candidate = election_candidate_load($candidate_id);
+        if ($candidate && election_candidate_access('view', $candidate, $account)) {
+          return FILE_ENTITY_ACCESS_ALLOW;
+        }
+      }
+    }
+  }
+  return FILE_ENTITY_ACCESS_IGNORE;
+}
+
+/**
  * Update the URL aliases for an individual election candidate.
  *
  * @param stdClass $candidate
