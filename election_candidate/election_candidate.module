@@ -538,6 +538,26 @@ function election_candidate_field_extra_fields() {
         'description' => t('The post/position for this candidate.'),
         'weight' => 1,
       ),
+      'first_name' => array(
+        'label' => t('First name'),
+        'description' => t("The candidate's first name(s)."),
+        'weight' => 1,
+      ),
+      'last_name' => array(
+        'label' => t('Last name'),
+        'description' => t("The candidate's last name(s)."),
+        'weight' => 2,
+      ),
+      'mail' => array(
+        'label' => t('E-mail address'),
+        'description' => t("The candidate's e-mail address."),
+        'weight' => 3,
+      ),
+      'username' => array(
+        'label' => t('username'),
+        'description' => t("The candidate's username."),
+        'weight' => 3,
+      ),
       'status' => array(
         'label' => t('Status'),
         'description' => t("The candidate's status."),
@@ -989,6 +1009,39 @@ function election_candidate_view($candidate, $view_mode = 'full') {
     );
   }
 
+  // Display the candidate's first name.
+  $candidate->content['first_name'] = array(
+    '#theme' => 'election_info_item',
+    '#label' => t('First name'),
+    '#value' => $candidate->first_name,
+    '#html' => TRUE,
+  );
+
+  // Display the candidate's last name.
+  $candidate->content['last_name'] = array(
+    '#theme' => 'election_info_item',
+    '#label' => t('Last name'),
+    '#value' => $candidate->last_name,
+    '#html' => TRUE,
+  );
+
+  // Display the candidate's e-mail address.
+  $mailto = l($candidate->mail, 'mailto:' . $candidate->mail, array('absolute' => TRUE));
+  $candidate->content['mail'] = array(
+    '#theme' => 'election_info_item',
+    '#label' => t('E-mail address'),
+    '#value' => $mailto,
+    '#html' => TRUE,
+  );
+
+  // Display the candidate's username.
+  $candidate->content['username'] = array(
+    '#theme' => 'election_info_item',
+    '#label' => t('Username'),
+    '#value' => theme('username', array('account' => $candidate->uid ? user_load($candidate->uid) : NULL)),
+    '#html' => TRUE,
+  );
+
   // Display the candidate's status.
   $candidate->content['status'] = array(
     '#theme' => 'election_info_item',
@@ -997,25 +1050,6 @@ function election_candidate_view($candidate, $view_mode = 'full') {
     '#html' => TRUE,
   );
 
-  // Only display the following information in the 'Details' view.
-  if ($view_mode == 'details') {
-    $username = theme('username', array('account' => $candidate->uid ? user_load($candidate->uid) : NULL));
-    $mailto = l($candidate->mail, 'mailto:' . $candidate->mail, array('absolute' => TRUE));
-    // Display the candidate's e-mail address.
-    $candidate->content['mail'] = array(
-      '#theme' => 'election_info_item',
-      '#label' => t('E-mail address'),
-      '#value' => $mailto,
-      '#html' => TRUE,
-    );
-    // Display the candidate's username.
-    $candidate->content['username'] = array(
-      '#theme' => 'election_info_item',
-      '#label' => t('Username'),
-      '#value' => $username,
-      '#html' => TRUE,
-    );
-  }
 
   // Build fields content.
   // In case of a multiple view, node_view_multiple() already ran the
