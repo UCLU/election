@@ -1051,7 +1051,6 @@ function election_candidate_view($candidate, $view_mode = 'full') {
     '#html' => TRUE,
   );
 
-
   // Build fields content.
   // In case of a multiple view, node_view_multiple() already ran the
   // 'prepare_view' step. An internal flag prevents the operation from running

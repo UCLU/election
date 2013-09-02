@@ -24,46 +24,6 @@ function election_condition_get_conditions() {
 }
 
 /**
- * Get the conditions assigned to a given post.
- *
- * @param stdClass $post
- *   An election post object.
- *
- * @return array
- *   Array of conditions keyed by machine name.
- */
-function election_condition_get_conditions_by_post($post) {
-  $conditions = &drupal_static(__FUNCTION__, array());
-  $post_id = $post->post_id;
-  if (!isset($conditions[$post_id])) {
-    $conditions[$post_id] = array();
-    $machine_names = db_select('election_post_condition', 'epc')
-      ->fields('epc', array('condition_machine_name'))
-      ->condition('post_id', $post_id)
-      ->execute()
-      ->fetchCol();
-    if (count($machine_names)) {
-      $condition_info = election_condition_get_conditions();
-      foreach ($machine_names as $machine_name) {
-        if (isset($condition_info[$machine_name])) {
-          $condition = $condition_info[$machine_name];
-        }
-        else {
-          $condition = array(
-            'condition_machine_name' => $machine_name,
-            'name' => $machine_name,
-            'callbacks' => array(),
-            'description' => t('Unknown condition'),
-          );
-        }
-        $conditions[$post_id][$machine_name] = $condition;
-      }
-    }
-  }
-  return $conditions[$post_id];
-}
-
-/**
  * Implements hook_hook_info().
  */
 function election_condition_hook_info() {
@@ -75,6 +35,43 @@ function election_condition_hook_info() {
 }
 
 /**
+ * Implements hook_entity_load().
+ */
+function election_condition_entity_load($entities, $type) {
+  // Add 'conditions' property to posts.
+  if ($type == 'election_post') {
+    $conditions = &drupal_static(__FUNCTION__, array());
+    if (count(array_diff_key($entities, $conditions))) {
+      $posts_conditions = db_select('election_post_condition', 'epc')
+        ->fields('epc', array('post_id', 'condition_machine_name'))
+        ->condition('post_id', array_keys($entities), 'IN')
+        ->execute();
+      if ($posts_conditions->rowCount()) {
+        $condition_info = election_condition_get_conditions();
+        while ($record = $posts_conditions->fetch()) {
+          $mn = $record->condition_machine_name;
+          if (isset($condition_info[$mn])) {
+            $condition = $condition_info[$mn];
+          }
+          else {
+            $condition = array(
+              'condition_machine_name' => $mn,
+              'name' => $mn,
+              'callbacks' => array(),
+              'description' => t('Unknown condition'),
+            );
+          }
+          $conditions[$record->post_id][$mn] = $condition;
+        }
+      }
+    }
+    foreach ($entities as $post_id => $post) {
+      $post->conditions = isset($conditions[$post_id]) ? $conditions[$post_id] : array();
+    }
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function election_condition_form_election_post_form_alter(&$form, &$form_state) {
@@ -82,13 +79,11 @@ function election_condition_form_election_post_form_alter(&$form, &$form_state) 
   $post = $form_state['post'];
   $election = $form_state['election'];
 
-  $post_conditions = election_condition_get_conditions_by_post($post);
-
   $form['conditions'] = array(
     '#type' => 'fieldset',
     '#title' => t('Conditional voting'),
     '#collapsible' => TRUE,
-    '#collapsed' => (empty($post_conditions)),
+    '#collapsed' => (empty($post->conditions)),
     '#weight' => 99,
   );
   $form['conditions']['title'] = array(
@@ -132,7 +127,7 @@ function election_condition_form_election_post_form_alter(&$form, &$form_state) 
   // Also list conditions that are assigned to the post but don't exist anymore
   // in code. Deliberately, these will prevent voting access until they are
   // unassigned.
-  foreach ($post_conditions as $machine_name => $condition) {
+  foreach ($post->conditions as $machine_name => $condition) {
     if (!isset($condition_options[$machine_name])) {
       $condition_options[$machine_name] = array(
         'name' => $machine_name,
@@ -145,7 +140,7 @@ function election_condition_form_election_post_form_alter(&$form, &$form_state) 
   $form['conditions']['conditions'] = array(
     '#type' => 'tableselect',
     '#attributes' => array('class' => array('select-conditions')),
-    '#default_value' => array_fill_keys(array_keys($post_conditions), 1),
+    '#default_value' => array_fill_keys(array_keys($post->conditions), 1),
     '#header' => $condition_headers,
     '#options' => $condition_options,
     '#multiple' => TRUE,

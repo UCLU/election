@@ -65,6 +65,18 @@ function election_post_menu() {
     'weight' => 1,
   );
 
+  $items['election-post/%election_post/clone'] = array(
+    'title callback' => 'election_post_page_clone_title',
+    'title arguments' => array(1),
+    'page callback' => 'election_post_page_clone',
+    'page arguments' => array(1),
+    'file' => 'election-post.admin.inc',
+    'access callback' => 'election_post_access',
+    'access arguments' => array('update', 1),
+    'weight' => 1,
+    'type' => MENU_LOCAL_ACTION,
+  );
+
   $items['election-post/%election_post/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'drupal_get_form',
@@ -72,7 +84,7 @@ function election_post_menu() {
     'access callback' => 'election_post_access',
     'access arguments' => array('delete', 1),
     'file' => 'election_post.forms.inc',
-    'weight' => 2,
+    'weight' => 3,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_INLINE,
   );
@@ -502,11 +514,19 @@ function election_post_save($post) {
 }
 
 /**
+ * Title callback for cloning an election post.
+ */
+function election_post_page_clone_title($post) {
+  // Output should not be escaped here; it is done later in the menu system.
+  return t('Clone this !post', array('!post' => election_get_post_name($post->election->type)));
+}
+
+/**
  * Title callback for adding an election post.
  */
 function election_post_page_add_title($election) {
   // Output should not be escaped here; it is done later in the menu system.
-  return t('Add new !post_name', array('!post_name' => election_get_post_name($election->type)));
+  return t('Add new !post', array('!post' => election_get_post_name($election->type)));
 }
 
 /**

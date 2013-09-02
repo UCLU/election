@@ -50,10 +50,6 @@ function election_post_page_add($election) {
 
   election_set_breadcrumb($election);
 
-  if (!is_object($election)) {
-    return MENU_NOT_FOUND;
-  }
-
   $values = array();
   $values['election_id'] = $election->election_id;
 
@@ -83,4 +79,35 @@ function election_post_page_add($election) {
 
   return drupal_get_form('election_post_form', $post, $election);
 
+}
+
+
+/**
+ * Page callback for cloning an election post.
+ *
+ * Path: election-post/%election_post/clone.
+ */
+function election_post_page_clone($post) {
+
+  $old_post = $post;
+  $post = clone $post;
+  $election = $post->election;
+
+  election_set_breadcrumb($post->election);
+
+  $post->post_id = NULL;
+  $post->is_new = TRUE;
+  $post->is_clone = TRUE;
+  $post->title = t('Clone of !title', array('!title' => $post->title));
+
+  $post_name = election_get_post_name($post->election->type);
+
+  drupal_set_title(
+    t('Clone: %title', array('%title' => $old_post->title, '@post' => $post_name)),
+    PASS_THROUGH
+  );
+
+  module_load_include('inc', 'election_post', 'election_post.forms');
+
+  return drupal_get_form('election_post_form', $post, $election);
 }

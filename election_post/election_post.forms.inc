@@ -58,11 +58,14 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
     '#title' => t('Roles eligible to vote'),
     '#options' => $roles_that_can_vote_global,
     '#description' => t("Select the roles eligible to vote for this @post. There may be other restrictions. Only roles with the permission 'vote in elections' are listed here.", array('@post' => $post_name)),
-    '#default_value' => (array) $post->rids,
   );
 
-  if ($post->is_new) {
+  // For completely new posts, enable all the available roles to vote.
+  if (!empty($post->is_new) && empty($post->is_clone)) {
     $form['role_access']['rids']['#default_value'] = array_keys($roles_that_can_vote_global);
+  }
+  else {
+    $form['role_access']['rids']['#default_value'] = $post->rids;
   }
 
   $form['voting'] = array(
