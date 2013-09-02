@@ -324,6 +324,7 @@ function election_candidate_menu() {
     // To create a candidate, the user needs to have update access to the post.
     'access callback' => 'election_candidate_access_per_post',
     'access arguments' => array('update', 1),
+    'weight' => 2,
   );
 
   $items['election-candidate/%election_candidate'] = array(
@@ -541,27 +542,27 @@ function election_candidate_field_extra_fields() {
       'first_name' => array(
         'label' => t('First name'),
         'description' => t("The candidate's first name(s)."),
-        'weight' => 1,
+        'weight' => 3,
       ),
       'last_name' => array(
         'label' => t('Last name'),
         'description' => t("The candidate's last name(s)."),
-        'weight' => 2,
+        'weight' => 4,
       ),
       'mail' => array(
         'label' => t('E-mail address'),
         'description' => t("The candidate's e-mail address."),
-        'weight' => 3,
+        'weight' => 5,
       ),
       'username' => array(
-        'label' => t('username'),
+        'label' => t('Username'),
         'description' => t("The candidate's username."),
-        'weight' => 3,
+        'weight' => 6,
       ),
       'status' => array(
         'label' => t('Status'),
         'description' => t("The candidate's status."),
-        'weight' => 2,
+        'weight' => 7,
       ),
     ),
   );

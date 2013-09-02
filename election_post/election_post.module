@@ -398,9 +398,9 @@ function election_post_load_multiple(array $post_ids = array(), $reset = FALSE) 
  * Implements hook_entity_load().
  */
 function election_post_entity_load($entities, $type) {
-  $elections = &drupal_static(__FUNCTION__, array());
   // Add 'election' property to posts.
   if ($type == 'election_post') {
+    $elections = &drupal_static(__FUNCTION__, array());
     $election_ids = array();
     foreach ($entities as $post) {
       $election_ids[] = $post->election_id;
