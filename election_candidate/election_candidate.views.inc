@@ -46,6 +46,9 @@ function election_candidate_views_data() {
     'filter' => array(
       'handler' => 'views_handler_filter_numeric',
     ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_numeric',
+    ),
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),
