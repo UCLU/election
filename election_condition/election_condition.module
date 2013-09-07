@@ -79,11 +79,15 @@ function election_condition_form_election_post_form_alter(&$form, &$form_state) 
   $post = $form_state['post'];
   $election = $form_state['election'];
 
+  if (!isset($post->conditions)) {
+    $post->conditions = array();
+  }
+
   $form['conditions'] = array(
     '#type' => 'fieldset',
     '#title' => t('Conditional voting'),
     '#collapsible' => TRUE,
-    '#collapsed' => (empty($post->conditions)),
+    '#collapsed' => !count($post->conditions),
     '#weight' => 99,
   );
   $form['conditions']['title'] = array(
