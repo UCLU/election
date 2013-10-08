@@ -7,3 +7,4 @@ dependencies[] = election_post
 dependencies[] = rules
 files[] = views/handlers/views_handler_field_election_vote_link.inc
 files[] = views/handlers/views_handler_field_election_vote_eligibility.inc
+files[] = views/handlers/views_handler_field_election_vote_eligibility_boolean.inc

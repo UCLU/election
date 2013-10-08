@@ -21,11 +21,21 @@ function election_vote_views_data() {
 
   $data['election_post']['eligibility'] = array(
     'title' => t('Eligibility'),
-    'help' => t('Whether the current user is eligible to vote.'),
+    'help' => t('A detailed description of whether the current user is eligible to vote.'),
     'real field' => 'post_id',
     'field' => array(
       'handler' => 'views_handler_field_election_vote_eligibility',
       'click sortable' => FALSE,
+    ),
+  );
+
+  $data['election_post']['eligibility_boolean'] = array(
+    'title' => t('Eligible to vote?'),
+    'help' => t('A Boolean (yes/no) for whether the current user is eligible to vote.'),
+    'real field' => 'post_id',
+    'field' => array(
+      'handler' => 'views_handler_field_election_vote_eligibility_boolean',
+      'click sortable' => TRUE,
     ),
   );
 
