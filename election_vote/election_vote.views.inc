@@ -22,6 +22,7 @@ function election_vote_views_data() {
   $data['election_post']['eligibility'] = array(
     'title' => t('Eligibility'),
     'help' => t('Whether the current user is eligible to vote.'),
+    'real field' => 'post_id',
     'field' => array(
       'handler' => 'views_handler_field_election_vote_eligibility',
       'click sortable' => FALSE,
