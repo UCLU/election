@@ -67,6 +67,20 @@ function election_post_views_data() {
     ),
   );
 
+  $data['election_post']['vstatus'] = array(
+    'title' => t('Voting status'),
+    'help' => t('The voting status for this election post.'),
+    'real field' => 'vstatus_inheritance',
+    'filter' => array(
+      'label' => t('Voting is open'),
+      'handler' => 'views_handler_filter_election_post_vstatus',
+      'type' => 'yes-no',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
   $data['election_post']['created'] = array(
     'title' => t('Created date'),
     'help' => t('The date when the post was created.'),
