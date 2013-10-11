@@ -165,8 +165,15 @@ function election_export_post(stdClass $post, $destination = NULL, array $option
   );
   $options = array_merge($default_options, $options);
 
-  // Load all candidates.
+  // Load all candidates, including unpublished ones, unsorted.
   $candidates = election_candidate_load_by_post($post, NULL, FALSE, FALSE);
+
+  // Get rid of 'rejected' candidates.
+  foreach ($candidates as $key => $candidate) {
+    if ($candidate->cstatus == ELECTION_CANDIDATE_REJECTED) {
+      unset($candidates[$key]);
+    }
+  }
 
   // Map the candidates to integer keys.
   $candidate_map = array();
