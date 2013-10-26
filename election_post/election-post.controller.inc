@@ -23,15 +23,8 @@ class ElectionPostController extends ElectionDefaultController {
       'rids' => array(),
       'vstatus_inheritance' => ELECTION_POST_STATUS_INHERIT,
       'nstatus_inheritance' => ELECTION_POST_STATUS_INHERIT,
-      'require_manifesto' => 1,
-      'require_phone' => 0,
-      'require_proposer' => 1,
-      'require_photo' => 0,
       'vacancy_count' => 1,
-      'exclusive' => 1,
-      'use_ron' => 1,
       'allow_abstention' => 1,
-      'allow_equal' => 0,
       'settings' => array(),
     );
     // Overwrite default values with supplied values.

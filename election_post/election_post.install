@@ -65,6 +65,7 @@ function election_post_schema() {
         'not null' => TRUE,
         'default' => ELECTION_POST_STATUS_INHERIT,
       ),
+      // Nominations are relevant to elections with candidates.
       'nstatus_inheritance' => array(
         'description' => sprintf(
           'The post\'s nominations status: inherited (%d) or closed (%d).',
@@ -75,6 +76,14 @@ function election_post_schema() {
         'size' => 'tiny',
         'not null' => TRUE,
         'default' => ELECTION_POST_STATUS_INHERIT,
+      ),
+      // Vacancies (or 'seats') are relevant to elections with candidates.
+      'vacancy_count' => array(
+        'description' => 'The number of vacancies for this post.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
       ),
       'created' => array(
         'description' => 'The Unix timestamp for when the post was created.',
@@ -192,4 +201,35 @@ function election_post_update_7104() {
   db_drop_field('election_post', 'exclusive');
   db_drop_field('election_post', 'vacancy_count');
   db_drop_field('election_post', 'allow_equal');
+}
+
+/**
+ * Restore election_post.vacancy_count field.
+ */
+function election_post_update_7105() {
+  db_add_field('election_post', 'vacancy_count', array(
+    'description' => 'The number of vacancies for this post.',
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 1,
+  ));
+}
+
+/**
+ * Move vacancy_count settings back into the election_post.vacancy_count field.
+ */
+function election_post_update_7106() {
+  $post_ids = db_query("SELECT post_id FROM {election_post} WHERE settings LIKE '%vacancy_count%'")->fetchCol();
+  $posts = election_post_load_multiple($post_ids);
+  foreach ($posts as $post_id => $post) {
+    if (empty($post->settings['vacancy_count'])) {
+      continue;
+    }
+    if ($post->vacancy_count != $post->settings['vacancy_count']) {
+      $post->vacancy_count = $post->settings['vacancy_count'];
+      unset($post->settings['vacancy_count']);
+      election_post_save($post);
+    }
+  }
 }

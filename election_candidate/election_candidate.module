@@ -588,8 +588,12 @@ function election_candidate_field_extra_fields_alter(&$info) {
           'weight' => 10,
         ),
       );
-      // Add a property to the 'Manage fields' form for election posts.
+      // Add properties to the 'Manage fields' form for election posts.
       $info['election_post'][$bundle]['form'] += array(
+        'vacancy_count' => array(
+          'label' => t('Number of vacancies'),
+          'weight' => 1,
+        ),
         'candidates_nominations' => array(
           'label' => t('Candidates and nominations'),
           'weight' => 80,
@@ -604,6 +608,10 @@ function election_candidate_field_extra_fields_alter(&$info) {
       );
       // Add properties to the 'Manage display' form for election posts.
       $info['election_post'][$bundle]['display'] += array(
+        'vacancy_count' => array(
+          'label' => t('Number of vacancies'),
+          'weight' => 1,
+        ),
         'nominate_link' => array(
           'label' => t('Nomination form link'),
           'weight' => 2,
@@ -657,6 +665,17 @@ function election_candidate_form_election_post_form_alter(&$form, &$form_state) 
     '#type' => 'fieldset',
     '#title' => t('Candidates and nominations'),
     '#collapsible' => TRUE,
+  );
+
+  $form['candidates_nominations']['vacancy_count'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of vacancies'),
+    '#default_value' => $post->vacancy_count,
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#required' => TRUE,
+    '#weight' => -20,
+    '#element_validate' => array('element_validate_number'),
   );
 
   $form['candidates_nominations']['nstatus_inheritance'] = array(
@@ -1312,6 +1331,12 @@ function election_candidate_election_post_view_alter(&$build) {
   if (!election_candidate_check_support($election)) {
     return;
   }
+  // Display the number of vacancies.
+  $build['vacancy_count'] = array(
+    '#theme' => 'election_info_item',
+    '#label' => t('Number of vacancies'),
+    '#value' => number_format($post->vacancy_count),
+  );
   // Display a link to the nomination form for the post.
   $build['nominate_link'] = array(
     '#theme' => 'election_info_item',
@@ -1419,13 +1444,14 @@ function election_candidate_post_has_enough($post) {
       ->count();
     $num_candidates = $query->execute();
 
-    // Usually two or more candidates are enough.
-    if ($num_candidates > 1) {
-      $enough[$post->post_id] = TRUE;
+    // If RON (Re-Open Nominations) is enabled for the post, that counts as a
+    // candidate.
+    if (!empty($post->settings['use_ron'])) {
+      $num_candidates++;
     }
-    // If RON (Re-Open Nominations) is enabled for the post, only one candidate
-    // is needed.
-    elseif ($num_candidates == 1 && !empty($post->settings['use_ron'])) {
+
+    // There should be at least one more candidate than the number of vacancies.
+    if ($num_candidates - $post->vacancy_count >= 1) {
       $enough[$post->post_id] = TRUE;
     }
 

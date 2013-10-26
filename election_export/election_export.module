@@ -198,8 +198,6 @@ function election_export_post(stdClass $post, $destination = NULL, array $option
     $candidate_lines .= ' # ' . t('Candidate keyed by @i', array('@i' => $i)) . "\n";
   }
 
-  $total_vacancies = isset($post->settings['vacancy_count']) ? (int) $post->settings['vacancy_count'] : 1;
-
   $votes_fields = array('ballot_id', 'candidate_id', 'ron', 'rank', 'abstain');
 
   $votes_query = db_select('election_vote', 'ev')
@@ -256,11 +254,11 @@ function election_export_post(stdClass $post, $destination = NULL, array $option
     '!candidates standing for !vacancies:',
     array(
       '!candidates' => format_plural($total_candidates, 'One candidate is', '@count candidates are'),
-      '!vacancies' => format_plural($total_vacancies, 'one vacancy', '@count vacancies'),
+      '!vacancies' => format_plural($post->vacancy_count, 'one vacancy', '@count vacancies'),
     )
   ) . "\n";
 
-  $output .= "$total_candidates $total_vacancies\n";
+  $output .= $total_candidates . ' ' . $post->vacancy_count . "\n";
 
   if (!empty($withdrawn)) {
     $output .= '# ' . format_plural(
