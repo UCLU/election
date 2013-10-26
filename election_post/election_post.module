@@ -286,6 +286,13 @@ function election_post_entity_property_info() {
       'required' => TRUE,
       'options list' => '_election_post_get_inheritance_options',
     ),
+    'vacancy_count' => array(
+      'label' => t('Number of vacancies'),
+      'type' => 'integer',
+      'schema field' => 'vacancy_count',
+      'setter callback' => 'entity_property_verbatim_set',
+      'required' => TRUE,
+    ),
     'created' => array(
       'label' => t('Created time'),
       'type' => 'date',
