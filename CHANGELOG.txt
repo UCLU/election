@@ -1,3 +1,12 @@
+Election 7.x-1.x-dev, 2013-10-27
+-----------------------
+- The Rules action 'Deny voting access' now requires a third parameter: an
+  explanation of why the user's access is being denied.
+- The Election Vote module now contains a new feature: users can view an
+  explanation of the voting access limitations for each post, if they have the
+  permission 'view voting access explanation', and if they visit
+  election-post/%election_post/explain.
+
 Election 7.x-1.x-dev, 2013-10-26
 -----------------------
 - The vacancies count for an election_post used to be in

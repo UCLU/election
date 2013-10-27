@@ -106,6 +106,12 @@ function template_preprocess_election_vote_eligibility(&$variables) {
     else {
       $eligibility = t('Not eligible');
     }
+    if (user_access('view voting access explanation', $account)) {
+      $eligibility = rtrim($eligibility, '.');
+      $eligibility .= t(' (<a href="@explain_url">explain</a>).', array(
+        '@explain_url' => url('election-post/' . $post->post_id . '/explain'),
+      ));
+    }
   }
   // The account is eligible. Check whether the user has already voted.
   elseif (election_vote_check_account_previously_voted($post, $account)) {
@@ -190,4 +196,27 @@ function theme_election_vote_button($variables) {
 
   return $output;
 
+}
+
+/**
+ * Explain the voting access limitations for a user/post.
+ */
+function theme_election_vote_access_explain($variables) {
+  $header = array(t('Test'), t('Result'));
+  $rows = array();
+
+  foreach ($variables['limitations'] as $key => $limitation) {
+    $result = $limitation['result'] ? t('Passed') : t('Failed');
+    $class = $limitation['result'] ? 'election-vote-access-passed' : 'election-vote-access-failed';
+    $rows[] = array(
+      $limitation['explanation'],
+      '<span class="' . $class . '">' . $result . '</span>',
+    );
+  }
+
+  return theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'empty' => t('No explanation available'),
+  ));
 }

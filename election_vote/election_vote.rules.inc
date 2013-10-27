@@ -93,6 +93,11 @@ function election_vote_rules_action_info() {
         'type' => 'user',
         'label' => t('The user account'),
       ),
+      'explanation' => array(
+        'type' => 'text',
+        'label' => t('Explanation'),
+        'description' => t('An explanation to the user of why voting access is being denied.'),
+      ),
     ),
   );
 
@@ -131,11 +136,20 @@ function election_vote_rules_action_info() {
  *   The election post.
  * @param stdClass $account
  *   The user account.
+ * @param string $explanation
+ *   An explanation to the user of why voting was denied.
  */
-function election_vote_deny_access($post, $account) {
+function election_vote_deny_access($post, $account, $explanation) {
   $grants = &drupal_static('election_vote_grants', array());
+  if (!$account) {
+    $account = $GLOBALS['user'];
+  }
   $grants[$post->post_id][$account->uid]['vote'] = FALSE;
   $grants[$post->post_id][$account->uid]['undo'] = FALSE;
+  $grants['explanations'][$post->post_id][$account->uid][] = array(
+    'explanation' => filter_xss($explanation),
+    'test' => FALSE,
+  );
 }
 
 /**

@@ -30,6 +30,15 @@ function election_vote_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  $items['election-post/%election_post/explain'] = array(
+    'title' => 'Explanation',
+    'page callback' => 'election_vote_page_explain',
+    'page arguments' => array(1),
+    'access callback' => 'election_vote_explanation_access',
+    'access arguments' => array(1),
+    'type' => MENU_CALLBACK,
+  );
+
   return $items;
 }
 
@@ -45,6 +54,10 @@ function election_vote_permission() {
     'undo own vote' => array(
       'title' => t('Undo own vote'),
       'description' => t('This allows users to undo their own vote.'),
+    ),
+    'view voting access explanation' => array(
+      'title' => t('View voting access explanation'),
+      'description' => t('This allows users to see why they can or cannot vote.'),
     ),
   );
 }
@@ -79,6 +92,14 @@ function election_vote_theme() {
     'election_vote_button' => array(
       'variables' => array(
         'post' => NULL,
+      ),
+      'file' => 'election_vote.theme.inc',
+    ),
+    'election_vote_access_explain' => array(
+      'variables' => array(
+        'limitations' => array(),
+        'post' => NULL,
+        'account' => NULL,
       ),
       'file' => 'election_vote.theme.inc',
     ),
@@ -172,11 +193,139 @@ function election_vote_access($op, stdClass $post, $account = NULL) {
 }
 
 /**
+ * Access callback for a user to view an explanation of their own voting access.
+ *
+ * @param stdClass $post
+ *   The election post object.
+ * @param stdClass $account
+ *   The user account object (optional, defaults to the current user).
+ */
+function election_vote_explanation_access($post, $account = NULL) {
+  if (!isset($account)) {
+    $account = $GLOBALS['user'];
+  }
+  if (!election_post_access('view', $post, $account)) {
+    return FALSE;
+  }
+  return user_access('view voting access explanation', $account);
+}
+
+/**
+ * Explain to a user the voting limitations of a post.
+ *
+ * @param stdClass $post
+ *   The election post object.
+ * @param stdClass $account
+ *   The user account object (optional).
+ *
+ * @return array
+ *   An array of information for each limitation on voting, keyed by the
+ *   machine name. Each array element is itself an array, containing:
+ *   - 'explanation': The user explanation for this voting access limitation
+ *                    (a string, in HTML).
+ *   - 'result': Whether or not the user passes this voting access limitation (a
+ *             Boolean).
+ */
+function election_vote_access_explain($post, $account = NULL) {
+  $cache = &drupal_static(__FUNCTION__, array());
+
+  if (!isset($account)) {
+    $account = $GLOBALS['user'];
+  }
+
+  if (isset($cache[$post->post_id][$account->uid])) {
+    return $cache[$post->post_id][$account->uid];
+  }
+
+  $limitations = array();
+
+  $election = $post->election;
+  $post_name = election_get_post_name($election->type);
+
+  // Examine the global voting permission.
+  $limitations['permission'] = array(
+    'explanation' => t('You must have permission to vote in any elections.'),
+    'result' => user_access('vote in elections'),
+  );
+
+  // Examine the election voting status.
+  $election_open = _election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time);
+  $limitations['vstatus'] = array(
+    'explanation' => t('Voting must be open for this election.'),
+    'result' => $election_open,
+  );
+
+  // Examine the post's voting status.
+  $limitations['vstatus_post'] = array(
+    'explanation' => t('Voting must be open for this @post.', array(
+      '@post' => $post_name,
+    )),
+    'result' => $election_open && $post->vstatus_inheritance != ELECTION_POST_STATUS_CLOSED,
+  );
+
+  // Examine role access.
+  $rids = array_filter((array) $post->rids);
+  if (!empty($rids)) {
+    $roles = db_select('role', 'r')
+      ->fields('r', array('rid', 'name'))
+      ->condition('rid', $rids, 'IN')
+      ->execute()
+      ->fetchAllKeyed();
+    if (!empty($roles)) {
+      $limitations['roles'] = array(
+        'explanation' => t('You must have one of the following roles: %roles.',
+         array(
+          '%roles' => implode(', ', $roles),
+        )),
+        'result' => count(array_intersect(array_keys($account->roles), $post->rids)) > 0,
+      );
+    }
+  }
+  else {
+    $limitations['role'] = array(
+      'explanation' => t('At least one user role must be assigned to this @post.', array('@post' => $post_name)),
+      'result' => FALSE,
+    );
+  }
+
+  // Examine implementations of hook_election_vote_before_grant().
+  $hook = 'election_vote_before_grant';
+  $modules = module_implements($hook);
+  if (!empty($modules)) {
+    foreach ($modules as $module) {
+      $limitations['module_' . $module] = array(
+        'explanation' => t('Module %module', array('%module' => $module)),
+        'result' => module_invoke($module, $hook, $post, $account) !== FALSE,
+      );
+    }
+  }
+
+  // See if there are any explanations provided by the Rules action 'Deny voting
+  // access'.
+  if (!election_vote_access('vote', $post, $account)) {
+    $grants = drupal_static('election_vote_grants', array());
+    if (isset($grants['explanations'][$post->post_id][$account->uid])) {
+      foreach ($grants['explanations'][$post->post_id][$account->uid] as $key => $explanation) {
+        $limitations['rule_' . $key] = $explanation;
+      }
+    }
+  }
+
+  drupal_alter('election_vote_access_explain', $limitations, $post, $account);
+
+  $cache[$post->post_id][$account->uid] = $limitations;
+  return $limitations;
+}
+
+/**
  * Implements hook_hook_info().
  */
 function election_vote_hook_info() {
   return array(
     'election_vote_before_grant' => array(
+      'group' => 'election',
+    ),
+    'election_vote_access_explain_alter' => array(
       'group' => 'election',
     ),
   );
@@ -321,5 +470,23 @@ function election_vote_ip_anon_alter(&$tables) {
   $tables['election_ballot'] = array(
     'hostname' => 'ip',
     'timestamp' => 'timestamp',
+  );
+}
+
+/**
+ * Menu callback. A page explaining a user's voting access.
+ */
+function election_vote_page_explain($post) {
+
+  global $user;
+
+  drupal_set_title(t('Your voting access for %post', array('%post' => $post->title)), PASS_THROUGH);
+  election_set_breadcrumb($post->election);
+
+  return array(
+    '#theme' => 'election_vote_access_explain',
+    '#limitations' => election_vote_access_explain($post, $user),
+    '#post' => $post,
+    '#account' => $user,
   );
 }

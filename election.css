@@ -124,6 +124,14 @@
   padding: 0.3em 0.5em;
 }
 
+/* Election vote access explanation */
+.election-vote-access-passed {
+  color: #347235;
+}
+.election-vote-access-failed {
+  color: #880000;
+}
+
 /* Statistics */
 .election-statistics-user-agents .user-agent {
   overflow: hidden;

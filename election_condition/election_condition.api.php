@@ -17,7 +17,8 @@
  *     function takes two arguments - the election post object, and the user
  *     account object - and it must return TRUE if the user passes the
  *     condition.
- *   - description: A description, explaining what the condition does.
+ *   - description: A description of the condition for administrators.
+ *   - user explanation: An explanation of the condition for users.
  */
 function hook_election_condition_info() {
   return array(
@@ -25,6 +26,7 @@ function hook_election_condition_info() {
       'name' => t('Have a Gmail account'),
       'callbacks' => array('check_gmail'),
       'description' => t('The user\'s registered email address must end with "gmail.com" or "googlemail.com".'),
+      'user explanation' => t('You must have a GMail account'),
     ),
   );
 }
