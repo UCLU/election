@@ -27,6 +27,26 @@ function hook_election_vote_before_grant($post, $account) {
 }
 
 /**
+ * Alter the voting access explanation given to the user.
+ *
+ * The explanation consists of a list of access limitations, and the results of
+ * testing those limitations (pass / fail), presented to the user at the menu
+ * item 'election-post/%election_post/explain' if they have the permission
+ * 'view voting access explanation'.
+ *
+ * @param array &$limitations
+ *   An array of limitations on voting access, provided by default mechanisms
+ *   (such as role limitations), by other modules, or by Rules.
+ * @param stdClass $post
+ *   An election post object.
+ * @param stdClass $account
+ *   A Drupal user account object.
+ */
+function hook_election_vote_access_explain_alter(&$limitations, $post, $account) {
+  $limitations['module_my_module']['explanation'] = t("You can't be user 37491.");
+}
+
+/**
  * Save votes on submission of the voting form, for this election type.
  *
  * This hook runs inside the same database transaction that saves 'ballots' to
