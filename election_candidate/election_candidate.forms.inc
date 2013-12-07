@@ -7,11 +7,11 @@
 /**
  * Form builder function for editing a single candidate.
  */
-function election_candidate_form($form, &$form_state, stdClass $candidate, stdClass $post) {
+function election_candidate_form($form, &$form_state, stdClass $candidate, $post) {
 
   global $user;
 
-  $election = $post->election;
+  $election = $post ? $post->election : election_load($candidate->election_id);
   $candidate->is_new = empty($candidate->is_new) ? FALSE : TRUE;
 
   $form['#id'] = 'election-candidate-form';
@@ -26,10 +26,17 @@ function election_candidate_form($form, &$form_state, stdClass $candidate, stdCl
   $election_admin = election_access('update', $election);
 
   $post_name = election_get_post_name($election->type);
-  $form['post'] = array(
-    '#type' => 'item',
+  $posts = election_post_load_by_election($election, !$election_admin);
+  $post_options = array();
+  foreach ($posts as $post_id => $post_option) {
+    $post_options[$post_id] = $post_option->title;
+  }
+  $form['post_id'] = array(
+    '#type' => 'select',
     '#title' => check_plain(drupal_ucfirst($post_name)),
-    '#markup' => $post ? check_plain($post->title) : t('Not defined'),
+    '#required' => TRUE,
+    '#options' => $post_options,
+    '#default_value' => $post ? $post->post_id : NULL,
   );
 
   $form['first_name'] = array(

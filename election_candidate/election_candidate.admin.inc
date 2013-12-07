@@ -26,8 +26,14 @@ function election_candidate_page_edit($candidate) {
   drupal_set_title(t('Edit candidate: %first-name %last-name', array('%first-name' => $candidate->first_name, '%last-name' => $candidate->last_name)), PASS_THROUGH);
 
   $post = election_post_load($candidate->post_id);
-  $election = $post->election;
-  election_post_set_breadcrumb($election, $post);
+  if ($post) {
+    $election = $post->election;
+    election_post_set_breadcrumb($election, $post);
+  }
+  else {
+    $election = election_load($candidate->election_id);
+    election_set_breadcrumb($election);
+  }
 
   module_load_include('inc', 'election_candidate', 'election_candidate.forms');
 

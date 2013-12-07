@@ -414,6 +414,35 @@ function election_post_load_multiple(array $post_ids = array(), $reset = FALSE) 
 }
 
 /**
+ * Load posts belonging to the given election.
+ *
+ * @param stdClass $election
+ *   An election object.
+ * @param bool $only_published
+ *   Whether to only find published posts.
+ * @param string $order_by
+ *   A database column to order posts by. Default is the title.
+ *   Set FALSE for no ordering.
+ *
+ * @return array
+ *   An array of post objects keyed by post ID.
+ */
+function election_post_load_by_election(stdClass $election, $only_published = TRUE, $order_by = 'title') {
+  $select = db_select('election_post', 'ep')
+    ->fields('ep', array('post_id'))
+    ->condition('election_id', $election->election_id);
+  if ($only_published) {
+    $select->condition('published', 1);
+  }
+  if (!empty($order_by)) {
+    $select->orderBy($order_by);
+  }
+  $post_ids = $select->execute()->fetchCol();
+  $posts = election_post_load_multiple($post_ids);
+  return $posts;
+}
+
+/**
  * Implements hook_entity_load().
  */
 function election_post_entity_load($entities, $type) {
