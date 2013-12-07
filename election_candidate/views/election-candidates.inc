@@ -88,11 +88,11 @@ $handler->display->display_options['filters']['published_or_admin']['id'] = 'pub
 $handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
 $handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
 $handler->display->display_options['filters']['published_or_admin']['group'] = 1;
-/* Filter criterion: Election candidate: Published */
-$handler->display->display_options['filters']['published']['id'] = 'published';
-$handler->display->display_options['filters']['published']['table'] = 'election_candidate';
-$handler->display->display_options['filters']['published']['field'] = 'published';
-$handler->display->display_options['filters']['published']['value'] = '1';
+/* Filter criterion: Election candidate: Published or admin */
+$handler->display->display_options['filters']['published_or_admin_1']['id'] = 'published_or_admin_1';
+$handler->display->display_options['filters']['published_or_admin_1']['table'] = 'election_candidate';
+$handler->display->display_options['filters']['published_or_admin_1']['field'] = 'published_or_admin';
+$handler->display->display_options['filters']['published_or_admin_1']['group'] = 1;
 /* Filter criterion: Election candidate: Status */
 $handler->display->display_options['filters']['cstatus']['id'] = 'cstatus';
 $handler->display->display_options['filters']['cstatus']['table'] = 'election_candidate';
@@ -101,6 +101,7 @@ $handler->display->display_options['filters']['cstatus']['operator'] = 'not in';
 $handler->display->display_options['filters']['cstatus']['value'] = array(
   -2 => '-2',
 );
+$handler->display->display_options['filters']['cstatus']['group'] = 1;
 
 /* Display: Candidates per election */
 $handler = $view->new_display('embed', 'Candidates per election', 'embed_candidates_per_election');
