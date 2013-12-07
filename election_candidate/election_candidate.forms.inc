@@ -37,6 +37,7 @@ function election_candidate_form($form, &$form_state, stdClass $candidate, $post
     '#required' => TRUE,
     '#options' => $post_options,
     '#default_value' => $post ? $post->post_id : NULL,
+    '#disabled' => $post && $candidate->is_new,
   );
 
   $form['first_name'] = array(
