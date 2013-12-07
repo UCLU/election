@@ -201,16 +201,39 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
 }
 
 /**
- * Determine access to the Candidates tab on an election.
+ * Implements hook_menu_local_tasks_alter().
  */
-function election_candidate_access_tab(stdClass $election) {
-  if (!election_candidate_access_per_election('view', $election)) {
-    return FALSE;
+function election_candidate_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Hide the 'Candidates' tab unless (1) there are some published candidates
+  // and (2) the tab is enabled in the election settings.
+  if (substr($root_path, 0, 10) == 'election/%' && is_numeric(arg(1))) {
+    $election = election_load(arg(1));
+    if (!$election || !election_candidate_check_support($election)) {
+      return;
+    }
+    // Check that the candidates tab is enabled in the election settings.
+    if (!empty($election->settings['show_candidates_tab'])) {
+      // Check whether the View has any results.
+      $view = views_get_view('election_candidates');
+      if (!$view) {
+        return;
+      }
+      $view->set_display('embed_candidates_per_election');
+      $view->set_arguments(array($election->election_id));
+      $view->execute();
+      if (!empty($view->result)) {
+        return;
+      }
+    }
+    // Hide the tab.
+    foreach ($data['tabs'][0]['output'] as $key => $tab) {
+      if ($tab['#link']['path'] == 'election/%/candidates') {
+        unset($data['tabs'][0]['output'][$key]);
+        $data['tabs'][0]['count']--;
+        break;
+      }
+    }
   }
-  if (empty($election->settings['show_candidates_tab'])) {
-    return FALSE;
-  }
-  return TRUE;
 }
 
 /**
@@ -263,8 +286,8 @@ function election_candidate_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 2,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-    'access callback' => 'election_candidate_access_tab',
-    'access arguments' => array(1),
+    'access callback' => 'election_candidate_access_per_election',
+    'access arguments' => array('view', 1),
   );
 
   $items['election/%election/candidates-admin'] = array(
@@ -643,7 +666,9 @@ function election_candidate_form_election_form_alter(&$form, &$form_state) {
   $form['presentation']['settings_show_candidates_tab'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show the Candidates tab'),
-    '#description' => t('If enabled, a Candidates tab will be shown for this election, listing published candidates.'),
+    '#description' => t('If enabled, a <a href="@tab_url" target="_blank">Candidates</a> tab will be shown for this election, listing published candidates (if there are any).', array(
+      '@tab_url' => url('election/' . $election->election_id . '/candidates'),
+    )),
     '#default_value' => isset($election->settings['show_candidates_tab']) ? $election->settings['show_candidates_tab'] : 1,
   );
 }
