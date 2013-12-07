@@ -34,6 +34,13 @@ function election_post_schema() {
         'type' => 'varchar',
         'length' => 100,
       ),
+      'published' => array(
+        'description' => 'Allows anyone who can view the election to view this post.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
       'title' => array(
         'description' => 'The title of the post.',
         'type' => 'varchar',
@@ -106,6 +113,7 @@ function election_post_schema() {
     ),
     'primary key' => array('post_id'),
     'indexes' => array(
+      'published' => array('published'),
       'created' => array('created'),
       'title' => array('title'),
       'vstatus_inheritance' => array('vstatus_inheritance'),
@@ -232,4 +240,25 @@ function election_post_update_7106() {
       election_post_save($post);
     }
   }
+}
+
+/**
+ * Add the 'published' column to the election_post table.
+ */
+function election_post_update_7107() {
+  db_add_field('election_post', 'published', array(
+    'description' => 'Allows anyone who can view the election to view this post.',
+    'type' => 'int',
+    'size' => 'tiny',
+    'not null' => TRUE,
+    'default' => 0,
+  ));
+  db_add_index('election_post', 'published', array('published'));
+}
+
+/**
+ * Set all current posts to 'published' so they behave as they did before.
+ */
+function election_post_update_7108() {
+  db_update('election_post')->fields(array('published' => 1))->execute();
 }

@@ -91,6 +91,15 @@ function election_candidate_views_data() {
     ),
   );
 
+  $data['election_candidate']['published_or_admin'] = array(
+    'title' => t('Published or admin'),
+    'help' => t('Filters out unpublished candidates if the current user may not view them.'),
+    'filter' => array(
+      'field' => 'published',
+      'handler' => 'views_handler_filter_election_candidate_published',
+    ),
+  );
+
   $data['election_candidate']['uid'] = array(
     'title' => t('User UID'),
     'help' => t('The UID of the user associated with the candidate.'),

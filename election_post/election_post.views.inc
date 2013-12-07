@@ -51,6 +51,36 @@ function election_post_views_data() {
     ),
   );
 
+  $data['election_post']['published'] = array(
+    'title' => t('Published'),
+    'help' => t('Whether or not the post is published.'),
+    'field' => array(
+      'handler' => 'views_handler_field_boolean',
+      'click sortable' => TRUE,
+      'output formats' => array(
+        'published-notpublished' => array(t('Published'), t('Not published')),
+      ),
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_boolean_operator',
+      'label' => t('Published'),
+      'type' => 'yes-no',
+      'use equal' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
+  $data['election_post']['published_or_admin'] = array(
+    'title' => t('Published or admin'),
+    'help' => t('Filters out unpublished posts if the current user may not view them.'),
+    'filter' => array(
+      'field' => 'published',
+      'handler' => 'views_handler_filter_election_post_published',
+    ),
+  );
+
   $data['election_post']['title'] = array(
     'title' => t('Title'),
     'help' => t('The title of the election post.'),

@@ -1,22 +1,22 @@
 <?php
 /**
  * @file
- * View listing candidates in an election, for administrative use.
+ * View listing posts in an election, for administrative use.
  */
 
 $view = new view();
-$view->name = 'election_candidates_admin';
-$view->description = 'An administrative list of election candidates.';
+$view->name = 'election_posts_admin';
+$view->description = 'An administrative list of election posts.';
 $view->tag = 'election';
-$view->base_table = 'election_candidate';
-$view->human_name = 'Election candidates admin';
+$view->base_table = 'election_post';
+$view->human_name = 'Election posts admin';
 $view->core = 7;
 $view->api_version = '3.0';
 $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
 /* Display: Master */
 $handler = $view->new_display('default', 'Master', 'default');
-$handler->display->display_options['title'] = 'Manage candidates';
+$handler->display->display_options['title'] = 'Manage posts';
 $handler->display->display_options['use_more_always'] = FALSE;
 $handler->display->display_options['access']['type'] = 'none';
 $handler->display->display_options['cache']['type'] = 'none';
@@ -32,10 +32,6 @@ $handler->display->display_options['style_options']['columns'] = array(
   'views_bulk_operations' => 'views_bulk_operations',
   'created' => 'created',
   'title' => 'title',
-  'first_name' => 'first_name',
-  'last_name' => 'last_name',
-  'name' => 'name',
-  'cstatus' => 'cstatus',
   'published' => 'published',
   'view_link' => 'view_link',
   'edit_link' => 'view_link',
@@ -57,32 +53,6 @@ $handler->display->display_options['style_options']['info'] = array(
   'title' => array(
     'sortable' => 1,
     'default_sort_order' => 'asc',
-    'align' => '',
-    'separator' => '',
-    'empty_column' => 0,
-  ),
-  'first_name' => array(
-    'sortable' => 1,
-    'default_sort_order' => 'asc',
-    'align' => '',
-    'separator' => '',
-    'empty_column' => 0,
-  ),
-  'last_name' => array(
-    'sortable' => 1,
-    'default_sort_order' => 'asc',
-    'align' => '',
-    'separator' => '',
-    'empty_column' => 0,
-  ),
-  'name' => array(
-    'sortable' => 1,
-    'default_sort_order' => 'asc',
-    'align' => '',
-    'separator' => '',
-    'empty_column' => 0,
-  ),
-  'cstatus' => array(
     'align' => '',
     'separator' => '',
     'empty_column' => 0,
@@ -110,17 +80,13 @@ $handler->display->display_options['style_options']['empty_table'] = TRUE;
 $handler->display->display_options['empty']['area']['id'] = 'area';
 $handler->display->display_options['empty']['area']['table'] = 'views';
 $handler->display->display_options['empty']['area']['field'] = 'area';
-$handler->display->display_options['empty']['area']['label'] = 'No candidates found';
+$handler->display->display_options['empty']['area']['label'] = 'No posts found';
 $handler->display->display_options['empty']['area']['empty'] = TRUE;
-$handler->display->display_options['empty']['area']['content'] = 'No candidates found.';
+$handler->display->display_options['empty']['area']['content'] = 'No posts found.';
 $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
-/* Relationship: Election candidate: User */
-$handler->display->display_options['relationships']['uid']['id'] = 'uid';
-$handler->display->display_options['relationships']['uid']['table'] = 'election_candidate';
-$handler->display->display_options['relationships']['uid']['field'] = 'uid';
-/* Field: Bulk operations: Election candidate */
+/* Field: Bulk operations: Election post */
 $handler->display->display_options['fields']['views_bulk_operations']['id'] = 'views_bulk_operations';
-$handler->display->display_options['fields']['views_bulk_operations']['table'] = 'election_candidate';
+$handler->display->display_options['fields']['views_bulk_operations']['table'] = 'election_post';
 $handler->display->display_options['fields']['views_bulk_operations']['field'] = 'views_bulk_operations';
 $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['display_type'] = '0';
 $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['enable_select_all_pages'] = 1;
@@ -163,7 +129,7 @@ $handler->display->display_options['fields']['views_bulk_operations']['vbo_opera
       'url' => '',
     ),
   ),
-  'action::election_candidate_publish_action' => array(
+  'action::election_post_publish_action' => array(
     'selected' => 1,
     'postpone_processing' => 0,
     'skip_confirmation' => 0,
@@ -177,7 +143,7 @@ $handler->display->display_options['fields']['views_bulk_operations']['vbo_opera
     'override_label' => 0,
     'label' => '',
   ),
-  'action::election_candidate_unpublish_action' => array(
+  'action::election_post_unpublish_action' => array(
     'selected' => 1,
     'postpone_processing' => 0,
     'skip_confirmation' => 0,
@@ -185,51 +151,32 @@ $handler->display->display_options['fields']['views_bulk_operations']['vbo_opera
     'label' => '',
   ),
 );
-/* Field: Election candidate: Created date */
+/* Field: Election post: Created date */
 $handler->display->display_options['fields']['created']['id'] = 'created';
-$handler->display->display_options['fields']['created']['table'] = 'election_candidate';
+$handler->display->display_options['fields']['created']['table'] = 'election_post';
 $handler->display->display_options['fields']['created']['field'] = 'created';
-$handler->display->display_options['fields']['created']['label'] = 'Nominated';
+$handler->display->display_options['fields']['created']['label'] = 'Created';
 $handler->display->display_options['fields']['created']['date_format'] = 'short';
 /* Field: Election post: Title */
 $handler->display->display_options['fields']['title']['id'] = 'title';
 $handler->display->display_options['fields']['title']['table'] = 'election_post';
 $handler->display->display_options['fields']['title']['field'] = 'title';
-$handler->display->display_options['fields']['title']['label'] = 'Position';
 $handler->display->display_options['fields']['title']['alter']['max_length'] = '30';
 $handler->display->display_options['fields']['title']['link_to_post'] = 0;
-/* Field: Election candidate: First name */
-$handler->display->display_options['fields']['first_name']['id'] = 'first_name';
-$handler->display->display_options['fields']['first_name']['table'] = 'election_candidate';
-$handler->display->display_options['fields']['first_name']['field'] = 'first_name';
-/* Field: Election candidate: Last name */
-$handler->display->display_options['fields']['last_name']['id'] = 'last_name';
-$handler->display->display_options['fields']['last_name']['table'] = 'election_candidate';
-$handler->display->display_options['fields']['last_name']['field'] = 'last_name';
-/* Field: User: Name */
-$handler->display->display_options['fields']['name']['id'] = 'name';
-$handler->display->display_options['fields']['name']['table'] = 'users';
-$handler->display->display_options['fields']['name']['field'] = 'name';
-$handler->display->display_options['fields']['name']['relationship'] = 'uid';
-$handler->display->display_options['fields']['name']['label'] = 'User';
-/* Field: Election candidate: Status */
-$handler->display->display_options['fields']['cstatus']['id'] = 'cstatus';
-$handler->display->display_options['fields']['cstatus']['table'] = 'election_candidate';
-$handler->display->display_options['fields']['cstatus']['field'] = 'cstatus';
-/* Field: Election candidate: Published */
+/* Field: Election post: Published */
 $handler->display->display_options['fields']['published']['id'] = 'published';
-$handler->display->display_options['fields']['published']['table'] = 'election_candidate';
+$handler->display->display_options['fields']['published']['table'] = 'election_post';
 $handler->display->display_options['fields']['published']['field'] = 'published';
 $handler->display->display_options['fields']['published']['not'] = 0;
-/* Field: Election candidate: Profile link */
+/* Field: Election post: Link */
 $handler->display->display_options['fields']['view_link']['id'] = 'view_link';
-$handler->display->display_options['fields']['view_link']['table'] = 'election_candidate';
+$handler->display->display_options['fields']['view_link']['table'] = 'election_post';
 $handler->display->display_options['fields']['view_link']['field'] = 'view_link';
 $handler->display->display_options['fields']['view_link']['label'] = 'Actions';
 $handler->display->display_options['fields']['view_link']['text'] = 'view';
-/* Field: Election candidate: Edit link */
+/* Field: Election post: Edit link */
 $handler->display->display_options['fields']['edit_link']['id'] = 'edit_link';
-$handler->display->display_options['fields']['edit_link']['table'] = 'election_candidate';
+$handler->display->display_options['fields']['edit_link']['table'] = 'election_post';
 $handler->display->display_options['fields']['edit_link']['field'] = 'edit_link';
 $handler->display->display_options['fields']['edit_link']['text'] = 'edit';
 /* Contextual filter: Election: Election ID */
@@ -248,9 +195,9 @@ $handler->display->display_options['filters']['published_or_admin']['id'] = 'pub
 $handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
 $handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
 $handler->display->display_options['filters']['published_or_admin']['group'] = 1;
-/* Filter criterion: Election candidate: Published or admin */
+/* Filter criterion: Election post: Published or admin */
 $handler->display->display_options['filters']['published_or_admin_1']['id'] = 'published_or_admin_1';
-$handler->display->display_options['filters']['published_or_admin_1']['table'] = 'election_candidate';
+$handler->display->display_options['filters']['published_or_admin_1']['table'] = 'election_post';
 $handler->display->display_options['filters']['published_or_admin_1']['field'] = 'published_or_admin';
 
 /* Display: Embed */

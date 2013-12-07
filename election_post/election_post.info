@@ -8,4 +8,5 @@ files[] = views/handlers/views_handler_argument_election_post_postid.inc
 files[] = views/handlers/views_handler_field_election_post.inc
 files[] = views/handlers/views_handler_field_election_post_link.inc
 files[] = views/handlers/views_handler_field_election_post_link_edit.inc
+files[] = views/handlers/views_handler_filter_election_post_published.inc
 files[] = views/handlers/views_handler_filter_election_post_vstatus.inc

@@ -11,6 +11,21 @@ function election_post_menu() {
 
   $items = array();
 
+  $items['election/%election/posts-admin'] = array(
+    'title callback' => 'election_post_page_manage_title',
+    'title arguments' => array(1),
+    'page callback' => 'election_post_manage_page',
+    'page arguments' => array(1),
+    'file' => 'election_post.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 4,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    // To manage candidates, the user needs to have update access to the
+    // election.
+    'access callback' => 'election_access',
+    'access arguments' => array('update', 1),
+  );
+
   foreach (election_types() as $type_machine_name => $type) {
     $post_machine_name = $type['post machine name'];
     $post_name = election_get_post_name($type_machine_name);
@@ -250,6 +265,12 @@ function election_post_entity_property_info() {
       'schema field' => 'type',
       'required' => TRUE,
     ),
+    'published' => array(
+      'label' => t('Published status'),
+      'type' => 'integer',
+      'schema field' => 'published',
+      'required' => TRUE,
+    ),
     'title' => array(
       'label' => t('Title'),
       'type' => 'text',
@@ -340,8 +361,15 @@ function election_post_access($op, $post, $account = NULL) {
   }
   switch ($op) {
     case 'view':
-      // Viewing a post has the same access as viewing an election.
-      return election_access('view', $post->election, $account);
+      // Users who can view the election can also view published posts.
+      if (election_access('view', $post->election, $account) && $post->published) {
+        return TRUE;
+      }
+      // Users who can update the election can view all its posts.
+      if (election_access('update', $post->election, $account)) {
+        return TRUE;
+      }
+      break;
 
     case 'update':
     case 'delete':
@@ -558,6 +586,14 @@ function election_post_page_clone_title($post) {
 }
 
 /**
+ * Title callback for managing election posts.
+ */
+function election_post_page_manage_title($election) {
+  // Output should not be escaped here; it is done later in the menu system.
+  return t('Manage !posts', array('!posts' => election_get_post_name($election->type, TRUE)));
+}
+
+/**
  * Title callback for adding an election post.
  */
 function election_post_page_add_title($election) {
@@ -717,6 +753,46 @@ function election_post_set_breadcrumb(stdClass $election, stdClass $post = NULL)
     $links[] = l($post->title, election_post_uri_path($post));
   }
   drupal_set_breadcrumb($links);
+}
+
+/**
+ * Implements hook_action_info().
+ */
+function election_post_action_info() {
+  return array(
+    'election_post_publish_action' => array(
+      'type' => 'election_post',
+      'label' => t('Publish'),
+      'configurable' => FALSE,
+      'behavior' => array('changes_property'),
+      'triggers' => array('election_post_presave'),
+    ),
+    'election_post_unpublish_action' => array(
+      'type' => 'election_post',
+      'label' => t('Unpublish'),
+      'configurable' => FALSE,
+      'behavior' => array('changes_property'),
+      'triggers' => array('election_post_presave'),
+    ),
+  );
+}
+
+/**
+ * Publishes a post.
+ *
+ * @ingroup actions
+ */
+function election_post_publish_action($post, $context = array()) {
+  $post->published = 1;
+}
+
+/**
+ * Unpublishes a post.
+ *
+ * @ingroup actions
+ */
+function election_post_unpublish_action($post, $context = array()) {
+  $post->published = 0;
 }
 
 /**

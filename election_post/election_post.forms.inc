@@ -96,6 +96,16 @@ function election_post_form($form, &$form_state, stdClass $post, $election = NUL
     '#description' => t('This enables a voter to abstain instead of entering a vote. Abstentions can be counted.'),
   );
 
+  $form['published'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Published'),
+    '#default_value' => isset($post->published) ? $post->published : 0,
+    '#weight' => 99,
+    '#description' => t('When published, the @post can be viewed by those who are allowed to view the election.', array(
+      '@post' => $post_name,
+    )),
+  );
+
   $form['buttons'] = array(
     '#type' => 'actions',
     '#weight' => 100,

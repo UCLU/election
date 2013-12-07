@@ -25,10 +25,16 @@ $handler->display->display_options['empty']['area']['empty'] = TRUE;
 $handler->display->display_options['empty']['area']['content'] = 'There are currently no questions in this referendum.';
 $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
 $handler->display->display_options['defaults']['fields'] = FALSE;
+$handler->display->display_options['defaults']['filter_groups'] = FALSE;
+$handler->display->display_options['defaults']['filters'] = FALSE;
 /* Filter criterion: Election: Published or admin */
 $handler->display->display_options['filters']['published_or_admin']['id'] = 'published_or_admin';
 $handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
 $handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
+/* Filter criterion: Election post: Published or admin */
+$handler->display->display_options['filters']['published_or_admin_1']['id'] = 'published_or_admin_1';
+$handler->display->display_options['filters']['published_or_admin_1']['table'] = 'election_post';
+$handler->display->display_options['filters']['published_or_admin_1']['field'] = 'published_or_admin';
 /* Filter criterion: Election: Type */
 $handler->display->display_options['filters']['type']['id'] = 'type';
 $handler->display->display_options['filters']['type']['table'] = 'election';

@@ -30,12 +30,12 @@ $handler->display->display_options['defaults']['filters'] = FALSE;
 $handler->display->display_options['filters']['published_or_admin']['id'] = 'published_or_admin';
 $handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
 $handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
+/* Filter criterion: Election post: Published or admin */
+$handler->display->display_options['filters']['published_or_admin_1']['id'] = 'published_or_admin_1';
+$handler->display->display_options['filters']['published_or_admin_1']['table'] = 'election_post';
+$handler->display->display_options['filters']['published_or_admin_1']['field'] = 'published_or_admin';
 /* Filter criterion: Election: Type */
 $handler->display->display_options['filters']['type']['id'] = 'type';
 $handler->display->display_options['filters']['type']['table'] = 'election';
 $handler->display->display_options['filters']['type']['field'] = 'type';
 $handler->display->display_options['filters']['type']['value'] = 'stv';
-$handler->display->display_options['filters']['type']['expose']['operator_id'] = 'type_op';
-$handler->display->display_options['filters']['type']['expose']['label'] = 'Type';
-$handler->display->display_options['filters']['type']['expose']['operator'] = 'type_op';
-$handler->display->display_options['filters']['type']['expose']['identifier'] = 'type';

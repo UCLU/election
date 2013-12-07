@@ -166,12 +166,12 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
   }
   switch ($op) {
     case 'view':
-      // Users who can update elections can also view the candidates.
-      if (election_access('update', $election, $account)) {
-        return TRUE;
-      }
       // Users who can view the election can also view published candidates.
       if (election_access('view', $election, $account) && (empty($candidate) || $candidate->published)) {
+        return TRUE;
+      }
+      // Users who can update the election can view all its candidates.
+      if (election_access('update', $election, $account)) {
         return TRUE;
       }
       break;
@@ -273,7 +273,7 @@ function election_candidate_menu() {
     'page arguments' => array(1),
     'file' => 'election_candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 4,
+    'weight' => 5,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     // To manage candidates, the user needs to have update access to the
     // election.
@@ -1006,7 +1006,7 @@ function election_candidate_view($candidate, $view_mode = 'full') {
 
   $election_path = election_uri_path($election);
   $election_candidates_path = $election_path . '/candidates';
-  $post_path = election_post_uri_path($post);
+  $post_path = $post ? election_post_uri_path($post) : FALSE;
   $current_path = current_path();
 
   // Display a link to the election.
@@ -1020,7 +1020,7 @@ function election_candidate_view($candidate, $view_mode = 'full') {
   }
 
   // Display a link to the post.
-  if ($current_path != $post_path && $current_path != $election_path . '/candidates') {
+  if ($post && $current_path != $post_path && $current_path != $election_path . '/candidates') {
     $candidate->content['post'] = array(
       '#theme' => 'election_info_item',
       '#label' => drupal_ucfirst(election_get_post_name($election->type)),

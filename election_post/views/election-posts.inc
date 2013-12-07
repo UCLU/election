@@ -57,6 +57,10 @@ $handler->display->display_options['arguments']['election_id']['validate']['type
 $handler->display->display_options['filters']['published_or_admin']['id'] = 'published_or_admin';
 $handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
 $handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
+/* Filter criterion: Election post: Published or admin */
+$handler->display->display_options['filters']['published_or_admin_1']['id'] = 'published_or_admin_1';
+$handler->display->display_options['filters']['published_or_admin_1']['table'] = 'election_post';
+$handler->display->display_options['filters']['published_or_admin_1']['field'] = 'published_or_admin';
 
 /* Display: Embed */
 $handler = $view->new_display('embed', 'Embed', 'embed');

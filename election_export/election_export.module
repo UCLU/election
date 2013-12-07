@@ -18,7 +18,7 @@ function election_export_menu() {
     'access arguments' => array('export', 1),
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-    'weight' => 6,
+    'weight' => 7,
   );
   return $items;
 }
