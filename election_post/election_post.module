@@ -16,9 +16,9 @@ function election_post_menu() {
     'title arguments' => array(1),
     'page callback' => 'election_post_manage_page',
     'page arguments' => array(1),
-    'file' => 'election_post.admin.inc',
+    'file' => 'election-post.admin.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 4,
+    'weight' => 5,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     // To manage candidates, the user needs to have update access to the
     // election.

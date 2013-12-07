@@ -52,6 +52,9 @@ function template_preprocess_election_post(&$variables) {
   if ($view_mode == 'teaser') {
     $variables['classes_array'][] = 'election-post-teaser';
   }
+  if (!$post->published) {
+    $variables['classes_array'][] = 'election-post-unpublished';
+  }
 
   // Clean up name so there are no underscores.
   $variables['theme_hook_suggestions'][] = 'election_post__' . $election->type;

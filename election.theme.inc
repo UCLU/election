@@ -177,6 +177,9 @@ function template_preprocess_election(&$variables) {
   if ($view_mode == 'teaser') {
     $variables['classes_array'][] = 'election-teaser';
   }
+  if (!$election->published) {
+    $variables['classes_array'][] = 'election-unpublished';
+  }
 
   $variables['theme_hook_suggestions'][] = 'election__' . $election->type;
   $variables['theme_hook_suggestions'][] = 'election__' . $election->election_id;

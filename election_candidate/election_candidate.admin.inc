@@ -9,7 +9,6 @@
  * Page callback for managing election candidates.
  */
 function election_candidate_manage_page(stdClass $election) {
-  drupal_set_title(t('Manage candidates'), PASS_THROUGH);
   election_set_breadcrumb($election);
   $view = views_get_view('election_candidates_admin');
   // Explicitly set the path, so that Views Bulk Operations could work if

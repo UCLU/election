@@ -17,7 +17,7 @@ function election_statistics_menu() {
     'access callback' => 'election_statistics_access',
     'access arguments' => array('view', 1),
     'type' => MENU_LOCAL_TASK,
-    'weight' => 6,
+    'weight' => 7,
   );
 
   return $items;

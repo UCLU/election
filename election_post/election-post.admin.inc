@@ -8,12 +8,8 @@
  * Page callback for managing election posts.
  */
 function election_post_manage_page(stdClass $election) {
-  $posts_name = election_get_post_name($election->type, TRUE);
-  drupal_set_title(t('Manage @posts', array('@posts' => $posts_name)), PASS_THROUGH);
   election_set_breadcrumb($election);
   $view = views_get_view('election_posts_admin');
-  // Explicitly set the path, so that Views Bulk Operations could work if
-  // configured (VBO needs help setting the form's "action" attribute).
   $view->override_path = current_path();
   return $view->preview('embed', array($election->election_id));
 }

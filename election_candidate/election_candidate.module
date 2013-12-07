@@ -296,7 +296,7 @@ function election_candidate_menu() {
     'page arguments' => array(1),
     'file' => 'election_candidate.admin.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 5,
+    'weight' => 6,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     // To manage candidates, the user needs to have update access to the
     // election.

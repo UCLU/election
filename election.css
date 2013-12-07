@@ -3,6 +3,13 @@
  * CSS for the Election module.
  */
 
+/* Unpublished elections, posts, and candidates */
+.election-unpublished.election-teaser,
+.election-post-unpublished.election-post-teaser,
+.election-candidate-unpublished.election-candidate-teaser {
+  background-color: #fff4f4;
+}
+
 /* Election statuses */
 .election-status-open {
   color: #347235;
@@ -79,7 +86,7 @@
 .election-teaser,
 .election-post-teaser,
 .election-candidate-teaser {
-  margin-left: 15px;
+  padding-left: 15px;
 }
 .election-teaser h2,
 .election-post-teaser h2,
