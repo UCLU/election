@@ -13,7 +13,7 @@
 function theme_election_results_totals($variables) {
   $header = array(t('Ballots'), t('Votes'), t('Abstentions'));
   $rows = array();
-  if ($ballots) {
+  if ($variables['ballots']) {
     $rows[] = array(
       number_format($variables['ballots']),
       number_format($variables['votes']),
