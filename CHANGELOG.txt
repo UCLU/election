@@ -1,3 +1,18 @@
+Election 7.x-1.x-dev, 2013-12-08
+-----------------------
+- Election posts (questions / positions) can now be unpublished. When running
+  update.php, all existing posts will be set to published.
+- There is a new tab on elections for administrators: "Manage posts" (or "Manage
+  questions" or "Manage positions"). This makes it easy to publish or unpublish
+  posts via Views Bulk Operations.
+- Users are able to see unpublished posts and candidates if they have access to
+  edit the election.
+- Published candidates running for unpublished posts, or published posts inside
+  unpublished elections, are still inaccessible to users who can't edit the
+  election.
+- For existing candidates, it is now possible to change the post (position)
+  when editing the candidate.
+
 Election 7.x-1.x-dev, 2013-10-27
 -----------------------
 - The Rules action 'Deny voting access' now requires a third parameter: an

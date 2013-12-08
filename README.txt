@@ -25,8 +25,8 @@ functionality, including Election Condition, Election Statistics, Election
 Results, and Election Export.
 
 
-Note on terminology (for developers)
-------------------------------------
+Note on terminology
+-------------------
 'Post' is a generic name for a single element of an election.
 
 For referendums, the post is a *question*, e.g. "Should Britain join the Euro?",
