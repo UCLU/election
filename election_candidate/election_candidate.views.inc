@@ -210,6 +210,7 @@ function election_candidate_views_data() {
       'title' => t('Nomination form link'),
       'help' => t('Link to the nomination form.'),
       'handler' => 'election_candidate_views_handler_field_link_nominate',
+      'real field' => 'post_id',
     ),
   );
 
