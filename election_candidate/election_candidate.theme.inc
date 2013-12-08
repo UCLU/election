@@ -54,6 +54,9 @@ function template_preprocess_election_candidate(&$variables) {
   if ($view_mode == 'teaser') {
     $variables['classes_array'][] = 'election-candidate-teaser';
   }
+  if (!$candidate->published) {
+    $variables['classes_array'][] = 'election-candidate-unpublished';
+  }
 
   $variables['theme_hook_suggestions'][] = 'election_candidate__' . $candidate->candidate_id;
   $variables['theme_hook_suggestions'][] = 'election__' . $election->type . '__candidate';
