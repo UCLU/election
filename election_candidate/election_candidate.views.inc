@@ -58,12 +58,12 @@ function election_candidate_views_data() {
     'title' => t('Status'),
     'help' => t('The status of the candidate.'),
     'field' => array(
-      'handler' => 'views_handler_field_election_candidate_cstatus',
+      'handler' => 'election_candidate_views_handler_field_cstatus',
       'click sortable' => FALSE,
     ),
     'filter' => array(
       'label' => t('Candidate status'),
-      'handler' => 'views_handler_filter_election_candidate_cstatus',
+      'handler' => 'election_candidate_views_handler_filter_cstatus',
     ),
     'sort' => array(
       'handler' => 'views_handler_sort',
@@ -96,7 +96,7 @@ function election_candidate_views_data() {
     'help' => t('Filters out unpublished candidates if the current user may not view them.'),
     'filter' => array(
       'field' => 'published',
-      'handler' => 'views_handler_filter_election_candidate_published',
+      'handler' => 'election_candidate_views_handler_filter_published',
     ),
   );
 
@@ -126,7 +126,7 @@ function election_candidate_views_data() {
     'title' => t('Name'),
     'help' => t('The full name of the candidate ($Firstname $Lastname).'),
     'field' => array(
-      'handler' => 'views_handler_field_election_candidate_fullname',
+      'handler' => 'election_candidate_views_handler_field_full_name',
       'link_to_candidate default' => TRUE,
     ),
   );
@@ -193,7 +193,7 @@ function election_candidate_views_data() {
     'field' => array(
       'title' => t('Profile link'),
       'help' => t("Provide a simple link to the candidate's profile page."),
-      'handler' => 'views_handler_field_election_candidate_link',
+      'handler' => 'election_candidate_views_handler_field_link',
     ),
   );
 
@@ -201,7 +201,7 @@ function election_candidate_views_data() {
     'field' => array(
       'title' => t('Edit link'),
       'help' => t('A link to edit the candidate.'),
-      'handler' => 'views_handler_field_election_candidate_link_edit',
+      'handler' => 'election_candidate_views_handler_field_link_edit',
     ),
   );
 
@@ -209,7 +209,7 @@ function election_candidate_views_data() {
     'field' => array(
       'title' => t('Nomination form link'),
       'help' => t('Link to the nomination form.'),
-      'handler' => 'views_handler_field_election_candidate_link_nominate',
+      'handler' => 'election_candidate_views_handler_field_link_nominate',
     ),
   );
 

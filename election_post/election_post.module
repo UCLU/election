@@ -710,10 +710,11 @@ function election_post_view($post, $view_mode = 'full') {
  *
  * @param stdClass $post
  *   An election post object.
- * @param stdClass $election
- *   An election object.
  * @param string $status_prefix
  *   The type of status ('v' for voting, 'n' for nominations).
+ *
+ * @return bool
+ *   TRUE if the post is open, FALSE otherwise.
  */
 function _election_post_is_open(stdClass $post, $status_prefix = 'v') {
   $status_inheritance = $post->{$status_prefix . 'status_inheritance'};

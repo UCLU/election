@@ -4,7 +4,7 @@
  * Filter by nominations status
  */
 
-class views_handler_filter_election_nstatus extends views_handler_filter_boolean_operator {
+class election_views_handler_filter_nstatus extends views_handler_filter_boolean_operator {
 
   /**
    * Overrides parent::query().

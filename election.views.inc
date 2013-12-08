@@ -37,11 +37,11 @@ function election_views_data() {
     'title' => t('Election ID'),
     'help' => t('The unique ID of the election.'),
     'field' => array(
-      'handler' => 'views_handler_field_election',
+      'handler' => 'election_views_handler_field_election_id',
       'click sortable' => TRUE,
     ),
     'argument' => array(
-      'handler' => 'views_handler_argument_election_electionid',
+      'handler' => 'election_views_handler_argument_election_id',
       'name field' => 'title',
       'numeric' => TRUE,
       'validate type' => 'election_id',
@@ -58,7 +58,7 @@ function election_views_data() {
     'title' => t('Title'),
     'help' => t('The title of the election.'),
     'field' => array(
-      'handler' => 'views_handler_field_election',
+      'handler' => 'election_views_handler_field_election_id',
       'click sortable' => TRUE,
       'link_to_election default' => TRUE,
     ),
@@ -99,7 +99,7 @@ function election_views_data() {
     'help' => t('Filters out unpublished content if the current user cannot view it.'),
     'filter' => array(
       'field' => 'status',
-      'handler' => 'views_handler_filter_election_published',
+      'handler' => 'election_views_handler_filter_published',
       'label' => t('Published or admin'),
     ),
   );
@@ -108,12 +108,12 @@ function election_views_data() {
     'title' => t('Voting status'),
     'help' => t('The voting status for this election.'),
     'field' => array(
-      'handler' => 'views_handler_field_election_vstatus',
+      'handler' => 'election_views_handler_field_vstatus',
       'click sortable' => FALSE,
     ),
     'filter' => array(
       'label' => t('Voting is open'),
-      'handler' => 'views_handler_filter_election_vstatus',
+      'handler' => 'election_views_handler_filter_vstatus',
       'type' => 'yes-no',
     ),
     'sort' => array(
@@ -125,12 +125,12 @@ function election_views_data() {
     'title' => t('Nominations status'),
     'help' => t('Whether nominations are open for this election.'),
     'field' => array(
-      'handler' => 'views_handler_field_election_nstatus',
+      'handler' => 'election_views_handler_field_nstatus',
       'click sortable' => FALSE,
     ),
     'filter' => array(
       'label' => t('Nominations are open'),
-      'handler' => 'views_handler_filter_election_nstatus',
+      'handler' => 'election_views_handler_filter_nstatus',
       'type' => 'yes-no',
     ),
     'sort' => array(
@@ -142,14 +142,14 @@ function election_views_data() {
     'title' => t('Type'),
     'help' => t('The election type (for example, "STV Election" or "Referendum").'),
     'field' => array(
-      'handler' => 'views_handler_field_election_type',
+      'handler' => 'election_views_handler_field_type',
       'click sortable' => TRUE,
     ),
     'filter' => array(
       'handler' => 'views_handler_filter_string',
     ),
     'argument' => array(
-      'handler' => 'views_handler_argument_election_type',
+      'handler' => 'election_views_handler_argument_type',
     ),
     'sort' => array(
       'handler' => 'views_handler_sort',
@@ -272,7 +272,7 @@ function election_views_data() {
     'field' => array(
       'title' => t('Link'),
       'help' => t('A link to the election.'),
-      'handler' => 'views_handler_field_election_link',
+      'handler' => 'election_views_handler_field_link',
     ),
   );
 
@@ -280,7 +280,7 @@ function election_views_data() {
     'field' => array(
       'title' => t('Edit link'),
       'help' => t('A link to edit the election.'),
-      'handler' => 'views_handler_field_election_link_edit',
+      'handler' => 'election_views_handler_field_link_edit',
     ),
   );
 
@@ -288,7 +288,7 @@ function election_views_data() {
     'field' => array(
       'title' => t('Delete link'),
       'help' => t('A link to delete the election.'),
-      'handler' => 'views_handler_field_election_link_delete',
+      'handler' => 'election_views_handler_field_link_delete',
     ),
   );
 

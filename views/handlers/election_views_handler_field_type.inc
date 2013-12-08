@@ -7,7 +7,7 @@
  */
 
 
-class views_handler_field_election_type extends views_handler_field {
+class election_views_handler_field_type extends views_handler_field {
 
   /**
    * Overrides parent::option_definition().

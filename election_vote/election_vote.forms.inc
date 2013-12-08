@@ -29,7 +29,6 @@ function election_vote_form($form, &$form_state, stdClass $post) {
 
   $election = $post->election;
 
-  $title = election_post_page_title($post);
   drupal_set_title(
     t('Vote: %title_trim', array(
       '%title_trim' => truncate_utf8($post->title, 50, TRUE, TRUE),
@@ -318,8 +317,6 @@ function election_vote_form_abstain_confirm($form, &$form_state) {
 
   // confirm_form() ignores its third argument when $_GET['destination'] is set.
   unset($_GET['destination']);
-
-  $post = $form_state['post'];
 
   // @todo Make this confirmation page themeable.
   $warning = t('This action cannot be undone.');

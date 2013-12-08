@@ -206,7 +206,7 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
 function election_candidate_menu_local_tasks_alter(&$data, $router_item, $root_path) {
   // Hide the 'Candidates' tab unless (1) there are some published candidates
   // and (2) the tab is enabled in the election settings.
-  if (substr($root_path, 0, 10) == 'election/%' && is_numeric(arg(1))) {
+  if (substr($root_path, 0, 10) == 'election/%' && is_numeric(arg(1)) && !empty($data['tabs'][0])) {
     $election = election_load(arg(1));
     if (!$election || !election_candidate_check_support($election)) {
       return;
@@ -1182,7 +1182,7 @@ function election_candidate_entity_delete($entity, $type) {
 
     // Clear the post_id property of candidates when their post is deleted.
     case 'election_post':
-      $update = db_update('election_candidate')
+      db_update('election_candidate')
         ->fields(array('post_id' => NULL))
         ->condition('post_id', $entity->post_id)
         ->execute();
@@ -1227,7 +1227,7 @@ function election_candidate_file_entity_access($op, $file, $account) {
   // attached file entities even if they are stored as 'private files'.
   if (($op == 'view' || $op == 'download') && is_object($file)) {
     $references = file_get_file_references($file);
-    foreach ($references as $field_name => $result) {
+    foreach ($references as $result) {
       if (!isset($result['election_candidate'])) {
         return FILE_ENTITY_ACCESS_IGNORE;
       }

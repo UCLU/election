@@ -4,7 +4,7 @@
  * Handler for the election candidate status (cstatus) field.
  */
 
-class views_handler_field_election_candidate_cstatus extends views_handler_field {
+class election_candidate_views_handler_field_cstatus extends views_handler_field {
 
   /**
    * Overrides parent::construct().

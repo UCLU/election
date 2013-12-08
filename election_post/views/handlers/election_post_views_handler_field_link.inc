@@ -4,7 +4,7 @@
  * Field handler to present a link to the post's main page.
  */
 
-class views_handler_field_election_post_link extends views_handler_field {
+class election_post_views_handler_field_link extends views_handler_field {
 
   /**
    * Overrides parent::construct().

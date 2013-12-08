@@ -230,7 +230,7 @@ function election_post_update_7105() {
 function election_post_update_7106() {
   $post_ids = db_query("SELECT post_id FROM {election_post} WHERE settings LIKE '%vacancy_count%'")->fetchCol();
   $posts = election_post_load_multiple($post_ids);
-  foreach ($posts as $post_id => $post) {
+  foreach ($posts as $post) {
     if (empty($post->settings['vacancy_count'])) {
       continue;
     }

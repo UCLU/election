@@ -77,7 +77,6 @@ function election_condition_entity_load($entities, $type) {
 function election_condition_form_election_post_form_alter(&$form, &$form_state) {
 
   $post = $form_state['post'];
-  $election = $form_state['election'];
 
   if (!isset($post->conditions)) {
     $post->conditions = array();

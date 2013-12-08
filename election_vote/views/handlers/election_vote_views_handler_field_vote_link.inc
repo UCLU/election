@@ -4,7 +4,7 @@
  * Field handler to present a link to an election_post's voting form.
  */
 
-class views_handler_field_election_vote_link extends views_handler_field_election_post_link {
+class election_vote_views_handler_field_vote_link extends election_post_views_handler_field_link {
 
   /**
    * Overrides parent::init().

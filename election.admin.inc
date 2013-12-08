@@ -43,8 +43,6 @@ function election_page_edit($election) {
  */
 function election_page_add($type_machine_name) {
 
-  global $user;
-
   if (!$type = _election_type_get_info($type_machine_name)) {
     return MENU_NOT_FOUND;
   }

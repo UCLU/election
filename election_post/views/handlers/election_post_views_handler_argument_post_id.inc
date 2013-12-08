@@ -7,7 +7,7 @@
 /**
  * Argument handler to accept a post ID.
  */
-class views_handler_argument_election_post_postid extends views_handler_argument_numeric {
+class election_post_views_handler_argument_post_id extends views_handler_argument_numeric {
 
   /**
    * Overrides views_handler_title_query().

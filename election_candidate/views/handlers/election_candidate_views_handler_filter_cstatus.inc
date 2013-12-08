@@ -4,7 +4,7 @@
  * Filter by candidate status.
  */
 
-class views_handler_filter_election_candidate_cstatus extends views_handler_filter_in_operator {
+class election_candidate_views_handler_filter_cstatus extends views_handler_filter_in_operator {
 
   /**
    * Overrides parent::get_value_options().

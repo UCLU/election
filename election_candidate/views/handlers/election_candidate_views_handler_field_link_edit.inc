@@ -4,7 +4,7 @@
  * Field handler to present a link to edit the candidate.
  */
 
-class views_handler_field_election_candidate_link_edit extends views_handler_field_election_candidate_link {
+class election_candidate_views_handler_field_link_edit extends election_candidate_views_handler_field_link {
 
   /**
    * Overrides parent::construct().

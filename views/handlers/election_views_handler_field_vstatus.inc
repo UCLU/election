@@ -4,7 +4,7 @@
  * Handler for the election voting status (vstatus) field.
  */
 
-class views_handler_field_election_vstatus extends views_handler_field {
+class election_views_handler_field_vstatus extends views_handler_field {
 
   /**
    * Overrides parent::construct().

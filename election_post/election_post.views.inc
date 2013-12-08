@@ -38,7 +38,7 @@ function election_post_views_data() {
       'click sortable' => TRUE,
     ),
     'argument' => array(
-      'handler' => 'views_handler_argument_election_post_postid',
+      'handler' => 'election_post_views_handler_argument_post_id',
       'name field' => 'title',
       'numeric' => TRUE,
       'validate type' => 'post_id',
@@ -77,7 +77,7 @@ function election_post_views_data() {
     'help' => t('Filters out unpublished posts if the current user may not view them.'),
     'filter' => array(
       'field' => 'published',
-      'handler' => 'views_handler_filter_election_post_published',
+      'handler' => 'election_post_views_handler_filter_published',
     ),
   );
 
@@ -85,7 +85,7 @@ function election_post_views_data() {
     'title' => t('Title'),
     'help' => t('The title of the election post.'),
     'field' => array(
-      'handler' => 'views_handler_field_election_post',
+      'handler' => 'election_post_views_handler_field',
       'click sortable' => TRUE,
       'link_to_post default' => TRUE,
     ),
@@ -103,7 +103,7 @@ function election_post_views_data() {
     'real field' => 'vstatus_inheritance',
     'filter' => array(
       'label' => t('Voting is open'),
-      'handler' => 'views_handler_filter_election_post_vstatus',
+      'handler' => 'election_post_views_handler_filter_vstatus',
       'type' => 'yes-no',
     ),
     'sort' => array(
@@ -145,7 +145,7 @@ function election_post_views_data() {
     'field' => array(
       'title' => t('Link'),
       'help' => t('Provide a simple link to the post.'),
-      'handler' => 'views_handler_field_election_post_link',
+      'handler' => 'election_post_views_handler_field_link',
     ),
   );
 
@@ -153,7 +153,7 @@ function election_post_views_data() {
     'field' => array(
       'title' => t('Edit link'),
       'help' => t('A link to edit the post.'),
-      'handler' => 'views_handler_field_election_post_link_edit',
+      'handler' => 'election_post_views_handler_field_link_edit',
     ),
   );
 

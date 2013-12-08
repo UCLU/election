@@ -4,7 +4,7 @@
  * Filter by voting status = open.
  */
 
-class views_handler_filter_election_vstatus extends views_handler_filter_boolean_operator {
+class election_views_handler_filter_vstatus extends views_handler_filter_boolean_operator {
 
   /**
    * Overrides parent::query().

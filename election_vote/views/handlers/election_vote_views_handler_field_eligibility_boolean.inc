@@ -4,7 +4,7 @@
  * Views field handler for displaying the user's vote eligibility as a Boolean.
  */
 
-class views_handler_field_election_vote_eligibility_boolean extends views_handler_field_boolean {
+class election_vote_views_handler_field_eligibility_boolean extends views_handler_field_boolean {
 
   /**
    * Overrides parent::get_value().

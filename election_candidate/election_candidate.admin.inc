@@ -115,7 +115,7 @@ function election_candidate_totals_page(stdClass $election) {
       $rows['total'][] = isset($totals[$cstatus]) ? $totals[$cstatus] : '0';
     }
     $counts = $result->fetchAll(PDO::FETCH_GROUP);
-    foreach ($counts as $post_id => $subtotals) {
+    foreach ($counts as $subtotals) {
       $row = array();
       $row[] = check_plain($subtotals[0]->title);
       foreach (array_keys($cstatuses) as $cstatus) {

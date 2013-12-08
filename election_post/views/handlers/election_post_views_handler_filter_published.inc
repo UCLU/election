@@ -4,7 +4,7 @@
  * Views handler to filter election posts by 'published' status.
  */
 
-class views_handler_filter_election_post_published extends views_handler_filter {
+class election_post_views_handler_filter_published extends views_handler_filter {
 
   public function admin_summary() {
     return;

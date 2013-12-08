@@ -154,10 +154,8 @@ function election_post_form_delete_submit($form, &$form_state) {
     $destination = drupal_get_destination();
     unset($_GET['destination']);
   }
-  $post = $form_state['post'];
-  $election = $form_state['election'];
   $form_state['redirect'] = array(
-    election_post_uri_path($post) . '/delete',
+    election_post_uri_path($form_state['post']) . '/delete',
     array('query' => $destination),
   );
 }

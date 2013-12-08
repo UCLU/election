@@ -7,7 +7,7 @@
 /**
  * Field handler simply to allow linking to a election post.
  */
-class views_handler_field_election_post extends views_handler_field {
+class election_post_views_handler_field extends views_handler_field {
 
   /**
    * Overrides parent::init().

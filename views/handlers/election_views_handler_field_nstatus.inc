@@ -4,7 +4,7 @@
  * Handler for the election nominations status (nstatus) field.
  */
 
-class views_handler_field_election_nstatus extends views_handler_field {
+class election_views_handler_field_nstatus extends views_handler_field {
 
   /**
    * Overrides parent::construct().

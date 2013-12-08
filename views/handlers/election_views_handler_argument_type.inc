@@ -7,7 +7,7 @@
 /**
  * Argument handler to accept an election type.
  */
-class views_handler_argument_election_type extends views_handler_argument_numeric {
+class election_views_handler_argument_type extends views_handler_argument_numeric {
 
   /**
    * Overrides views_handler_title_query().

@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * Contains the basic 'election' field handler.
+ * Contains the basic 'election ID' field handler.
  */
 
 /**
  * Field handler simply to allow linking to a election.
  */
-class views_handler_field_election extends views_handler_field {
+class election_views_handler_field_election_id extends views_handler_field {
 
   /**
    * Overrides parent::init().

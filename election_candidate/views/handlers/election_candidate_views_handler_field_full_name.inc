@@ -4,7 +4,7 @@
  * Handler for the election candidate "Full name" field.
  */
 
-class views_handler_field_election_candidate_fullname extends views_handler_field {
+class election_candidate_views_handler_field_full_name extends views_handler_field {
 
   /**
    * Overrides parent::construct().

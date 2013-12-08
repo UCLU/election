@@ -274,7 +274,7 @@ function election_vote_access_explain($post, $account = NULL) {
     if (!empty($roles)) {
       $limitations['roles'] = array(
         'explanation' => t('You must have one of the following roles: %roles.',
-         array(
+        array(
           '%roles' => implode(', ', $roles),
         )),
         'result' => count(array_intersect(array_keys($account->roles), $post->rids)) > 0,

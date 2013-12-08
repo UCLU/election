@@ -108,7 +108,7 @@ function template_preprocess_election_vote_eligibility(&$variables) {
     }
     if (user_access('view voting access explanation', $account)) {
       $eligibility = rtrim($eligibility, '.');
-      $eligibility .= t(' (<a href="@explain_url">explain</a>).', array(
+      $eligibility .= ' ' . t('(<a href="@explain_url">explain</a>).', array(
         '@explain_url' => url('election-post/' . $post->post_id . '/explain'),
       ));
     }
@@ -205,7 +205,7 @@ function theme_election_vote_access_explain($variables) {
   $header = array(t('Test'), t('Result'));
   $rows = array();
 
-  foreach ($variables['limitations'] as $key => $limitation) {
+  foreach ($variables['limitations'] as $limitation) {
     $result = $limitation['result'] ? t('Passed') : t('Failed');
     $class = $limitation['result'] ? 'election-vote-access-passed' : 'election-vote-access-failed';
     $rows[] = array(
