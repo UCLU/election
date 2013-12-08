@@ -53,10 +53,6 @@ $handler->display->display_options['arguments']['election_id']['summary_options'
 $handler->display->display_options['arguments']['election_id']['summary_options']['items_per_page'] = '25';
 $handler->display->display_options['arguments']['election_id']['specify_validation'] = TRUE;
 $handler->display->display_options['arguments']['election_id']['validate']['type'] = 'numeric';
-/* Filter criterion: Election: Published or admin */
-$handler->display->display_options['filters']['published_or_admin']['id'] = 'published_or_admin';
-$handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
-$handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
 /* Filter criterion: Election post: Published or admin */
 $handler->display->display_options['filters']['published_or_admin_1']['id'] = 'published_or_admin_1';
 $handler->display->display_options['filters']['published_or_admin_1']['table'] = 'election_post';

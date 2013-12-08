@@ -20,16 +20,12 @@ $handler->display->display_options['defaults']['empty'] = FALSE;
 $handler->display->display_options['empty']['area']['id'] = 'area';
 $handler->display->display_options['empty']['area']['table'] = 'views';
 $handler->display->display_options['empty']['area']['field'] = 'area';
-$handler->display->display_options['empty']['area']['label'] = 'There are currently no positions in this election';
+$handler->display->display_options['empty']['area']['label'] = 'No positions found';
 $handler->display->display_options['empty']['area']['empty'] = TRUE;
-$handler->display->display_options['empty']['area']['content'] = 'There are currently no positions in this election.';
+$handler->display->display_options['empty']['area']['content'] = 'No positions found.';
 $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
 $handler->display->display_options['defaults']['filter_groups'] = FALSE;
 $handler->display->display_options['defaults']['filters'] = FALSE;
-/* Filter criterion: Election: Published or admin */
-$handler->display->display_options['filters']['published_or_admin']['id'] = 'published_or_admin';
-$handler->display->display_options['filters']['published_or_admin']['table'] = 'election';
-$handler->display->display_options['filters']['published_or_admin']['field'] = 'published_or_admin';
 /* Filter criterion: Election post: Published or admin */
 $handler->display->display_options['filters']['published_or_admin_1']['id'] = 'published_or_admin_1';
 $handler->display->display_options['filters']['published_or_admin_1']['table'] = 'election_post';

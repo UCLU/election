@@ -51,8 +51,8 @@ $handler->display->display_options['footer']['area']['format'] = 'full_html';
 $handler->display->display_options['empty']['area']['id'] = 'area';
 $handler->display->display_options['empty']['area']['table'] = 'views';
 $handler->display->display_options['empty']['area']['field'] = 'area';
-$handler->display->display_options['empty']['area']['label'] = 'There are currently no published candidate profiles for this election';
-$handler->display->display_options['empty']['area']['content'] = 'There are currently no published candidate profiles for this election.';
+$handler->display->display_options['empty']['area']['label'] = 'No candidates found';
+$handler->display->display_options['empty']['area']['content'] = 'No candidates found.';
 $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
 /* Field: Election candidate: Name */
 $handler->display->display_options['fields']['fullname']['id'] = 'fullname';
