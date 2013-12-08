@@ -199,7 +199,7 @@ function election_post_entity_info() {
  */
 function election_post_field_extra_fields() {
   $info = array();
-  foreach (election_types() as $type) {
+  foreach (election_types() as $type_mn => $type) {
     $bundle_name = $type['post machine name'];
     $info['election_post'][$bundle_name]['form'] = array(
       'title' => array(
@@ -213,6 +213,13 @@ function election_post_field_extra_fields() {
       'voting' => array(
         'label' => t('Voting'),
         'weight' => 90,
+      ),
+      'published' => array(
+        'label' => t('Published'),
+        'description' => t("Whether the @post is published.", array(
+          '@post' => election_get_post_name($type_mn),
+        )),
+        'weight' => 99,
       ),
     );
     $info['election_post'][$bundle_name]['display'] = array(

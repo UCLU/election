@@ -550,6 +550,11 @@ function election_candidate_field_extra_fields() {
         'description' => t("The candidate's e-mail address."),
         'weight' => 3,
       ),
+      'published' => array(
+        'label' => t('Published'),
+        'description' => t("Whether the candidate is published."),
+        'weight' => 99,
+      ),
     ),
     'display' => array(
       'election' => array(
