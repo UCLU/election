@@ -1,5 +1,11 @@
 Election 7.x-1.x-dev, 2013-12-08
 -----------------------
+- There is now an 'Election Statistics' block that can be displayed on any
+  election page to those with the permission 'View election statistics summary
+  block'.
+
+Election 7.x-1.x-dev, 2013-12-08
+-----------------------
 - Election posts (questions / positions) can now be unpublished. When running
   update.php, all existing posts will be set to published.
 - There is a new tab on elections for administrators: "Manage posts" (or "Manage

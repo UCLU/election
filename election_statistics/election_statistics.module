@@ -29,8 +29,12 @@ function election_statistics_menu() {
 function election_statistics_permission() {
   $permissions = array(
     'view election statistics' => array(
-      'title' => t('View election statistics'),
-      'description' => t('This allows the user to view election statistics, if they already have permission to view the election.'),
+      'title' => t('View all election statistics'),
+      'description' => t('This allows the user to view election statistics (if they already have permission to view the election).'),
+    ),
+    'view election statistics block' => array(
+      'title' => t('View election statistics summary block'),
+      'description' => t('This allows the user to view a block containing limited election statistics (if they already have permission to view the election).'),
     ),
   );
   return $permissions;
@@ -40,7 +44,7 @@ function election_statistics_permission() {
  * Access callback for viewing an election's statistics.
  *
  * @param string $op
- *   Only the 'view' operation is supported.
+ *   Only the operations 'view' and 'view block' are supported.
  * @param stdClass $election
  *   The election entity.
  * @param stdClass $account
@@ -51,12 +55,18 @@ function election_statistics_permission() {
  *   election statistics. FALSE otherwise.
  */
 function election_statistics_access($op, stdClass $election, $account = NULL) {
+  if (!election_access('view', $election, $account)) {
+    return FALSE;
+  }
   switch ($op) {
     case 'view':
-      if (!election_access('view', $election, $account)) {
-        return FALSE;
-      }
       if (user_access('view election statistics', $account)) {
+        return TRUE;
+      }
+      break;
+
+    case 'view block':
+      if (user_access('view election statistics block', $account)) {
         return TRUE;
       }
   }
@@ -74,6 +84,13 @@ function election_statistics_theme() {
       ),
       'file' => 'election_statistics.theme.inc',
     ),
+    'election_statistics_block' => array(
+      'variables' => array(
+        'election' => NULL,
+        'totals' => array(),
+      ),
+      'file' => 'election_statistics.theme.inc',
+    ),
   );
 }
 
@@ -87,6 +104,45 @@ function election_statistics_page(stdClass $election) {
 }
 
 /**
+ * Implements hook_block_info().
+ */
+function election_statistics_block_info() {
+  // Provide a statistics block.
+  return array(
+    'election_statistics' => array(
+      'info' => t('Election statistics'),
+      'status' => 0,
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function election_statistics_block_view($delta = '') {
+  // Provide content to the statistics block.
+  if ($delta == 'election_statistics' && arg(0) == 'election') {
+    $election = menu_get_object('election');
+    // Check access to view the block.
+    if (!$election || !election_statistics_access('view block', $election)) {
+      return;
+    }
+    $totals = election_statistics_get_totals($election);
+    // Only display the statistics block if there have been any ballots.
+    if (!$totals['ballots']) {
+      return;
+    }
+    $block = array();
+    $block['subject'] = t('Voting statistics');
+    $block['content'] = theme('election_statistics_block', array(
+      'election' => $election,
+      'totals' => $totals,
+    ));
+    return $block;
+  }
+}
+
+/**
  * Get the total numbers of ballots & votes for an election.
  *
  * @param stdClass $election
@@ -97,35 +153,66 @@ function election_statistics_page(stdClass $election) {
  *     'voters' (integer),
  *     'ballots' (integer),
  *     'votes' (integer),
- *     'abstentions' (integer),
- *     'posts' (array) - An array of post statistics, keyed and grouped by post
- *        ID, itself containing all the above properties.
+ *     'abstentions' (integer).
  */
 function election_statistics_get_totals(stdClass $election) {
-  $totals = &drupal_static(__FUNCTION__, array());
+  $cache = &drupal_static(__FUNCTION__, array());
   $eid = $election->election_id;
   // Return cached data if it already exists during this page request.
-  if (isset($totals[$eid])) {
-    return $totals[$eid];
+  if (isset($cache[$eid])) {
+    return $cache[$eid];
   }
-  $totals[$eid] = array();
-  // Get the total number of ballots, votes, and abstentions.
-  $query = db_select('election_vote', 'ev')
-    ->condition('ev.election_id', $eid);
+  $query = _election_statistics_totals_query($election);
+  $cache[$eid] = $query->execute()->fetchAssoc();
+  return $cache[$eid];
+}
+
+/**
+ * Get the total numbers of ballots & votes for election posts.
+ *
+ * @see election_statistics_get_totals()
+ *
+ * @param stdClass $election
+ *   The election entity.
+ *
+ * @return array
+ *   An associative array of post statistics, keyed by post ID, containing the
+ *   properties listed in election_statistics_get_totals().
+ */
+function election_statistics_get_post_totals(stdClass $election) {
+  $cache = &drupal_static(__FUNCTION__, array());
+  $eid = $election->election_id;
+  // Return cached data if it already exists during this page request.
+  if (isset($cache[$eid]['posts'])) {
+    return $cache[$eid]['posts'];
+  }
+  $query = _election_statistics_totals_query($election);
+  // Group results by post.
+  $query->fields('ev', array('post_id'));
+  $query->groupBy('ev.post_id');
+  $cache[$eid] = $query->execute()->fetchAllAssoc('post_id', PDO::FETCH_ASSOC);
+  return $cache[$eid];
+}
+
+/**
+ * Helper function to build a select query for getting election statistics.
+ *
+ * @param stdClass $election
+ *   The election object.
+ *
+ * @return SelectQuery
+ *   A Drupal select query, as returned by db_select().
+ */
+function _election_statistics_totals_query(stdClass $election) {
+  $query = db_select('election_vote', 'ev');
+  $query->condition('ev.election_id', $election->election_id);
   $query->join('election_ballot', 'eb', 'ev.ballot_id = eb.ballot_id');
+  // Get the total number of ballots, votes, and abstentions.
   $query->addExpression('COUNT(DISTINCT ev.ballot_id)', 'ballots');
   $query->addExpression('COUNT(DISTINCT IF(ev.abstain=0, ev.ballot_id, NULL))', 'votes');
   $query->addExpression('COUNT(DISTINCT IF(ev.abstain=1, ev.ballot_id, NULL))', 'abstentions');
   $query->addExpression('COUNT(DISTINCT IF(eb.uid = 0, eb.sid_hash, eb.uid))', 'voters');
-  $totals[$eid] += $query->execute()->fetchAssoc();
-  // Get the totals per post.
-  if ($totals[$eid]['votes'] > 0) {
-    // Re-use the previous query, grouping the results by post ID.
-    $query->fields('ev', array('post_id'));
-    $query->groupBy('ev.post_id');
-    $totals[$eid]['posts'] = $query->execute()->fetchAllAssoc('post_id');
-  }
-  return $totals[$eid];
+  return $query;
 }
 
 /**

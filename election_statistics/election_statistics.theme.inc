@@ -5,6 +5,23 @@
  */
 
 /**
+ * Theme the election statistics block.
+ */
+function theme_election_statistics_block($variables) {
+  $totals = $variables['totals'];
+  $rows = array(
+    array(t('Voters'), $totals['voters']),
+    array(t('Votes'), $totals['votes']),
+    array(t('Abstentions'), $totals['abstentions']),
+  );
+  return theme('table', array(
+    'header' => array(),
+    'rows' => $rows,
+    'attributes' => array('class' => array('election-statistics')),
+  ));
+}
+
+/**
  * Theme election statistics.
  */
 function theme_election_statistics($variables) {
@@ -24,6 +41,9 @@ function template_preprocess_election_statistics(&$variables) {
   $variables['content'] = array();
 
   $totals = election_statistics_get_totals($election);
+  if ($totals['ballots']) {
+    $totals['posts'] = election_statistics_get_post_totals($election);
+  }
 
   $post_name = election_get_post_name($election->type);
 
@@ -74,10 +94,10 @@ function template_preprocess_election_statistics(&$variables) {
 
       $rows[] = array(
         'post' => l($post->title, election_post_uri_path($post)),
-        'voters' => $post_totals ? number_format($post_totals->voters) : 0,
-        'ballots' => $post_totals ? number_format($post_totals->ballots) : 0,
-        'votes' => $post_totals ? number_format($post_totals->votes) : 0,
-        'abstentions' => $post_totals ? number_format($post_totals->abstentions) : 0,
+        'voters' => $post_totals ? number_format($post_totals['voters']) : 0,
+        'ballots' => $post_totals ? number_format($post_totals['ballots']) : 0,
+        'votes' => $post_totals ? number_format($post_totals['votes']) : 0,
+        'abstentions' => $post_totals ? number_format($post_totals['abstentions']) : 0,
       );
 
     }

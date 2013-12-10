@@ -44,9 +44,10 @@ function drush_election_statistics($election_id) {
   _election_statistics_drush_print($totals, $election->title);
   // Display statistics for individual posts if the --posts option is set.
   if (drush_get_option('posts', FALSE)) {
-    $posts = election_post_load_multiple(array_keys($totals['posts']));
+    $post_totals = election_statistics_get_post_totals($election);
+    $posts = election_post_load_multiple(array_keys($post_totals));
     foreach ($posts as $post_id => $post) {
-      _election_statistics_drush_print((array) $totals['posts'][$post_id], $post->title);
+      _election_statistics_drush_print((array) $post_totals[$post_id], $post->title);
     }
   }
 }
