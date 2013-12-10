@@ -23,6 +23,8 @@ $handler->display->display_options['cache']['type'] = 'none';
 $handler->display->display_options['query']['type'] = 'views_query';
 $handler->display->display_options['query']['options']['slave'] = TRUE;
 $handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['exposed_form']['options']['submit_button'] = 'Filter';
+$handler->display->display_options['exposed_form']['options']['reset_button'] = TRUE;
 $handler->display->display_options['pager']['type'] = 'full';
 $handler->display->display_options['pager']['options']['items_per_page'] = '25';
 $handler->display->display_options['pager']['options']['offset'] = '0';
@@ -162,7 +164,7 @@ $handler->display->display_options['fields']['title']['id'] = 'title';
 $handler->display->display_options['fields']['title']['table'] = 'election_post';
 $handler->display->display_options['fields']['title']['field'] = 'title';
 $handler->display->display_options['fields']['title']['alter']['max_length'] = '30';
-$handler->display->display_options['fields']['title']['link_to_post'] = 0;
+$handler->display->display_options['fields']['title']['link_to_post'] = 1;
 /* Field: Election post: Published */
 $handler->display->display_options['fields']['published']['id'] = 'published';
 $handler->display->display_options['fields']['published']['table'] = 'election_post';
@@ -199,6 +201,36 @@ $handler->display->display_options['filters']['published_or_admin']['group'] = 1
 $handler->display->display_options['filters']['published_or_admin_1']['id'] = 'published_or_admin_1';
 $handler->display->display_options['filters']['published_or_admin_1']['table'] = 'election_post';
 $handler->display->display_options['filters']['published_or_admin_1']['field'] = 'published_or_admin';
+/* Filter criterion: Election post: Title */
+$handler->display->display_options['filters']['title']['id'] = 'title';
+$handler->display->display_options['filters']['title']['table'] = 'election_post';
+$handler->display->display_options['filters']['title']['field'] = 'title';
+$handler->display->display_options['filters']['title']['operator'] = 'allwords';
+$handler->display->display_options['filters']['title']['exposed'] = TRUE;
+$handler->display->display_options['filters']['title']['expose']['operator_id'] = 'title_op';
+$handler->display->display_options['filters']['title']['expose']['label'] = 'Title';
+$handler->display->display_options['filters']['title']['expose']['operator'] = 'title_op';
+$handler->display->display_options['filters']['title']['expose']['identifier'] = 'title';
+$handler->display->display_options['filters']['title']['expose']['remember_roles'] = array(
+  2 => '2',
+  1 => 0,
+  3 => 0,
+);
+/* Filter criterion: Election post: Published */
+$handler->display->display_options['filters']['published']['id'] = 'published';
+$handler->display->display_options['filters']['published']['table'] = 'election_post';
+$handler->display->display_options['filters']['published']['field'] = 'published';
+$handler->display->display_options['filters']['published']['value'] = 'All';
+$handler->display->display_options['filters']['published']['exposed'] = TRUE;
+$handler->display->display_options['filters']['published']['expose']['operator_id'] = '';
+$handler->display->display_options['filters']['published']['expose']['label'] = 'Published';
+$handler->display->display_options['filters']['published']['expose']['operator'] = 'published_op';
+$handler->display->display_options['filters']['published']['expose']['identifier'] = 'published';
+$handler->display->display_options['filters']['published']['expose']['remember_roles'] = array(
+  2 => '2',
+  1 => 0,
+  3 => 0,
+);
 
 /* Display: Embed */
 $handler = $view->new_display('embed', 'Embed', 'embed');
