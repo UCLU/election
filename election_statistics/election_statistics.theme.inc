@@ -10,9 +10,10 @@
 function theme_election_statistics_block($variables) {
   $totals = $variables['totals'];
   $rows = array(
-    array(t('Voters'), $totals['voters']),
-    array(t('Votes'), $totals['votes']),
-    array(t('Abstentions'), $totals['abstentions']),
+    array(t('Voters'), number_format($totals['voters'])),
+    array(t('Ballots'), number_format($totals['ballots'])),
+    array(t('Votes'), number_format($totals['votes'])),
+    array(t('Abstentions'), number_format($totals['abstentions'])),
   );
   return theme('table', array(
     'header' => array(),
