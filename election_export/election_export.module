@@ -203,6 +203,7 @@ function election_export_post(stdClass $post, $destination = NULL, array $option
   $votes_query = db_select('election_vote', 'ev')
     ->fields('ev', $votes_fields)
     ->condition('ev.post_id', $post->post_id)
+    ->condition('valid', 1)
     ->orderBy('ballot_id')
     ->orderBy('rank');
 

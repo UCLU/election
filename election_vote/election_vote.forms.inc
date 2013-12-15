@@ -246,6 +246,7 @@ function election_vote_undo_form_undo($form, &$form_state) {
       ->fields('eb', array('ballot_id'))
       ->condition('uid', $GLOBALS['user']->uid)
       ->condition('post_id', $post->post_id)
+      ->condition('valid', 1)
       ->execute()
       ->fetchCol();
 
@@ -253,11 +254,13 @@ function election_vote_undo_form_undo($form, &$form_state) {
       throw new Exception(t('No votes found.'));
     }
 
-    db_delete('election_vote')
+    db_update('election_vote')
+      ->fields(array('valid' => 0))
       ->condition('ballot_id', $ballot_ids, 'IN')
       ->execute();
 
-    db_delete('election_ballot')
+    db_update('election_ballot')
+      ->fields(array('valid' => 0))
       ->condition('ballot_id', $ballot_ids, 'IN')
       ->execute();
 

@@ -147,6 +147,7 @@ function election_referendum_election_results_page_alter(&$output, stdClass $pos
 function election_referendum_count_votes_by_answer($post, $answer) {
   $query = db_select('election_vote')
     ->condition('post_id', $post->post_id)
+    ->condition('valid', 1)
     ->condition('abstain', 0)
     ->condition('answer', $answer);
   $query->addExpression('COUNT(*)');

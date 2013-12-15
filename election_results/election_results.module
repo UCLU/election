@@ -128,7 +128,8 @@ function election_results_get_totals($post) {
 
     // Count the number of ballots cast for this post.
     $query = db_select('election_ballot')
-      ->condition('post_id', $pid);
+      ->condition('post_id', $pid)
+      ->condition('valid', 1);
     $query->addExpression('COUNT(*)');
     $ballots = $query->execute()->fetchField();
 
@@ -142,6 +143,7 @@ function election_results_get_totals($post) {
       // Count votes.
       $query = db_select('election_vote')
         ->condition('post_id', $pid)
+        ->condition('valid', 1)
         ->condition('abstain', 0);
       $query->addExpression('COUNT(ballot_id)');
       $votes = $query->execute()->fetchField();
@@ -149,6 +151,7 @@ function election_results_get_totals($post) {
       // Count abstentions.
       $query = db_select('election_vote')
         ->condition('post_id', $pid)
+        ->condition('valid', 1)
         ->condition('abstain', 1);
       $query->addExpression('COUNT(ballot_id)');
       $abstentions = $query->execute()->fetchField();

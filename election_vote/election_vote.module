@@ -373,6 +373,7 @@ function election_vote_check_account_previously_voted($post, $account = NULL) {
   // Build the SQL query, first checking against the UID.
   $query = db_select('election_ballot')
     ->fields('election_ballot', array('ballot_id'))
+    ->condition('valid', 1)
     ->condition('uid', $account->uid)
     ->condition('post_id', $post->post_id);
 
