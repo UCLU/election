@@ -1,3 +1,13 @@
+Election 7.x-1.x-dev, 2013-12-15
+-----------------------
+- A step has been removed from the 'undo' process. It now takes 2 clicks
+  instead of 3 to undo a vote or abstention.
+- The election_vote and election_ballot tables now each have a column, 'valid',
+  indicating whether a vote is still valid. It defaults to 1. Vote and ballot
+  records will now NOT be deleted on 'undo'. When a user 'undoes' a vote or
+  abstention, it will be marked valid = 0. If you are querying the database
+  tables 'election_ballot' or 'election_vote', you must check for valid = 1.
+
 Election 7.x-1.x-dev, 2013-12-08
 -----------------------
 - There is now an 'Election Statistics' block that can be displayed on any
