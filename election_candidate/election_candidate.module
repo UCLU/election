@@ -449,6 +449,7 @@ function election_candidate_entity_property_info() {
     ),
     'cstatus' => array(
       'label' => t('Candidate status'),
+      'description' => t('The electoral status of the candidate.'),
       'type' => 'integer',
       'options list' => '_election_candidate_get_cstatus_options',
       'setter callback' => 'entity_property_verbatim_set',
