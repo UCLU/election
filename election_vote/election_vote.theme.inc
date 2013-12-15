@@ -122,7 +122,7 @@ function template_preprocess_election_vote_eligibility(&$variables) {
       $eligibility = $account_is_user ? t('You have already voted.') : t('Already voted');
     }
     if ($account_is_user && election_vote_access('undo', $post)) {
-      $eligibility .= ' ' . l(t('Undo'), election_post_uri_path($post) . '/vote/undo');
+      $eligibility .= ' ' . l(t('Undo'), election_post_uri_path($post) . '/vote/undo', array('query' => drupal_get_destination()));
     }
   }
   // The user may vote. Provide a link to the voting form.

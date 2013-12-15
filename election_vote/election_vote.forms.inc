@@ -129,86 +129,17 @@ function election_vote_form_vote_confirm($form, &$form_state) {
  */
 function election_vote_undo_form($form, &$form_state, $post) {
 
-  $election = $post->election;
-  $post_name = election_get_post_name($election->type);
-
-  $form_state['post'] = $post;
-  $form_state['election'] = $election;
-
-  election_post_set_breadcrumb($election, $post);
-
-  if (isset($form_state['undo_require_confirm'])) {
-    return election_vote_undo_form_confirm($form, $form_state);
-  }
-
-  $form['post'] = array(
-    '#type' => 'item',
-    '#title' => check_plain(drupal_ucfirst($post_name)),
-    '#markup' => check_plain($post->title),
-  );
-  $form['warning'] = array(
-    '#type' => 'item',
-    '#markup' => t(
-      'You have already voted !or_abstained.',
-      array(
-        '!or_abstained' => $post->allow_abstention ? t('or abstained') : '',
-      )
-    ),
-  );
-  $form['undo'] = array(
-    '#type' => 'item',
-    '#markup' => t(
-      "If you wish, you can 'undo' this action. This means you could vote !or_abstain again.",
-      array(
-        '!or_abstention' => $post->allow_abstention ? t('or abstention') : '',
-        '!or_abstain' => $post->allow_abstention ? t('(or abstain)') : '',
-      )
-    ),
-  );
-  $form['actions'] = array(
-    '#type' => 'actions',
-  );
-  $form['actions']['undo'] = array(
-    '#type' => 'submit',
-    '#value' => t('Undo…'),
-    '#submit' => array('election_vote_undo_form_undo'),
-    '#limit_validation_errors' => array(),
-  );
-  $form['actions']['return_election'] = array(
-    '#type' => 'link',
-    '#title' => t('Return to %election', array('%election' => $election->title)),
-    '#href' => election_uri_path($election),
-    '#options' => array('html' => TRUE),
-  );
-  return $form;
-}
-
-/**
- * The confirmation stage for undoing a vote or abstention.
- *
- * @see election_vote_undo_form()
- */
-function election_vote_undo_form_confirm($form, &$form_state) {
-
-  $form['undo_confirmed'] = array(
-    '#type' => 'hidden',
-    '#value' => TRUE,
-  );
-
-  $form['#submit'] = array('election_vote_undo_form_undo');
-
   $form['#attached']['js'][] = drupal_get_path('module', 'election') . '/submit-single.min.js';
 
-  // confirm_form() ignores its third argument when $_GET['destination'] is set.
-  unset($_GET['destination']);
+  $form_state['post'] = $post;
+  $election = $post->election;
 
-  $post = $form_state['post'];
-  $election = $form_state['election'];
+  election_post_set_breadcrumb($election, $post);
 
   return confirm_form(
     $form,
     t('Undo: are you sure?'),
-    current_path(),
+    election_uri_path($election),
     t("This will undo your vote !or_abstention for the @post %post_title.", array(
       '@post' => election_get_post_name($election->type),
       '%post_title' => $post->title,
@@ -225,16 +156,10 @@ function election_vote_undo_form_confirm($form, &$form_state) {
  *
  * @see election_vote_undo_form()
  */
-function election_vote_undo_form_undo($form, &$form_state) {
-
-  if (empty($form_state['values']['undo_confirmed'])) {
-    $form_state['undo_require_confirm'] = TRUE;
-    $form_state['rebuild'] = TRUE;
-    return;
-  }
+function election_vote_undo_form_submit($form, &$form_state) {
 
   $post = $form_state['post'];
-  $election = $form_state['election'];
+  $election = $post->election;
 
   $success = FALSE;
 
@@ -296,7 +221,7 @@ function election_vote_undo_form_undo($form, &$form_state) {
       )
     );
 
-    $form_state['redirect'] = election_post_uri_path($post);
+    $form_state['redirect'] = election_uri_path($election);
 
   }
 
