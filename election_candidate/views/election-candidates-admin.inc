@@ -151,7 +151,7 @@ $handler->display->display_options['fields']['views_bulk_operations']['vbo_opera
     'override_label' => 1,
     'label' => 'Change candidate status',
     'settings' => array(
-      'show_all_tokens' => 1,
+      'show_all_tokens' => 0,
       'display_values' => array(
         'cstatus' => 'cstatus',
       ),
