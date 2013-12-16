@@ -672,9 +672,7 @@ function election_candidate_form_election_form_alter(&$form, &$form_state) {
   $form['presentation']['settings_show_candidates_tab'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show the Candidates tab'),
-    '#description' => t('If enabled, a <a href="@tab_url" target="_blank">Candidates</a> tab will be shown for this election, listing non-rejected candidates (if there are any).', array(
-      '@tab_url' => url('election/' . $election->election_id . '/candidates'),
-    )),
+    '#description' => t('If enabled, a Candidates tab will be shown for this election, listing non-rejected candidates (if there are any).'),
     '#default_value' => isset($election->settings['show_candidates_tab']) ? $election->settings['show_candidates_tab'] : 1,
   );
 }
