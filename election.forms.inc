@@ -53,7 +53,7 @@ function election_form($form, &$form_state, stdClass $election) {
     $form['nominations']['nschedule'] = array(
       '#title' => t('Nominations schedule'),
       '#type' => 'fieldset',
-      '#description' => 'Set the opening and closing times for nominations.',
+      '#description' => t('Set the opening and closing times for nominations.'),
       '#states' => array(
         'visible' => array(
           ':input[name=nstatus]' => array('value' => (string) ELECTION_STATUS_SCHEDULED),
@@ -99,7 +99,7 @@ function election_form($form, &$form_state, stdClass $election) {
   $form['voting']['vschedule'] = array(
     '#title' => t('Voting schedule'),
     '#type' => 'fieldset',
-    '#description' => 'Set the opening and closing times for voting.',
+    '#description' => t('Set the opening and closing times for voting.'),
     '#states' => array(
       'visible' => array(
         ':input[name=vstatus]' => array('value' => (string) ELECTION_STATUS_SCHEDULED),
