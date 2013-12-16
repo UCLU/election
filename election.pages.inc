@@ -16,7 +16,7 @@ function election_page_list() {
     $types = election_types();
     if (!count($types)) {
       drupal_set_message(t("You need to enable an 'election type' module (see !Modules) in order to add elections.", array(
-        '!Modules' => l(t('Modules'), 'admin/modules'),
+        '!Modules' => l(t('Modules'), 'admin/modules', array('fragment' => 'election_types')),
       )), 'warning');
     }
   }
