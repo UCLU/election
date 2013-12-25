@@ -59,6 +59,11 @@ class ElectionPostCrudTestCase extends DrupalWebTestCase {
       election_save($election);
       // Create a new post in the election with a random title.
       $post = $this->helperElectionPostCreate($election, $this->randomString());
+      // Update the post's title and published status.
+      $post = $this->helperElectionPostUpdate($post, array(
+        'title' => $this->randomString(),
+        'published' => 1,
+      ));
       // Delete the post.
       $this->helperElectionPostDelete($post);
     }
@@ -88,6 +93,33 @@ class ElectionPostCrudTestCase extends DrupalWebTestCase {
     $this->assertEqual($post->election_id, $election->election_id, t('The post is linked to the correct election.'));
     foreach ($properties as $name => $value) {
       $this->assertEqual($post->$name, $value, t('Post property %name is correct.', array('%name' => $name)));
+    }
+    return $post;
+  }
+  
+  /**
+   * Test updating an existing election post via the UI.
+   */
+  protected function helperElectionPostUpdate(stdClass $post, array $edit) {
+    $this->drupalPost(election_post_uri_path($post) . '/edit', $edit, t('Save'));
+    // The page should display that the post was saved.
+    // The (possibly updated) title is needed to test this assertion.
+    $new_title = $post->title;
+    if (isset($edit['title'])) {
+      $new_title = $edit['title'];
+    }
+    $election = $post->election;
+    $post_name = election_get_post_name($election->type);
+    $this->assertRaw(
+      t('The @post "@title" was saved.', array('@post' => $post_name, '@title' => $new_title)),
+      t('@Post updated correctly.', array('@Post' => drupal_ucfirst($post_name)))
+    );
+    // Load the post from the database again.
+    $original = $post;
+    $post = election_post_load($original->post_id, TRUE);
+    // Check that the new post has the correct properties.
+    foreach ($edit as $name => $value) {
+      $this->assertEqual($post->$name, $value, t('Updated post property %name is correct.', array('%name' => $name)));
     }
     return $post;
   }
