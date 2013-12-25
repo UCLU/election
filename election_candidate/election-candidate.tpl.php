@@ -12,7 +12,7 @@
     <?php if (isset($title_prefix)): ?>
       <?php print render($title_prefix); ?>
     <?php endif; ?>
-    <h2<?php print $title_attributes; ?>><a href="<?php print $candidate_url; ?>"><?php print $full_name; ?></a></h2>
+    <h2<?php print $title_attributes; ?>><a href="<?php print $candidate_url; ?>"><?php print $name; ?></a></h2>
     <?php if (isset($title_suffix)): ?>
       <?php print render($title_suffix); ?>
     <?php endif; ?>

@@ -26,3 +26,23 @@ function hook_election_candidate_post_has_enough_alter(&$enough, $post, $num_can
     $enough = TRUE;
   }
 }
+
+/**
+ * Alter the candidate's name before displaying it.
+ *
+ * @see election_candidate_get_name()
+ *
+ * @param string &$name
+ *   The candidate's name.
+ * @param stdClass $candidate
+ *   The candidate object.
+ */
+function hook_election_candidate_name_alter(&$name, $candidate) {
+  // Example: for a custom candidate type, set the name to the rendered value
+  // of a custom field called 'custom_label'.
+  if ($candidate->type == 'custom_type' && isset($candidate->custom_label)) {
+    $name = $candidate->custom_label[LANGUAGE_NONE][0];
+    $name = field_view_value('election_candidate', $candidate, 'custom_label', $name);
+    $name = drupal_render($name);
+  }
+}

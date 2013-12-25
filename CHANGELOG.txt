@@ -1,3 +1,18 @@
+Election 7.x-1.x-dev, 2013-12-22
+-----------------------
+- Candidates' names and e-mail addresses are now stored in fields, not
+  properties. The database columns election_candidate.first_name,
+  election_candidate.last_name, and election_candidate.mail have been removed.
+  The candidate_name and candidate_mail fields are added automatically to all
+  existing candidate types through an update function. New candidate types will
+  also get these fields by default. To read the candidate name programmatically,
+  use the function election_candidate_get_name().
+- There is a new hook, hook_election_candidate_name_alter(), allowing modules to
+  change a candidate's name before it is displayed. This potentially allows for
+  'candidates' to represent things or ideas as well as people.
+- The candidate 'Totals' page has been removed. A results summary was added to
+  the election_candidates_admin View instead.
+
 Election 7.x-1.x-dev, 2013-12-15
 -----------------------
 - A step has been removed from the 'undo' process. It now takes 2 clicks

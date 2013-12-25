@@ -186,7 +186,8 @@ function election_export_post(stdClass $post, $destination = NULL, array $option
     if ($candidate->cstatus == ELECTION_CANDIDATE_WITHDRAWN) {
       $withdrawn[] = $i;
     }
-    $name = addcslashes($candidate->first_name . ' ' . $candidate->last_name, '"');
+    $name = election_candidate_get_name($candidate, FALSE);
+    $name = addcslashes($name, '"');
     $candidate_lines .= '"' . $name . '"';
     $candidate_lines .= ' # ' . t('Candidate keyed by @i', array('@i' => $i)) . "\n";
     $i++;

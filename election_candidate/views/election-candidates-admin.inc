@@ -34,8 +34,7 @@ $handler->display->display_options['style_options']['columns'] = array(
   'views_bulk_operations' => 'views_bulk_operations',
   'changed' => 'changed',
   'title' => 'title',
-  'first_name' => 'first_name',
-  'last_name' => 'last_name',
+  'candidate_name' => 'candidate_name',
   'name' => 'name',
   'cstatus' => 'cstatus',
   'published' => 'published',
@@ -63,14 +62,7 @@ $handler->display->display_options['style_options']['info'] = array(
     'separator' => '',
     'empty_column' => 0,
   ),
-  'first_name' => array(
-    'sortable' => 1,
-    'default_sort_order' => 'asc',
-    'align' => '',
-    'separator' => '',
-    'empty_column' => 0,
-  ),
-  'last_name' => array(
+  'candidate_name' => array(
     'sortable' => 1,
     'default_sort_order' => 'asc',
     'align' => '',
@@ -109,6 +101,11 @@ $handler->display->display_options['style_options']['info'] = array(
 );
 $handler->display->display_options['style_options']['sticky'] = TRUE;
 $handler->display->display_options['style_options']['empty_table'] = TRUE;
+/* Header: Global: Result summary */
+$handler->display->display_options['header']['result']['id'] = 'result';
+$handler->display->display_options['header']['result']['table'] = 'views';
+$handler->display->display_options['header']['result']['field'] = 'result';
+$handler->display->display_options['header']['result']['label'] = 'Results summary';
 /* No results behavior: Global: Text area */
 $handler->display->display_options['empty']['area']['id'] = 'area';
 $handler->display->display_options['empty']['area']['table'] = 'views';
@@ -121,6 +118,13 @@ $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
 $handler->display->display_options['relationships']['uid']['id'] = 'uid';
 $handler->display->display_options['relationships']['uid']['table'] = 'election_candidate';
 $handler->display->display_options['relationships']['uid']['field'] = 'uid';
+/* Field: Election candidate: Candidate ID */
+$handler->display->display_options['fields']['candidate_id']['id'] = 'candidate_id';
+$handler->display->display_options['fields']['candidate_id']['table'] = 'election_candidate';
+$handler->display->display_options['fields']['candidate_id']['field'] = 'candidate_id';
+$handler->display->display_options['fields']['candidate_id']['label'] = '';
+$handler->display->display_options['fields']['candidate_id']['exclude'] = TRUE;
+$handler->display->display_options['fields']['candidate_id']['element_label_colon'] = FALSE;
 /* Field: Bulk operations: Election candidate */
 $handler->display->display_options['fields']['views_bulk_operations']['id'] = 'views_bulk_operations';
 $handler->display->display_options['fields']['views_bulk_operations']['table'] = 'election_candidate';
@@ -202,14 +206,24 @@ $handler->display->display_options['fields']['title']['label'] = 'Position';
 $handler->display->display_options['fields']['title']['alter']['max_length'] = '40';
 $handler->display->display_options['fields']['title']['alter']['trim'] = TRUE;
 $handler->display->display_options['fields']['title']['link_to_post'] = 1;
-/* Field: Election candidate: First name */
-$handler->display->display_options['fields']['first_name']['id'] = 'first_name';
-$handler->display->display_options['fields']['first_name']['table'] = 'election_candidate';
-$handler->display->display_options['fields']['first_name']['field'] = 'first_name';
-/* Field: Election candidate: Last name */
-$handler->display->display_options['fields']['last_name']['id'] = 'last_name';
-$handler->display->display_options['fields']['last_name']['table'] = 'election_candidate';
-$handler->display->display_options['fields']['last_name']['field'] = 'last_name';
+/* Field: Election candidate: Name */
+$handler->display->display_options['fields']['candidate_name']['id'] = 'candidate_name';
+$handler->display->display_options['fields']['candidate_name']['table'] = 'field_data_candidate_name';
+$handler->display->display_options['fields']['candidate_name']['field'] = 'candidate_name';
+$handler->display->display_options['fields']['candidate_name']['alter']['make_link'] = TRUE;
+$handler->display->display_options['fields']['candidate_name']['alter']['path'] = 'election-candidate/[candidate_id]';
+$handler->display->display_options['fields']['candidate_name']['click_sort_column'] = 'title';
+$handler->display->display_options['fields']['candidate_name']['settings'] = array(
+  'format' => 'default',
+  'markup' => 0,
+  'output' => 'default',
+  'multiple' => 'default',
+  'multiple_delimiter' => ', ',
+  'multiple_and' => 'text',
+  'multiple_delimiter_precedes_last' => 'never',
+  'multiple_el_al_min' => '3',
+  'multiple_el_al_first' => '1',
+);
 /* Field: User: Name */
 $handler->display->display_options['fields']['name']['id'] = 'name';
 $handler->display->display_options['fields']['name']['table'] = 'users';
@@ -268,34 +282,18 @@ $handler->display->display_options['filters']['title']['expose']['remember_roles
   1 => 0,
   3 => 0,
 );
-/* Filter criterion: Election candidate: First name */
-$handler->display->display_options['filters']['first_name']['id'] = 'first_name';
-$handler->display->display_options['filters']['first_name']['table'] = 'election_candidate';
-$handler->display->display_options['filters']['first_name']['field'] = 'first_name';
-$handler->display->display_options['filters']['first_name']['operator'] = 'allwords';
-$handler->display->display_options['filters']['first_name']['group'] = 1;
-$handler->display->display_options['filters']['first_name']['exposed'] = TRUE;
-$handler->display->display_options['filters']['first_name']['expose']['operator_id'] = 'first_name_op';
-$handler->display->display_options['filters']['first_name']['expose']['label'] = 'First name';
-$handler->display->display_options['filters']['first_name']['expose']['operator'] = 'first_name_op';
-$handler->display->display_options['filters']['first_name']['expose']['identifier'] = 'first_name';
-$handler->display->display_options['filters']['first_name']['expose']['remember_roles'] = array(
-  2 => '2',
-  1 => 0,
-  3 => 0,
-);
-/* Filter criterion: Election candidate: Last name */
-$handler->display->display_options['filters']['last_name']['id'] = 'last_name';
-$handler->display->display_options['filters']['last_name']['table'] = 'election_candidate';
-$handler->display->display_options['filters']['last_name']['field'] = 'last_name';
-$handler->display->display_options['filters']['last_name']['operator'] = 'allwords';
-$handler->display->display_options['filters']['last_name']['group'] = 1;
-$handler->display->display_options['filters']['last_name']['exposed'] = TRUE;
-$handler->display->display_options['filters']['last_name']['expose']['operator_id'] = 'last_name_op';
-$handler->display->display_options['filters']['last_name']['expose']['label'] = 'Last name';
-$handler->display->display_options['filters']['last_name']['expose']['operator'] = 'last_name_op';
-$handler->display->display_options['filters']['last_name']['expose']['identifier'] = 'last_name';
-$handler->display->display_options['filters']['last_name']['expose']['remember_roles'] = array(
+/* Filter criterion: Election candidate: Name */
+$handler->display->display_options['filters']['candidate_name']['id'] = 'candidate_name';
+$handler->display->display_options['filters']['candidate_name']['table'] = 'field_data_candidate_name';
+$handler->display->display_options['filters']['candidate_name']['field'] = 'candidate_name';
+$handler->display->display_options['filters']['candidate_name']['operator'] = 'allwords';
+$handler->display->display_options['filters']['candidate_name']['group'] = 1;
+$handler->display->display_options['filters']['candidate_name']['exposed'] = TRUE;
+$handler->display->display_options['filters']['candidate_name']['expose']['operator_id'] = 'candidate_name_op';
+$handler->display->display_options['filters']['candidate_name']['expose']['label'] = 'Name';
+$handler->display->display_options['filters']['candidate_name']['expose']['operator'] = 'candidate_name_op';
+$handler->display->display_options['filters']['candidate_name']['expose']['identifier'] = 'candidate_name';
+$handler->display->display_options['filters']['candidate_name']['expose']['remember_roles'] = array(
   2 => '2',
   1 => 0,
   3 => 0,

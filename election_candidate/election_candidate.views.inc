@@ -20,7 +20,7 @@ function election_candidate_views_data() {
     'title' => t('Election candidate'),
     'weight' => -8,
     'defaults' => array(
-      'field' => 'fullname',
+      'field' => 'candidate_id',
     ),
   );
 
@@ -119,43 +119,6 @@ function election_candidate_views_data() {
     ),
     'field' => array(
       'handler' => 'views_handler_field_user',
-    ),
-  );
-
-  $data['election_candidate']['fullname'] = array(
-    'title' => t('Name'),
-    'help' => t('The full name of the candidate ($Firstname $Lastname).'),
-    'field' => array(
-      'handler' => 'election_candidate_views_handler_field_full_name',
-      'link_to_candidate default' => TRUE,
-    ),
-  );
-
-  $data['election_candidate']['first_name'] = array(
-    'title' => t('First name'),
-    'help' => t('The first name(s) of the candidate.'),
-    'field' => array(
-      'click sortable' => TRUE,
-    ),
-    'filter' => array(
-      'handler' => 'views_handler_filter_string',
-    ),
-    'sort' => array(
-      'handler' => 'views_handler_sort',
-    ),
-  );
-
-  $data['election_candidate']['last_name'] = array(
-    'title' => t('Last name'),
-    'help' => t('The last name(s) of the candidate.'),
-    'field' => array(
-      'click sortable' => TRUE,
-    ),
-    'filter' => array(
-      'handler' => 'views_handler_filter_string',
-    ),
-    'sort' => array(
-      'handler' => 'views_handler_sort',
     ),
   );
 

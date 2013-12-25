@@ -15,7 +15,7 @@ function election_candidate_pathauto($op) {
       $settings['token_type'] = 'election_candidate';
       $settings['groupheader'] = t('Election candidate paths');
       $settings['patterndescr'] = t('Default path pattern');
-      $settings['patterndefault'] = 'election/[election_candidate:election:title]/candidate/[election_candidate:first_name]-[election_candidate:last_name]';
+      $settings['patterndefault'] = 'election/[election_candidate:election:title]/candidate/[election_candidate:candidate_name]';
       $settings['batch_update_callback'] = 'election_candidate_pathauto_bulk_update_batch_process';
       $settings['batch_file'] = drupal_get_path('module', 'election_candidate') . '/election_candidate.pathauto.inc';
       return (object) $settings;

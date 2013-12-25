@@ -24,22 +24,20 @@ function template_preprocess_election_candidate(&$variables) {
 
   // Detect whether the candidate is on its own page.
   $page_candidate = menu_get_object('election_candidate');
-  $is_page = (!empty($page_candidate) && $page_candidate->candidate_id == $candidate->candidate_id);
+  $is_page = ($page_candidate && $page_candidate->candidate_id == $candidate->candidate_id);
 
   // Create some basic useful variables.
   $variables['view_mode'] = $view_mode;
   $variables['teaser'] = ($view_mode == 'teaser');
   $variables['page'] = $is_page;
-  $variables['details'] = $variables['view_mode'] == 'details';
   $variables['candidate'] = $candidate;
   $variables['election'] = $election;
   $variables['post'] = $post;
+
   $uri = election_candidate_uri($candidate);
   $variables['candidate_url'] = url($uri['path'], $uri['options']);
 
-  $variables['full_name'] = theme('election_candidate_full_name', array('candidate' => $candidate));
-  $variables['first_name'] = check_plain($candidate->first_name);
-  $variables['last_name'] = check_plain($candidate->last_name);
+  $variables['name'] = election_candidate_get_name($candidate);
 
   $variables += array('content' => array());
 
@@ -90,20 +88,14 @@ function theme_election_candidate_status($variables) {
 }
 
 /**
- * Theme function for displaying a candidate's full name.
- */
-function theme_election_candidate_full_name($variables) {
-  $candidate = $variables['candidate'];
-  return check_plain($candidate->first_name . ' ' . $candidate->last_name);
-}
-
-/**
  * Theme function for displaying a candidate as an item on a ballot form.
  */
 function theme_election_candidate_ballot_item($variables) {
   $candidate = $variables['candidate'];
-  $full_name = theme('election_candidate_full_name', array('candidate' => $candidate));
-  $link = l($full_name, election_candidate_uri_path($candidate), array('html' => TRUE));
+  // Get the unsanitized name of the candidate.
+  $name = election_candidate_get_name($candidate, FALSE);
+  // Link to the candidate's profile. The l() function will sanitize the name.
+  $link = l($name, election_candidate_uri_path($candidate));
   return '<span class="election-candidate-ballot-item">' . $link . '</span>';
 }
 

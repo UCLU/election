@@ -11,6 +11,7 @@ class ElectionCandidateType extends Entity {
 
   public $type;
   public $label;
+  public $status;
 
   /**
    * Overrides Entity::__construct to provide the entity type.

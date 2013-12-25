@@ -38,13 +38,7 @@ function election_candidate_list_page(stdClass $election) {
  */
 function election_candidate_page_view(stdClass $candidate, $view_mode = 'full') {
 
-  if ($view_mode == 'full' || $view_mode == 'details') {
-    drupal_set_title(
-      t('Candidate: !full_name', array(
-        '!full_name' => theme('election_candidate_full_name', array('candidate' => $candidate)),
-      )),
-      PASS_THROUGH
-    );
+  if ($view_mode == 'full') {
     $post = election_post_load($candidate->post_id);
     if ($post) {
       $election = $post->election;

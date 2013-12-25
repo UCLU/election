@@ -40,32 +40,6 @@ function election_candidate_form($form, &$form_state, stdClass $candidate, $post
     '#disabled' => $post && $candidate->is_new,
   );
 
-  $form['first_name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('First name(s)'),
-    '#max_length' => 100,
-    '#default_value' => $candidate->first_name,
-    '#size' => 50,
-    '#required' => TRUE,
-  );
-
-  $form['last_name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Last name(s)'),
-    '#max_length' => 100,
-    '#default_value' => $candidate->last_name,
-    '#size' => 50,
-    '#required' => TRUE,
-  );
-
-  $form['mail'] = array(
-    '#type' => module_exists('elements') ? 'emailfield' : 'textfield',
-    '#title' => t('E-mail address'),
-    '#size' => 30,
-    '#required' => FALSE,
-    '#default_value' => $candidate->mail,
-  );
-
   field_attach_form('election_candidate', $candidate, $form, $form_state);
 
   foreach ($form as $key => &$field) {
@@ -164,7 +138,6 @@ function election_candidate_form_submit($form, &$form_state) {
   if (!empty($form_state['values']['user'])) {
     if ($account = user_load_by_name($form_state['values']['user'])) {
       $candidate->uid = $account->uid;
-      $candidate->username = $account->name;
     }
   }
 
@@ -174,10 +147,9 @@ function election_candidate_form_submit($form, &$form_state) {
 
   drupal_set_message(
     t(
-      'The candidate %first_name %last_name was saved.',
+      'The candidate %name was saved.',
       array(
-        '%first_name' => $candidate->first_name,
-        '%last_name' => $candidate->last_name,
+        '%name' => election_candidate_get_name($candidate, FALSE),
       )
     )
   );
@@ -220,7 +192,7 @@ function election_candidate_form_delete_confirm($form, &$form_state, stdClass $c
 
   return confirm_form(
     $form,
-    t('Are you sure you want to delete the candidate %title?', array('%title' => $candidate->first_name . ' ' . $candidate->last_name)),
+    t('Are you sure you want to delete the candidate %name?', array('%name' => election_candidate_get_name($candidate, FALSE))),
     election_candidate_uri_path($candidate),
     t('Deleting a candidate also deletes ALL associated data, for example votes. This action cannot be undone.'),
     t('Delete'),
@@ -238,25 +210,24 @@ function election_candidate_form_delete_confirm_submit($form, &$form_state) {
     $election = election_load($candidate->election_id);
 
     $info = array(
-      '%first_name' => $candidate->first_name,
-      '%last_name' => $candidate->last_name,
+      '%name' => election_candidate_get_name($candidate, FALSE),
       '%election_title' => !empty($election) ? $election->title : t('unknown'),
     );
 
     // Delete the candidate.
     $delete = election_candidate_delete($form_state['values']['candidate_id']);
     if ($delete) {
-      watchdog('election_candidate', 'Deleted candidate "%first_name %last_name".', $info);
+      watchdog('election_candidate', 'Deleted candidate %name.', $info);
     }
 
     if ($delete) {
       drupal_set_message(
-        t('The candidate %first_name %last_name has been deleted from the election %election_title.', $info)
+        t('The candidate %name has been deleted from the election %election_title.', $info)
       );
     }
     else {
       drupal_set_message(
-        t('Failed to delete the candidate %first_name %last_name from the election %election_title.', $info)
+        t('Failed to delete the candidate %name from the election %election_title.', $info)
       );
     }
 
@@ -311,29 +282,6 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $post)
     '#markup' => check_plain($post->title),
   );
 
-  $form['first_name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('First name(s)'),
-    '#max_length' => 100,
-    '#size' => 50,
-    '#required' => TRUE,
-  );
-
-  $form['last_name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Last name(s)'),
-    '#max_length' => 100,
-    '#size' => 50,
-    '#required' => TRUE,
-  );
-
-  $form['mail'] = array(
-    '#type' => module_exists('elements') ? 'emailfield' : 'textfield',
-    '#title' => t('E-mail address'),
-    '#size' => 30,
-    '#required' => TRUE,
-  );
-
   // Add custom fields from the Field system.
   field_attach_form('election_candidate', $candidate, $form, $form_state);
 
@@ -369,10 +317,6 @@ function election_candidate_nomination_form($form, &$form_state, stdClass $post)
  */
 function election_candidate_form_validate($form, &$form_state) {
 
-  if ($form['mail']['#type'] == 'textfield' && !empty($form_state['values']['mail']) && !filter_var($form_state['values']['mail'], FILTER_VALIDATE_EMAIL)) {
-    form_set_error('mail', t('Please enter a valid e-mail address.'));
-  }
-
   field_attach_form_validate('election_candidate', $form_state['candidate'], $form, $form_state);
 
 }
@@ -384,24 +328,18 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
 
   $candidate = &$form_state['candidate'];
 
-  $values = $form_state['values'];
-
   $election = $form_state['election'];
   $post = $form_state['post'];
 
   $candidate->election_id = $election->election_id;
   $candidate->post_id = $post->post_id;
 
-  $candidate->first_name = $values['first_name'];
-  $candidate->last_name = $values['last_name'];
-  $candidate->mail = $values['mail'];
   $candidate->cstatus = ELECTION_CANDIDATE_HOPEFUL;
 
   field_attach_submit('election_candidate', $candidate, $form, $form_state);
 
   if (!empty($GLOBALS['user']->uid)) {
     $candidate->uid = $GLOBALS['user']->uid;
-    $candidate->username = $GLOBALS['user']->name;
   }
 
   // Save the nomination.
@@ -409,12 +347,11 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
 
   // Notify the user that the nomination was saved.
   drupal_set_message(t(
-    'The nomination for the @post %title (name %first_name %last_name) was successfully submitted.',
+    'The nomination for the @post %title (name: %name) was successfully submitted.',
     array(
       '@post' => election_get_post_name($election->type),
       '%title' => $post->title,
-      '%first_name' => $candidate->first_name,
-      '%last_name' => $candidate->last_name,
+      '%name' => election_candidate_get_name($candidate, FALSE),
     )
   ));
 

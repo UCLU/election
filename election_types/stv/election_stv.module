@@ -179,7 +179,7 @@ function election_stv_vote_form(&$form, &$form_state) {
       . theme('election_candidate_ballot_item', array('candidate' => $candidate))
       . '</td><td>',
       '#suffix' => '</td></tr>',
-      '#title' => t('Your rank for %candidate', array('%candidate' => $candidate->first_name . ' ' . $candidate->last_name)),
+      '#title' => t('Your rank for %candidate', array('%candidate' => election_candidate_get_name($candidate, FALSE))),
       '#title_display' => 'invisible',
       '#options' => $rank_options,
       '#required' => FALSE,
@@ -379,7 +379,7 @@ function election_stv_preprocess_election_vote_confirm(&$variables) {
       }
       else {
         $candidate = $form_state['candidates'][$candidate_id];
-        $candidate_item = theme('election_candidate_full_name', array('candidate' => $candidate));
+        $candidate_item = election_candidate_get_name($candidate);
       }
       $rows[$candidate_id][] = $candidate_item;
     }
@@ -399,7 +399,7 @@ function election_stv_preprocess_election_vote_confirm(&$variables) {
       }
       else {
         $candidate = $form_state['candidates'][$candidate_id];
-        $candidate_item = theme('election_candidate_full_name', array('candidate' => $candidate));
+        $candidate_item = election_candidate_get_name($candidate);
       }
       $rows[$candidate_id][] = $rank == 'NONE' ? t('-') : _election_stv_get_ordinal($rank);
     }

@@ -32,18 +32,6 @@ function election_candidate_token_info() {
         'description' => t('The post for which the candidate is standing.'),
         'type' => 'election_post',
       ),
-      'mail' => array(
-        'name' => t('E-mail address'),
-        'description' => t('The e-mail address of the candidate.'),
-      ),
-      'first_name' => array(
-        'name' => t('First name'),
-        'description' => t('The first name of the candidate.'),
-      ),
-      'last_name' => array(
-        'name' => t('Last name'),
-        'description' => t('The last name of the candidate.'),
-      ),
     ),
   );
   return $info;
@@ -61,18 +49,6 @@ function election_candidate_tokens($type, array $tokens, array $data = array(), 
       switch ($name) {
         case 'id':
           $replacements[$original] = $candidate->candidate_id;
-          break;
-
-        case 'mail':
-          $replacements[$original] = $sanitize ? check_plain($candidate->mail) : $candidate->mail;
-          break;
-
-        case 'first_name':
-          $replacements[$original] = $sanitize ? check_plain($candidate->first_name) : $candidate->first_name;
-          break;
-
-        case 'last_name':
-          $replacements[$original] = $sanitize ? check_plain($candidate->last_name) : $candidate->last_name;
           break;
 
         case 'election':

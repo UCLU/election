@@ -25,14 +25,6 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
       'label' => t('Published?'),
       'default' => TRUE,
     ),
-    'first_name' => array(
-      'label' => t('First name'),
-      'default' => TRUE,
-    ),
-    'last_name' => array(
-      'label' => t('Last name'),
-      'default' => TRUE,
-    ),
     'post_id' => t('@Post ID', array('@Post' => drupal_ucfirst($post_name))),
     'post_title' => array(
       'label' => t('@Post title', array('@Post' => drupal_ucfirst($post_name))),
@@ -42,15 +34,7 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
       'label' => t('Status'),
       'default' => TRUE,
     ),
-    'mail' => array(
-      'label' => t('E-mail address'),
-      'default' => TRUE,
-    ),
     'uid' => t('User ID'),
-    'username' => array(
-      'label' => t('Username'),
-      'default' => TRUE,
-    ),
     'created' => array(
       'label' => t('Created date'),
       'default' => TRUE,
@@ -234,13 +218,9 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
       break;
 
     default:
-      if (is_array($value)) {
-        if (isset($value[LANGUAGE_NONE][0]['safe_value'])) {
-          return $value[LANGUAGE_NONE][0]['safe_value'];
-        }
-        elseif (isset($value[LANGUAGE_NONE][0]['value'])) {
-          return check_plain($value[LANGUAGE_NONE][0]['value']);
-        }
+      if (is_array($value) && isset($value[LANGUAGE_NONE][0])) {
+        $output = field_view_value('election_candidate', $candidate, $property_key, $value[LANGUAGE_NONE][0]);
+        return drupal_render($output);
       }
   }
 }

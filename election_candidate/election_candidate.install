@@ -69,30 +69,6 @@ function election_candidate_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
-      'username' => array(
-        'description' => 'The {users}.name of the candidate.',
-        'type' => 'varchar',
-        'length' => 60,
-        'not null' => FALSE,
-      ),
-      'first_name' => array(
-        'description' => 'The candidate\'s first name.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => FALSE,
-      ),
-      'last_name' => array(
-        'description' => 'The candidate\'s last name.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => FALSE,
-      ),
-      'mail' => array(
-        'description' => 'The candidate\'s e-mail address.',
-        'type' => 'varchar',
-        'length' => 254,
-        'not null' => TRUE,
-      ),
       'created' => array(
         'description' => 'The Unix timestamp for when the candidate was created/nominated.',
         'type' => 'int',
@@ -110,9 +86,6 @@ function election_candidate_schema() {
       'post_id' => array('post_id'),
       'uid' => array('uid'),
       'published' => array('published'),
-      'first_name' => array('first_name'),
-      'last_name' => array('last_name'),
-      'mail' => array('mail'),
       'created' => array('created'),
       'cstatus' => array('cstatus'),
     ),
@@ -202,6 +175,29 @@ function election_candidate_schema_alter(&$schema) {
     'columns' => array('candidate_id' => 'candidate_id'),
   );
 
+}
+
+/**
+ * Implements hook_install().
+ */
+function election_candidate_install() {
+  field_info_cache_clear();
+
+  // Create default fields.
+  module_load_include('inc', 'election_candidate', 'election_candidate.field');
+  $fields = _election_candidate_fields();
+  foreach ($fields as $field) {
+    field_create_field($field);
+  }
+
+  // Create default instances.
+  $field_instances = _election_candidate_field_instances();
+  foreach (election_candidate_get_types() as $bundle => $type) {
+    foreach ($field_instances as $instance) {
+      $instance['bundle'] = $bundle;
+      field_create_instance($instance);
+    }
+  }
 }
 
 /**
@@ -431,4 +427,62 @@ function election_candidate_update_7101() {
       election_save($election);
     }
   }
+}
+
+/**
+ * Add new field instances (name, email address) to all candidate types.
+ */
+function election_candidate_update_7102() {
+  if (!module_exists('name')) {
+    trigger_error(t('The name module must be installed.'), E_USER_ERROR);
+  }
+  module_load_include('inc', 'election_candidate', 'election_candidate.field');
+  field_info_cache_clear();
+  // Create default fields.
+  $fields = _election_candidate_fields();
+  foreach ($fields as $field) {
+    if (!field_info_field($field['field_name'])) {
+      field_create_field($field);
+    }
+  }
+  $field_instances = _election_candidate_field_instances();
+  // Create default instances.
+  foreach (election_candidate_get_types() as $bundle => $type) {
+    foreach ($field_instances as $instance) {
+      if (!field_info_instance($instance['entity_type'], $instance['field_name'], $bundle)) {
+        $instance['bundle'] = $bundle;
+        field_create_instance($instance);
+      }
+    }
+  }
+}
+
+/**
+ * Update the default Pathauto alias pattern for candidates if necessary.
+ */
+function election_candidate_update_7103() {
+  $variable = 'pathauto_election_candidate_pattern';
+  $current = variable_get($variable);
+  if ($current && strpos($current, 'candidate:first_name')) {
+    $new = 'election/[election_candidate:election:title]/candidate/[election_candidate:candidate_name]';
+    variable_set($variable, $new);
+  }
+}
+
+/**
+ * Copy candidate names and email address to new fields.
+ */
+function election_candidate_update_7104() {
+  $candidates = db_query('SELECT candidate_id,first_name,last_name,mail FROM {election_candidate}');
+  foreach ($candidates as $record) {
+    $candidate = election_candidate_load($record->candidate_id);
+    $wrapper = entity_metadata_wrapper('election_candidate', $candidate);
+    $wrapper->candidate_name->given = $record->first_name;
+    $wrapper->candidate_name->family = $record->last_name;
+    $wrapper->candidate_mail = $record->mail;
+    $wrapper->save();
+  }
+  // Here we could delete the old columns (first_name, last_name, mail), but
+  // it isn't necessary and it risks deleting data. So it's up to upgraders to
+  // delete the old columns if desired.
 }
