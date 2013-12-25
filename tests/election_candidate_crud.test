@@ -1,0 +1,131 @@
+<?php
+/**
+ * @file
+ * Test the Election Candidate module for basic CRUD functionality.
+ */
+
+class ElectionCandidateCrudTestCase extends DrupalWebTestCase {
+
+  /**
+   * Provide basic information about the test.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Election Candidate CRUD',
+      'description' => 'A basic CRUD (Create, Read, Update, Delete) test for the Election Candidate module.',
+      'group' => 'Election',
+    );
+  }
+
+  /**
+   * Overrides parent::setUp().
+   */
+  public function setUp() {
+    $modules = array(
+      'election_referendum',
+      'election_stv',
+    );
+    parent::setUp($modules);
+    if (!module_exists('election_stv') || !module_exists('election_referendum')) {
+      module_enable($modules, TRUE);
+    }
+  }
+
+  /**
+   * Create, update, and delete an election candidate.
+   */
+  public function testElectionCandidateCrud() {
+
+    // Create a user who has the appropriate permissions for this test.
+    $test_user = $this->drupalCreateUser(array(
+      'create elections',
+      'view published elections',
+      'edit own elections',
+      'delete own elections',
+    ));
+    // Log in as that user.
+    $this->drupalLogin($test_user);
+
+    $election_controller = entity_get_controller('election');
+    $post_controller = entity_get_controller('election_post');
+
+    // Test CRUD for all the election types that support candidates.
+    foreach (election_types() as $bundle => $election_type) {
+      if (empty($election_type['has candidates'])) {
+        continue;
+      }
+      // Create a new election with a random title.
+      $election = $election_controller->create(array(
+        'type' => $bundle,
+        'title' => $this->randomString(),
+        'uid' => $test_user->uid,
+      ));
+      election_save($election);
+      // Create a new post in the election with a random title.
+      $post = $post_controller->create(array(
+        'type' => $election_type['post machine name'],
+        'title' => $this->randomString(),
+        'election_id' => $election->election_id,
+      ));
+      election_post_save($post);
+      // Create a new candidate in the election post with a random name and
+      // arbitrary e-mail address, and run assertions.
+      $candidate = $this->helperElectionCandidateCreate($post, $this->randomString(), $this->randomString(), 'candidate@example.com');
+      // Delete the candidate.
+      $this->helperElectionCandidateDelete($candidate);
+    }
+
+  }
+
+  /**
+   * Test creating a new election candidate via the UI.
+   */
+  protected function helperElectionCandidateCreate($post, $first_name, $last_name, $mail, array $properties = array()) {
+    $properties['first_name'] = $first_name;
+    $properties['last_name'] = $last_name;
+    $properties['mail'] = $mail;
+    $this->drupalPost('election-post/' . $post->post_id . '/add-candidate', $properties, t('Save'));
+    // The page should display that the new candidate was saved.
+    $this->assertRaw(
+      t('The candidate %first_name %last_name was saved.', array(
+        '%first_name' => $first_name,
+        '%last_name' => $last_name,
+      )),
+      t('Election Candidate for post %post added correctly.', array('%post' => $post->title))
+    );
+    // Load the newly created election candidate by its name.
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'election_candidate')
+      ->propertyCondition('first_name', $first_name)
+      ->propertyCondition('last_name', $last_name)
+      ->propertyCondition('mail', $mail);
+    $result = $query->execute();
+    $candidate_ids = array_keys($result['election_candidate']);
+    $candidate_id = reset($candidate_ids);
+    $candidate = election_candidate_load($candidate_id);
+    // Check that the new candidate has the correct properties.
+    $this->assertEqual($candidate->post_id, $candidate->post_id, t('The candidate is linked to the correct post.'));
+    $this->assertEqual($candidate->election_id, $candidate->election_id, t('The candidate is linked to the correct election.'));
+    return $candidate;
+  }
+
+  /**
+   * Test deleting an existing election candidate via the UI.
+   */
+  protected function helperElectionCandidateDelete(stdClass $candidate) {
+    $election = election_load($candidate->election_id);
+    $this->drupalPost(election_candidate_uri_path($candidate) . '/delete', array(), t('Delete'));
+    // The page should display that the election candidate was deleted.
+    $this->assertRaw(
+      t('The candidate %first_name %last_name has been deleted from the election %election_title.', array(
+        '%first_name' => $candidate->first_name,
+        '%last_name' => $candidate->last_name,
+        '%election_title' => $election->title,
+      )),
+      t('Candidate deleted successfully.')
+    );
+    // Test that the user was redirected to an existing page after deleting.
+    $this->assertResponse(200, t('Redirected to an existent page after deleting.'));
+  }
+
+}

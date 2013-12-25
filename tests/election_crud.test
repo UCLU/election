@@ -21,19 +21,14 @@ class ElectionCrudTestCase extends DrupalWebTestCase {
    * Overrides parent::setUp().
    */
   public function setUp() {
-    // Enable everything needed for the built-in election type modules.
     $modules = array(
-      'views',
-      'date',
-      'entity',
-      'election',
-      'election_post',
-      'election_candidate',
-      'election_vote',
       'election_referendum',
       'election_stv',
     );
     parent::setUp($modules);
+    if (!module_exists('election_stv') || !module_exists('election_referendum')) {
+      module_enable($modules, TRUE);
+    }
   }
 
   /**
@@ -55,11 +50,8 @@ class ElectionCrudTestCase extends DrupalWebTestCase {
     $this->drupalGet('elections');
     $this->assertResponse(200, t('The page at /elections exists.'));
 
-    $election_types = election_types();
-
-    // Test CRUD twice: for both the STV and Referendum types.
-    foreach (array('stv', 'referendum') as $bundle) {
-      $type = $election_types[$bundle];
+    // Test CRUD for all election types.
+    foreach (election_types() as $bundle => $type) {
       // Check that the "Add new" link exists for each bundle.
       $this->assertLink(t('Add new !post_name', array('!post_name' => $type['name'])));
       // Create a new election with a random title.
