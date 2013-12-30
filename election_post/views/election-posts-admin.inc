@@ -78,6 +78,10 @@ $handler->display->display_options['style_options']['info'] = array(
   ),
 );
 $handler->display->display_options['style_options']['empty_table'] = TRUE;
+/* Header: Global: Result summary */
+$handler->display->display_options['header']['result']['id'] = 'result';
+$handler->display->display_options['header']['result']['table'] = 'views';
+$handler->display->display_options['header']['result']['field'] = 'result';
 /* No results behavior: Global: Text area */
 $handler->display->display_options['empty']['area']['id'] = 'area';
 $handler->display->display_options['empty']['area']['table'] = 'views';
