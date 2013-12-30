@@ -62,7 +62,7 @@ class ElectionPostCrudTestCase extends DrupalWebTestCase {
       // Update the post's title and published status.
       $post = $this->helperElectionPostUpdate($post, array(
         'title' => $this->randomString(),
-        'published' => 1,
+        'published' => 0,
       ));
       // Delete the post.
       $this->helperElectionPostDelete($post);
@@ -96,7 +96,7 @@ class ElectionPostCrudTestCase extends DrupalWebTestCase {
     }
     return $post;
   }
-  
+
   /**
    * Test updating an existing election post via the UI.
    */
