@@ -334,7 +334,10 @@ function election_candidate_nomination_form_submit($form, &$form_state) {
   $candidate->election_id = $election->election_id;
   $candidate->post_id = $post->post_id;
 
+  // Newly nominated candidates start with the 'Hopeful' status, and
+  // unpublished.
   $candidate->cstatus = ELECTION_CANDIDATE_HOPEFUL;
+  $candidate->published = 0;
 
   field_attach_submit('election_candidate', $candidate, $form, $form_state);
 

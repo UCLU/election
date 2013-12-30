@@ -20,7 +20,7 @@ class ElectionPostController extends ElectionDefaultController {
       'election_id' => '',
       'type' => '',
       'title' => '',
-      'published' => 0,
+      'published' => 1,
       'rids' => array(),
       'vstatus_inheritance' => ELECTION_POST_STATUS_INHERIT,
       'nstatus_inheritance' => ELECTION_POST_STATUS_INHERIT,
