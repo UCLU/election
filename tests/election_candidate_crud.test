@@ -26,9 +26,6 @@ class ElectionCandidateCrudTestCase extends DrupalWebTestCase {
       'election_stv',
     );
     parent::setUp($modules);
-    if (!module_exists('election_stv') || !module_exists('election_referendum')) {
-      module_enable($modules, TRUE);
-    }
   }
 
   /**
@@ -76,7 +73,7 @@ class ElectionCandidateCrudTestCase extends DrupalWebTestCase {
         'candidate_name[' . LANGUAGE_NONE . '][0][given]' => $this->randomString(),
         'candidate_name[' . LANGUAGE_NONE . '][0][family]' => $this->randomString(),
         'cstatus' => ELECTION_CANDIDATE_REJECTED,
-        'published' => 0,
+        'published' => FALSE,
       ));
       // Delete the candidate.
       $this->helperElectionCandidateDelete($candidate);

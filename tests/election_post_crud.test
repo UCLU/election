@@ -26,9 +26,6 @@ class ElectionPostCrudTestCase extends DrupalWebTestCase {
       'election_stv',
     );
     parent::setUp($modules);
-    if (!module_exists('election_stv') || !module_exists('election_referendum')) {
-      module_enable($modules, TRUE);
-    }
   }
 
   /**
@@ -62,7 +59,7 @@ class ElectionPostCrudTestCase extends DrupalWebTestCase {
       // Update the post's title and published status.
       $post = $this->helperElectionPostUpdate($post, array(
         'title' => $this->randomString(),
-        'published' => 0,
+        'published' => FALSE,
       ));
       // Delete the post.
       $this->helperElectionPostDelete($post);

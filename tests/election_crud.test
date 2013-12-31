@@ -26,9 +26,6 @@ class ElectionCrudTestCase extends DrupalWebTestCase {
       'election_stv',
     );
     parent::setUp($modules);
-    if (!module_exists('election_stv') || !module_exists('election_referendum')) {
-      module_enable($modules, TRUE);
-    }
   }
 
   /**
