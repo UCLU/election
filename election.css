@@ -58,7 +58,8 @@
 }
 
 /* Manage Candidates view */
-.view-election-candidates-admin .views-field-title {
+.view-election-candidates-admin .views-field-title,
+.view-election-candidates-admin .views-field-candidate-name {
   overflow: hidden;
   max-width: 20em;
   text-overflow: ellipsis;
