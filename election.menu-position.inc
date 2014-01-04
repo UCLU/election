@@ -38,10 +38,6 @@ function election_menu_position_condition_election($variables) {
 function election_menu_position_rule_election_form(&$form, &$form_state) {
   $variables = array();
 
-  if (!empty($form_state['#menu-position-rule']['conditions']['election'])) {
-    $form_state['#menu-position-rule']['conditions']['election'];
-  }
-
   $form['conditions']['election'] = array(
     '#type' => 'fieldset',
     '#title' => t('Elections'),
