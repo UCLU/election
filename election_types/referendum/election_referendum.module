@@ -136,7 +136,7 @@ function election_referendum_election_results_page_alter(&$output, stdClass $pos
 /**
  * Count the number of votes for a post according to the answer given.
  *
- * @param stdClass $post
+ * @param object $post
  *   The election post (referendum question) object.
  * @param int $answer
  *   The answer given (either ELECTION_ANSWER_YES or ELECTION_ANSWER_NO).

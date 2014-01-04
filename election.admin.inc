@@ -7,7 +7,7 @@
 /**
  * Page callback for editing an election, path: election/%election/edit.
  *
- * @param stdClass $election
+ * @param object $election
  *   The election object (loaded by the menu system).
  *
  * @return array

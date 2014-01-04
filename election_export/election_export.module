@@ -81,7 +81,7 @@ function election_export_access($op, stdClass $election, $account = NULL) {
  *
  * @see election_export_post()
  *
- * @param stdClass $election
+ * @param object $election
  *   The election entity.
  * @param string $destination
  *   Optional: the path to the results archive file. This needs to be a
@@ -139,7 +139,7 @@ function election_export_election(stdClass $election, $destination = NULL, array
 /**
  * Generate a BLT file of results, for a single election post.
  *
- * @param stdClass $post
+ * @param object $post
  *   The election post entity.
  * @param string $destination
  *   Optional: the destination of the results file. This can be any writeable

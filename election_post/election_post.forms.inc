@@ -11,9 +11,9 @@
  *   The Drupal Form API form definition.
  * @param array &$form_state
  *   The form state array.
- * @param stdClass $post
+ * @param object $post
  *   An election post object.
- * @param stdClass $election
+ * @param object $election
  *   Optional: the election the post belongs to.
  *
  * @return array

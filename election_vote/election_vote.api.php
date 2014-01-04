@@ -11,9 +11,9 @@
  *
  * @see election_condition.election.inc
  *
- * @param stdClass $post
+ * @param object $post
  *   An election post object.
- * @param stdClass $account
+ * @param object $account
  *   A Drupal user account object.
  *
  * @return mixed
@@ -37,9 +37,9 @@ function hook_election_vote_before_grant($post, $account) {
  * @param array &$limitations
  *   An array of limitations on voting access, provided by default mechanisms
  *   (such as role limitations), by other modules, or by Rules.
- * @param stdClass $post
+ * @param object $post
  *   An election post object.
- * @param stdClass $account
+ * @param object $account
  *   A Drupal user account object.
  */
 function hook_election_vote_access_explain_alter(&$limitations, $post, $account) {
@@ -55,7 +55,7 @@ function hook_election_vote_access_explain_alter(&$limitations, $post, $account)
  *
  * @param int $ballot_id
  *   The {ballot}.ballot_id of the ballot being saved.
- * @param stdClass $post
+ * @param object $post
  *   The election post object.
  * @param array $vote_form
  *   The Form API array for the voting form.

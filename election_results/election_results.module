@@ -114,7 +114,7 @@ function election_results_page(stdClass $post) {
 /**
  * Get the total number of ballots, votes and abstentions for a post.
  *
- * @param stdClass $post
+ * @param object $post
  *   The election post object.
  *
  * @return array

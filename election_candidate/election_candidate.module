@@ -143,10 +143,10 @@ function election_candidate_permission() {
  *
  * @param string $op
  *   The operation being performed. One of 'view', 'update', or 'delete'.
- * @param stdClass $candidate
+ * @param object $candidate
  *   Optionally a candidate to check access for. If nothing is
  *   given, access for all candidates is determined.
- * @param stdClass $account
+ * @param object $account
  *   The user to check for. Leave it to NULL to check for the global user.
  *
  * @return bool
@@ -620,18 +620,16 @@ function election_candidate_form_election_post_form_alter(&$form, &$form_state) 
     '#weight' => -20,
     '#element_validate' => array('element_validate_number'),
   );
+  
+  $election_nstatus = theme('election_status', array('election' => $election, 'status_prefix' => 'n'));
 
   $form['candidates_nominations']['nstatus_inheritance'] = array(
     '#type' => 'radios',
     '#title' => t('Nominations status'),
     '#default_value' => isset($post->nstatus_inheritance) ? $post->nstatus_inheritance : ELECTION_POST_STATUS_INHERIT,
     '#options' => array(
-      ELECTION_POST_STATUS_INHERIT => t(
-        'Inherited (currently: %status)',
-        array(
-          '%status' => strip_tags(
-            theme('election_status', array('election' => $election, 'status_prefix' => 'n'))
-          ),
+      ELECTION_POST_STATUS_INHERIT => t('Inherited (currently: %status)', array(
+          '%status' => strip_tags($election_nstatus),
         )
       ),
       ELECTION_POST_STATUS_CLOSED => t('Closed'),
@@ -679,7 +677,7 @@ function election_candidate_form_election_post_form_alter(&$form, &$form_state) 
 /**
  * Title callback for election/%election_candidate/view.
  *
- * @param stdClass $candidate
+ * @param object $candidate
  *   The election candidate object.
  */
 function election_candidate_page_title($candidate) {
@@ -690,7 +688,7 @@ function election_candidate_page_title($candidate) {
 /**
  * Wrapper function to allow saving an election candidate.
  *
- * @param stdClass $candidate
+ * @param object $candidate
  *   Election candidate object.
  */
 function election_candidate_save($candidate) {
@@ -731,9 +729,9 @@ function election_candidate_type_access($op, $type = NULL, $account = NULL) {
  *
  * This gets database records for candidates, joined to the election_post table.
  *
- * @param stdClass $election
+ * @param object $election
  *   Election object.
- * @param stdClass $account
+ * @param object $account
  *   Optional user account object (default: current user).
  *
  * @todo Remove this somehow, it's ugly.
@@ -765,9 +763,9 @@ function election_candidate_get_nominations(stdClass $election, $account = NULL)
 /**
  * Check access to nominating for a post.
  *
- * @param stdClass $post
+ * @param object $post
  *   Election post object.
- * @param stdClass $account
+ * @param object $account
  *   User account object (default: current user).
  *
  * @return array
@@ -846,7 +844,7 @@ function election_candidate_label(stdClass $entity, $entity_type) {
 /**
  * Get the name of the candidate.
  *
- * @param stdClass $candidate
+ * @param object $candidate
  *   The candidate object.
  * @param bool $sanitize
  *   Whether to sanitize the name for display in a web page (default: TRUE).
@@ -956,7 +954,7 @@ function election_candidate_theme() {
 /**
  * Generate an array for rendering the given candidate.
  *
- * @param stdClass $candidate
+ * @param object $candidate
  *   An election candidate object.
  * @param string $view_mode
  *   View mode, e.g. 'full', 'teaser'...
@@ -973,12 +971,13 @@ function election_candidate_view($candidate, $view_mode = 'full') {
   $candidate->content = array();
 
   $election_path = election_uri_path($election);
-  $election_candidates_path = $election_path . '/candidates';
+  $candidates_path = $election_path . '/candidates';
   $post_path = $post ? election_post_uri_path($post) : FALSE;
   $current_path = current_path();
 
   // Display a link to the election.
-  if (!in_array($current_path, array($election_path, $election_candidates_path, $post_path))) {
+  $no_link = array($election_path, $post_path, $candidates_path);
+  if (!in_array($current_path, $no_link)) {
     $candidate->content['election'] = array(
       '#theme' => 'election_info_item',
       '#label' => t('Election'),
@@ -988,7 +987,8 @@ function election_candidate_view($candidate, $view_mode = 'full') {
   }
 
   // Display a link to the post.
-  if ($post && $current_path != $post_path && $current_path != $election_path . '/candidates') {
+  $no_link = array($post_path, $candidates_path);
+  if ($post && !in_array($current_path, $no_link)) {
     $candidate->content['post'] = array(
       '#theme' => 'election_info_item',
       '#label' => drupal_ucfirst(election_get_post_name($election->type)),
@@ -1158,7 +1158,7 @@ function election_candidate_file_entity_access($op, $file, $account) {
 /**
  * Update the URL aliases for an individual election candidate.
  *
- * @param stdClass $candidate
+ * @param object $candidate
  *   An election candidate object.
  * @param string $op
  *   Operation being performed ('insert', 'update' or 'bulkupdate').
@@ -1234,7 +1234,7 @@ function election_candidate_views_default_views() {
 /**
  * Load candidates who are standing for the given post.
  *
- * @param stdClass $post
+ * @param object $post
  *   An election post object.
  * @param array $statuses
  *   An array of candidate statuses, by which to filter results (optional).
@@ -1407,7 +1407,7 @@ function election_candidate_post_has_enough($post) {
 /**
  * Generate a table of a user's previous nominations in an election.
  *
- * @param stdClass $election
+ * @param object $election
  *   An election object.
  * @param array $previous_nominations
  *   An array of candidate objects representing the user's previous nominations.

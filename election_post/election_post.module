@@ -353,9 +353,9 @@ function _election_post_get_inheritance_options() {
  * @param string $op
  *   The operation being performed. One of 'view', 'update', or 'delete'. Access
  *   to create a post should check using election_access() on the election.
- * @param stdClass $post
+ * @param object $post
  *   A post to check access for.
- * @param stdClass $account
+ * @param object $account
  *   The user to check for. Leave it to NULL to check for the global user.
  *
  * @return bool
@@ -451,7 +451,7 @@ function election_post_load_multiple(array $post_ids = array(), $reset = FALSE) 
 /**
  * Load posts belonging to the given election.
  *
- * @param stdClass $election
+ * @param object $election
  *   An election object.
  * @param bool $only_published
  *   Whether to only find published posts.
@@ -577,7 +577,7 @@ function election_post_entity_delete($entity, $type) {
 /**
  * Wrapper function to allow saving an election post.
  *
- * @param stdClass $post
+ * @param object $post
  *   Election post object.
  */
 function election_post_save($post) {
@@ -641,7 +641,7 @@ function election_post_theme() {
 /**
  * Generate an array for rendering the given election post.
  *
- * @param stdClass $post
+ * @param object $post
  *   An election post object.
  * @param string $view_mode
  *   View mode, e.g. 'full', 'teaser'...
@@ -708,7 +708,7 @@ function election_post_view($post, $view_mode = 'full') {
 /**
  * Find out if a post is open.
  *
- * @param stdClass $post
+ * @param object $post
  *   An election post object.
  * @param string $status_prefix
  *   The type of status ('v' for voting, 'n' for nominations).
@@ -731,7 +731,7 @@ function _election_post_is_open(stdClass $post, $status_prefix = 'v') {
 /**
  * Menu callback for an election post, path: election-post/%election_post.
  *
- * @param stdClass $post
+ * @param object $post
  *   An election post object.
  * @param string $view_mode
  *   View mode, e.g. 'full', 'teaser'...
@@ -747,9 +747,9 @@ function election_post_page_view($post, $view_mode = 'full') {
 /**
  * Set the breadcrumb for an election post.
  *
- * @param stdClass $election
+ * @param object $election
  *   An election object.
- * @param stdClass $post
+ * @param object $post
  *   An election post object (optional).
  */
 function election_post_set_breadcrumb(stdClass $election, stdClass $post = NULL) {
@@ -843,7 +843,7 @@ function election_post_views_default_views() {
 /**
  * Update the URL aliases for an individual election post.
  *
- * @param stdClass $post
+ * @param object $post
  *   An election post object.
  * @param string $op
  *   Operation being performed on the post ('insert', 'update' or 'bulkupdate').

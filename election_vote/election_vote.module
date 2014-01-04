@@ -111,9 +111,9 @@ function election_vote_theme() {
  *
  * @param string $op
  *   The operation requested (e.g. 'vote').
- * @param stdClass $post
+ * @param object $post
  *   The election post object.
- * @param stdClass $account
+ * @param object $account
  *   The user account for which to check.
  */
 function election_vote_access($op, stdClass $post, $account = NULL) {
@@ -195,9 +195,9 @@ function election_vote_access($op, stdClass $post, $account = NULL) {
 /**
  * Access callback for a user to view an explanation of their own voting access.
  *
- * @param stdClass $post
+ * @param object $post
  *   The election post object.
- * @param stdClass $account
+ * @param object $account
  *   The user account object (optional, defaults to the current user).
  */
 function election_vote_explanation_access($post, $account = NULL) {
@@ -213,9 +213,9 @@ function election_vote_explanation_access($post, $account = NULL) {
 /**
  * Explain to a user the voting limitations of a post.
  *
- * @param stdClass $post
+ * @param object $post
  *   The election post object.
- * @param stdClass $account
+ * @param object $account
  *   The user account object (optional).
  *
  * @return array
@@ -352,9 +352,9 @@ function election_vote_entity_delete($entity, $type) {
 /**
  * Find out whether the $account has previously voted regarding this $post.
  *
- * @param stdClass $post
+ * @param object $post
  *   The election post object.
- * @param stdClass $account
+ * @param object $account
  *   Optional user account object (leave blank for the logged-in user).
  *
  * @return bool

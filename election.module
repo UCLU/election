@@ -247,10 +247,10 @@ function election_permission() {
  * @param string $op
  *   The operation being performed. One of 'view', 'create', 'update', or
  *   'delete'.
- * @param stdClass $election
+ * @param object $election
  *   Optionally an election or an election type to check access for. By default,
  *   access for all elections is determined.
- * @param stdClass $account
+ * @param object $account
  *   The user to check for. Leave it to NULL to check for the global user.
  *
  * @return bool
@@ -587,7 +587,7 @@ function election_delete($election_id) {
 /**
  * Wrapper function to allow saving an election.
  *
- * @param stdClass $election
+ * @param object $election
  *   Election object.
  */
 function election_save($election) {
@@ -802,7 +802,7 @@ function _election_is_open($status, $open_time, $close_time) {
 /**
  * Set the breadcrumb for an election, format: Home > Elections [ > Election].
  *
- * @param stdClass $election
+ * @param object $election
  *   An election object (optional).
  */
 function election_set_breadcrumb(stdClass $election = NULL) {
@@ -893,7 +893,7 @@ function election_menu_position_rule_plugins() {
  *
  * This is for integration with the Pathauto module.
  *
- * @param stdClass $election
+ * @param object $election
  *   A election object.
  * @param string $op
  *   Operation being performed ('insert', 'update' or 'bulkupdate').

@@ -132,9 +132,9 @@ function election_vote_rules_action_info() {
  *
  * @see election_vote_access()
  *
- * @param stdClass $post
+ * @param object $post
  *   The election post.
- * @param stdClass $account
+ * @param object $account
  *   The user account.
  * @param string $explanation
  *   An explanation to the user of why voting was denied.

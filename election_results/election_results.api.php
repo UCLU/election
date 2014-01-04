@@ -11,7 +11,7 @@
  *
  * @param array &$output
  *   The render array for the results page.
- * @param stdClass $post
+ * @param object $post
  *   The election post object.
  */
 function hook_election_results_page_alter(&$output, $post) {

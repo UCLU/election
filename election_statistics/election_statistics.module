@@ -45,9 +45,9 @@ function election_statistics_permission() {
  *
  * @param string $op
  *   Only the operations 'view' and 'view block' are supported.
- * @param stdClass $election
+ * @param object $election
  *   The election entity.
- * @param stdClass $account
+ * @param object $account
  *   The user account to check access for.
  *
  * @return bool
@@ -145,7 +145,7 @@ function election_statistics_block_view($delta = '') {
 /**
  * Get the total numbers of ballots & votes for an election.
  *
- * @param stdClass $election
+ * @param object $election
  *   The election entity.
  *
  * @return array
@@ -172,7 +172,7 @@ function election_statistics_get_totals(stdClass $election) {
  *
  * @see election_statistics_get_totals()
  *
- * @param stdClass $election
+ * @param object $election
  *   The election entity.
  *
  * @return array
@@ -197,7 +197,7 @@ function election_statistics_get_post_totals(stdClass $election) {
 /**
  * Helper function to build a select query for getting election statistics.
  *
- * @param stdClass $election
+ * @param object $election
  *   The election object.
  *
  * @return SelectQuery
@@ -219,7 +219,7 @@ function _election_statistics_totals_query(stdClass $election) {
 /**
  * Get a list of the most popular attribute values for voters in this election.
  *
- * @param stdClass $election
+ * @param object $election
  *   The election entity.
  * @param string $group_by
  *   The {election_ballot} table column to group results by.

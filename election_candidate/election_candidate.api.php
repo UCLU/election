@@ -13,7 +13,7 @@
  *
  * @param bool &$enough
  *   Whether the post has enough candidates for voting to be possible.
- * @param stdClass $post
+ * @param object $post
  *   The election post object.
  * @param int $num_candidates
  *   The number of published, 'hopeful' candidates for this post.
@@ -34,7 +34,7 @@ function hook_election_candidate_post_has_enough_alter(&$enough, $post, $num_can
  *
  * @param string &$name
  *   The candidate's name.
- * @param stdClass $candidate
+ * @param object $candidate
  *   The candidate object.
  */
 function hook_election_candidate_name_alter(&$name, $candidate) {
