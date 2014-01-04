@@ -5,21 +5,6 @@
  */
 
 /**
- * Implements hook_field_extra_fields_alter().
- */
-function election_stv_field_extra_fields_alter(&$info) {
-  // Add a property to the 'Manage fields' form for STV election positions.
-  if (isset($info['election_post']['stv_post']['form'])) {
-    $info['election_post']['stv_post']['form'] += array(
-      'settings_use_ron' => array(
-        'label' => t('RON (Re-Open Nominations)'),
-        'weight' => 2,
-      ),
-    );
-  }
-}
-
-/**
  * Implements hook_form_FORM_ID_alter().
  *
  * Add STV-specific settings to the election post (position) edit form.
@@ -33,15 +18,14 @@ function election_stv_form_election_post_form_alter(&$form, &$form_state) {
     return;
   }
 
-  $form['settings_use_ron'] = array(
+  $form['candidates_nominations']['settings_use_ron'] = array(
     '#type' => 'select',
     '#title' => t('RON (Re-Open Nominations)'),
-    '#default_value' => isset($post->settings['use_ron']) ? $post->settings['use_ron'] : 1,
+    '#default_value' => isset($post->settings['use_ron']) ? $post->settings['use_ron'] : 0,
     '#options' => array(
-      1 => t('Include RON as a candidate'),
       0 => t('Do not include RON'),
+      1 => t('Include RON as a candidate'),
     ),
-    '#weight' => -10,
   );
 
   $form['voting']['settings_allow_equal'] = array(
