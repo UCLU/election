@@ -421,7 +421,7 @@ function election_post_uri_path($post) {
  * @param bool $reset
  *   Whether to reset the internal cache for election post entities.
  *
- * @return stdClass
+ * @return object
  *   A stdClass election_post object.
  */
 function election_post_load($post_id, $reset = FALSE) {

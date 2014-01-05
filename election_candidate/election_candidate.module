@@ -880,7 +880,7 @@ function election_candidate_get_name($candidate, $sanitize = TRUE) {
  * @param bool $reset
  *   Whether to reset the internal cache for election candidate entities.
  *
- * @return stdClass
+ * @return object
  *   A stdClass election_candidate object.
  */
 function election_candidate_load($candidate_id, $reset = FALSE) {
