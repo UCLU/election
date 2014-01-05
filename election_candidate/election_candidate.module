@@ -1355,6 +1355,9 @@ function election_candidate_hook_info() {
     'election_candidate_post_has_enough_alter' => array(
       'group' => 'election',
     ),
+    'election_candidate_name_alter' => array(
+      'group' => 'election',
+    ),
   );
 }
 
