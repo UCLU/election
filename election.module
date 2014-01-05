@@ -540,6 +540,10 @@ function election_field_extra_fields() {
         'label' => t('Voting configuration'),
         'weight' => 2,
       ),
+      'presentation' => array(
+        'label' => t('Presentation'),
+        'weight' => 10,
+      ),
     );
     $extra['election'][$bundle_name]['display'] = array(
       'vstatus' => array(
@@ -547,16 +551,6 @@ function election_field_extra_fields() {
         'weight' => -1,
       ),
     );
-    if (!empty($type['has candidates'])) {
-      $extra['election'][$bundle_name]['form']['nominations'] = array(
-        'label' => t('Nominations configuration'),
-        'weight' => 1,
-      );
-      $extra['election'][$bundle_name]['display']['nstatus'] = array(
-        'label' => t('Nominations status'),
-        'weight' => -2,
-      );
-    }
   }
   return $extra;
 }

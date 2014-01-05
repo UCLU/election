@@ -524,13 +524,6 @@ function election_candidate_field_extra_fields_alter(&$info) {
   foreach (election_types() as $machine_name => $type) {
     $bundle = $type['post machine name'];
     if (!empty($type['has candidates'])) {
-      // Add a property to the 'Manage fields' form for elections.
-      $info['election'][$machine_name]['form'] += array(
-        'presentation' => array(
-          'label' => t('Presentation'),
-          'weight' => 10,
-        ),
-      );
       // Add properties to the 'Manage fields' form for election posts.
       $info['election_post'][$bundle]['form'] += array(
         'vacancy_count' => array(
@@ -578,11 +571,13 @@ function election_candidate_form_election_form_alter(&$form, &$form_state) {
   if (!election_candidate_check_support($election)) {
     return;
   }
-  $form['presentation'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Presentation'),
-    '#collapsible' => TRUE,
-  );
+  if (!isset($form['presentation'])) {
+    $form['presentation'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Presentation'),
+      '#collapsible' => TRUE,
+    );
+  }
   $form['presentation']['settings_show_candidates_tab'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show the Candidates tab'),

@@ -140,6 +140,15 @@
   color: #880000;
 }
 
+/* Election vote display filter (allowing to hide ineligible posts) */
+.election-vote-filter-posts a {
+  cursor: pointer;
+}
+.election-vote-filter-posts a.active {
+  color: inherit;
+  cursor: normal;
+}
+
 /* Statistics */
 .election-statistics-user-agents .user-agent {
   overflow: hidden;
