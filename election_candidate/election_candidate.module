@@ -620,7 +620,7 @@ function election_candidate_form_election_post_form_alter(&$form, &$form_state) 
     '#weight' => -20,
     '#element_validate' => array('element_validate_number'),
   );
-  
+
   $election_nstatus = theme('election_status', array('election' => $election, 'status_prefix' => 'n'));
 
   $form['candidates_nominations']['nstatus_inheritance'] = array(

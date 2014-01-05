@@ -486,3 +486,18 @@ function election_candidate_update_7104() {
   // it isn't necessary and it risks deleting data. So it's up to upgraders to
   // delete the old columns if desired.
 }
+
+/**
+ * Alter the old, obsolete 'mail' field (if it exists) so it accepts NULL.
+ */
+function election_candidate_update_7105() {
+  if (db_field_exists('election_candidate', 'mail')) {
+    db_change_field('election_candidate', 'mail', 'mail', array(
+      'type' => 'varchar',
+      'description' => 'The candidate\'s e-mail address [OBSOLETE].',
+      'type' => 'varchar',
+      'length' => 254,
+      'not null' => FALSE,
+    ));
+  }
+}
