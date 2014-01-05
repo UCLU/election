@@ -32,13 +32,6 @@ $handler->display->display_options['style_plugin'] = 'default';
 $handler->display->display_options['style_options']['row_class'] = 'election-candidate-row clearfix';
 $handler->display->display_options['row_plugin'] = 'entity';
 $handler->display->display_options['row_options']['view_mode'] = 'teaser';
-/* Footer: Global: Text area */
-$handler->display->display_options['footer']['area']['id'] = 'area';
-$handler->display->display_options['footer']['area']['table'] = 'views';
-$handler->display->display_options['footer']['area']['field'] = 'area';
-$handler->display->display_options['footer']['area']['label'] = 'Note about random ordering';
-$handler->display->display_options['footer']['area']['content'] = '<p class="election-candidate-random-order-note">If more than one candidate is standing for a position, they are listed in a random order.</p>';
-$handler->display->display_options['footer']['area']['format'] = 'full_html';
 /* No results behavior: Global: Text area */
 $handler->display->display_options['empty']['area']['id'] = 'area';
 $handler->display->display_options['empty']['area']['table'] = 'views';
