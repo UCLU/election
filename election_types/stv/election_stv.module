@@ -107,7 +107,7 @@ function election_stv_vote_form(&$form, &$form_state) {
 
   $rank_options = array();
 
-  if ($post->settings['allow_equal']) {
+  if (!empty($post->settings['allow_equal'])) {
     $form['#attributes']['class'][] = 'allow-equal';
   }
 
@@ -118,7 +118,7 @@ function election_stv_vote_form(&$form, &$form_state) {
   // This provides n levels (n = number of (candidates + ron)) described as
   // ordinals (e.g. First, Second, Third).
   $pref_limit = $num_candidates;
-  if ($post->settings['use_ron']) {
+  if (!empty($post->settings['use_ron'])) {
     $pref_limit++;
   }
   for ($i = 0; $i < $pref_limit; $i++) {
@@ -172,7 +172,7 @@ function election_stv_vote_form(&$form, &$form_state) {
     );
   }
 
-  if ($post->settings['use_ron']) {
+  if (!empty($post->settings['use_ron'])) {
     $form['ballot_paper']['candidate_RON'] = array(
       '#type' => 'select',
       '#prefix' => '<tr class="election-ballot-row ballot-item-ron"><td>' . t('RON (Re-Open Nominations)') . '</td><td>',
