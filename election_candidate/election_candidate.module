@@ -1362,6 +1362,9 @@ function election_candidate_hook_info() {
  * Other modules may alter the result of this function by implementing
  * hook_election_candidate_post_has_enough_alter().
  *
+ * @param object $post
+ *   The election post object.
+ * 
  * @return bool
  *   TRUE if there are enough candidates for voting, or if the election type
  *   does not support candidates; FALSE otherwise.
@@ -1371,35 +1374,30 @@ function election_candidate_post_has_enough($post) {
     return TRUE;
   }
 
-  // Use a static cache to store the result.
-  $enough = &drupal_static(__FUNCTION__, array());
-  if (!isset($enough[$post->post_id])) {
-    $enough[$post->post_id] = FALSE;
+  // Find the number of published, 'hopeful' candidates standing for the post.
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'election_candidate')
+    ->propertyCondition('post_id', $post->post_id)
+    ->propertyCondition('published', 1)
+    ->propertyCondition('cstatus', ELECTION_CANDIDATE_HOPEFUL)
+    ->count();
+  $num_candidates = $query->execute();
 
-    // Find the number of published, 'hopeful' candidates standing for the post.
-    $query = new EntityFieldQuery();
-    $query->entityCondition('entity_type', 'election_candidate')
-      ->propertyCondition('post_id', $post->post_id)
-      ->propertyCondition('published', 1)
-      ->propertyCondition('cstatus', ELECTION_CANDIDATE_HOPEFUL)
-      ->count();
-    $num_candidates = $query->execute();
-
-    // If RON (Re-Open Nominations) is enabled for the post, that counts as a
-    // candidate.
-    if (!empty($post->settings['use_ron'])) {
-      $num_candidates++;
-    }
-
-    // There should be at least one more candidate than the number of vacancies.
-    if ($num_candidates - $post->vacancy_count >= 1) {
-      $enough[$post->post_id] = TRUE;
-    }
-
-    // Allow other modules to alter the result.
-    drupal_alter('election_candidate_post_has_enough', $enough[$post->post_id], $post, $num_candidates);
+  // If RON (Re-Open Nominations) is enabled for the post, that counts as a
+  // candidate.
+  if (!empty($post->settings['use_ron'])) {
+    $num_candidates++;
   }
-  return $enough[$post->post_id];
+
+  // There should be at least one more candidate than the number of vacancies.
+  if ($num_candidates - $post->vacancy_count >= 1) {
+    $enough = TRUE;
+  }
+
+  // Allow other modules to alter the result.
+  drupal_alter('election_candidate_post_has_enough', $enough, $post, $num_candidates);
+  
+  return $enough;
 }
 
 /**
