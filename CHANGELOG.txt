@@ -1,3 +1,13 @@
+Election 7.x-1.x-dev, 2014-01-05
+-----------------------
+- In a View listing posts, posts can now be hidden (via a JavaScript toggle) by
+  the voter, according to whether the voter is eligible. The toggle will only
+  display if there is at least one votable and at least one unvotable post. See
+  <http://drupal.org/node/2114003>.
+- The footer providing a note "candidates are displayed in a random order" has
+  been removed from the default election_candidates View.
+- There are now some functional tests for election voting access.
+
 Election 7.x-1.x-dev, 2013-12-22
 -----------------------
 - Candidates' names and e-mail addresses are now stored in fields, not
