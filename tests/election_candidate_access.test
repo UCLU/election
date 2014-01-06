@@ -60,12 +60,13 @@ class ElectionCandidateNominationAccessTestCase extends ElectionCandidateAccessT
     // Create a user who is allowed to submit nominations, and log in.
     $account = $this->drupalCreateUser(array(
       'view published elections',
+      'submit nominations',
     ));
     $this->drupalLogin($account);
 
     // Visit the nomination form and check that access is granted.
     $this->drupalGet('election-post/' . $post->post_id . '/nomination-form');
-    $this->assertText(t('Access denied'), t('Access is granted to the nomination form for user %name', array(
+    $this->assertNoText(t('Access denied'), t('Access is granted to the nomination form for user %name', array(
       '%name' => $account->name,
     )));
   }
