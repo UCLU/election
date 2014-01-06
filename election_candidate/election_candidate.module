@@ -156,18 +156,19 @@ function election_candidate_access($op, $candidate = NULL, $account = NULL) {
   if ($account === NULL) {
     $account = $GLOBALS['user'];
   }
-  $election = NULL;
-  if (!empty($candidate)) {
-    $election = election_load($candidate->election_id);
-  }
+  $election = empty($candidate) ? NULL : election_load($candidate->election_id);
+  $post = empty($candidate) ? NULL : election_post_load($candidate->post_id);
   switch ($op) {
     case 'view':
-      // Users who can view the election can also view published candidates.
-      if (election_access('view', $election, $account) && (empty($candidate) || $candidate->published)) {
-        return TRUE;
-      }
       // Users who can update the election can view all its candidates.
       if (election_access('update', $election, $account)) {
+        return TRUE;
+      }
+      // Users who can view the election and the post can also view published
+      // candidates.
+      if (election_access('view', $election, $account)
+        && (empty($post) || election_post_access('view', $post, $account))
+        && (empty($candidate) || $candidate->published)) {
         return TRUE;
       }
       break;
