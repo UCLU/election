@@ -1,0 +1,100 @@
+<?php
+/**
+ * @file
+ * Parent class for further test cases of the Election module.
+ */
+class ElectionWebTestCase extends DrupalWebTestCase {
+
+  /**
+   * Helper function to create an election of a given type.
+   *
+   * @param string $bundle
+   *   An election type machine name.
+   * @param object $owner
+   *   The account owning the election (default: a new user account with
+   *   requisite permissions).
+   * @param int $vstatus
+   *   The initial voting status for the election.
+   *   ELECTION_STATUS_OPEN).
+   * @param bool $published
+   *   The initial published status for the election.
+   * 
+   * @return object
+   *   A saved election object.
+   */
+  protected function helperElectionCreate($bundle, $owner = NULL, $vstatus, $nstatus, $published) {
+    static $default_owner;
+    if ($owner === NULL) {
+      if ($default_owner === NULL) {
+        $default_owner = $this->drupalCreateUser(array(
+          'create elections',
+          'edit own elections',
+        ));
+      }
+      $owner = $default_owner;
+    }
+    $election = entity_get_controller('election')->create(array(
+      'title' => $this->randomString(),
+      'uid' => $owner->uid,
+      'type' => $bundle,
+      'published' => $published ? 1 : 0,
+      'vstatus' => $vstatus,
+      'nstatus' => $nstatus,
+    ));
+    election_save($election);
+    // Reload the election so it gets processed correctly.
+    return election_load($election->election_id, TRUE);
+  }
+  
+  /**
+   * Helper function to create an election post.
+   * 
+   * @param object $election
+   *   The election associated with the post.
+   * @param bool $published
+   *   Whether the post should be published.
+   * 
+   * @return object $post
+   *   The saved election post object.
+   */
+  protected function helperElectionPostCreate($election, $published = FALSE) {
+    $post_controller = entity_get_controller('election_post');
+    $post = $post_controller->create(array(
+      'election_id' => $election->election_id,
+      'type' => $election->type_info['post machine name'],
+      'title' => $this->randomString(),
+      'published' => $published ? 1 : 0,
+    ));
+    $post_controller->save($post);
+    return election_post_load($post->post_id);
+  }
+
+  /**
+   * Helper function to create a candidate for a given post.
+   *
+   * @param object $post
+   *   An election post object.
+   *
+   * @return object
+   *   A saved candidate object, associated with the given post. The candidate
+   *   will be published and in the 'Hopeful' status.
+   */
+  protected function helperElectionCandidateCreate(stdClass $post) {
+    $candidate_controller = entity_get_controller('election_candidate');
+    $candidate_type = !empty($post->settings['candidate_type']) ? $post->settings['candidate_type'] : 'candidate';
+    $candidate_properties = array(
+      'type' => $candidate_type,
+      'election_id' => $post->election->election_id,
+      'post_id' => $post->post_id,
+      'cstatus' => ELECTION_CANDIDATE_HOPEFUL,
+      'published' => 1,
+    );
+    $candidate = $candidate_controller->create($candidate_properties);
+    $candidate->candidate_name[LANGUAGE_NONE][0]['given'] = $this->randomString();
+    $candidate->candidate_name[LANGUAGE_NONE][0]['family'] = $this->randomString();
+    $candidate->candidate_mail[LANGUAGE_NONE][0]['email'] = $this->randomName() . '@example.com';
+    election_candidate_save($candidate);
+    return $candidate;
+  }
+
+}

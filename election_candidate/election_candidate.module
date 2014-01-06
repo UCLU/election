@@ -1365,7 +1365,7 @@ function election_candidate_hook_info() {
  *
  * @param object $post
  *   The election post object.
- * 
+ *
  * @return bool
  *   TRUE if there are enough candidates for voting, or if the election type
  *   does not support candidates; FALSE otherwise.
@@ -1397,7 +1397,7 @@ function election_candidate_post_has_enough($post) {
 
   // Allow other modules to alter the result.
   drupal_alter('election_candidate_post_has_enough', $enough, $post, $num_candidates);
-  
+
   return $enough;
 }
 

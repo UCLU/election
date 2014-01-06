@@ -13,7 +13,7 @@ class ElectionCandidateCrudTestCase extends DrupalWebTestCase {
     return array(
       'name' => 'Election Candidate CRUD',
       'description' => 'A basic CRUD (Create, Read, Update, Delete) test for the Election Candidate module.',
-      'group' => 'Election',
+      'group' => 'Election Candidate',
     );
   }
 
@@ -22,7 +22,6 @@ class ElectionCandidateCrudTestCase extends DrupalWebTestCase {
    */
   public function setUp() {
     $modules = array(
-      'election_referendum',
       'election_stv',
     );
     parent::setUp($modules);
@@ -46,39 +45,33 @@ class ElectionCandidateCrudTestCase extends DrupalWebTestCase {
     $election_controller = entity_get_controller('election');
     $post_controller = entity_get_controller('election_post');
 
-    // Test CRUD for all the election types that support candidates.
-    foreach (election_types() as $bundle => $election_type) {
-      if (empty($election_type['has candidates'])) {
-        continue;
-      }
-      // Create a new election with a random title.
-      $election = $election_controller->create(array(
-        'type' => $bundle,
-        'title' => $this->randomString(),
-        'uid' => $test_user->uid,
-      ));
-      election_save($election);
-      // Create a new post in the election with a random title.
-      $post = $post_controller->create(array(
-        'type' => $election_type['post machine name'],
-        'title' => $this->randomString(),
-        'election_id' => $election->election_id,
-      ));
-      election_post_save($post);
-      // Create a new candidate in the election post with a random name and
-      // arbitrary e-mail address, and run assertions.
-      $candidate = $this->helperElectionCandidateCreate($post, $this->randomString(), $this->randomString(), 'candidate@example.com');
-      // Update the candidate's name, published status, and candidate status.
-      $candidate = $this->helperElectionCandidateUpdate($candidate, array(
-        'candidate_name[' . LANGUAGE_NONE . '][0][given]' => $this->randomString(),
-        'candidate_name[' . LANGUAGE_NONE . '][0][family]' => $this->randomString(),
-        'cstatus' => ELECTION_CANDIDATE_REJECTED,
-        'published' => FALSE,
-      ));
-      // Delete the candidate.
-      $this->helperElectionCandidateDelete($candidate);
-    }
-
+    // Create a new STV election with a random title.
+    $election = $election_controller->create(array(
+      'type' => 'stv',
+      'title' => $this->randomString(),
+      'uid' => $test_user->uid,
+    ));
+    election_save($election);
+    $election = election_load($election->election_id);
+    // Create a new post in the election with a random title.
+    $post = $post_controller->create(array(
+      'type' => $election->type_info['post machine name'],
+      'title' => $this->randomString(),
+      'election_id' => $election->election_id,
+    ));
+    election_post_save($post);
+    // Create a new candidate in the election post with a random name and
+    // arbitrary e-mail address, and run assertions.
+    $candidate = $this->helperElectionCandidateCreate($post, $this->randomString(), $this->randomString(), 'candidate@example.com');
+    // Update the candidate's name, published status, and candidate status.
+    $candidate = $this->helperElectionCandidateUpdate($candidate, array(
+      'candidate_name[' . LANGUAGE_NONE . '][0][given]' => $this->randomString(),
+      'candidate_name[' . LANGUAGE_NONE . '][0][family]' => $this->randomString(),
+      'cstatus' => ELECTION_CANDIDATE_REJECTED,
+      'published' => FALSE,
+    ));
+    // Delete the candidate.
+    $this->helperElectionCandidateDelete($candidate);
   }
 
   /**

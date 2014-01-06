@@ -5,98 +5,9 @@
  */
 
 /**
- * Parent class for further test cases.
- */
-class ElectionVoteAccessTestCase extends DrupalWebTestCase {
-
-  /**
-   * Overrides parent::setUp().
-   */
-  public function setUp() {
-    $modules = array(
-      'election_referendum',
-      'election_stv',
-    );
-    parent::setUp($modules);
-  }
-
-  /**
-   * Helper function to create an election of a given type.
-   *
-   * @param string $bundle
-   *   An election type machine name.
-   * @param object $owner
-   *   The account owning the election (default: a new user account with
-   *   requisite permissions).
-   * @param int $vstatus
-   *   The initial voting status for the election (default:
-   *   ELECTION_STATUS_OPEN).
-   * @param bool $published
-   *   The initial published status for the election (default: TRUE).
-   * 
-   * @return object
-   *   A saved election object.
-   */
-  protected function helperElectionCreate($bundle, $owner = NULL, $vstatus = NULL, $published = TRUE) {
-    static $default_owner;
-    if ($owner === NULL) {
-      if ($default_owner === NULL) {
-        $default_owner = $this->drupalCreateUser(array(
-          'create elections',
-          'edit own elections',
-        ));
-      }
-      $owner = $default_owner;
-    }
-    if ($vstatus === NULL) {
-      $vstatus = ELECTION_STATUS_OPEN;
-    }
-    $election = entity_get_controller('election')->create(array(
-      'title' => $this->randomString(),
-      'uid' => $owner->uid,
-      'type' => $bundle,
-      'published' => $published ? 1 : 0,
-      'vstatus' => $vstatus,
-    ));
-    election_save($election);
-    // Reload the election so it gets processed correctly.
-    return election_load($election->election_id, TRUE);
-  }
-
-  /**
-   * Helper function to create an election candidate for a given post.
-   *
-   * @param object $post
-   *   An election post object.
-   *
-   * @return object
-   *   A saved candidate object, associated with the given post. The candidate
-   *   will be published and in the 'Hopeful' status.
-   */
-  protected function helperElectionCandidateCreate(stdClass $post) {
-    $candidate_controller = entity_get_controller('election_candidate');
-    $candidate_type = !empty($post->settings['candidate_type']) ? $post->settings['candidate_type'] : 'candidate';
-    $candidate_properties = array(
-      'type' => $candidate_type,
-      'election_id' => $post->election->election_id,
-      'post_id' => $post->post_id,
-      'cstatus' => ELECTION_CANDIDATE_HOPEFUL,
-      'published' => 1,
-    );
-    $candidate = $candidate_controller->create($candidate_properties);
-    $candidate->candidate_name[LANGUAGE_NONE][0]['given'] = $this->randomString();
-    $candidate->candidate_name[LANGUAGE_NONE][0]['family'] = $this->randomString();
-    $candidate->candidate_mail[LANGUAGE_NONE][0]['email'] = $this->randomName() . '@example.com';
-    election_candidate_save($candidate);
-    return $candidate;
-  }
-
-}
-
-/**
  * Test voting access by role.
  */
-class ElectionVoteAccessByRoleTestCase extends ElectionVoteAccessTestCase {
+class ElectionVoteAccessByRoleTestCase extends ElectionWebTestCase {
 
   /**
    * Provide basic information about the test.
@@ -107,6 +18,17 @@ class ElectionVoteAccessByRoleTestCase extends ElectionVoteAccessTestCase {
       'description' => 'Test access control for voting restrictions based on roles.',
       'group' => 'Election Vote',
     );
+  }
+
+  /**
+   * Overrides parent::setUp().
+   */
+  public function setUp() {
+    $modules = array(
+      'election_referendum',
+      'election_stv',
+    );
+    parent::setUp($modules);
   }
 
   /**
@@ -139,7 +61,7 @@ class ElectionVoteAccessByRoleTestCase extends ElectionVoteAccessTestCase {
     $post_controller = entity_get_controller('election_post');
     foreach (election_types() as $bundle => $election_type) {
       // Create a published election with open voting.
-      $election = $this->helperElectionCreate($bundle);
+      $election = $this->helperElectionCreate($bundle, NULL, ELECTION_STATUS_OPEN, ELECTION_STATUS_CLOSED, 1);
       // Create test posts, each allowing a single role to vote.
       foreach ($rids as $rid) {
         $post = $post_controller->create(array(
@@ -190,7 +112,7 @@ class ElectionVoteAccessByRoleTestCase extends ElectionVoteAccessTestCase {
 /**
  * Test voting access against there being enough candidates for a post.
  */
-class ElectionVoteAccessCandidatesTestCase extends ElectionVoteAccessTestCase { 
+class ElectionVoteAccessCandidatesTestCase extends ElectionWebTestCase { 
   
   /**
    * Provide basic information about the test.
@@ -202,13 +124,24 @@ class ElectionVoteAccessCandidatesTestCase extends ElectionVoteAccessTestCase {
       'group' => 'Election Vote',
     );
   }
+  
+  /**
+   * Overrides parent::setUp().
+   */
+  public function setUp() {
+    $modules = array(
+      'election_referendum',
+      'election_stv',
+    );
+    parent::setUp($modules);
+  }
 
   /**
    * Test access to vote is denied when there are not enough candidates.
    */
   public function testVoteAccessForEnoughCandidates() {
     // Create a published election of type STV, with open voting.
-    $election = $this->helperElectionCreate('stv');
+    $election = $this->helperElectionCreate('stv', NULL, ELECTION_STATUS_OPEN, ELECTION_STATUS_CLOSED, 1);
     // Create a user account for a voter.
     $voter_account = $this->drupalCreateUser(array(
       'view published elections',
