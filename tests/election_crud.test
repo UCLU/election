@@ -52,14 +52,14 @@ class ElectionCrudTestCase extends DrupalWebTestCase {
       // Check that the "Add new" link exists for each bundle.
       $this->assertLink(t('Add new !post_name', array('!post_name' => $type['name'])));
       // Create a new election with a random title.
-      $election = $this->helperElectionCreate($bundle, $this->randomString());
+      $election = $this->helperElectionCreateUi($bundle, $this->randomString());
       // Update the election's title and published status.
-      $election = $this->helperElectionUpdate($election, array(
+      $election = $this->helperElectionUpdateUi($election, array(
         'title' => $this->randomString(),
         'published' => 1,
       ));
       // Delete the election.
-      $this->helperElectionDelete($election);
+      $this->helperElectionDeleteUi($election);
     }
 
   }
@@ -67,7 +67,7 @@ class ElectionCrudTestCase extends DrupalWebTestCase {
   /**
    * Test creating a new election via the UI.
    */
-  protected function helperElectionCreate($bundle, $title, array $properties = array()) {
+  protected function helperElectionCreateUi($bundle, $title, array $properties = array()) {
     $properties['title'] = $title;
     $this->drupalPost('elections/add/' . $bundle, $properties, t('Save'));
     $types = election_types();
@@ -96,7 +96,7 @@ class ElectionCrudTestCase extends DrupalWebTestCase {
   /**
    * Test updating an existing election via the UI.
    */
-  protected function helperElectionUpdate(stdClass $election, array $edit) {
+  protected function helperElectionUpdateUi(stdClass $election, array $edit) {
     $this->drupalPost(election_uri_path($election) . '/edit', $edit, t('Save'));
     // The page should display that the election was saved.
     // The (possibly updated) title is needed to test this assertion.
@@ -121,7 +121,7 @@ class ElectionCrudTestCase extends DrupalWebTestCase {
   /**
    * Test deleting an existing election via the UI.
    */
-  protected function helperElectionDelete(stdClass $election) {
+  protected function helperElectionDeleteUi(stdClass $election) {
     $this->drupalPost(election_uri_path($election) . '/delete', array(), t('Delete'));
     // The page should display that the election was deleted.
     $this->assertRaw(

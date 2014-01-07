@@ -13,7 +13,7 @@ class ElectionPostCrudTestCase extends DrupalWebTestCase {
     return array(
       'name' => 'Election Post CRUD',
       'description' => 'A basic CRUD (Create, Read, Update, Delete) test for the Election Post module.',
-      'group' => 'Election',
+      'group' => 'Election Post',
     );
   }
 
@@ -55,14 +55,14 @@ class ElectionPostCrudTestCase extends DrupalWebTestCase {
       ));
       election_save($election);
       // Create a new post in the election with a random title.
-      $post = $this->helperElectionPostCreate($election, $this->randomString());
+      $post = $this->helperElectionPostCreateUi($election, $this->randomString());
       // Update the post's title and published status.
-      $post = $this->helperElectionPostUpdate($post, array(
+      $post = $this->helperElectionPostUpdateUi($post, array(
         'title' => $this->randomString(),
         'published' => FALSE,
       ));
       // Delete the post.
-      $this->helperElectionPostDelete($post);
+      $this->helperElectionPostDeleteUi($post);
     }
 
   }
@@ -70,7 +70,7 @@ class ElectionPostCrudTestCase extends DrupalWebTestCase {
   /**
    * Test creating a new election post via the UI.
    */
-  protected function helperElectionPostCreate($election, $title, array $properties = array()) {
+  protected function helperElectionPostCreateUi($election, $title, array $properties = array()) {
     $properties['title'] = $title;
     $this->drupalPost('election/' . $election->election_id . '/add-post', $properties, t('Save'));
     // The page should display that the new post was saved.
@@ -97,7 +97,7 @@ class ElectionPostCrudTestCase extends DrupalWebTestCase {
   /**
    * Test updating an existing election post via the UI.
    */
-  protected function helperElectionPostUpdate(stdClass $post, array $edit) {
+  protected function helperElectionPostUpdateUi(stdClass $post, array $edit) {
     $this->drupalPost(election_post_uri_path($post) . '/edit', $edit, t('Save'));
     // The page should display that the post was saved.
     // The (possibly updated) title is needed to test this assertion.
@@ -124,7 +124,7 @@ class ElectionPostCrudTestCase extends DrupalWebTestCase {
   /**
    * Test deleting an existing election post via the UI.
    */
-  protected function helperElectionPostDelete(stdClass $post) {
+  protected function helperElectionPostDeleteUi(stdClass $post) {
     $this->drupalPost(election_post_uri_path($post) . '/delete', array(), t('Delete'));
     // The page should display that the election post was deleted.
     $post_name = election_get_post_name($post->election->type);

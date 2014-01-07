@@ -61,7 +61,7 @@ class ElectionVoteAccessByRoleTestCase extends ElectionWebTestCase {
     $post_controller = entity_get_controller('election_post');
     foreach (election_types() as $bundle => $election_type) {
       // Create a published election with open voting.
-      $election = $this->helperElectionCreate($bundle, NULL, ELECTION_STATUS_OPEN, ELECTION_STATUS_CLOSED, 1);
+      $election = $this->helperElectionCreate($bundle, TRUE, NULL, NULL, ELECTION_STATUS_OPEN);
       // Create test posts, each allowing a single role to vote.
       foreach ($rids as $rid) {
         $post = $post_controller->create(array(
@@ -78,7 +78,7 @@ class ElectionVoteAccessByRoleTestCase extends ElectionWebTestCase {
         if (module_exists('election_candidate') && election_candidate_check_support($election)) {
           $num_required = isset($post->vacancy_count) ? $post->vacancy_count + 1 : 2;
           for ($i = 1; $i <= $num_required; $i++) {
-            $candidate = $this->helperElectionCandidateCreate($post);
+            $candidate = $this->helperElectionCandidateCreate($post, TRUE);
             $this->assertTrue(!empty($candidate), t('Candidate %name created.', array(
               '%name' => election_candidate_get_name($candidate, FALSE),
             )));
@@ -106,14 +106,14 @@ class ElectionVoteAccessByRoleTestCase extends ElectionWebTestCase {
       }
     }
   }
-  
+
 }
 
 /**
  * Test voting access against there being enough candidates for a post.
  */
-class ElectionVoteAccessCandidatesTestCase extends ElectionWebTestCase { 
-  
+class ElectionVoteAccessCandidatesTestCase extends ElectionWebTestCase {
+
   /**
    * Provide basic information about the test.
    */
@@ -124,7 +124,7 @@ class ElectionVoteAccessCandidatesTestCase extends ElectionWebTestCase {
       'group' => 'Election Vote',
     );
   }
-  
+
   /**
    * Overrides parent::setUp().
    */
@@ -141,7 +141,7 @@ class ElectionVoteAccessCandidatesTestCase extends ElectionWebTestCase {
    */
   public function testVoteAccessForEnoughCandidates() {
     // Create a published election of type STV, with open voting.
-    $election = $this->helperElectionCreate('stv', NULL, ELECTION_STATUS_OPEN, ELECTION_STATUS_CLOSED, 1);
+    $election = $this->helperElectionCreate('stv', TRUE, NULL, NULL, ELECTION_STATUS_OPEN);
     // Create a user account for a voter.
     $voter_account = $this->drupalCreateUser(array(
       'view published elections',
@@ -165,7 +165,7 @@ class ElectionVoteAccessCandidatesTestCase extends ElectionWebTestCase {
     election_post_save($post);
     // Reload the post so it gets processed correctly.
     $post = election_post_load($post->post_id, TRUE);
-    
+
     // Log in as the voter.
     $this->drupalLogin($voter_account);
 
@@ -179,15 +179,15 @@ class ElectionVoteAccessCandidatesTestCase extends ElectionWebTestCase {
     // Check that vote access is therefore denied for the voter.
     $this->drupalGet('election-post/' . $post->post_id);
     $this->assertText(t('Voting is currently closed (not enough candidates)'));
-    
+
     // Since we're going to check access again for the same post and account (in
     // the same page request), clear the static cache of vote access checks.
     drupal_static_reset('election_vote_grants');
-    
+
     // Create enough candidates for the post.
     $num_required = isset($post->vacancy_count) ? $post->vacancy_count + 1 : 2;
     for ($i = 1; $i <= $num_required; $i++) {
-      $this->helperElectionCandidateCreate($post);
+      $this->helperElectionCandidateCreate($post, TRUE);
     }
 
     // Check that there are now enough candidates for the post.

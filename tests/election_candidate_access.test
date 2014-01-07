@@ -40,7 +40,7 @@ class ElectionCandidateNominationAccessTestCase extends ElectionCandidateAccessT
    */
   public function testNominationsAccessByPermission() {
     // Create a published election of type 'stv', with open nominations.
-    $election = $this->helperElectionCreate('stv', NULL, ELECTION_STATUS_CLOSED, ELECTION_STATUS_OPEN, 1);
+    $election = $this->helperElectionCreate('stv', TRUE, NULL, ELECTION_STATUS_OPEN, NULL);
     // Create a published post in the election.
     $post = $this->helperElectionPostCreate($election, TRUE);
 
@@ -76,7 +76,7 @@ class ElectionCandidateNominationAccessTestCase extends ElectionCandidateAccessT
    */
   public function testNominationsAccessByStatus() {
     // Create a published election of type 'stv', with open nominations.
-    $election = $this->helperElectionCreate('stv', NULL, ELECTION_STATUS_CLOSED, ELECTION_STATUS_OPEN, 1);
+    $election = $this->helperElectionCreate('stv', TRUE, NULL, ELECTION_STATUS_OPEN, NULL);
     // Create a published post in the election.
     $post = $this->helperElectionPostCreate($election, TRUE);
     $nominator_account = $this->drupalCreateUser(array(
@@ -116,7 +116,7 @@ class ElectionCandidateNominationAccessTestCase extends ElectionCandidateAccessT
    */
   public function testNominationsAccessPreventDuplicate() {
     // Create a published election of type 'stv', with open nominations.
-    $election = $this->helperElectionCreate('stv', NULL, ELECTION_STATUS_CLOSED, ELECTION_STATUS_OPEN, 1);
+    $election = $this->helperElectionCreate('stv', TRUE, NULL, ELECTION_STATUS_OPEN, NULL);
     // Create a published post in the election.
     $post = $this->helperElectionPostCreate($election, TRUE);
     $nominator_account = $this->drupalCreateUser(array(
@@ -178,7 +178,7 @@ class ElectionCandidateViewAccessTestCase extends ElectionCandidateAccessTestCas
    */
   public function testPublishedAccess() {
     // Create a published election of type 'stv', with open nominations.
-    $election = $this->helperElectionCreate('stv', NULL, ELECTION_STATUS_CLOSED, ELECTION_STATUS_OPEN, 1);
+    $election = $this->helperElectionCreate('stv', TRUE, NULL, ELECTION_STATUS_OPEN, NULL);
     // Create a published post in the election.
     $post = $this->helperElectionPostCreate($election, TRUE);
 
@@ -189,7 +189,7 @@ class ElectionCandidateViewAccessTestCase extends ElectionCandidateAccessTestCas
     $this->drupalLogin($account);
 
     // Create a published candidate.
-    $candidate = $this->helperElectionCandidateCreate($post);
+    $candidate = $this->helperElectionCandidateCreate($post, TRUE);
     $candidate_path = election_candidate_uri_path($candidate);
 
     // Visit the candidate page and check that access is granted.

@@ -62,22 +62,22 @@ class ElectionCandidateCrudTestCase extends DrupalWebTestCase {
     election_post_save($post);
     // Create a new candidate in the election post with a random name and
     // arbitrary e-mail address, and run assertions.
-    $candidate = $this->helperElectionCandidateCreate($post, $this->randomString(), $this->randomString(), 'candidate@example.com');
+    $candidate = $this->helperElectionCandidateCreateUi($post, $this->randomString(), $this->randomString(), 'candidate@example.com');
     // Update the candidate's name, published status, and candidate status.
-    $candidate = $this->helperElectionCandidateUpdate($candidate, array(
+    $candidate = $this->helperElectionCandidateUpdateUi($candidate, array(
       'candidate_name[' . LANGUAGE_NONE . '][0][given]' => $this->randomString(),
       'candidate_name[' . LANGUAGE_NONE . '][0][family]' => $this->randomString(),
       'cstatus' => ELECTION_CANDIDATE_REJECTED,
       'published' => FALSE,
     ));
     // Delete the candidate.
-    $this->helperElectionCandidateDelete($candidate);
+    $this->helperElectionCandidateDeleteUi($candidate);
   }
 
   /**
    * Test creating a new election candidate via the UI.
    */
-  protected function helperElectionCandidateCreate($post, $given_name, $family_name, $mail, array $properties = array()) {
+  protected function helperElectionCandidateCreateUi($post, $given_name, $family_name, $mail, array $properties = array()) {
     $properties['candidate_name[' . LANGUAGE_NONE . '][0][given]'] = $given_name;
     $properties['candidate_name[' . LANGUAGE_NONE . '][0][family]'] = $family_name;
     $properties['candidate_mail[' . LANGUAGE_NONE . '][0][email]'] = $mail;
@@ -106,7 +106,7 @@ class ElectionCandidateCrudTestCase extends DrupalWebTestCase {
   /**
    * Test updating an existing election candidate via the UI.
    */
-  protected function helperElectionCandidateUpdate(stdClass $candidate, array $edit) {
+  protected function helperElectionCandidateUpdateUi(stdClass $candidate, array $edit) {
     $this->drupalPost(election_candidate_uri_path($candidate) . '/edit', $edit, t('Save'));
     // The page should display that the candidate was saved.
     // The (possibly updated) name is needed to test this assertion.
@@ -136,7 +136,7 @@ class ElectionCandidateCrudTestCase extends DrupalWebTestCase {
   /**
    * Test deleting an existing election candidate via the UI.
    */
-  protected function helperElectionCandidateDelete(stdClass $candidate) {
+  protected function helperElectionCandidateDeleteUi(stdClass $candidate) {
     $election = election_load($candidate->election_id);
     $this->drupalPost(election_candidate_uri_path($candidate) . '/delete', array(), t('Delete'));
     // The page should display that the election candidate was deleted.
