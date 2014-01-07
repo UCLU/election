@@ -202,3 +202,93 @@ class ElectionVoteAccessCandidatesTestCase extends ElectionWebTestCase {
   }
 
 }
+
+/**
+ * Test access control for restricting each user to a single vote.
+ */
+class ElectionVoteAccessPreventDuplicateTestCase extends ElectionWebTestCase {
+
+  /**
+   * Provide basic information about the test.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Election Vote access - prevent duplicates',
+      'description' => 'Test access control for restricting each user to a single vote.',
+      'group' => 'Election Vote',
+    );
+  }
+
+  /**
+   * Overrides parent::setUp().
+   */
+  public function setUp() {
+    $modules = array(
+      'election_referendum',
+      'election_stv',
+    );
+    parent::setUp($modules);
+  }
+
+  /**
+   * Test control of duplicate votes.
+   */
+  public function testDuplicateAccess() {
+    foreach (election_types() as $bundle => $election_type) {
+      // Create a published election (with open voting) and a post.
+      $election = $this->helperElectionCreate($bundle, TRUE, NULL, NULL, ELECTION_STATUS_OPEN);
+      $post = $this->helperElectionPostCreate($election, TRUE);
+      $post_path = election_post_uri_path($post);
+      $vote_form_path = $post_path . '/vote';
+      // Create a user account for a voter.
+      $voter = $this->drupalCreateUser(array(
+        'view published elections',
+        'vote in elections',
+      ));
+      // Make sure the post allows that user's role to vote.
+      $post->rids = array_keys($voter->roles);
+      election_post_save($post);
+      // Create the possible votes for each election type.
+      switch ($bundle) {
+        case 'referendum':
+          $vote = array(
+            'answer' => ELECTION_ANSWER_YES,
+          );
+          break;
+
+        case 'stv':
+          // For STV elections, create enough (published) candidates for voting
+          // to be possible.
+          $candidates = array();
+          for ($i = 1; $i <= $post->vacancy_count + 1; $i++) {
+            $candidates[] = $this->helperElectionCandidateCreate($post, TRUE);
+          }
+          $vote = array(
+            'candidate_' . $candidates[0]->candidate_id => '1',
+            'candidate_' . $candidates[1]->candidate_id => '2',
+          );
+          break;
+
+      }
+      // Log in as the voter.
+      $this->drupalLogin($voter);
+      // Submit the vote.
+      $this->drupalPost($vote_form_path, $vote, t('Vote…'));
+      $this->assertText(
+        t('Are you sure you want to cast this vote?'),
+        t('Vote submitted and confirmation form reached.')
+      );
+      // Confirm the vote.
+      $this->drupalPost(NULL, array(), t('Confirm'));
+      $this->assertText(t('Thank you'), t('Vote completed.'));
+      // Access the voting form again.
+      $this->drupalGet($vote_form_path);
+      // Check that the message "You have already voted" is displayed.
+      $this->assertText(
+        t('You have already voted'),
+        t('Access is denied for the voting form after voting.')
+      );
+      $this->drupalLogout();
+    }
+  }
+}

@@ -28,7 +28,7 @@ class ElectionCandidateNominationAccessTestCase extends ElectionCandidateAccessT
    */
   public static function getInfo() {
     return array(
-      'name' => 'Election candidate nominations access',
+      'name' => 'Election Candidate nominations access',
       'description' => 'Test access control for nominating candidates.',
       'group' => 'Election Candidate',
     );
@@ -167,7 +167,7 @@ class ElectionCandidateViewAccessTestCase extends ElectionCandidateAccessTestCas
    */
   public static function getInfo() {
     return array(
-      'name' => 'Election candidate view access',
+      'name' => 'Election Candidate view access',
       'description' => 'Test access control for viewing candidates.',
       'group' => 'Election Candidate',
     );

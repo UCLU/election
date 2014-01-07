@@ -121,8 +121,8 @@ function election_stv_vote_form(&$form, &$form_state) {
   if (!empty($post->settings['use_ron'])) {
     $pref_limit++;
   }
-  for ($i = 0; $i < $pref_limit; $i++) {
-    $rank_options[$i + 1] = _election_stv_get_ordinal($i + 1);
+  for ($i = 1; $i <= $pref_limit; $i++) {
+    $rank_options[$i] = _election_stv_get_ordinal($i);
   }
 
   $post_name = election_get_post_name($election->type);
@@ -257,7 +257,7 @@ function election_stv_vote_form_validate($form, &$form_state) {
       continue;
     }
     // Increment $consecutive_rank, if equal rankings are not allowed.
-    if (!$post->settings['allow_equal'] || !isset($previous_rank) || $rank != $previous_rank) {
+    if (empty($post->settings['allow_equal']) || !isset($previous_rank) || $rank != $previous_rank) {
       $consecutive_rank++;
     }
     // Save the rank as $previous_rank for the next iteration.
