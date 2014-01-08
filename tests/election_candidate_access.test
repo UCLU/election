@@ -52,7 +52,7 @@ class ElectionCandidateNominationAccessTestCase extends ElectionCandidateAccessT
 
     // Visit the nomination form and check that access is denied.
     $this->drupalGet('election-post/' . $post->post_id . '/nomination-form');
-    $this->assertText(t('Access denied'), t('Access is denied to the nomination form for user %name', array(
+    $this->assertResponse(403, t('Access is denied to the nomination form for user %name', array(
       '%name' => $account->name,
     )));
     $this->drupalLogout();
@@ -66,7 +66,7 @@ class ElectionCandidateNominationAccessTestCase extends ElectionCandidateAccessT
 
     // Visit the nomination form and check that access is granted.
     $this->drupalGet('election-post/' . $post->post_id . '/nomination-form');
-    $this->assertNoText(t('Access denied'), t('Access is granted to the nomination form for user %name', array(
+    $this->assertResponse(200, t('Access is granted to the nomination form for user %name', array(
       '%name' => $account->name,
     )));
   }
@@ -95,7 +95,7 @@ class ElectionCandidateNominationAccessTestCase extends ElectionCandidateAccessT
 
     // Visit the nomination form and check that access is granted.
     $this->drupalGet($nomination_form_path);
-    $this->assertNoText(t('Access denied'), t('Access is granted to the nomination form when nominations are open.'));
+    $this->assertResponse(200, t('Access is granted to the nomination form when nominations are open.'));
 
     // Modify the election so that nominations are closed.
     $election->nstatus = ELECTION_STATUS_CLOSED;
@@ -107,7 +107,7 @@ class ElectionCandidateNominationAccessTestCase extends ElectionCandidateAccessT
 
     // Visit the nomination form and check that access is denied.
     $this->drupalGet($nomination_form_path);
-    $this->assertText(t('Access denied'), t('Access is denied to the nomination form when nominations are closed.'));
+    $this->assertResponse(403, t('Access is denied to the nomination form when nominations are closed.'));
   }
 
   /**
@@ -194,7 +194,7 @@ class ElectionCandidateViewAccessTestCase extends ElectionCandidateAccessTestCas
 
     // Visit the candidate page and check that access is granted.
     $this->drupalGet($candidate_path);
-    $this->assertNoText(t('Access denied'), t('Access is granted to view a published candidate.'));
+    $this->assertResponse(200, t('Access is granted to view a published candidate.'));
 
     // Modify the election so that it is unpublished.
     $election->published = 0;
@@ -202,7 +202,7 @@ class ElectionCandidateViewAccessTestCase extends ElectionCandidateAccessTestCas
 
     // Visit the candidate page and check that access is denied.
     $this->drupalGet($candidate_path);
-    $this->assertText(t('Access denied'), t('Access is denied to view a published candidate in an unpublished election.'));
+    $this->assertResponse(403, t('Access is denied to view a published candidate in an unpublished election.'));
 
     // Make the election published again, and unpublish the post.
     $election->published = 1;
@@ -212,7 +212,7 @@ class ElectionCandidateViewAccessTestCase extends ElectionCandidateAccessTestCas
 
     // Visit the candidate page and check that access is denied.
     $this->drupalGet($candidate_path);
-    $this->assertText(t('Access denied'), t('Access is denied to view a published candidate in an unpublished post.'));
+    $this->assertResponse(403, t('Access is denied to view a published candidate in an unpublished post.'));
 
     // Make the post published again, and unpublish the candidate.
     $post->published = 1;
@@ -222,7 +222,7 @@ class ElectionCandidateViewAccessTestCase extends ElectionCandidateAccessTestCas
 
     // Visit the candidate page and check that access is denied.
     $this->drupalGet($candidate_path);
-    $this->assertText(t('Access denied'), t('Access is denied to view an unpublished candidate in a published post.'));
+    $this->assertResponse(403, t('Access is denied to view an unpublished candidate in a published post.'));
   }
 
 }

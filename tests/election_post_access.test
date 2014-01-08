@@ -56,10 +56,7 @@ class ElectionPostViewAccessTestCase extends ElectionPostAccessTestCase {
 
       // Visit the post page and check that access is granted.
       $this->drupalGet($post_path);
-      $this->assertNoText(
-        t('Access denied'),
-        t('Access is granted to view a published @post.', $params)
-      );
+      $this->assertResponse(200, t('Access is granted to view a published @post.', $params));
 
       // Modify the election so that it is unpublished.
       $election->published = 0;
@@ -67,8 +64,8 @@ class ElectionPostViewAccessTestCase extends ElectionPostAccessTestCase {
 
       // Visit the post page and check that access is denied.
       $this->drupalGet($post_path);
-      $this->assertText(
-        t('Access denied'),
+      $this->assertResponse(
+        403,
         t('Access is denied to view a published @post in an unpublished election.', $params)
       );
 
@@ -80,8 +77,8 @@ class ElectionPostViewAccessTestCase extends ElectionPostAccessTestCase {
 
       // Visit the post page and check that access is denied.
       $this->drupalGet($post_path);
-      $this->assertText(
-        t('Access denied'),
+      $this->assertResponse(
+        403,
         t('Access is denied to view an unpublished @post in a published election.', $params)
       );
     }
