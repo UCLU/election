@@ -68,7 +68,7 @@ $handler->display->display_options['filters']['published_or_admin_1']['id'] = 'p
 $handler->display->display_options['filters']['published_or_admin_1']['table'] = 'election_candidate';
 $handler->display->display_options['filters']['published_or_admin_1']['field'] = 'published_or_admin';
 $handler->display->display_options['filters']['published_or_admin_1']['group'] = 1;
-/* Filter criterion: Election candidate: Status */
+/* Filter criterion: Election candidate: Candidate status */
 $handler->display->display_options['filters']['cstatus']['id'] = 'cstatus';
 $handler->display->display_options['filters']['cstatus']['table'] = 'election_candidate';
 $handler->display->display_options['filters']['cstatus']['field'] = 'cstatus';

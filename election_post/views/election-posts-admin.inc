@@ -157,7 +157,7 @@ $handler->display->display_options['fields']['views_bulk_operations']['vbo_opera
     'label' => '',
   ),
 );
-/* Field: Election post: Created date */
+/* Field: Election post: Created time */
 $handler->display->display_options['fields']['created']['id'] = 'created';
 $handler->display->display_options['fields']['created']['table'] = 'election_post';
 $handler->display->display_options['fields']['created']['field'] = 'created';
@@ -168,12 +168,11 @@ $handler->display->display_options['fields']['title']['id'] = 'title';
 $handler->display->display_options['fields']['title']['table'] = 'election_post';
 $handler->display->display_options['fields']['title']['field'] = 'title';
 $handler->display->display_options['fields']['title']['alter']['max_length'] = '30';
-$handler->display->display_options['fields']['title']['link_to_post'] = 1;
-/* Field: Election post: Published */
+/* Field: Election post: Published status */
 $handler->display->display_options['fields']['published']['id'] = 'published';
 $handler->display->display_options['fields']['published']['table'] = 'election_post';
 $handler->display->display_options['fields']['published']['field'] = 'published';
-$handler->display->display_options['fields']['published']['not'] = 0;
+$handler->display->display_options['fields']['published']['label'] = 'Published';
 /* Field: Election post: Link */
 $handler->display->display_options['fields']['view_link']['id'] = 'view_link';
 $handler->display->display_options['fields']['view_link']['table'] = 'election_post';
@@ -220,11 +219,10 @@ $handler->display->display_options['filters']['title']['expose']['remember_roles
   1 => 0,
   3 => 0,
 );
-/* Filter criterion: Election post: Published */
+/* Filter criterion: Election post: Published status */
 $handler->display->display_options['filters']['published']['id'] = 'published';
 $handler->display->display_options['filters']['published']['table'] = 'election_post';
 $handler->display->display_options['filters']['published']['field'] = 'published';
-$handler->display->display_options['filters']['published']['value'] = 'All';
 $handler->display->display_options['filters']['published']['exposed'] = TRUE;
 $handler->display->display_options['filters']['published']['expose']['operator_id'] = '';
 $handler->display->display_options['filters']['published']['expose']['label'] = 'Published';

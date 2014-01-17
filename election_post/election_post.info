@@ -4,7 +4,6 @@ package = Election
 core = 7.x
 dependencies[] = election
 files[] = election-post.controller.inc
-files[] = views/handlers/election_post_views_handler_argument_post_id.inc
 files[] = views/handlers/election_post_views_handler_field.inc
 files[] = views/handlers/election_post_views_handler_field_link.inc
 files[] = views/handlers/election_post_views_handler_field_link_edit.inc

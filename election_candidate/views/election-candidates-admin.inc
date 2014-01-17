@@ -31,6 +31,7 @@ $handler->display->display_options['pager']['options']['offset'] = '0';
 $handler->display->display_options['pager']['options']['id'] = '0';
 $handler->display->display_options['style_plugin'] = 'table';
 $handler->display->display_options['style_options']['columns'] = array(
+  'candidate_id' => 'candidate_id',
   'views_bulk_operations' => 'views_bulk_operations',
   'changed' => 'changed',
   'title' => 'title',
@@ -43,6 +44,13 @@ $handler->display->display_options['style_options']['columns'] = array(
 );
 $handler->display->display_options['style_options']['default'] = 'changed';
 $handler->display->display_options['style_options']['info'] = array(
+  'candidate_id' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
   'views_bulk_operations' => array(
     'align' => '',
     'separator' => '',
@@ -77,6 +85,8 @@ $handler->display->display_options['style_options']['info'] = array(
     'empty_column' => 0,
   ),
   'cstatus' => array(
+    'sortable' => 1,
+    'default_sort_order' => 'asc',
     'align' => '',
     'separator' => '',
     'empty_column' => 0,
@@ -192,7 +202,7 @@ $handler->display->display_options['fields']['views_bulk_operations']['vbo_opera
     'label' => '',
   ),
 );
-/* Field: Election candidate: Updated date */
+/* Field: Election candidate: Last modified time */
 $handler->display->display_options['fields']['changed']['id'] = 'changed';
 $handler->display->display_options['fields']['changed']['table'] = 'election_candidate';
 $handler->display->display_options['fields']['changed']['field'] = 'changed';
@@ -205,7 +215,6 @@ $handler->display->display_options['fields']['title']['field'] = 'title';
 $handler->display->display_options['fields']['title']['label'] = 'Position';
 $handler->display->display_options['fields']['title']['alter']['max_length'] = '40';
 $handler->display->display_options['fields']['title']['alter']['trim'] = TRUE;
-$handler->display->display_options['fields']['title']['link_to_post'] = 1;
 /* Field: Election candidate: Name */
 $handler->display->display_options['fields']['candidate_name']['id'] = 'candidate_name';
 $handler->display->display_options['fields']['candidate_name']['table'] = 'field_data_candidate_name';
@@ -230,15 +239,16 @@ $handler->display->display_options['fields']['name']['table'] = 'users';
 $handler->display->display_options['fields']['name']['field'] = 'name';
 $handler->display->display_options['fields']['name']['relationship'] = 'uid';
 $handler->display->display_options['fields']['name']['label'] = 'User';
-/* Field: Election candidate: Status */
+/* Field: Election candidate: Candidate status */
 $handler->display->display_options['fields']['cstatus']['id'] = 'cstatus';
 $handler->display->display_options['fields']['cstatus']['table'] = 'election_candidate';
 $handler->display->display_options['fields']['cstatus']['field'] = 'cstatus';
-/* Field: Election candidate: Published */
+$handler->display->display_options['fields']['cstatus']['label'] = 'Status';
+/* Field: Election candidate: Published status */
 $handler->display->display_options['fields']['published']['id'] = 'published';
 $handler->display->display_options['fields']['published']['table'] = 'election_candidate';
 $handler->display->display_options['fields']['published']['field'] = 'published';
-$handler->display->display_options['fields']['published']['not'] = 0;
+$handler->display->display_options['fields']['published']['label'] = 'Published';
 /* Field: Election candidate: Profile link */
 $handler->display->display_options['fields']['view_link']['id'] = 'view_link';
 $handler->display->display_options['fields']['view_link']['table'] = 'election_candidate';
@@ -298,11 +308,10 @@ $handler->display->display_options['filters']['candidate_name']['expose']['remem
   1 => 0,
   3 => 0,
 );
-/* Filter criterion: Election candidate: Published */
+/* Filter criterion: Election candidate: Published status */
 $handler->display->display_options['filters']['published']['id'] = 'published';
 $handler->display->display_options['filters']['published']['table'] = 'election_candidate';
 $handler->display->display_options['filters']['published']['field'] = 'published';
-$handler->display->display_options['filters']['published']['value'] = 'All';
 $handler->display->display_options['filters']['published']['group'] = 1;
 $handler->display->display_options['filters']['published']['exposed'] = TRUE;
 $handler->display->display_options['filters']['published']['expose']['operator_id'] = '';
@@ -314,7 +323,7 @@ $handler->display->display_options['filters']['published']['expose']['remember_r
   1 => 0,
   3 => 0,
 );
-/* Filter criterion: Election candidate: Status */
+/* Filter criterion: Election candidate: Candidate status */
 $handler->display->display_options['filters']['cstatus']['id'] = 'cstatus';
 $handler->display->display_options['filters']['cstatus']['table'] = 'election_candidate';
 $handler->display->display_options['filters']['cstatus']['field'] = 'cstatus';

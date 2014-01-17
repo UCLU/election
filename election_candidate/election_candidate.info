@@ -15,6 +15,4 @@ files[] = election-candidate-type-ui.controller.inc
 files[] = views/handlers/election_candidate_views_handler_field_link.inc
 files[] = views/handlers/election_candidate_views_handler_field_link_edit.inc
 files[] = views/handlers/election_candidate_views_handler_field_link_nominate.inc
-files[] = views/handlers/election_candidate_views_handler_field_cstatus.inc
-files[] = views/handlers/election_candidate_views_handler_filter_cstatus.inc
 files[] = views/handlers/election_candidate_views_handler_filter_published.inc

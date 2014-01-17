@@ -10,7 +10,6 @@
  * @see election_referendum_views_default_views_alter()
  */
 
-
 /* Display: Referendum questions */
 $handler = $view->new_display('embed', 'Referendum questions', 'embed_referendum');
 $handler->display->display_options['defaults']['title'] = FALSE;
@@ -36,4 +35,6 @@ $handler->display->display_options['filters']['published_or_admin_1']['field'] =
 $handler->display->display_options['filters']['type']['id'] = 'type';
 $handler->display->display_options['filters']['type']['table'] = 'election';
 $handler->display->display_options['filters']['type']['field'] = 'type';
-$handler->display->display_options['filters']['type']['value'] = 'referendum';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'referendum' => 'referendum',
+);
