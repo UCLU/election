@@ -215,22 +215,11 @@ function election_candidate_form_delete_confirm_submit($form, &$form_state) {
     );
 
     // Delete the candidate.
-    $delete = election_candidate_delete($form_state['values']['candidate_id']);
-    if ($delete) {
-      watchdog('election_candidate', 'Deleted candidate %name.', $info);
-    }
-
-    if ($delete) {
-      drupal_set_message(
-        t('The candidate %name has been deleted from the election %election_title.', $info)
-      );
-    }
-    else {
-      drupal_set_message(
-        t('Failed to delete the candidate %name from the election %election_title.', $info)
-      );
-    }
-
+    election_candidate_delete($form_state['values']['candidate_id']);
+    watchdog('election_candidate', 'Deleted candidate %name.', $info);
+    drupal_set_message(
+      t('The candidate %name has been deleted from the election %election_title.', $info)
+    );
   }
 
   if (empty($_GET['destination']) && $election) {

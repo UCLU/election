@@ -35,6 +35,8 @@ class ElectionCandidateNominationAccessTestCase extends ElectionCandidateAccessT
   }
 
   /**
+   * Test nominations access by permission.
+   *
    * Test that nominations access is affected by the permission 'submit
    * nominations'.
    */
@@ -111,6 +113,8 @@ class ElectionCandidateNominationAccessTestCase extends ElectionCandidateAccessT
   }
 
   /**
+   * Test preventing duplicate nominations.
+   *
    * Test that nominations access is denied to a user who has already submitted
    * a nomination.
    */

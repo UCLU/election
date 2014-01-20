@@ -259,26 +259,15 @@ function election_post_form_delete_confirm_submit($form, &$form_state) {
     $post = election_post_load($form_state['values']['post_id']);
 
     // Delete the post.
-    $delete = election_post_delete($post->post_id);
+    election_post_delete($post->post_id);
 
     $post_name = election_get_post_name($election->type);
 
-    if ($delete) {
-      watchdog('election_post', 'Deleted @post %post_title', array('@post' => $post_name, '%post_title' => $post->title));
-    }
+    watchdog('election_post', 'Deleted @post %post_title', array('@post' => $post_name, '%post_title' => $post->title));
 
-    if ($delete) {
-      drupal_set_message(
-        t('The @post %post_title has been deleted.', array('@post' => $post_name, '%post_title' => $post->title))
-      );
-    }
-    else {
-      drupal_set_message(
-        t('Failed to delete the @post %post_title.', array('@post' => $post_name, '%post_title' => $post->title)),
-        'error'
-      );
-    }
-
+    drupal_set_message(
+      t('The @post %post_title has been deleted.', array('@post' => $post_name, '%post_title' => $post->title))
+    );
   }
 
   if (empty($_GET['destination'])) {

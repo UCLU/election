@@ -37,18 +37,4 @@ class ElectionDefaultController extends EntityAPIController {
 
   }
 
-  /**
-   * Overrides EntityAPIController::delete(), adding a Boolean return value.
-   */
-  public function delete($ids, DatabaseTransaction $transaction = NULL) {
-    try {
-      parent::delete($ids, $transaction);
-    }
-    catch (Exception $e) {
-      throw $e;
-      return FALSE;
-    }
-    return TRUE;
-  }
-
 }

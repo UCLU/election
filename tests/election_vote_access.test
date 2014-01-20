@@ -89,7 +89,7 @@ class ElectionVoteAccessByRoleTestCase extends ElectionWebTestCase {
         // and vice versa.
         foreach ($accounts as $account) {
           $eligible = isset($account->roles[$rid]);
-          $has_access =  election_vote_access('vote', $post, $account);
+          $has_access = election_vote_access('vote', $post, $account);
           $params = array(
             '%name' => $account->name,
             '@post' => election_get_post_name($election->type),

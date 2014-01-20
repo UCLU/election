@@ -3,6 +3,7 @@
  * @file
  * Parent class for further test cases of the Election module.
  */
+
 class ElectionWebTestCase extends DrupalWebTestCase {
 
   /**
@@ -10,11 +11,11 @@ class ElectionWebTestCase extends DrupalWebTestCase {
    *
    * @param string $bundle
    *   An election type machine name.
+   * @param bool $published
+   *   The initial published status for the election (default: FALSE).
    * @param object $owner
    *   The account owning the election (default: a new user account with
    *   requisite permissions).
-   * @param bool $published
-   *   The initial published status for the election (default: FALSE).
    * @param int $nstatus
    *   The initial nominations status for the election (default:
    *   ELECTION_STATUS_CLOSED).
@@ -63,7 +64,7 @@ class ElectionWebTestCase extends DrupalWebTestCase {
    * @param bool $published
    *   Whether the post should be published (default: FALSE).
    *
-   * @return object $post
+   * @return object
    *   The saved election post object.
    */
   protected function helperElectionPostCreate($election, $published = FALSE) {

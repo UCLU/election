@@ -326,25 +326,15 @@ function election_form_delete_confirm($form, &$form_state, stdClass $election) {
 function election_form_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {
     $election = election_load($form_state['values']['election_id']);
-    $delete = election_delete($form_state['values']['election_id']);
-    if ($delete) {
-      watchdog('election', 'Deleted election "%title" (type: @type)', array('@type' => $election->type, '%title' => $election->title));
-    }
+
+    election_delete($form_state['values']['election_id']);
+    watchdog('election', 'Deleted election "%title" (type: @type)', array('@type' => $election->type, '%title' => $election->title));
 
     $type = _election_type_get_info($election->type);
 
-    if ($delete) {
-      drupal_set_message(
-        t('The @type %title has been deleted.', array('@type' => $type['name'], '%title' => $election->title))
-      );
-    }
-    else {
-      drupal_set_message(
-        t('Failed to delete the @type %title.', array('@type' => $type['name'], '%title' => $election->title)),
-        'error'
-      );
-    }
-
+    drupal_set_message(
+      t('The @type %title has been deleted.', array('@type' => $type['name'], '%title' => $election->title))
+    );
   }
   if (empty($_GET['destination'])) {
     $form_state['redirect'] = 'elections';
