@@ -35,19 +35,6 @@ function election_candidate_type_form($form, &$form_state, $candidate_type, $op 
     '#description' => t('A unique machine-readable name for this type. It must only contain lowercase letters, numbers, and underscores.'),
   );
 
-  $form['create_field_candidate_name'] = array(
-    '#title' => t('Add name (<code>candidate_name</code>) field.'),
-    '#type' => 'checkbox',
-    '#default_value' => 1,
-    '#disabled' => TRUE,
-  );
-
-  $form['create_field_candidate_mail'] = array(
-    '#title' => t('Add e-mail address (<code>candidate_mail</code>) field.'),
-    '#type' => 'checkbox',
-    '#default_value' => 1,
-  );
-
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
@@ -62,25 +49,9 @@ function election_candidate_type_form($form, &$form_state, $candidate_type, $op 
  * Form API submit callback for the candidate type form.
  */
 function election_candidate_type_form_submit(&$form, &$form_state) {
-  // Create the candidate type entity.
   $candidate_type = entity_ui_form_submit_build_entity($form, $form_state);
+  $candidate_type->status = ENTITY_CUSTOM;
   $candidate_type->save();
-
-  // Create field instances.
-  $add_name_field = !empty($form_state['values']['create_field_candidate_name']);
-  $add_mail_field = !empty($form_state['values']['create_field_candidate_mail']);
-  if ($add_name_field || $add_mail_field) {
-    module_load_include('inc', 'election_candidate', 'election_candidate.field');
-    $field_instances = _election_candidate_installed_field_instances();
-    foreach ($field_instances as $instance) {
-      if (($instance['field_name'] == 'candidate_name' && $add_name_field)
-        || ($instance['field_name'] == 'candidate_mail' && $add_mail_field)) {
-        $instance['bundle'] = $candidate_type->type;
-        field_create_instance($instance);
-      }
-    }
-  }
-
   $form_state['redirect'] = 'admin/config/election/candidate-types';
 }
 
