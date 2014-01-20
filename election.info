@@ -22,4 +22,5 @@ files[] = tests/election_post_access.test
 files[] = tests/election_post_crud.test
 files[] = tests/election_candidate_access.test
 files[] = tests/election_candidate_crud.test
+files[] = tests/election_candidate_type_crud.test
 files[] = tests/election_vote_access.test
