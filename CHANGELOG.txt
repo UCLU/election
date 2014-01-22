@@ -1,3 +1,11 @@
+Election 7.x-1.x-dev, 2014-01-21
+-----------------------
+- Most Views integration code has been replaced by the use of Entity API's
+  EntityDefaultViewsController class. This may require some custom Views that
+  involve election entities to be updated.
+- When adding a new candidate type, the 'name' and 'e-mail address' fields are
+  added automatically. They can be removed afterwards.
+
 Election 7.x-1.x-dev, 2014-01-05
 -----------------------
 - In a View listing posts, posts can now be hidden (via a JavaScript toggle) by
