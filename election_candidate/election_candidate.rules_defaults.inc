@@ -23,7 +23,7 @@ function election_candidate_default_rules_configuration() {
       { "mail" : {
           "to" : "[account:name] \u003C[account:mail]\u003E",
           "subject" : "Thank you for submitting a nomination for [post:title]",
-          "message" : "This is an automatic e-mail from [site:name] ([site:url-brief]) to confirm your nomination.\r\n\r\n    Election: [election:title]\r\n        [election:url]\r\n\r\n    Position: [post:title]\r\n        [post:url]\r\n\r\n    Candidate name: [candidate:candidate-name]\r\n    Candidate e-mail address: [candidate:candidate-mail]\r\n",
+          "message" : "This is an automatic e-mail from [site:name] ([site:url-brief]) to confirm your nomination.\r\n\r\n    Election: [election:title]\r\n        [election:url]\r\n\r\n    Position: [post:title]\r\n        [post:url]\r\n\r\n    Candidate name: [candidate:name]\r\n    Candidate e-mail address: [candidate:candidate-mail]\r\n",
           "language" : [ "" ]
         }
       }
@@ -46,7 +46,7 @@ function election_candidate_default_rules_configuration() {
     ],
     "DO" : [
       { "mail" : {
-          "to" : "[candidate:candidate-name] \u003C[candidate:candidate-mail]\u003E",
+          "to" : "[candidate:name] \u003C[candidate:candidate-mail]\u003E",
           "subject" : "You have been nominated for [post:title]",
           "message" : "This is an automatic e-mail from [site:name] ([site:url-brief]) to confirm your nomination.\r\n\r\n    Election: [election:title]\r\n        [election:url]\r\n\r\n    Position: [post:title]\r\n        [post:url]\r\n\r\nYou were nominated by the user [account:name] \u003C[account:mail]\u003E.\r\n",
           "language" : [ "" ]

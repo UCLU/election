@@ -32,6 +32,10 @@ function election_candidate_token_info() {
         'description' => t('The post for which the candidate is standing.'),
         'type' => 'election_post',
       ),
+      'name' => array(
+        'name' => t('Name'),
+        'description' => t('The name of the candidate'),
+      ),
     ),
   );
   return $info;
@@ -59,6 +63,10 @@ function election_candidate_tokens($type, array $tokens, array $data = array(), 
         case 'post':
           $post = election_post_load($candidate->post_id);
           $replacements[$original] = $sanitize ? check_plain($post->title) : $post->title;
+          break;
+
+        case 'name':
+          $replacements[$original] = election_candidate_get_name($candidate, $sanitize);
           break;
 
       }
