@@ -36,11 +36,12 @@ class ElectionCandidateTokenTestCase extends ElectionWebTestCase {
     // Create a published post in the election.
     $post = $this->helperElectionPostCreate($election, TRUE);
 
-    // Create a published candidate, with a known name that includes HTML
-    // special characters.
+    // Create a published candidate, with known names that include HTML
+    // special characters, and a known email address.
     $given_name = $this->randomString() . ' & <test>';
     $family_name = $this->randomString() . ' & <test>';
-    $candidate = $this->helperElectionCandidateCreate($post, TRUE, $given_name, $family_name);
+    $mail = $this->randomName() . '@test.example.com';
+    $candidate = $this->helperElectionCandidateCreate($post, TRUE, $given_name, $family_name, $mail);
 
     // Create token test data.
     $data = array('election_candidate' => $candidate);
@@ -75,6 +76,12 @@ class ElectionCandidateTokenTestCase extends ElectionWebTestCase {
     $test_string_replaced = "The candidate's election is '" . $election->title . "'.";
     $text = token_replace($test_string, $data, array('sanitize' => FALSE));
     $this->assertEqual($text, $test_string_replaced, t('Election token is replaced correctly.'));
+
+    // Test email address token replacement.
+    $test_string = "The candidate's e-mail address is '[election_candidate:candidate-mail]'.";
+    $test_string_replaced = "The candidate's e-mail address is '" . $mail . "'.";
+    $text = token_replace($test_string, $data, array('sanitize' => FALSE));
+    $this->assertEqual($text, $test_string_replaced, t('E-mail address token is replaced correctly.'));
   }
 
 }
