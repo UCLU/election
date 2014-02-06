@@ -61,6 +61,9 @@ function election_candidate_download_form($form, &$form_state, stdClass $electio
           'type' => $field['type'],
           'default' => FALSE,
         );
+        if ($field_name == 'candidate_name' || $field_name == 'candidate_mail') {
+          $properties[$field_name]['default'] = TRUE;
+        }
       }
     }
   }
@@ -169,6 +172,9 @@ function election_candidate_download_form_submit($form, &$form_state) {
 function _election_candidate_download_format_property(stdClass $candidate, $property_key, $property) {
   $value = isset($candidate->{$property_key}) ? $candidate->{$property_key} : NULL;
   switch ($property_key) {
+    case 'name':
+      return election_candidate_get_name($candidate, FALSE);
+
     case 'profile_link':
       return url(election_candidate_uri_path($candidate), array('absolute' => TRUE));
 
@@ -190,19 +196,15 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
       return $candidate->published ? t('Published') : t('Not published');
 
   }
-  $type = 'string';
   if (is_array($property) && !empty($property['type'])) {
     $type = $property['type'];
+  }
+  else {
+    return $value;
   }
   switch ($type) {
     case 'timestamp':
       return date('Y-m-d H:i:s', $value);
-
-    case 'string':
-      if (is_string($value)) {
-        return check_plain($value);
-      }
-      break;
 
     case 'file':
     case 'image':
@@ -215,6 +217,10 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
       if (is_array($value) && isset($value[LANGUAGE_NONE][0]['value'])) {
         return html_entity_decode(strip_tags(check_markup($value[LANGUAGE_NONE][0]['value'], 'plain_text')));
       }
+      break;
+
+    case 'email':
+      return is_array($value) && isset($value[LANGUAGE_NONE][0]) ? $value[LANGUAGE_NONE][0]['email'] : NULL;
       break;
 
     default:
