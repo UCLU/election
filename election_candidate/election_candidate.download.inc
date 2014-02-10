@@ -224,9 +224,15 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
       break;
 
     default:
-      if (is_array($value) && isset($value[LANGUAGE_NONE][0])) {
-        $output = field_view_value('election_candidate', $candidate, $property_key, $value[LANGUAGE_NONE][0]);
-        return drupal_render($output);
+      $values = field_get_items('election_candidate', $candidate, $property_key);
+      if (!$values) {
+        return;
       }
+      $output = '';
+      foreach ($values as $value) {
+        $build = field_view_value('election_candidate', $candidate, $property_key, $value);
+        $output .= drupal_render($build) . "\n";
+      }
+      return $output;
   }
 }
