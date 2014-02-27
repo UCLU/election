@@ -70,6 +70,12 @@ function template_preprocess_election_vote_eligibility(&$variables) {
         $eligibility = t('Voting will open in %interval.', array(
           '%interval' => format_interval($election->vopen_time - REQUEST_TIME, 2),
         ));
+        if (user_access('view voting access explanation', $account)) {
+          $eligibility = rtrim($eligibility, '.');
+          $eligibility .= '. ' . t('<a href="@explain_url">Check access</a>.', array(
+            '@explain_url' => url('election-post/' . $post->post_id . '/explain'),
+          ));
+        }
       }
       elseif ($election->vclose_time < REQUEST_TIME) {
         $eligibility = t('Voting closed %interval ago.', array(
@@ -89,7 +95,7 @@ function template_preprocess_election_vote_eligibility(&$variables) {
   elseif (!election_vote_access('vote', $post)) {
     // Access denied. If the user is not logged in, provide a link.
     if ($account_is_user && !user_is_logged_in()) {
-      $eligibility = t('<a href="@login_uri">Log in</a> to vote.', array(
+      $eligibility = t('<a href="@login_uri" class="election-vote-link-login">Log in</a> to vote.', array(
           '@login_uri' => url(
             'user/login',
             array('query' => array('destination' => $_GET['q']))
@@ -127,7 +133,7 @@ function template_preprocess_election_vote_eligibility(&$variables) {
   }
   // The user may vote. Provide a link to the voting form.
   elseif ($account_is_user) {
-    $eligibility = t('You can <a href="@vote_link">vote</a>.', array(
+    $eligibility = t('You can <a href="@vote_link" class="election-vote-link-vote">vote</a>.', array(
       '@vote_link' => url(election_post_uri_path($post) . '/vote'),
     ));
   }
