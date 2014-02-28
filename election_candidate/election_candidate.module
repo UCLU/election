@@ -1303,6 +1303,11 @@ function election_candidate_post_has_enough($post) {
     return TRUE;
   }
 
+  $cache = &drupal_static(__FUNCTION__, array());
+  if (isset($cache[$post->post_id])) {
+    return $cache[$post->post_id];
+  }
+
   // Find the number of published, 'hopeful' candidates standing for the post.
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', 'election_candidate')
@@ -1326,6 +1331,7 @@ function election_candidate_post_has_enough($post) {
   // Allow other modules to alter the result.
   drupal_alter('election_candidate_post_has_enough', $enough, $post, $num_candidates);
 
+  $cache[$post->post_id] = $enough;
   return $enough;
 }
 
