@@ -428,6 +428,7 @@ function election_vote_html_head_alter(&$head_elements) {
  * Implements hook_ENTITY_view_alter().
  */
 function election_vote_election_post_view_alter(&$build, $type) {
+  static $js_added;
   $post = $build['#post'];
   // Display the vote button and eligibility information on election posts.
   $build['vote_button'] = array(
@@ -441,8 +442,9 @@ function election_vote_election_post_view_alter(&$build, $type) {
   );
   // Add the JavaScript for filtering the display of posts by vote access (the
   // user can toggle between 'votable', 'unvotable', and 'all').
-  if (!empty($post->election->settings['post_display_filter'])) {
+  if (!$js_added && !empty($post->election->settings['post_display_filter'])) {
     $build['#attached']['js'][] = drupal_get_path('module', 'election_vote') . '/filter-display-by-access.min.js';
+    $js_added = TRUE;
   }
 }
 
