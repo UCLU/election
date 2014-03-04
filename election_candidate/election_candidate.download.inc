@@ -229,9 +229,18 @@ function _election_candidate_download_format_property(stdClass $candidate, $prop
         return;
       }
       $output = '';
+      $count = count($values);
       foreach ($values as $value) {
-        $build = field_view_value('election_candidate', $candidate, $property_key, $value);
-        $output .= drupal_render($build) . "\n";
+        if (isset($value['value'])) {
+          $output .= $value['value'];
+        }
+        else {
+          $build = field_view_value('election_candidate', $candidate, $property_key, $value);
+          $output .= drupal_render($build);
+        }
+        if ($count > 1) {
+          $output .= "\n";
+        }
       }
       return $output;
   }
