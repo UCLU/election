@@ -293,7 +293,7 @@ function election_access($op, $election = NULL, $account = NULL) {
       break;
 
     case 'delete':
-      if ($election && isset($election->vstatus) && _election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time) && !user_access('bypass running election lock', $account)) {
+      if ($election && election_voting_open($election) && !user_access('bypass running election lock', $account)) {
         // Deny deleting running elections.
         // Use the permission 'bypass running election lock' to bypass this.
         return FALSE;
@@ -690,14 +690,43 @@ function election_get_post_name($type_machine_name, $plural = FALSE) {
 }
 
 /**
+ * Test whether voting is open for an election.
+ *
+ * @param object $election
+ *   The election object.
+ *
+ * @return bool
+ *   TRUE if open, FALSE if closed.
+ */
+function election_voting_open($election) {
+  return _election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time);
+}
+
+/**
+ * Test whether nominations are open for an election.
+ *
+ * @param object $election
+ *   The election object.
+ *
+ * @return bool
+ *   TRUE if open, FALSE if closed.
+ */
+function election_nominations_open($election) {
+  return _election_is_open($election->nstatus, $election->nopen_time, $election->nclose_time);
+}
+
+/**
  * Determine whether voting or nominating in an election is 'open'.
  *
  * @param int $status
  *   The vstatus/nstatus of the election (see election.install).
  * @param int $open_time
- *   The UNIX timestamp for the election's voting opening time.
+ *   The UNIX timestamp for the opening time.
  * @param int $close_time
- *   The UNIX timestamp for the election's voting closing time.
+ *   The UNIX timestamp for the closing time.
+ *
+ * @return bool
+ *   TRUE if open, FALSE if closed.
  */
 function _election_is_open($status, $open_time, $close_time) {
   if ($status == ELECTION_STATUS_OPEN) {

@@ -291,7 +291,7 @@ function election_post_access($op, $post, $account = NULL) {
     case 'delete':
       // These actions are denied while voting is open for this post.
       // Use the 'bypass running election lock' permission to allow them again.
-      if (_election_post_is_open($post) && !user_access('bypass running election lock', $account)) {
+      if (election_post_voting_open($post) && !user_access('bypass running election lock', $account)) {
         return FALSE;
       }
       // These actions have the same access as updating elections.
@@ -615,6 +615,32 @@ function election_post_view($post, $view_mode = 'full') {
 }
 
 /**
+ * Test whether voting is open for a post.
+ *
+ * @param object $post
+ *   The election post object.
+ *
+ * @return bool
+ *   TRUE if voting is open for the post, FALSE otherwise.
+ */
+function election_post_voting_open($post) {
+  return _election_post_is_open($post, 'v');
+}
+
+/**
+ * Test whether nominations are open for a post.
+ *
+ * @param object $post
+ *   The election post object.
+ *
+ * @return bool
+ *   TRUE if nominations are open for the post, FALSE otherwise.
+ */
+function election_post_nominations_open($post) {
+  return _election_post_is_open($post, 'n');
+}
+
+/**
  * Find out if a post is open.
  *
  * @param object $post
@@ -625,7 +651,7 @@ function election_post_view($post, $view_mode = 'full') {
  * @return bool
  *   TRUE if the post is open, FALSE otherwise.
  */
-function _election_post_is_open(stdClass $post, $status_prefix = 'v') {
+function _election_post_is_open(stdClass $post, $status_prefix) {
   $status_inheritance = $post->{$status_prefix . 'status_inheritance'};
   if ($status_inheritance == ELECTION_POST_STATUS_CLOSED) {
     return FALSE;

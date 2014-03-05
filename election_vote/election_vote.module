@@ -137,7 +137,7 @@ function election_vote_access($op, stdClass $post, $account = NULL) {
 
   // Check whether the election is open.
   $election = $post->election;
-  if (!_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
+  if (!election_voting_open($election)) {
     $grants[$post->post_id][$account->uid][$op] = FALSE;
     return FALSE;
   }
@@ -249,7 +249,7 @@ function election_vote_access_explain($post, $account = NULL) {
   );
 
   // Examine the election voting status.
-  $election_open = _election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time);
+  $election_open = election_voting_open($election);
   $limitations['vstatus'] = array(
     'explanation' => t('Voting must be open for this election.'),
     'result' => $election_open,

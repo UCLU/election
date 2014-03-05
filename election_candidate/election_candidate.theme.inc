@@ -106,7 +106,7 @@ function template_preprocess_election_candidate_nominate_link(&$variables) {
   $post = $variables['post'];
   $variables['logged_in'] = user_is_logged_in();
   $variables['nominate_path'] = election_post_uri_path($post) . '/nomination-form';
-  $variables['nominate_open'] = _election_post_is_open($post, 'n');
+  $variables['nominate_open'] = election_post_nominations_open($post);
   $variables['nominate_access'] = election_candidate_nominate_access($post);
 }
 

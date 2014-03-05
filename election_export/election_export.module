@@ -63,7 +63,7 @@ function election_export_access($op, stdClass $election, $account = NULL) {
   }
   // Check that the election isn't running, or that the user can 'bypass
   // running election lock'.
-  if (_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time) && !user_access('bypass running election lock', $account)) {
+  if (election_voting_open($election) && !user_access('bypass running election lock', $account)) {
     return FALSE;
   }
   // Check for permission to export own/any election results.

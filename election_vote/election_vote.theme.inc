@@ -63,7 +63,7 @@ function template_preprocess_election_vote_eligibility(&$variables) {
     $eligibility = t('Voting is currently closed for this @post.', array('@post' => $post_name));
   }
   // Check whether the whole election is closed.
-  elseif (!_election_is_open($election->vstatus, $election->vopen_time, $election->vclose_time)) {
+  elseif (!election_voting_open($election)) {
     // If scheduled, explain when voting will open (or when it closed).
     if ($election->vstatus == ELECTION_STATUS_SCHEDULED) {
       if ($election->vopen_time > REQUEST_TIME) {
