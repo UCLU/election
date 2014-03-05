@@ -40,14 +40,17 @@ function election_condition_hook_info() {
 function election_condition_entity_load($entities, $type) {
   // Add 'conditions' property to posts.
   if ($type == 'election_post') {
-    $conditions = array();
+    $post_ids = array();
+    foreach ($entities as $post) {
+      if (!isset($post->conditions)) {
+        $post_ids[] = $post->post_id;
+        $post->conditions = array();
+      }
+    }
     $posts_conditions = db_select('election_post_condition', 'epc')
       ->fields('epc', array('post_id', 'condition_machine_name'))
-      ->condition('post_id', array_keys($entities), 'IN')
+      ->condition('post_id', $post_ids, 'IN')
       ->execute();
-    if (!$posts_conditions->rowCount()) {
-      return;
-    }
     $condition_info = election_condition_get_conditions();
     while ($record = $posts_conditions->fetch()) {
       $mn = $record->condition_machine_name;
@@ -61,9 +64,6 @@ function election_condition_entity_load($entities, $type) {
           'callbacks' => array(),
           'user explanation' => t('Unknown condition'),
         );
-      }
-      if (!isset($entities[$record->post_id]->conditions)) {
-        $entities[$record->post_id]->conditions = array();
       }
       $entities[$record->post_id]->conditions[$mn] = $condition;
     }
