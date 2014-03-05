@@ -165,8 +165,8 @@ function election_statistics_get_totals(stdClass $election, $reset = FALSE) {
   }
   $query = _election_statistics_totals_query($election);
   $result = $query->execute()->fetchAssoc();
-  // Cache the result for 5 minutes.
-  cache_set($cache_key, $result, 'cache', REQUEST_TIME + 300);
+  // Cache the result (for 5 minutes by default).
+  cache_set($cache_key, $result, 'cache', REQUEST_TIME + variable_get('election_statistics_ttl', 300));
   return $result;
 }
 
@@ -195,8 +195,8 @@ function election_statistics_get_post_totals(stdClass $election, $reset = FALSE)
   $query->fields('ev', array('post_id'));
   $query->groupBy('ev.post_id');
   $result = $query->execute()->fetchAllAssoc('post_id', PDO::FETCH_ASSOC);
-  // Cache the result for 5 minutes.
-  cache_set($cache_key, $result, 'cache', REQUEST_TIME + 300);
+  // Cache the result (for 5 minutes by default).
+  cache_set($cache_key, $result, 'cache', REQUEST_TIME + variable_get('election_statistics_ttl', 300));
   return $result;
 }
 
