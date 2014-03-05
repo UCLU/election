@@ -213,6 +213,7 @@ function _election_statistics_totals_query(stdClass $election) {
   $query->addExpression('COUNT(DISTINCT IF(ev.abstain=0, ev.ballot_id, NULL))', 'votes');
   $query->addExpression('COUNT(DISTINCT IF(ev.abstain=1, ev.ballot_id, NULL))', 'abstentions');
   $query->addExpression('COUNT(DISTINCT IF(eb.uid = 0, eb.sid_hash, eb.uid))', 'voters');
+  $query->addTag('election_statistics_totals');
   return $query;
 }
 
