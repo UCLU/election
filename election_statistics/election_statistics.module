@@ -147,6 +147,8 @@ function election_statistics_block_view($delta = '') {
  *
  * @param object $election
  *   The election entity.
+ * @param bool $reset
+ *   Whether to bypass the cache for this request. Defaults to FALSE.
  *
  * @return array
  *   An associative array containing:
@@ -155,16 +157,17 @@ function election_statistics_block_view($delta = '') {
  *     'votes' (integer),
  *     'abstentions' (integer).
  */
-function election_statistics_get_totals(stdClass $election) {
-  $cache = &drupal_static(__FUNCTION__, array());
-  $eid = $election->election_id;
-  // Return cached data if it already exists during this page request.
-  if (isset($cache[$eid])) {
-    return $cache[$eid];
+function election_statistics_get_totals(stdClass $election, $reset = FALSE) {
+  $cache_key = 'election_statistics:' . $election->election_id;
+  // Return cached data if it already exists.
+  if (!$reset && ($cache = cache_get($cache_key)) && $cache->expire > REQUEST_TIME) {
+    return $cache->data;
   }
   $query = _election_statistics_totals_query($election);
-  $cache[$eid] = $query->execute()->fetchAssoc();
-  return $cache[$eid];
+  $result = $query->execute()->fetchAssoc();
+  // Cache the result for 5 minutes.
+  cache_set($cache_key, $result, 'cache', REQUEST_TIME + 300);
+  return $result;
 }
 
 /**
@@ -174,24 +177,27 @@ function election_statistics_get_totals(stdClass $election) {
  *
  * @param object $election
  *   The election entity.
+ * @param bool $reset
+ *   Whether to bypass the cache for this request. Defaults to FALSE.
  *
  * @return array
  *   An associative array of post statistics, keyed by post ID, containing the
  *   properties listed in election_statistics_get_totals().
  */
-function election_statistics_get_post_totals(stdClass $election) {
-  $cache = &drupal_static(__FUNCTION__, array());
-  $eid = $election->election_id;
-  // Return cached data if it already exists during this page request.
-  if (isset($cache[$eid]['posts'])) {
-    return $cache[$eid]['posts'];
+function election_statistics_get_post_totals(stdClass $election, $reset = FALSE) {
+  $cache_key = 'election_statistics:' . $election->election_id . ':posts';
+  // Return cached data if it already exists.
+  if (!$reset && ($cache = cache_get($cache_key)) && $cache->expire > REQUEST_TIME) {
+    return $cache->data;
   }
   $query = _election_statistics_totals_query($election);
   // Group results by post.
   $query->fields('ev', array('post_id'));
   $query->groupBy('ev.post_id');
-  $cache[$eid] = $query->execute()->fetchAllAssoc('post_id', PDO::FETCH_ASSOC);
-  return $cache[$eid];
+  $result = $query->execute()->fetchAllAssoc('post_id', PDO::FETCH_ASSOC);
+  // Cache the result for 5 minutes.
+  cache_set($cache_key, $result, 'cache', REQUEST_TIME + 300);
+  return $result;
 }
 
 /**

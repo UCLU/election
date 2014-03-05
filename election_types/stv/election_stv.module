@@ -421,7 +421,7 @@ function election_stv_query_alter($query) {
 function election_stv_preprocess_election_statistics(&$variables) {
   $election = $variables['election'];
   if ($election->type == 'stv') {
-    $totals = election_statistics_get_totals($variables['election']);
+    $totals = $variables['totals'];
     $variables['content']['election_table']['#header']['rankings'] = t('Rankings (STV)');
     $variables['content']['election_table']['#rows'][0]['rankings'] = t('@rankings (@avg per vote)', array(
       '@rankings' => number_format($totals['rankings']),
