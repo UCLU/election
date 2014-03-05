@@ -392,16 +392,15 @@ function election_post_load_by_election(stdClass $election, $only_published = TR
 function election_post_entity_load($entities, $type) {
   // Add 'election' property to posts.
   if ($type == 'election_post') {
-    $elections = &drupal_static(__FUNCTION__, array());
     $election_ids = array();
     foreach ($entities as $post) {
-      $election_ids[] = $post->election_id;
+      if (!isset($post->election)) {
+        $election_ids[] = $post->election_id;
+      }
     }
-    if (count(array_diff($election_ids, array_keys($elections)))) {
-      $elections += election_load_multiple($election_ids);
-    }
-    foreach ($entities as $post) {
-      if (!isset($post->election) && !empty($elections[$post->election_id])) {
+    if (count($election_ids)) {
+      $elections = election_load_multiple($election_ids);
+      foreach ($entities as $post) {
         $post->election = $elections[$post->election_id];
       }
     }

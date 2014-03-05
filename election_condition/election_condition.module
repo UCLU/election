@@ -40,33 +40,32 @@ function election_condition_hook_info() {
 function election_condition_entity_load($entities, $type) {
   // Add 'conditions' property to posts.
   if ($type == 'election_post') {
-    $conditions = &drupal_static(__FUNCTION__, array());
-    if (count(array_diff_key($entities, $conditions))) {
-      $posts_conditions = db_select('election_post_condition', 'epc')
-        ->fields('epc', array('post_id', 'condition_machine_name'))
-        ->condition('post_id', array_keys($entities), 'IN')
-        ->execute();
-      if ($posts_conditions->rowCount()) {
-        $condition_info = election_condition_get_conditions();
-        while ($record = $posts_conditions->fetch()) {
-          $mn = $record->condition_machine_name;
-          if (isset($condition_info[$mn])) {
-            $condition = $condition_info[$mn];
-          }
-          else {
-            $condition = array(
-              'condition_machine_name' => $mn,
-              'name' => $mn,
-              'callbacks' => array(),
-              'user explanation' => t('Unknown condition'),
-            );
-          }
-          $conditions[$record->post_id][$mn] = $condition;
-        }
-      }
+    $conditions = array();
+    $posts_conditions = db_select('election_post_condition', 'epc')
+      ->fields('epc', array('post_id', 'condition_machine_name'))
+      ->condition('post_id', array_keys($entities), 'IN')
+      ->execute();
+    if (!$posts_conditions->rowCount()) {
+      return;
     }
-    foreach ($entities as $post_id => $post) {
-      $post->conditions = isset($conditions[$post_id]) ? $conditions[$post_id] : array();
+    $condition_info = election_condition_get_conditions();
+    while ($record = $posts_conditions->fetch()) {
+      $mn = $record->condition_machine_name;
+      if (isset($condition_info[$mn])) {
+        $condition = $condition_info[$mn];
+      }
+      else {
+        $condition = array(
+          'condition_machine_name' => $mn,
+          'name' => $mn,
+          'callbacks' => array(),
+          'user explanation' => t('Unknown condition'),
+        );
+      }
+      if (!isset($entities[$record->post_id]->conditions)) {
+        $entities[$record->post_id]->conditions = array();
+      }
+      $entities[$record->post_id]->conditions[$mn] = $condition;
     }
   }
 }
