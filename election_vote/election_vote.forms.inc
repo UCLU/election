@@ -223,6 +223,9 @@ function election_vote_undo_form_submit($form, &$form_state) {
 
     $form_state['redirect'] = election_uri_path($election);
 
+    // Invoke "After undoing a vote/abstention" hooks and rules.
+    rules_invoke_all('election_vote_undo', $GLOBALS['user'], $post, $election);
+
   }
 
 }

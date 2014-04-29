@@ -68,6 +68,26 @@ function election_vote_rules_event_info() {
       ),
     ),
   );
+  $events['election_vote_undo'] = $defaults + array(
+    'label' => t('After undoing a vote/abstention'),
+    'variables' => array(
+      'account' => array(
+        'type' => 'user',
+        'label' => t('The user who undid the vote/abstention'),
+        'skip save' => TRUE,
+      ),
+      'post' => array(
+        'type' => 'election_post',
+        'label' => t('The election post'),
+        'skip save' => TRUE,
+      ),
+      'election' => array(
+        'type' => 'election',
+        'label' => t('The election'),
+        'skip save' => TRUE,
+      ),
+    ),
+  );
   return $events;
 }
 
