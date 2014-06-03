@@ -9,13 +9,11 @@
  */
 function election_condition_election_vote_before_grant($post, $account) {
 
-  // Call all the callbacks for all the conditions. All the callbacks must exist
-  // and return TRUE; otherwise, voting access will be denied.
+  // Test all the conditions. All of them must pass for voting access to be
+  // granted.
   foreach ($post->conditions as $condition) {
-    foreach ($condition['callbacks'] as $callback) {
-      if (!function_exists($callback) || $callback($post, $account) !== TRUE) {
-        return FALSE;
-      }
+    if (!election_condition_test($condition, $post, $account)) {
+      return FALSE;
     }
   }
 
@@ -34,13 +32,7 @@ function election_condition_election_vote_access_explain_alter(&$limitations, $p
     $limitations['condition_' . $machine_name] = array(
       'explanation' => isset($condition['user explanation']) ? $condition['user explanation'] : $condition['name'],
     );
-    foreach ($condition['callbacks'] as $callback) {
-      if (!function_exists($callback) || $callback($post, $account) !== TRUE) {
-        $limitations['condition_' . $machine_name]['result'] = FALSE;
-        break;
-      }
-      $limitations['condition_' . $machine_name]['result'] = TRUE;
-    }
+    $limitations['condition_' . $machine_name]['result'] = election_condition_test($condition, $machine_name, $post, $account);
   }
 
 }

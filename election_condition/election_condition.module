@@ -59,12 +59,11 @@ function election_condition_entity_load($entities, $type) {
       }
       else {
         $condition = array(
-          'condition_machine_name' => $mn,
           'name' => $mn,
-          'callbacks' => array(),
           'user explanation' => t('Unknown condition'),
         );
       }
+      $condition['machine_name'] = $mn;
       $entities[$record->post_id]->conditions[$mn] = $condition;
     }
   }
@@ -186,4 +185,25 @@ function election_condition_entity_delete($entity, $type) {
       break;
 
   }
+}
+
+/**
+ * Get the result of a condition.
+ *
+ * @param array $condition
+ * @param object $post
+ * @param object $account
+ *
+ * @return bool
+ */
+function election_condition_test($condition, $post, $account) {
+  $callback = isset($condition['callback']) ? $condition['callback'] : $condition['machine_name'];
+  if (!is_callable($callback)) {
+    return FALSE;
+  }
+  $data = isset($condition['data']) ? $condition['data'] : NULL;
+  if (function_exists($callback)) {
+    return $callback($post, $account, $data) === TRUE;
+  }
+  return call_user_func($callback, $post, $account, $data) === TRUE;
 }
