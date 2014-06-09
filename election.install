@@ -182,6 +182,9 @@ function election_update_7103() {
  * Add 'settings' field.
  */
 function election_update_7104() {
+  if (db_field_exists('election', 'settings')) {
+    return;
+  }
   db_add_field('election', 'settings', array(
     'description' => 'A serialized array of any further settings for this election.',
     'type' => 'blob',
