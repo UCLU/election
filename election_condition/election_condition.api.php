@@ -19,6 +19,7 @@
  *     user account object. The callback must return TRUE if the user passes the
  *     condition.
  *   - data: (Optional) An optional extra argument to pass to the callback.
+ *   - file: (Optional) An optional filename that contains the condition.
  *   - description: A description of the condition for administrators.
  *   - user explanation: An explanation of the condition for users.
  */

@@ -197,6 +197,9 @@ function election_condition_entity_delete($entity, $type) {
  * @return bool
  */
 function election_condition_test($condition, $post, $account) {
+  if (!empty($condition['file'])) {
+    include_once $condition['file'];
+  }
   $callback = isset($condition['callback']) ? $condition['callback'] : $condition['machine_name'];
   if (!is_callable($callback)) {
     return FALSE;
