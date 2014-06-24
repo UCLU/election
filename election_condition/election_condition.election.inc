@@ -32,7 +32,7 @@ function election_condition_election_vote_access_explain_alter(&$limitations, $p
     $limitations['condition_' . $machine_name] = array(
       'explanation' => isset($condition['user explanation']) ? $condition['user explanation'] : $condition['name'],
     );
-    $limitations['condition_' . $machine_name]['result'] = election_condition_test($condition, $machine_name, $post, $account);
+    $limitations['condition_' . $machine_name]['result'] = election_condition_test($condition, $post, $account);
   }
 
 }
