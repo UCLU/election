@@ -5,35 +5,26 @@
  */
 
 /**
- * Implements hook_features_api().
+ * Implements hook_field_default_field_bases().
+ *
+ * This hook is provided by the Features module (not the Field module).
  */
-function election_candidate_features_api() {
-  return array(
-    'election_candidate_type' => array(
-      'name' => t('Candidate types'),
-      'feature_source' => TRUE,
-      'default_hook' => 'election_candidate_default_election_candidate_type',
-    ),
-  );
-}
-
-/**
- * Implements hook_field_default_field_bases_alter().
- */
-function election_candidate_field_default_field_bases_alter(&$field_bases) {
+function election_candidate_field_default_field_bases() {
   // Let the Features module know that the candidate_name and candidate_mail
   // field bases are provided by the election_candidate module, so they are not
   // exported into other features.
+  $field_bases = array();
   module_load_include('inc', 'election_candidate', 'election_candidate.field');
   foreach (_election_candidate_fields() as $field_name => $field) {
     if (!isset($field_bases[$field_name])) {
       $field_bases[$field_name] = $field;
     }
   }
+  return $field_bases;
 }
 
 /**
- * Implements hook_features_export.
+ * Implements hook_features_export().
  */
 function election_candidate_type_features_export($data, &$export, $module_name = '') {
   $pipe = array();
